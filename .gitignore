@@ -1,0 +1,14 @@
+.env
+.env.local
+.DS_Store
+platform/backend/data/
+platform/backend/target/
+platform/web/node_modules/
+platform/web/.next/
+platform/web/.turbo/
+platform/web/out/
+data/football/*.csv
+data/football/*.parquet
+data/football/*.feather
+data/football/*.json
+data/f1/*

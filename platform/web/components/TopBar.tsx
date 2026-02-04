@@ -1,0 +1,148 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+
+type F1Context = {
+  season: string;
+  round: string;
+  session: "Preview" | "Qualifying" | "Race" | "Review";
+};
+
+type FootballContext = {
+  league: string;
+  season: string;
+  match: string;
+};
+
+const defaultF1: F1Context = {
+  season: "2026",
+  round: "1",
+  session: "Preview",
+};
+
+const defaultFootball: FootballContext = {
+  league: "EPL",
+  season: "2026",
+  match: "Next",
+};
+
+function readLocal<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return fallback;
+    return { ...fallback, ...(JSON.parse(raw) as Partial<T>) } as T;
+  } catch {
+    return fallback;
+  }
+}
+
+export default function TopBar() {
+  const pathname = usePathname();
+  const isF1 = pathname.startsWith("/f1");
+  const isFootball = pathname.startsWith("/football");
+
+  const [f1Context, setF1Context] = useState<F1Context>(defaultF1);
+  const [footballContext, setFootballContext] = useState<FootballContext>(defaultFootball);
+
+  useEffect(() => {
+    setF1Context(readLocal("context:f1", defaultF1));
+    setFootballContext(readLocal("context:football", defaultFootball));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("context:f1", JSON.stringify(f1Context));
+    }
+  }, [f1Context]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("context:football", JSON.stringify(footballContext));
+    }
+  }, [footballContext]);
+
+  return (
+    <div className="topbar">
+      <div className="topbar-title">Context</div>
+      {isF1 ? (
+        <div className="context-grid">
+          <div className="context-field">
+            <label>Season</label>
+            <input
+              value={f1Context.season}
+              onChange={(event) =>
+                setF1Context((prev) => ({ ...prev, season: event.target.value }))
+              }
+            />
+          </div>
+          <div className="context-field">
+            <label>Round</label>
+            <input
+              value={f1Context.round}
+              onChange={(event) =>
+                setF1Context((prev) => ({ ...prev, round: event.target.value }))
+              }
+            />
+          </div>
+          <div className="context-field">
+            <label>Session</label>
+            <select
+              value={f1Context.session}
+              onChange={(event) =>
+                setF1Context((prev) => ({
+                  ...prev,
+                  session: event.target.value as F1Context["session"],
+                }))
+              }
+            >
+              {(["Preview", "Qualifying", "Race", "Review"] as const).map((session) => (
+                <option key={session} value={session}>
+                  {session}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      ) : isFootball ? (
+        <div className="context-grid">
+          <div className="context-field">
+            <label>League</label>
+            <input
+              value={footballContext.league}
+              onChange={(event) =>
+                setFootballContext((prev) => ({ ...prev, league: event.target.value }))
+              }
+            />
+          </div>
+          <div className="context-field">
+            <label>Season</label>
+            <input
+              value={footballContext.season}
+              onChange={(event) =>
+                setFootballContext((prev) => ({ ...prev, season: event.target.value }))
+              }
+            />
+          </div>
+          <div className="context-field">
+            <label>Match</label>
+            <input
+              value={footballContext.match}
+              onChange={(event) =>
+                setFootballContext((prev) => ({ ...prev, match: event.target.value }))
+              }
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="context-hint">Select a sport section to set context.</div>
+      )}
+      <div className="topbar-actions">
+        <span className="pill">Local mode</span>
+      </div>
+    </div>
+  );
+}

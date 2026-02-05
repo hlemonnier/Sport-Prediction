@@ -56,30 +56,35 @@ export default function FootballPreview() {
 
   return (
     <div className="stack">
-      <div className="card">
-        <h2 className="module-title">Data Readiness</h2>
-        <p className="module-subtitle">
-          Teams: {status?.football.teams.exists ? "OK" : "Missing"} · Matches: {" "}
-          {status?.football.matches.exists ? "OK" : "Missing"} · Fixtures: {" "}
-          {status?.football.fixtures.exists ? "OK" : "Missing"}
-        </p>
-        <p className="section-subtitle">Populate data/football to unlock predictions.</p>
+      <div className="status-strip">
+        <div className="status-item">
+          <span className={`status-dot ${status?.football.teams.exists ? "ok" : "miss"}`} />
+          Equipes
+        </div>
+        <div className="status-item">
+          <span className={`status-dot ${status?.football.matches.exists ? "ok" : "miss"}`} />
+          Matchs
+        </div>
+        <div className="status-item">
+          <span className={`status-dot ${status?.football.fixtures.exists ? "ok" : "miss"}`} />
+          Fixtures
+        </div>
       </div>
       <div className="card">
-        <h2 className="module-title">Upcoming Fixtures</h2>
+        <h2 className="module-title">Prochains matchs</h2>
         <p className="module-subtitle">
-          {fixtures?.warning ?? "Loaded from data/football/fixtures.*"}
+          {fixtures?.warning ?? "Source: data/football/fixtures.*"}
         </p>
         {fixtures && fixtures.fixtures.length > 0 ? (
           <table className="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>League</th>
-                <th>Home</th>
-                <th>Away</th>
-              </tr>
-            </thead>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Ligue</th>
+                  <th>Domicile</th>
+                  <th>Exterieur</th>
+                </tr>
+              </thead>
             <tbody>
               {fixtures.fixtures.map((fixture) => (
                 <tr key={fixture.matchId}>
@@ -92,8 +97,20 @@ export default function FootballPreview() {
             </tbody>
           </table>
         ) : (
-          <p className="section-subtitle">No fixtures loaded yet.</p>
+          <p className="section-subtitle">Aucun fixture charge pour le moment.</p>
         )}
+      </div>
+      <div className="grid-two">
+        <div className="card">
+          <h2 className="module-title">Proba 1X2</h2>
+          <p className="module-subtitle">Match le plus proche.</p>
+          <p className="section-subtitle">Aucune prediction pour l'instant.</p>
+        </div>
+        <div className="card">
+          <h2 className="module-title">Facteurs cles</h2>
+          <p className="module-subtitle">Forme, home advantage, strength.</p>
+          <p className="section-subtitle">Signaux en attente de donnees.</p>
+        </div>
       </div>
     </div>
   );

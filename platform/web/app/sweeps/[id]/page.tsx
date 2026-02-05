@@ -3,15 +3,22 @@ import type { SweepDetail } from "@/lib/types";
 import SweepChart from "@/components/SweepChart";
 
 export default async function SweepDetailPage({ params }: { params: { id: string } }) {
-  const res = await fetch(`${API_BASE}/api/sweeps/${params.id}`, { cache: "no-store" });
-  if (!res.ok) {
+  let sweep: SweepDetail | null = null;
+  try {
+    const res = await fetch(`${API_BASE}/api/sweeps/${params.id}`, { cache: "no-store" });
+    if (res.ok) {
+      sweep = (await res.json()) as SweepDetail;
+    }
+  } catch {
+    sweep = null;
+  }
+  if (!sweep) {
     return (
       <div className="card">
-        <h1 className="section-title">Sweep not found</h1>
+        <h1 className="section-title">Sweep introuvable</h1>
       </div>
     );
   }
-  const sweep = (await res.json()) as SweepDetail;
   return (
     <div className="stack">
       <div className="card">
@@ -21,7 +28,7 @@ export default async function SweepDetailPage({ params }: { params: { id: string
         </p>
       </div>
       <div className="card">
-        <h2 className="section-title">Summary</h2>
+        <h2 className="section-title">Resume</h2>
         <SweepChart summary={sweep.summary} />
       </div>
       <div className="card">
@@ -30,9 +37,9 @@ export default async function SweepDetailPage({ params }: { params: { id: string
           <thead>
             <tr>
               <th>ID</th>
-              <th>Status</th>
-              <th>Param Value</th>
-              <th>Created</th>
+              <th>Statut</th>
+              <th>Valeur param</th>
+              <th>Creation</th>
             </tr>
           </thead>
           <tbody>

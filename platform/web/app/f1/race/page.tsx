@@ -18,31 +18,34 @@ export default async function F1RacePage() {
   if (!project) {
     return (
       <div className="card">
-        <h1 className="section-title">F1 Race</h1>
-        <p className="section-subtitle">Project F1 introuvable.</p>
+        <h1 className="section-title">F1 Course</h1>
+        <p className="section-subtitle">Projet F1 introuvable.</p>
       </div>
     );
   }
 
   return (
     <div className="stack">
+      <div className="context-bar">
+        Saison 2026 / Manche 1 / Session Course / Modele v0.1 / Baseline v0
+      </div>
       <RunForm
         project={project}
-        title="F1 Race Prediction"
-        description="Prédire le classement course avant le départ."
+        title="F1 Course"
+        description="Predire le classement course avant le depart."
         defaults={{ mode: "race" }}
         locked={["mode"]}
       />
       <div className="grid-two">
         <div className="card">
-          <h2 className="module-title">Top 10 Focus</h2>
+          <h2 className="module-title">Focus top 10</h2>
           <p className="module-subtitle">Synthese des positions attendues.</p>
-          <p className="section-subtitle">No ranking summary yet.</p>
+          <p className="section-subtitle">Pas de resume pour l'instant.</p>
         </div>
         <div className="card">
-          <h2 className="module-title">Scenario Notes</h2>
+          <h2 className="module-title">Notes scenarios</h2>
           <p className="module-subtitle">Course propre vs chaotique (optionnel).</p>
-          <p className="section-subtitle">Add scenario heuristics later.</p>
+          <p className="section-subtitle">Ajouter des heuristiques plus tard.</p>
         </div>
       </div>
     </div>

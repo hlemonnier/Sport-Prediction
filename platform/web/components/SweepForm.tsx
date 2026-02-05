@@ -67,7 +67,7 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
     if (!selectedProject) {
       return;
     }
-    setStatus("running");
+    setStatus("en_cours");
     const params: Record<string, unknown> = {};
     for (const param of selectedProject.params) {
       params[param.name] = parseValue(param, baseValues[param.name] ?? "");
@@ -91,25 +91,25 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
     });
 
     if (!res.ok) {
-      setStatus("failed");
+      setStatus("echec");
       return;
     }
 
     const data = (await res.json()) as { sweepId: string };
-    setStatus(`created: ${data.sweepId}`);
+    setStatus(`cree: ${data.sweepId}`);
   };
 
   return (
     <form className="card stack" onSubmit={handleSubmit}>
       <div>
-        <h2 className="section-title">New Sweep</h2>
+        <h2 className="section-title">Nouveau sweep</h2>
         <p className="section-subtitle">
-          Launch a parameter sweep and track run-to-run signal shifts.
+          Lance un sweep de parametre et compare les runs.
         </p>
       </div>
       <div className="form-grid">
         <div className="field">
-          <label>Project</label>
+          <label>Projet</label>
           <select value={projectKey} onChange={(event) => setProjectKey(event.target.value)}>
             {projects.map((project) => (
               <option key={`${project.sport}::${project.name}`} value={`${project.sport}::${project.name}`}>
@@ -119,7 +119,7 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
           </select>
         </div>
         <div className="field">
-          <label>Sweep Param</label>
+          <label>Param sweep</label>
           <select value={paramName} onChange={(event) => setParamName(event.target.value)}>
             {selectedProject?.params.map((param) => (
               <option key={param.name} value={param.name}>
@@ -129,7 +129,7 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
           </select>
         </div>
         <div className="field">
-          <label>Values (comma separated)</label>
+          <label>Valeurs (separees par virgule)</label>
           <input
             value={valuesInput}
             onChange={(event) => setValuesInput(event.target.value)}
@@ -178,7 +178,7 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
       </div>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <button className="button" type="submit">Launch sweep</button>
+        <button className="button" type="submit">Lancer sweep</button>
         {status ? <span className="pill">{status}</span> : null}
       </div>
     </form>

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Space_Grotesk, Unbounded } from "next/font/google";
+import { JetBrains_Mono, Space_Grotesk, Unbounded } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import "./globals.css";
@@ -10,15 +10,19 @@ const unbounded = Unbounded({
   weight: ["400", "600", "700"],
   variable: "--font-display",
 });
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
 export const metadata = {
   title: "Sport Prediction Lab",
-  description: "Local quant research platform for sport analytics",
+  description: "Plateforme locale de recherche quantitative pour le sport",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr" className={`${space.variable} ${unbounded.variable}`}>
+    <html lang="fr" className={`${space.variable} ${unbounded.variable} ${mono.variable}`}>
       <body>
         <div className="bg-grid" />
         <div className="shell">
@@ -27,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <TopBar />
             <main className="site-main">{children}</main>
             <footer className="footer">
-              Local-first research. Data never leaves this machine.
+              Plateforme locale. Aucune donnee ne quitte cette machine.
             </footer>
           </div>
         </div>

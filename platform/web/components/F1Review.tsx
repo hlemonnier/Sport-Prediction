@@ -17,21 +17,21 @@ export default async function F1Review() {
   return (
     <div className="stack">
       <div>
-        <h1 className="section-title">F1 Review</h1>
+        <h1 className="section-title">F1 Analyse</h1>
         <p className="section-subtitle">
-          Analyse post-session : écarts, surprises, stabilité du classement.
+          Analyse post-session : ecarts, surprises, stabilite du classement.
         </p>
       </div>
       <div className="grid-two">
         <div className="card">
           <h2 className="module-title">Surprises</h2>
-          <p className="module-subtitle">Top écarts entre ranking prédit et réel.</p>
-          <p className="section-subtitle">No evaluation data available yet.</p>
+          <p className="module-subtitle">Top ecarts entre ranking predit et reel.</p>
+          <p className="section-subtitle">Aucune evaluation disponible.</p>
         </div>
         <div className="card">
-          <h2 className="module-title">Ranking Metrics</h2>
+          <h2 className="module-title">Metrics classement</h2>
           <p className="module-subtitle">Spearman · NDCG@10 · Top-10 hit rate</p>
-          <p className="section-subtitle">Backtest not run yet.</p>
+          <p className="section-subtitle">Backtest non lance.</p>
         </div>
       </div>
       <RunsCompare runs={runs} />

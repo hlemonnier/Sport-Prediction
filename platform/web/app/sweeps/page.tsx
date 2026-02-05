@@ -37,17 +37,17 @@ export default async function SweepsPage() {
       <div className="card">
         <h2 className="section-title">Sweeps</h2>
         {sweeps.length === 0 ? (
-          <p className="section-subtitle">No sweeps yet.</p>
+          <p className="section-subtitle">Aucun sweep pour l'instant.</p>
         ) : (
           <table className="table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Sport</th>
-                <th>Project</th>
+                <th>Projet</th>
                 <th>Param</th>
-                <th>Status</th>
-                <th>Created</th>
+                <th>Statut</th>
+                <th>Creation</th>
               </tr>
             </thead>
             <tbody>

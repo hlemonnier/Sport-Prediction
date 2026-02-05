@@ -50,7 +50,7 @@ export default function ResearchExplorer({
     <div className="stack">
       <div className="grid-two">
         <div className="card stack">
-          <h2 className="section-title">Papers</h2>
+          <h2 className="section-title">Papiers</h2>
           <div className="stack">
             {papers.map((paper) => (
               <button
@@ -64,7 +64,7 @@ export default function ResearchExplorer({
           </div>
         </div>
         <div className="card stack">
-          <h2 className="section-title">Paper Preview</h2>
+          <h2 className="section-title">Preview papier</h2>
           {activePaper ? (
             <>
               <p className="section-subtitle">{activePaper.title}</p>
@@ -80,13 +80,13 @@ export default function ResearchExplorer({
                   </a>
                 ) : null}
                 <button className="button" onClick={() => openSystem(activePaper.file)}>
-                  Open system
+                  Ouvrir systeme
                 </button>
               </div>
               <iframe className="viewer" src={fileUrl(activePaper.file)} />
             </>
           ) : (
-            <p className="section-subtitle">No paper selected.</p>
+            <p className="section-subtitle">Aucun papier selectionne.</p>
           )}
         </div>
       </div>
@@ -107,19 +107,19 @@ export default function ResearchExplorer({
           </div>
         </div>
         <div className="card stack">
-          <h2 className="section-title">Notebook Viewer</h2>
+          <h2 className="section-title">Viewer notebook</h2>
           {activeNotebook ? (
             <>
               <p className="section-subtitle">
                 {activeNotebook.sport} — {activeNotebook.project}
               </p>
               <button className="button" onClick={() => openSystem(activeNotebook.file)}>
-                Open system
+                Ouvrir systeme
               </button>
               <NotebookViewer notebook={notebookData} />
             </>
           ) : (
-            <p className="section-subtitle">No notebook selected.</p>
+            <p className="section-subtitle">Aucun notebook selectionne.</p>
           )}
         </div>
       </div>

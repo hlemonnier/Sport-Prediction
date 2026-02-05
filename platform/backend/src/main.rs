@@ -1275,7 +1275,10 @@ fn resolve_papers_root(repo_root: &PathBuf) -> PathBuf {
 
 fn find_repo_root(start: &PathBuf) -> PathBuf {
     for ancestor in start.ancestors() {
-        if ancestor.join("research").exists() || ancestor.join("Research").exists() {
+        if ancestor.join("research").exists()
+            || ancestor.join("Research").exists()
+            || ancestor.join(".git").exists()
+        {
             return ancestor.to_path_buf();
         }
     }

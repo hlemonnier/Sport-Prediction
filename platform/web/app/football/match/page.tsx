@@ -18,31 +18,34 @@ export default async function FootballMatchPage() {
   if (!project) {
     return (
       <div className="card">
-        <h1 className="section-title">Football Match</h1>
-        <p className="section-subtitle">Project Football introuvable.</p>
+        <h1 className="section-title">Match Football</h1>
+        <p className="section-subtitle">Projet Football introuvable.</p>
       </div>
     );
   }
 
   return (
     <div className="stack">
+      <div className="context-bar">
+        Ligue EPL / Saison 2026 / Match prochain / Modele v0.1 / Baseline v0
+      </div>
       <RunForm
         project={project}
-        title="Football Match Prediction"
+        title="Match Football"
         description="Predire le resultat 1X2 et comparer aux baselines."
         defaults={{ mode: "match_result" }}
         locked={["mode"]}
       />
       <div className="grid-two">
         <div className="card">
-          <h2 className="module-title">Scoreline Distribution</h2>
-          <p className="module-subtitle">Distribution 0-0 / 1-0 / 1-1 (placeholder).</p>
-          <p className="section-subtitle">Enable once scoreline model is ready.</p>
+          <h2 className="module-title">Distribution score</h2>
+          <p className="module-subtitle">0-0 / 1-0 / 1-1 (placeholder).</p>
+          <p className="section-subtitle">Active quand le modele scoreline est pret.</p>
         </div>
         <div className="card">
-          <h2 className="module-title">Baseline Compare</h2>
-          <p className="module-subtitle">Elo or odds vs model output.</p>
-          <p className="section-subtitle">Awaiting baseline integration.</p>
+          <h2 className="module-title">Baseline</h2>
+          <p className="module-subtitle">Elo ou odds vs modele.</p>
+          <p className="section-subtitle">Baseline en attente.</p>
         </div>
       </div>
     </div>

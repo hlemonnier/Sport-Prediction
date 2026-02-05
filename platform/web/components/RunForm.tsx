@@ -81,7 +81,7 @@ export default function RunForm({
       for (const param of formFields) {
         const raw = values[param.name];
         if (param.required && (raw === "" || raw === undefined)) {
-          throw new Error(`Missing param: ${param.label}`);
+          throw new Error(`Parametre manquant: ${param.label}`);
         }
         params[param.name] = parseValue(param, raw ?? "");
       }
@@ -97,31 +97,31 @@ export default function RunForm({
       });
 
       if (!runRes.ok) {
-        throw new Error(`Run failed: ${runRes.status}`);
+        throw new Error(`Execution echouee: ${runRes.status}`);
       }
       const runData = (await runRes.json()) as { runId: string };
       const detailRes = await fetch(`${API_BASE}/api/runs/${runData.runId}`, {
         cache: "no-store",
       });
       if (!detailRes.ok) {
-        throw new Error(`Detail failed: ${detailRes.status}`);
+        throw new Error(`Detail introuvable: ${detailRes.status}`);
       }
       const detail = (await detailRes.json()) as RunDetail;
       setRun(detail);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error");
+      setError(err instanceof Error ? err.message : "Erreur inattendue");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="stack">
+    <div className="run-layout">
       <form className="card stack" onSubmit={handleSubmit}>
         <div>
           <h2 className="section-title">{title ?? project.name}</h2>
           <p className="section-subtitle">
-            {description ?? "Configure the run, launch the pipeline, and inspect results instantly."}
+            {description ?? "Configure la run, lance la pipeline, et inspecte les resultats."}
           </p>
         </div>
         <div className="form-grid">
@@ -172,7 +172,7 @@ export default function RunForm({
         </div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <button className="button" type="submit" disabled={loading}>
-            {loading ? "Running..." : "Launch run"}
+            {loading ? "Execution..." : "Lancer run"}
           </button>
           {error ? <span className="pill">{error}</span> : null}
         </div>

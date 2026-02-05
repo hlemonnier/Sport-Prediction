@@ -18,31 +18,34 @@ export default async function F1QualifyingPage() {
   if (!project) {
     return (
       <div className="card">
-        <h1 className="section-title">F1 Qualifying</h1>
-        <p className="section-subtitle">Project F1 introuvable.</p>
+        <h1 className="section-title">F1 Qualif</h1>
+        <p className="section-subtitle">Projet F1 introuvable.</p>
       </div>
     );
   }
 
   return (
     <div className="stack">
+      <div className="context-bar">
+        Saison 2026 / Manche 1 / Session Qualif / Modele v0.1 / Baseline v0
+      </div>
       <RunForm
         project={project}
-        title="F1 Qualifying Prediction"
-        description="Prédire la grille avant la session de qualification."
+        title="F1 Qualif"
+        description="Predire la grille avant la session de qualification."
         defaults={{ mode: "qualifying" }}
         locked={["mode"]}
       />
       <div className="grid-two">
         <div className="card">
-          <h2 className="module-title">Position Distribution</h2>
+          <h2 className="module-title">Distribution position</h2>
           <p className="module-subtitle">Range probable par pilote (placeholder).</p>
-          <p className="section-subtitle">Connect data to display distributions.</p>
+          <p className="section-subtitle">Connecte des donnees pour afficher les ranges.</p>
         </div>
         <div className="card">
-          <h2 className="module-title">Compare</h2>
-          <p className="module-subtitle">Model A vs Model B / yesterday vs today.</p>
-          <p className="section-subtitle">Use Compare page for detailed diff.</p>
+          <h2 className="module-title">Comparaison</h2>
+          <p className="module-subtitle">Modele A vs Modele B / hier vs aujourd'hui.</p>
+          <p className="section-subtitle">Utilise la page Compare pour le detail.</p>
         </div>
       </div>
     </div>

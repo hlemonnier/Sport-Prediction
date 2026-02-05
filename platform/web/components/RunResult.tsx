@@ -15,8 +15,8 @@ export default function RunResult({ run }: { run: RunDetail | null }) {
   if (!run) {
     return (
       <div className="card">
-        <h3 className="section-title">Results</h3>
-        <p className="section-subtitle">No run yet. Launch a run to see results here.</p>
+        <h3 className="section-title">Resultats</h3>
+        <p className="section-subtitle">Aucune run. Lance une run pour voir les resultats.</p>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default function RunResult({ run }: { run: RunDetail | null }) {
       {
         type: "bar",
         data: chartData.map((item) => item.value),
-        itemStyle: { color: "#7df9ff" },
+        itemStyle: { color: "#6ee7ff" },
       },
     ],
     tooltip: {
@@ -66,7 +66,7 @@ export default function RunResult({ run }: { run: RunDetail | null }) {
       <div className="card">
         <h3 className="section-title">Run {run.id}</h3>
         <p className="section-subtitle">
-          Status: <span className="pill">{run.status}</span> | Project: {run.project}
+          Statut: <span className="pill">{run.status}</span> | Projet: {run.project}
         </p>
         {run.result?.notes && run.result.notes.length > 0 ? (
           <div className="stack">
@@ -81,9 +81,9 @@ export default function RunResult({ run }: { run: RunDetail | null }) {
 
       <div className="grid-two">
         <div className="card">
-          <h4 className="section-title">Table</h4>
+          <h4 className="section-title">Tableau</h4>
           {rows.length === 0 ? (
-            <p className="section-subtitle">No rows available.</p>
+            <p className="section-subtitle">Aucune ligne disponible.</p>
           ) : (
             <table className="table">
               <thead>
@@ -108,7 +108,7 @@ export default function RunResult({ run }: { run: RunDetail | null }) {
         <div className="card">
           <h4 className="section-title">Signal</h4>
           {chartData.length === 0 ? (
-            <p className="section-subtitle">No numeric signal to plot yet.</p>
+            <p className="section-subtitle">Aucun signal numerique pour l'instant.</p>
           ) : (
             <ReactECharts option={chartOption} style={{ height: 320 }} />
           )}

@@ -1,15 +1,18 @@
 :root {
-  --bg: #07070a;
-  --bg-2: #0f1118;
-  --ink: #f2f4f8;
-  --muted: #9aa3b2;
-  --accent: #7df9ff;
-  --accent-2: #ff6b6b;
-  --accent-3: #c3f584;
-  --card: #12141d;
-  --card-border: rgba(125, 249, 255, 0.18);
-  --shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-  --glow: 0 0 20px rgba(125, 249, 255, 0.2);
+  --bg: #05070a;
+  --bg-2: #080c11;
+  --ink: #e6edf3;
+  --muted: #8792a6;
+  --accent: #6ee7ff;
+  --accent-2: #6ee7ff;
+  --accent-3: #6ee7ff;
+  --panel: #0c1118;
+  --panel-2: #0a0f14;
+  --border: #1c2432;
+  --border-strong: #2c3a4e;
+  --radius: 2px;
+  --radius-sm: 0px;
+  --glow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
 * {
@@ -22,10 +25,7 @@ body {
   padding: 0;
   min-height: 100%;
   color: var(--ink);
-  background:
-    radial-gradient(800px circle at 10% 20%, rgba(125, 249, 255, 0.08), transparent 40%),
-    radial-gradient(600px circle at 90% 10%, rgba(255, 107, 107, 0.1), transparent 45%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  background: var(--bg);
   font-family: var(--font-sans), "Space Grotesk", sans-serif;
 }
 
@@ -36,11 +36,11 @@ body {
 .bg-grid {
   position: fixed;
   inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 60px 60px;
+  background-image: linear-gradient(rgba(110, 231, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 231, 255, 0.05) 1px, transparent 1px);
+  background-size: 96px 96px;
   pointer-events: none;
-  opacity: 0.3;
+  opacity: 0.08;
   z-index: 0;
 }
 
@@ -53,9 +53,8 @@ a {
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(12px);
-  background: rgba(7, 7, 10, 0.75);
-  border-bottom: 1px solid rgba(125, 249, 255, 0.2);
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border);
 }
 
 .shell {
@@ -78,8 +77,8 @@ a {
   flex-direction: column;
   padding: 24px 20px;
   gap: 24px;
-  background: rgba(10, 12, 20, 0.95);
-  border-right: 1px solid rgba(125, 249, 255, 0.15);
+  background: var(--panel-2);
+  border-right: 1px solid var(--border);
   z-index: 2;
 }
 
@@ -98,11 +97,12 @@ a {
 }
 
 .nav-group-title {
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: 10px;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 8px;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .nav-group-links {
@@ -112,28 +112,31 @@ a {
 }
 
 .nav-item {
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  background: rgba(18, 20, 29, 0.5);
-  font-size: 14px;
+  border-left: 3px solid transparent;
+  background: transparent;
+  font-size: 13px;
   transition: all 0.2s ease;
 }
 
 .nav-item:hover {
-  border-color: rgba(125, 249, 255, 0.35);
-  box-shadow: var(--glow);
+  border-color: var(--border);
+  border-left-color: var(--accent);
 }
 
 .nav-item.active {
-  border-color: rgba(125, 249, 255, 0.6);
-  background: rgba(18, 20, 29, 0.9);
+  border-color: var(--border-strong);
+  border-left-color: var(--accent);
+  background: rgba(17, 23, 35, 0.85);
 }
 
 .sidebar-footer {
   margin-top: auto;
   font-size: 12px;
   color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .topbar {
@@ -143,17 +146,17 @@ a {
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 16px 28px;
-  backdrop-filter: blur(12px);
-  background: rgba(10, 12, 20, 0.9);
-  border-bottom: 1px solid rgba(125, 249, 255, 0.15);
+  padding: 12px 24px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border);
 }
 
 .topbar-title {
-  font-size: 12px;
-  letter-spacing: 0.2em;
+  font-size: 10px;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .context-grid {
@@ -170,20 +173,22 @@ a {
 }
 
 .context-field label {
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: 9px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .context-field input,
 .context-field select {
   padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(125, 249, 255, 0.2);
-  background: #0b0d14;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: #0b0f16;
   color: var(--ink);
   font-size: 13px;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .context-hint {
@@ -216,16 +221,17 @@ a {
 
 .brand-title {
   font-family: var(--font-display), "Unbounded", sans-serif;
-  font-size: 22px;
-  letter-spacing: 0.12em;
+  font-size: 18px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .brand-subtitle {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .nav {
@@ -237,48 +243,49 @@ a {
 
 .nav a {
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   transition: all 0.2s ease;
 }
 
 .nav a {
-  border-color: rgba(125, 249, 255, 0.05);
-  background: rgba(18, 20, 29, 0.6);
+  border-color: var(--border);
+  background: var(--panel);
 }
 
 .nav a:hover {
-  border-color: rgba(125, 249, 255, 0.4);
-  background: rgba(18, 20, 29, 0.9);
-  box-shadow: var(--glow);
+  border-color: var(--accent);
+  background: var(--panel-2);
 }
 
 .site-main {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 32px 32px 80px;
+  padding: 22px 30px 80px;
   position: relative;
   z-index: 1;
 }
 
 .section-title {
   font-family: var(--font-display), "Unbounded", sans-serif;
-  font-size: 32px;
-  margin: 0 0 12px;
+  font-size: 20px;
+  margin: 0 0 8px;
+  letter-spacing: 0.04em;
 }
 
 .section-subtitle {
-  margin: 0 0 24px;
+  margin: 0 0 16px;
   color: var(--muted);
-  max-width: 720px;
+  max-width: 900px;
+  font-size: 12px;
 }
 
 .card {
-  background: linear-gradient(145deg, rgba(18, 20, 29, 0.96), rgba(12, 14, 22, 0.98));
-  border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: var(--shadow);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: none;
 }
 
 .card-grid {
@@ -294,35 +301,45 @@ a {
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 600;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .stat-label {
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 10px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(125, 249, 255, 0.35);
-  background: linear-gradient(135deg, rgba(125, 249, 255, 0.16), rgba(125, 249, 255, 0.02));
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: transparent;
   color: var(--accent);
   font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease;
 }
 
 .button.secondary {
   background: transparent;
-  color: var(--accent-3);
-  border-color: rgba(195, 245, 132, 0.4);
+  color: var(--muted);
+  border-color: var(--border);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-family: var(--font-sans), "Space Grotesk", sans-serif;
 }
 
 .button.ghost {
@@ -331,14 +348,18 @@ a {
 }
 
 .button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(125, 249, 255, 0.2);
+  border-color: var(--accent);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .field {
@@ -348,21 +369,31 @@ a {
 }
 
 .field label {
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.18em;
   color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .field input,
 .field select,
 .field textarea {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(125, 249, 255, 0.2);
-  background: #0b0d14;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: #0b0f16;
   color: var(--ink);
   font-size: 14px;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(110, 231, 255, 0.2);
 }
 
 .field input:disabled,
@@ -375,35 +406,40 @@ a {
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .table th,
 .table td {
   text-align: left;
-  padding: 10px 8px;
-  border-bottom: 1px solid rgba(125, 249, 255, 0.1);
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
 }
 
 .table th {
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em;
   color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .table tbody tr:hover {
-  background: rgba(125, 249, 255, 0.06);
+  background: rgba(17, 23, 35, 0.8);
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  background: rgba(125, 249, 255, 0.12);
-  color: var(--accent);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .grid-two {
@@ -419,28 +455,32 @@ a {
 }
 
 .module-title {
-  font-size: 18px;
+  font-size: 14px;
   margin: 0 0 8px;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .module-subtitle {
   margin: 0 0 12px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
 }
 
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .viewer {
   width: 100%;
   min-height: 420px;
-  border: 1px solid rgba(125, 249, 255, 0.2);
-  border-radius: 16px;
-  background: #0b0d14;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #0b0f16;
 }
 
 .footer {
@@ -448,6 +488,71 @@ a {
   text-align: center;
   color: var(--muted);
   font-size: 12px;
+}
+
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  box-shadow: none;
+}
+
+.status-dot.ok {
+  background: var(--accent);
+}
+
+.status-dot.warn {
+  background: #f7b84b;
+}
+
+.status-dot.miss {
+  background: #ff6b6b;
+}
+
+.context-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.run-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .run-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -459,6 +564,6 @@ a {
     position: relative;
     height: auto;
     border-right: none;
-    border-bottom: 1px solid rgba(125, 249, 255, 0.15);
+    border-bottom: 1px solid var(--border);
   }
 }

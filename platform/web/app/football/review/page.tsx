@@ -17,7 +17,7 @@ export default async function FootballReviewPage() {
   return (
     <div className="stack">
       <div>
-        <h1 className="section-title">Football Review</h1>
+        <h1 className="section-title">Football Analyse</h1>
         <p className="section-subtitle">
           Calibration, erreurs couteuses, et comparaison baseline.
         </p>
@@ -25,13 +25,13 @@ export default async function FootballReviewPage() {
       <div className="grid-two">
         <div className="card">
           <h2 className="module-title">Calibration</h2>
-          <p className="module-subtitle">Logloss · Brier · reliability bins</p>
-          <p className="section-subtitle">No calibration run yet.</p>
+          <p className="module-subtitle">Logloss · Brier · bins de calibration</p>
+          <p className="section-subtitle">Pas de calibration pour l'instant.</p>
         </div>
         <div className="card">
-          <h2 className="module-title">Error Hotspots</h2>
-          <p className="module-subtitle">Matches where the model was most confident and wrong.</p>
-          <p className="section-subtitle">Awaiting evaluation data.</p>
+          <h2 className="module-title">Zones d'erreur</h2>
+          <p className="module-subtitle">Matchs ou le modele etait confiant et faux.</p>
+          <p className="section-subtitle">En attente de donnees.</p>
         </div>
       </div>
       <RunsCompare runs={runs} />

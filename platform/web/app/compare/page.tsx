@@ -17,7 +17,7 @@ export default async function ComparePage() {
   return (
     <div className="stack">
       <div>
-        <h1 className="section-title">Compare</h1>
+        <h1 className="section-title">Comparaison</h1>
         <p className="section-subtitle">
           Compare deux runs pour voir qui bouge, et de combien.
         </p>

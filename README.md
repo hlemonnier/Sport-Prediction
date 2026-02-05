@@ -24,8 +24,8 @@ Football — Match Result Prediction. Objectif : predire les resultats de match 
 **Plateforme locale (UI + API)**
 - Backend Rust: `platform/backend` (Axum + SQLite)
 - Frontend Next.js: `platform/web`
-- Lancer le backend: `cargo run` dans `platform/backend`
-- Lancer le frontend: `pnpm dev` dans `platform/web`
+- Lancer le backend: `cd platform/backend && cargo run`
+- Lancer le frontend: `cd platform/web && pnpm install && pnpm dev`
 
 **CLI**
 - `research/sport_cli.py`

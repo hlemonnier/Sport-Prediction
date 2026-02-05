@@ -5,30 +5,30 @@ import { usePathname } from "next/navigation";
 
 const groups = [
   {
-    label: "Home",
+    label: "Accueil",
     items: [{ label: "Dashboard", href: "/" }],
   },
   {
     label: "F1",
     items: [
-      { label: "Preview", href: "/f1/preview" },
-      { label: "Qualifying", href: "/f1/qualifying" },
-      { label: "Race", href: "/f1/race" },
-      { label: "Review", href: "/f1/review" },
+      { label: "Apercu", href: "/f1/preview" },
+      { label: "Qualif", href: "/f1/qualifying" },
+      { label: "Course", href: "/f1/race" },
+      { label: "Analyse", href: "/f1/review" },
     ],
   },
   {
     label: "Football",
     items: [
-      { label: "Preview", href: "/football/preview" },
+      { label: "Apercu", href: "/football/preview" },
       { label: "Match", href: "/football/match" },
-      { label: "Review", href: "/football/review" },
+      { label: "Analyse", href: "/football/review" },
     ],
   },
   {
     label: "Lab",
     items: [
-      { label: "Compare", href: "/compare" },
+      { label: "Comparaison", href: "/compare" },
       { label: "Diagnostics", href: "/diagnostics" },
     ],
   },
@@ -41,7 +41,7 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-brand">
         <div className="brand-title">Sport Lab</div>
-        <div className="brand-subtitle">Quant Research</div>
+        <div className="brand-subtitle">Recherche Quant</div>
       </div>
       <div className="sidebar-groups">
         {groups.map((group) => (
@@ -65,7 +65,7 @@ export default function Sidebar() {
         ))}
       </div>
       <div className="sidebar-footer">
-        Local-only. No data leaves this machine.
+        Local uniquement. Aucune donnee ne sort.
       </div>
     </aside>
   );

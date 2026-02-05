@@ -24,21 +24,21 @@ export default function SweepChart({
     yAxis: {
       type: "value",
       axisLabel: { color: "#9aa3b2" },
-      splitLine: { lineStyle: { color: "rgba(255, 107, 107, 0.15)" } },
+      splitLine: { lineStyle: { color: "rgba(110, 231, 255, 0.12)" } },
     },
     series: [
       {
         type: "line",
         smooth: true,
         data: data.map((item) => item.value),
-        itemStyle: { color: "#ff6b6b" },
-        lineStyle: { color: "#ff6b6b" },
+        itemStyle: { color: "#6ee7ff" },
+        lineStyle: { color: "#6ee7ff" },
       },
     ],
     tooltip: {
       trigger: "axis",
       backgroundColor: "#0b0d14",
-      borderColor: "rgba(255, 107, 107, 0.3)",
+      borderColor: "rgba(110, 231, 255, 0.3)",
       textStyle: { color: "#f2f4f8" },
     },
   };

@@ -46,20 +46,20 @@ export default function RunsCompare({ runs }: { runs: RunSummary[] }) {
       <div className="card">
         <h2 className="section-title">Runs</h2>
         <p className="section-subtitle">
-          Select multiple runs to compare outputs side by side.
+          Selectionne plusieurs runs pour comparer les sorties.
         </p>
         {runs.length === 0 ? (
-          <p className="section-subtitle">No runs available yet.</p>
+          <p className="section-subtitle">Aucune run disponible.</p>
         ) : (
           <table className="table">
             <thead>
               <tr>
-                <th>Select</th>
+                <th>Sel</th>
                 <th>ID</th>
                 <th>Sport</th>
-                <th>Project</th>
-                <th>Status</th>
-                <th>Created</th>
+                <th>Projet</th>
+                <th>Statut</th>
+                <th>Date</th>
               </tr>
             </thead>
             <tbody>

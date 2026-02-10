@@ -13,35 +13,46 @@ export default function SweepChart({
   }));
 
   const option = {
-    grid: { left: 40, right: 20, top: 30, bottom: 50 },
-    textStyle: { color: "#f2f4f8" },
+    grid: { left: 40, right: 16, top: 24, bottom: 44 },
+    textStyle: { color: "#1a1a19", fontFamily: "JetBrains Mono, monospace" },
     xAxis: {
       type: "category",
       data: data.map((item) => item.label),
-      axisLabel: { rotate: 35, color: "#9aa3b2" },
-      axisLine: { lineStyle: { color: "#2a3242" } },
+      axisLabel: { rotate: 35, color: "#66655f", fontSize: 10 },
+      axisLine: { lineStyle: { color: "#e5e4e2" } },
     },
     yAxis: {
       type: "value",
-      axisLabel: { color: "#9aa3b2" },
-      splitLine: { lineStyle: { color: "rgba(110, 231, 255, 0.12)" } },
+      axisLabel: { color: "#66655f", fontSize: 10 },
+      splitLine: { lineStyle: { color: "rgba(220, 38, 38, 0.08)" } },
     },
     series: [
       {
         type: "line",
         smooth: true,
         data: data.map((item) => item.value),
-        itemStyle: { color: "#6ee7ff" },
-        lineStyle: { color: "#6ee7ff" },
+        itemStyle: { color: "#dc2626" },
+        lineStyle: { color: "#dc2626", width: 2 },
+        areaStyle: {
+          color: {
+            type: "linear",
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: "rgba(220, 38, 38, 0.15)" },
+              { offset: 1, color: "rgba(220, 38, 38, 0)" },
+            ],
+          },
+        },
+        symbolSize: 6,
       },
     ],
     tooltip: {
       trigger: "axis",
-      backgroundColor: "#0b0d14",
-      borderColor: "rgba(110, 231, 255, 0.3)",
-      textStyle: { color: "#f2f4f8" },
+      backgroundColor: "#ffffff",
+      borderColor: "#e5e4e2",
+      textStyle: { color: "#1a1a19", fontSize: 11 },
     },
   };
 
-  return <ReactECharts option={option} style={{ height: 320 }} />;
+  return <ReactECharts option={option} style={{ height: 300 }} />;
 }

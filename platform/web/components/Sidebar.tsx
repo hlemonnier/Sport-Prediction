@@ -5,31 +5,34 @@ import { usePathname } from "next/navigation";
 
 const groups = [
   {
-    label: "Accueil",
+    label: "Home",
     items: [{ label: "Dashboard", href: "/" }],
   },
   {
     label: "F1",
     items: [
-      { label: "Apercu", href: "/f1/preview" },
-      { label: "Qualif", href: "/f1/qualifying" },
-      { label: "Course", href: "/f1/race" },
-      { label: "Analyse", href: "/f1/review" },
+      { label: "Preview", href: "/f1/preview" },
+      { label: "Qualifying", href: "/f1/qualifying" },
+      { label: "Race", href: "/f1/race" },
+      { label: "Review", href: "/f1/review" },
     ],
   },
   {
     label: "Football",
     items: [
-      { label: "Apercu", href: "/football/preview" },
+      { label: "Preview", href: "/football/preview" },
       { label: "Match", href: "/football/match" },
-      { label: "Analyse", href: "/football/review" },
+      { label: "Review", href: "/football/review" },
     ],
   },
   {
     label: "Lab",
     items: [
-      { label: "Comparaison", href: "/compare" },
+      { label: "Runs", href: "/runs" },
+      { label: "Sweeps", href: "/sweeps" },
+      { label: "Compare", href: "/compare" },
       { label: "Diagnostics", href: "/diagnostics" },
+      { label: "Research", href: "/research" },
     ],
   },
 ];
@@ -41,7 +44,7 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-brand">
         <div className="brand-title">Sport Lab</div>
-        <div className="brand-subtitle">Recherche Quant</div>
+        <div className="brand-subtitle">Prediction Engine</div>
       </div>
       <div className="sidebar-groups">
         {groups.map((group) => (
@@ -49,7 +52,10 @@ export default function Sidebar() {
             <div className="nav-group-title">{group.label}</div>
             <div className="nav-group-links">
               {group.items.map((item) => {
-                const active = pathname === item.href || pathname.startsWith(item.href + "/");
+                const active =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <Link
                     key={item.href}
@@ -65,7 +71,7 @@ export default function Sidebar() {
         ))}
       </div>
       <div className="sidebar-footer">
-        Local uniquement. Aucune donnee ne sort.
+        Local mode &middot; No data leaves device
       </div>
     </aside>
   );

@@ -30,12 +30,18 @@ def predict_with_model(
     if features.empty:
         return pd.Series(dtype=float)
     if model is not None:
-        X = features[feature_cols].copy()
+        X = features.reindex(columns=feature_cols).copy()
+        X = X.apply(pd.to_numeric, errors="coerce")
         X = X.fillna(X.median(numeric_only=True))
+        X = X.fillna(0.0)
         return pd.Series(model.predict(X), index=features.index)
-    fallback = features[fallback_cols].copy()
+    fallback = features.reindex(columns=fallback_cols).copy()
+    if fallback.empty:
+        return pd.Series(0.0, index=features.index)
+    fallback = fallback.apply(pd.to_numeric, errors="coerce")
     fallback = fallback.fillna(fallback.median(numeric_only=True))
-    return fallback.mean(axis=1)
+    fallback = fallback.fillna(0.0)
+    return fallback.mean(axis=1).fillna(0.0)
 
 
 def run_prediction(config: PredictionConfig) -> PredictionResult:
@@ -96,11 +102,18 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             feature_cols.append("position_start")
         fallback_cols = ["qualy_position"]
 
-    model = train_model(train, feature_cols)
-    preds = predict_with_model(model, features, feature_cols, fallback_cols)
+    training_result = train_model(train, feature_cols)
+    notes.extend(training_result.notes)
+    preds = predict_with_model(training_result.model, features, feature_cols, fallback_cols)
     output = features.copy()
     output["pred"] = preds
-    output["driver_name"] = output["driver_name"].fillna(output["driver_id"])
+    if "driver_name" not in output.columns:
+        if "driver_id" in output.columns:
+            output["driver_name"] = output["driver_id"]
+        else:
+            output["driver_name"] = pd.Series(dtype=str)
+    elif "driver_id" in output.columns:
+        output["driver_name"] = output["driver_name"].fillna(output["driver_id"])
 
     version = compute_version(config.round_number, config.include_standings)
     table = format_prediction_table(output, top_n=10)

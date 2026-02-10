@@ -81,7 +81,7 @@ export default function RunForm({
       for (const param of formFields) {
         const raw = values[param.name];
         if (param.required && (raw === "" || raw === undefined)) {
-          throw new Error(`Parametre manquant: ${param.label}`);
+          throw new Error(`Missing parameter: ${param.label}`);
         }
         params[param.name] = parseValue(param, raw ?? "");
       }
@@ -97,19 +97,19 @@ export default function RunForm({
       });
 
       if (!runRes.ok) {
-        throw new Error(`Execution echouee: ${runRes.status}`);
+        throw new Error(`Execution failed: ${runRes.status}`);
       }
       const runData = (await runRes.json()) as { runId: string };
       const detailRes = await fetch(`${API_BASE}/api/runs/${runData.runId}`, {
         cache: "no-store",
       });
       if (!detailRes.ok) {
-        throw new Error(`Detail introuvable: ${detailRes.status}`);
+        throw new Error(`Detail not found: ${detailRes.status}`);
       }
       const detail = (await detailRes.json()) as RunDetail;
       setRun(detail);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inattendue");
+      setError(err instanceof Error ? err.message : "Unexpected error");
     } finally {
       setLoading(false);
     }
@@ -117,66 +117,80 @@ export default function RunForm({
 
   return (
     <div className="run-layout">
-      <form className="card stack" onSubmit={handleSubmit}>
-        <div>
-          <h2 className="section-title">{title ?? project.name}</h2>
-          <p className="section-subtitle">
-            {description ?? "Configure la run, lance la pipeline, et inspecte les resultats."}
-          </p>
+      {/* Left: Run Console */}
+      <form className="panel" onSubmit={handleSubmit} style={{ alignSelf: "start" }}>
+        <div className="panel-header">
+          <div className="panel-header-left">
+            <h2 className="module-title">{title ?? project.name}</h2>
+            <span className="module-subtitle">
+              {description ?? "Configure, run, and inspect results"}
+            </span>
+          </div>
         </div>
-        <div className="form-grid">
-          {formFields
-            .filter((param) => !(hidden ?? []).includes(param.name))
-            .map((param) => (
-            <div className="field" key={param.name}>
-              <label htmlFor={param.name}>{param.label}</label>
-              {param.kind === "select" ? (
-                <select
-                  id={param.name}
-                  value={String(values[param.name] ?? "")}
-                  onChange={(event) => handleChange(param.name, event.target.value)}
-                  disabled={(locked ?? []).includes(param.name)}
-                >
-                  {param.options?.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              ) : param.kind === "bool" ? (
-                <select
-                  id={param.name}
-                  value={String(values[param.name] ?? false)}
-                  onChange={(event) => handleChange(param.name, event.target.value === "true")}
-                  disabled={(locked ?? []).includes(param.name)}
-                >
-                  <option value="false">false</option>
-                  <option value="true">true</option>
-                </select>
-              ) : (
-                <input
-                  id={param.name}
-                  type={param.kind === "int" ? "number" : "text"}
-                  value={String(values[param.name] ?? "")}
-                  onChange={(event) =>
-                    handleChange(
-                      param.name,
-                      param.kind === "int" ? Number(event.target.value) : event.target.value
-                    )
-                  }
-                  disabled={(locked ?? []).includes(param.name)}
-                />
+        <div className="panel-body">
+          <div className="stack">
+            <div className="form-grid">
+              {formFields
+                .filter((param) => !(hidden ?? []).includes(param.name))
+                .map((param) => (
+                <div className="field" key={param.name}>
+                  <label htmlFor={param.name}>{param.label}</label>
+                  {param.kind === "select" ? (
+                    <select
+                      id={param.name}
+                      value={String(values[param.name] ?? "")}
+                      onChange={(event) => handleChange(param.name, event.target.value)}
+                      disabled={(locked ?? []).includes(param.name)}
+                    >
+                      {param.options?.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : param.kind === "bool" ? (
+                    <select
+                      id={param.name}
+                      value={String(values[param.name] ?? false)}
+                      onChange={(event) => handleChange(param.name, event.target.value === "true")}
+                      disabled={(locked ?? []).includes(param.name)}
+                    >
+                      <option value="false">false</option>
+                      <option value="true">true</option>
+                    </select>
+                  ) : (
+                    <input
+                      id={param.name}
+                      type={param.kind === "int" ? "number" : "text"}
+                      value={String(values[param.name] ?? "")}
+                      onChange={(event) =>
+                        handleChange(
+                          param.name,
+                          param.kind === "int" ? Number(event.target.value) : event.target.value
+                        )
+                      }
+                      disabled={(locked ?? []).includes(param.name)}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="row" style={{ gap: 12 }}>
+              <button className="button" type="submit" disabled={loading}>
+                {loading ? "Running..." : "Launch Run"}
+              </button>
+              {error && (
+                <span className="chip">
+                  <span className="chip-led red" />
+                  {error}
+                </span>
               )}
             </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <button className="button" type="submit" disabled={loading}>
-            {loading ? "Execution..." : "Lancer run"}
-          </button>
-          {error ? <span className="pill">{error}</span> : null}
+          </div>
         </div>
       </form>
+
+      {/* Right: Results Panel */}
       <RunResult run={run} />
     </div>
   );

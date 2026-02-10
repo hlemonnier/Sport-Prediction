@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import time
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -174,9 +175,34 @@ class OpenF1Provider(BaseProvider):
         if cache_path and os.path.exists(cache_path):
             with open(cache_path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
+        last_error: Optional[Exception] = None
+        for attempt in range(3):
+            try:
+                resp = requests.get(url, timeout=30)
+                if resp.status_code == 429 and attempt < 2:
+                    retry_after = resp.headers.get("Retry-After")
+                    if retry_after:
+                        try:
+                            wait_seconds = max(1.0, float(retry_after))
+                        except ValueError:
+                            wait_seconds = float(attempt + 1)
+                    else:
+                        wait_seconds = float(attempt + 1)
+                    time.sleep(wait_seconds)
+                    continue
+                resp.raise_for_status()
+                data = resp.json()
+                break
+            except requests.RequestException as exc:
+                last_error = exc
+                if attempt < 2:
+                    time.sleep(float(attempt + 1))
+                    continue
+                raise
+        else:
+            if last_error is not None:
+                raise last_error
+            raise RuntimeError(f"Failed to fetch {url}")
         if cache_path:
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(data, f)

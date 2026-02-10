@@ -17,35 +17,63 @@ export default async function F1RacePage() {
   const project = await fetchProject();
   if (!project) {
     return (
-      <div className="card">
-        <h1 className="section-title">F1 Course</h1>
-        <p className="section-subtitle">Projet F1 introuvable.</p>
+      <div className="panel">
+        <div className="panel-header">
+          <h1 className="module-title">F1 Race</h1>
+        </div>
+        <div className="panel-body">
+          <div className="empty-state">
+            <span className="empty-state-text">F1 project not found in catalog</span>
+            <span className="empty-state-hint">Check that the backend is running and the F1 project is registered</span>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="stack">
-      <div className="context-bar">
-        Saison 2026 / Manche 1 / Session Course / Modele v0.1 / Baseline v0
+    <div className="stack-lg">
+      <div>
+        <h1 className="page-title">F1 Race</h1>
+        <p className="page-status">Predict the race classification before lights out</p>
       </div>
+
       <RunForm
         project={project}
-        title="F1 Course"
-        description="Predire le classement course avant le depart."
+        title="Run Console"
+        description="Configure parameters, launch the pipeline, inspect results"
         defaults={{ mode: "race" }}
         locked={["mode"]}
       />
+
       <div className="grid-two">
-        <div className="card">
-          <h2 className="module-title">Focus top 10</h2>
-          <p className="module-subtitle">Synthese des positions attendues.</p>
-          <p className="section-subtitle">Pas de resume pour l'instant.</p>
+        <div className="panel">
+          <div className="panel-header">
+            <div className="panel-header-left">
+              <h2 className="module-title">Top 10 Focus</h2>
+              <span className="module-subtitle">Expected position summary</span>
+            </div>
+          </div>
+          <div className="panel-body">
+            <div className="empty-state">
+              <span className="empty-state-text">No summary available</span>
+              <span className="empty-state-hint">Run a prediction to populate this panel</span>
+            </div>
+          </div>
         </div>
-        <div className="card">
-          <h2 className="module-title">Notes scenarios</h2>
-          <p className="module-subtitle">Course propre vs chaotique (optionnel).</p>
-          <p className="section-subtitle">Ajouter des heuristiques plus tard.</p>
+        <div className="panel">
+          <div className="panel-header">
+            <div className="panel-header-left">
+              <h2 className="module-title">Scenario Notes</h2>
+              <span className="module-subtitle">Clean race vs chaotic</span>
+            </div>
+          </div>
+          <div className="panel-body">
+            <div className="empty-state">
+              <span className="empty-state-text">No heuristics configured</span>
+              <span className="empty-state-hint">Add scenario rules to enable this panel</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

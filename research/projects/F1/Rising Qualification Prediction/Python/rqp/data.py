@@ -20,16 +20,28 @@ def build_training_data(
     rows: List[pd.DataFrame] = []
     notes: List[str] = []
     for year in train_seasons:
-        rounds = provider.list_rounds(year)
+        try:
+            rounds = provider.list_rounds(year)
+        except (Exception, SystemExit) as exc:
+            notes.append(f"Echec listing rounds {year}: {exc}")
+            continue
         for rnd in rounds:
             round_number = int(rnd["round_number"])
             if year == target_year and round_number >= target_round:
                 continue
-            fp_features = provider.get_fp_features(year, round_number)
+            try:
+                fp_features = provider.get_fp_features(year, round_number)
+            except (Exception, SystemExit) as exc:
+                notes.append(f"Echec FP {year} round {round_number}: {exc}")
+                continue
             if fp_features.empty:
                 continue
             if mode == "qualifying":
-                qualy = provider.get_qualifying_results(year, round_number)
+                try:
+                    qualy = provider.get_qualifying_results(year, round_number)
+                except (Exception, SystemExit) as exc:
+                    notes.append(f"Echec qualifs {year} round {round_number}: {exc}")
+                    continue
                 if qualy.empty or "q3_time" not in qualy.columns:
                     continue
                 qualy = qualy.copy()
@@ -42,10 +54,17 @@ def build_training_data(
                 merged = fp_features.merge(qualy[["driver_id", "target"]], on="driver_id", how="inner")
                 if merged.empty:
                     continue
+                merged["event_year"] = year
+                merged["event_round"] = round_number
+                merged["event_key"] = (year * 100) + round_number
                 rows.append(merged)
             else:
-                race = provider.get_race_results(year, round_number)
-                qualy = provider.get_qualifying_results(year, round_number)
+                try:
+                    race = provider.get_race_results(year, round_number)
+                    qualy = provider.get_qualifying_results(year, round_number)
+                except (Exception, SystemExit) as exc:
+                    notes.append(f"Echec race/qualifs {year} round {round_number}: {exc}")
+                    continue
                 if race.empty or qualy.empty:
                     continue
                 qualy = qualy.copy()
@@ -55,7 +74,11 @@ def build_training_data(
                 merged = merged.merge(race[["driver_id", "position"]], on="driver_id", how="inner")
                 merged = merged.rename(columns={"position": "target"})
                 if include_standings:
-                    standings = provider.get_standings(year, round_number)
+                    try:
+                        standings = provider.get_standings(year, round_number)
+                    except (Exception, SystemExit) as exc:
+                        notes.append(f"Echec standings {year} round {round_number}: {exc}")
+                        standings = None
                     if standings is not None and not standings.empty:
                         merged = merged.merge(
                             standings[["driver_id", "position_start"]],
@@ -64,6 +87,9 @@ def build_training_data(
                         )
                 if merged.empty:
                     continue
+                merged["event_year"] = year
+                merged["event_round"] = round_number
+                merged["event_key"] = (year * 100) + round_number
                 rows.append(merged)
     if not rows:
         notes.append("Pas assez de data historique: fallback heuristique.")
@@ -80,13 +106,21 @@ def build_current_features(
     include_standings: bool,
 ) -> Tuple[pd.DataFrame, List[str]]:
     notes: List[str] = []
-    fp_features = provider.get_fp_features(year, round_number)
+    try:
+        fp_features = provider.get_fp_features(year, round_number)
+    except (Exception, SystemExit) as exc:
+        notes.append(f"Echec recuperation FP: {exc}")
+        return pd.DataFrame(), notes
     if fp_features.empty:
         notes.append("Aucune donnee FP disponible pour ce round.")
         return pd.DataFrame(), notes
     if mode == "qualifying":
         return fp_features, notes
-    qualy = provider.get_qualifying_results(year, round_number)
+    try:
+        qualy = provider.get_qualifying_results(year, round_number)
+    except (Exception, SystemExit) as exc:
+        notes.append(f"Echec recuperation qualifications: {exc}")
+        return pd.DataFrame(), notes
     if qualy.empty:
         notes.append("Resultats qualifications indisponibles: impossible de predire la course.")
         return pd.DataFrame(), notes
@@ -95,7 +129,11 @@ def build_current_features(
     merged = fp_features.merge(qualy[["driver_id", "position"]], on="driver_id", how="inner")
     merged = merged.rename(columns={"position": "qualy_position"})
     if include_standings:
-        standings = provider.get_standings(year, round_number)
+        try:
+            standings = provider.get_standings(year, round_number)
+        except (Exception, SystemExit) as exc:
+            notes.append(f"Echec recuperation standings: {exc}")
+            standings = None
         if standings is not None and not standings.empty:
             merged = merged.merge(
                 standings[["driver_id", "position_start"]],

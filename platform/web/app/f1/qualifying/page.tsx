@@ -17,35 +17,57 @@ export default async function F1QualifyingPage() {
   const project = await fetchProject();
   if (!project) {
     return (
-      <div className="card">
-        <h1 className="section-title">F1 Qualif</h1>
-        <p className="section-subtitle">Projet F1 introuvable.</p>
+      <div className="panel">
+        <div className="panel-header">
+          <h1 className="module-title">F1 Qualifying</h1>
+        </div>
+        <div className="panel-body">
+          <div className="empty-state">
+            <span className="empty-state-text">F1 project not found in catalog</span>
+            <span className="empty-state-hint">Check that the backend is running and the F1 project is registered</span>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="stack">
-      <div className="context-bar">
-        Saison 2026 / Manche 1 / Session Qualif / Modele v0.1 / Baseline v0
+    <div className="stack-lg">
+      <div>
+        <h1 className="page-title">F1 Qualifying</h1>
+        <p className="page-status">Predict the grid before the qualifying session</p>
       </div>
+
       <RunForm
         project={project}
-        title="F1 Qualif"
-        description="Predire la grille avant la session de qualification."
+        title="Run Console"
+        description="Configure parameters, launch the pipeline, inspect results"
         defaults={{ mode: "qualifying" }}
         locked={["mode"]}
       />
+
       <div className="grid-two">
-        <div className="card">
-          <h2 className="module-title">Distribution position</h2>
-          <p className="module-subtitle">Range probable par pilote (placeholder).</p>
-          <p className="section-subtitle">Connecte des donnees pour afficher les ranges.</p>
+        <div className="panel">
+          <div className="panel-header">
+            <h2 className="module-title">Position Distribution</h2>
+          </div>
+          <div className="panel-body">
+            <div className="empty-state">
+              <span className="empty-state-text">Awaiting data</span>
+              <span className="empty-state-hint">Connect data sources to display position ranges per driver</span>
+            </div>
+          </div>
         </div>
-        <div className="card">
-          <h2 className="module-title">Comparaison</h2>
-          <p className="module-subtitle">Modele A vs Modele B / hier vs aujourd'hui.</p>
-          <p className="section-subtitle">Utilise la page Compare pour le detail.</p>
+        <div className="panel">
+          <div className="panel-header">
+            <h2 className="module-title">Comparison</h2>
+          </div>
+          <div className="panel-body">
+            <div className="empty-state">
+              <span className="empty-state-text">No comparison available</span>
+              <span className="empty-state-hint">Use the Compare page for detailed model A vs B overlay</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

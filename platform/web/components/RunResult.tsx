@@ -14,9 +14,16 @@ function toNumber(value: unknown): number | null {
 export default function RunResult({ run }: { run: RunDetail | null }) {
   if (!run) {
     return (
-      <div className="card">
-        <h3 className="section-title">Resultats</h3>
-        <p className="section-subtitle">Aucune run. Lance une run pour voir les resultats.</p>
+      <div className="panel">
+        <div className="panel-header">
+          <h3 className="module-title">Results</h3>
+        </div>
+        <div className="panel-body">
+          <div className="empty-state">
+            <span className="empty-state-text">No run executed</span>
+            <span className="empty-state-hint">Launch a run to see results here</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -33,85 +40,110 @@ export default function RunResult({ run }: { run: RunDetail | null }) {
     .filter((item) => item.value !== null);
 
   const chartOption = {
-    grid: { left: 40, right: 20, top: 30, bottom: 50 },
-    textStyle: { color: "#f2f4f8" },
+    grid: { left: 40, right: 16, top: 24, bottom: 44 },
+    textStyle: { color: "#1a1a19", fontFamily: "JetBrains Mono, monospace" },
     xAxis: {
       type: "category",
       data: chartData.map((item) => item.label),
-      axisLabel: { rotate: 35, color: "#9aa3b2" },
-      axisLine: { lineStyle: { color: "#2a3242" } },
+      axisLabel: { rotate: 35, color: "#66655f", fontSize: 10 },
+      axisLine: { lineStyle: { color: "#e5e4e2" } },
     },
     yAxis: {
       type: "value",
-      axisLabel: { color: "#9aa3b2" },
-      splitLine: { lineStyle: { color: "rgba(125, 249, 255, 0.08)" } },
+      axisLabel: { color: "#66655f", fontSize: 10 },
+      splitLine: { lineStyle: { color: "rgba(220, 38, 38, 0.08)" } },
     },
     series: [
       {
         type: "bar",
         data: chartData.map((item) => item.value),
-        itemStyle: { color: "#6ee7ff" },
+        itemStyle: { color: "#dc2626", borderRadius: [2, 2, 0, 0] },
+        barMaxWidth: 32,
       },
     ],
     tooltip: {
       trigger: "axis",
-      backgroundColor: "#0b0d14",
-      borderColor: "rgba(125, 249, 255, 0.3)",
-      textStyle: { color: "#f2f4f8" },
+      backgroundColor: "#ffffff",
+      borderColor: "#e5e4e2",
+      textStyle: { color: "#1a1a19", fontSize: 11 },
     },
   };
 
   return (
     <div className="stack">
-      <div className="card">
-        <h3 className="section-title">Run {run.id}</h3>
-        <p className="section-subtitle">
-          Statut: <span className="pill">{run.status}</span> | Projet: {run.project}
-        </p>
-        {run.result?.notes && run.result.notes.length > 0 ? (
-          <div className="stack">
-            {run.result.notes.map((note, index) => (
-              <div className="pill" key={`${note}-${index}`}>
-                {note}
-              </div>
-            ))}
+      {/* Run info */}
+      <div className="panel">
+        <div className="panel-header">
+          <div className="panel-header-left">
+            <h3 className="module-title">Run {run.id.slice(0, 8)}</h3>
+            <span className="module-subtitle">{run.project}</span>
           </div>
-        ) : null}
+          <span className="chip">
+            <span className={`chip-led ${run.status === "done" ? "green" : run.status === "error" ? "red" : "amber"}`} />
+            {run.status}
+          </span>
+        </div>
+        {run.result?.notes && run.result.notes.length > 0 && (
+          <div className="panel-body">
+            <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+              {run.result.notes.map((note, index) => (
+                <span className="chip" key={`${note}-${index}`}>{note}</span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid-two">
-        <div className="card">
-          <h4 className="section-title">Tableau</h4>
-          {rows.length === 0 ? (
-            <p className="section-subtitle">Aucune ligne disponible.</p>
-          ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  {columns.map((col) => (
-                    <th key={col}>{col}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, idx) => (
-                  <tr key={`row-${idx}`}>
+        {/* Table */}
+        <div className="panel">
+          <div className="panel-header">
+            <h4 className="module-title">Table</h4>
+          </div>
+          <div className="panel-body" style={{ padding: 0 }}>
+            {rows.length === 0 ? (
+              <div className="panel-body">
+                <div className="empty-state">
+                  <span className="empty-state-text">No rows available</span>
+                </div>
+              </div>
+            ) : (
+              <table className="table">
+                <thead>
+                  <tr>
                     {columns.map((col) => (
-                      <td key={`${idx}-${col}`}>{String(row[col] ?? "")}</td>
+                      <th key={col}>{col}</th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {rows.map((row, idx) => (
+                    <tr key={`row-${idx}`}>
+                      {columns.map((col) => (
+                        <td key={`${idx}-${col}`}>{String(row[col] ?? "")}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
-        <div className="card">
-          <h4 className="section-title">Signal</h4>
-          {chartData.length === 0 ? (
-            <p className="section-subtitle">Aucun signal numerique pour l'instant.</p>
-          ) : (
-            <ReactECharts option={chartOption} style={{ height: 320 }} />
-          )}
+
+        {/* Chart */}
+        <div className="panel">
+          <div className="panel-header">
+            <h4 className="module-title">Signal</h4>
+          </div>
+          <div className="panel-body">
+            {chartData.length === 0 ? (
+              <div className="empty-state">
+                <span className="empty-state-text">No numeric signal available</span>
+              </div>
+            ) : (
+              <ReactECharts option={chartOption} style={{ height: 300 }} />
+            )}
+          </div>
         </div>
       </div>
     </div>

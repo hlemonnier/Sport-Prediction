@@ -14,10 +14,26 @@ export default async function RunDetailPage({ params }: { params: { id: string }
   }
   if (!run) {
     return (
-      <div className="card">
-        <h1 className="section-title">Run introuvable</h1>
+      <div className="panel">
+        <div className="panel-header">
+          <h1 className="module-title">Run Not Found</h1>
+        </div>
+        <div className="panel-body">
+          <div className="empty-state">
+            <span className="empty-state-text">This run does not exist or could not be loaded</span>
+            <span className="empty-state-hint">Check the run ID and try again</span>
+          </div>
+        </div>
       </div>
     );
   }
-  return <RunResult run={run} />;
+  return (
+    <div className="stack-lg">
+      <div>
+        <h1 className="page-title">Run Detail</h1>
+        <p className="page-status">{run.id}</p>
+      </div>
+      <RunResult run={run} />
+    </div>
+  );
 }

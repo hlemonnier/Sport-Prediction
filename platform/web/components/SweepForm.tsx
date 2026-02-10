@@ -67,7 +67,7 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
     if (!selectedProject) {
       return;
     }
-    setStatus("en_cours");
+    setStatus("running");
     const params: Record<string, unknown> = {};
     for (const param of selectedProject.params) {
       params[param.name] = parseValue(param, baseValues[param.name] ?? "");
@@ -91,95 +91,104 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
     });
 
     if (!res.ok) {
-      setStatus("echec");
+      setStatus("failed");
       return;
     }
 
     const data = (await res.json()) as { sweepId: string };
-    setStatus(`cree: ${data.sweepId}`);
+    setStatus(`created: ${data.sweepId}`);
   };
 
   return (
-    <form className="card stack" onSubmit={handleSubmit}>
-      <div>
-        <h2 className="section-title">Nouveau sweep</h2>
-        <p className="section-subtitle">
-          Lance un sweep de parametre et compare les runs.
-        </p>
-      </div>
-      <div className="form-grid">
-        <div className="field">
-          <label>Projet</label>
-          <select value={projectKey} onChange={(event) => setProjectKey(event.target.value)}>
-            {projects.map((project) => (
-              <option key={`${project.sport}::${project.name}`} value={`${project.sport}::${project.name}`}>
-                {project.sport} — {project.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label>Param sweep</label>
-          <select value={paramName} onChange={(event) => setParamName(event.target.value)}>
-            {selectedProject?.params.map((param) => (
-              <option key={param.name} value={param.name}>
-                {param.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label>Valeurs (separees par virgule)</label>
-          <input
-            value={valuesInput}
-            onChange={(event) => setValuesInput(event.target.value)}
-            placeholder="1,2,3"
-          />
+    <form className="panel" onSubmit={handleSubmit}>
+      <div className="panel-header">
+        <div className="panel-header-left">
+          <h2 className="module-title">New Sweep</h2>
+          <span className="module-subtitle">Launch a parameter sweep and compare runs</span>
         </div>
       </div>
-
-      <div className="form-grid">
-        {selectedProject?.params.map((param) => (
-          <div className="field" key={param.name}>
-            <label>{param.label}</label>
-            {param.kind === "select" ? (
-              <select
-                value={String(baseValues[param.name] ?? "")}
-                onChange={(event) => handleChange(param.name, event.target.value)}
-              >
-                {param.options?.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+      <div className="panel-body">
+        <div className="stack">
+          <div className="form-grid">
+            <div className="field">
+              <label>Project</label>
+              <select value={projectKey} onChange={(event) => setProjectKey(event.target.value)}>
+                {projects.map((project) => (
+                  <option key={`${project.sport}::${project.name}`} value={`${project.sport}::${project.name}`}>
+                    {project.sport} — {project.name}
                   </option>
                 ))}
               </select>
-            ) : param.kind === "bool" ? (
-              <select
-                value={String(baseValues[param.name] ?? false)}
-                onChange={(event) => handleChange(param.name, event.target.value === "true")}
-              >
-                <option value="false">false</option>
-                <option value="true">true</option>
+            </div>
+            <div className="field">
+              <label>Sweep Param</label>
+              <select value={paramName} onChange={(event) => setParamName(event.target.value)}>
+                {selectedProject?.params.map((param) => (
+                  <option key={param.name} value={param.name}>
+                    {param.label}
+                  </option>
+                ))}
               </select>
-            ) : (
+            </div>
+            <div className="field">
+              <label>Values (comma-separated)</label>
               <input
-                type={param.kind === "int" ? "number" : "text"}
-                value={String(baseValues[param.name] ?? "")}
-                onChange={(event) =>
-                  handleChange(
-                    param.name,
-                    param.kind === "int" ? Number(event.target.value) : event.target.value
-                  )
-                }
+                value={valuesInput}
+                onChange={(event) => setValuesInput(event.target.value)}
+                placeholder="1,2,3"
               />
+            </div>
+          </div>
+
+          <div className="form-grid">
+            {selectedProject?.params.map((param) => (
+              <div className="field" key={param.name}>
+                <label>{param.label}</label>
+                {param.kind === "select" ? (
+                  <select
+                    value={String(baseValues[param.name] ?? "")}
+                    onChange={(event) => handleChange(param.name, event.target.value)}
+                  >
+                    {param.options?.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : param.kind === "bool" ? (
+                  <select
+                    value={String(baseValues[param.name] ?? false)}
+                    onChange={(event) => handleChange(param.name, event.target.value === "true")}
+                  >
+                    <option value="false">false</option>
+                    <option value="true">true</option>
+                  </select>
+                ) : (
+                  <input
+                    type={param.kind === "int" ? "number" : "text"}
+                    value={String(baseValues[param.name] ?? "")}
+                    onChange={(event) =>
+                      handleChange(
+                        param.name,
+                        param.kind === "int" ? Number(event.target.value) : event.target.value
+                      )
+                    }
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="row" style={{ gap: 12 }}>
+            <button className="button" type="submit">Launch Sweep</button>
+            {status && (
+              <span className="chip">
+                <span className={`chip-led ${status === "failed" ? "red" : status === "running" ? "amber" : "green"}`} />
+                {status}
+              </span>
             )}
           </div>
-        ))}
-      </div>
-
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <button className="button" type="submit">Lancer sweep</button>
-        {status ? <span className="pill">{status}</span> : null}
+        </div>
       </div>
     </form>
   );

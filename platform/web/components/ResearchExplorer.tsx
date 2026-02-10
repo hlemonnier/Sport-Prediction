@@ -47,80 +47,129 @@ export default function ResearchExplorer({
   };
 
   return (
-    <div className="stack">
+    <div className="stack-lg">
+      <div>
+        <h1 className="page-title">Research</h1>
+        <p className="page-status">Papers and notebooks explorer</p>
+      </div>
+
       <div className="grid-two">
-        <div className="card stack">
-          <h2 className="section-title">Papiers</h2>
-          <div className="stack">
-            {papers.map((paper) => (
-              <button
-                key={paper.file}
-                className="button secondary"
-                onClick={() => setActivePaper(paper)}
-              >
-                {paper.title}
-              </button>
-            ))}
+        <div className="panel">
+          <div className="panel-header">
+            <h2 className="module-title">Papers</h2>
+          </div>
+          <div className="panel-body">
+            {papers.length === 0 ? (
+              <div className="empty-state">
+                <span className="empty-state-text">No papers found</span>
+                <span className="empty-state-hint">Add PDF files to the research directory</span>
+              </div>
+            ) : (
+              <div className="stack-sm">
+                {papers.map((paper) => (
+                  <button
+                    key={paper.file}
+                    className={`button secondary${activePaper?.file === paper.file ? "" : " ghost"}`}
+                    onClick={() => setActivePaper(paper)}
+                    style={{ justifyContent: "flex-start", textAlign: "left" }}
+                  >
+                    {paper.title}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        <div className="card stack">
-          <h2 className="section-title">Preview papier</h2>
-          {activePaper ? (
-            <>
-              <p className="section-subtitle">{activePaper.title}</p>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                {activePaper.source ? (
+        <div className="panel">
+          <div className="panel-header">
+            <div className="panel-header-left">
+              <h2 className="module-title">Paper Preview</h2>
+              {activePaper && <span className="module-subtitle">{activePaper.title}</span>}
+            </div>
+            {activePaper && (
+              <div className="panel-header-actions">
+                {activePaper.source && (
                   <a
-                    className="button secondary"
+                    className="button secondary button-sm"
                     href={activePaper.source}
                     target="_blank"
                     rel="noreferrer"
                   >
                     Source
                   </a>
-                ) : null}
-                <button className="button" onClick={() => openSystem(activePaper.file)}>
-                  Ouvrir systeme
+                )}
+                <button className="button button-sm" onClick={() => openSystem(activePaper.file)}>
+                  Open in System
                 </button>
               </div>
-              <iframe className="viewer" src={fileUrl(activePaper.file)} />
-            </>
-          ) : (
-            <p className="section-subtitle">Aucun papier selectionne.</p>
-          )}
+            )}
+          </div>
+          <div className="panel-body" style={{ padding: 0 }}>
+            {activePaper ? (
+              <iframe className="viewer" src={fileUrl(activePaper.file)} style={{ border: "none" }} />
+            ) : (
+              <div className="panel-body">
+                <div className="empty-state">
+                  <span className="empty-state-text">No paper selected</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="grid-two">
-        <div className="card stack">
-          <h2 className="section-title">Notebooks</h2>
-          <div className="stack">
-            {notebooks.map((notebook) => (
-              <button
-                key={notebook.file}
-                className="button secondary"
-                onClick={() => setActiveNotebook(notebook)}
-              >
-                {notebook.sport} — {notebook.project}
-              </button>
-            ))}
+        <div className="panel">
+          <div className="panel-header">
+            <h2 className="module-title">Notebooks</h2>
+          </div>
+          <div className="panel-body">
+            {notebooks.length === 0 ? (
+              <div className="empty-state">
+                <span className="empty-state-text">No notebooks found</span>
+                <span className="empty-state-hint">Add .ipynb files to the research directory</span>
+              </div>
+            ) : (
+              <div className="stack-sm">
+                {notebooks.map((notebook) => (
+                  <button
+                    key={notebook.file}
+                    className={`button secondary${activeNotebook?.file === notebook.file ? "" : " ghost"}`}
+                    onClick={() => setActiveNotebook(notebook)}
+                    style={{ justifyContent: "flex-start", textAlign: "left" }}
+                  >
+                    {notebook.sport} — {notebook.project}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        <div className="card stack">
-          <h2 className="section-title">Viewer notebook</h2>
-          {activeNotebook ? (
-            <>
-              <p className="section-subtitle">
-                {activeNotebook.sport} — {activeNotebook.project}
-              </p>
-              <button className="button" onClick={() => openSystem(activeNotebook.file)}>
-                Ouvrir systeme
+        <div className="panel">
+          <div className="panel-header">
+            <div className="panel-header-left">
+              <h2 className="module-title">Notebook Viewer</h2>
+              {activeNotebook && (
+                <span className="module-subtitle">
+                  {activeNotebook.sport} — {activeNotebook.project}
+                </span>
+              )}
+            </div>
+            {activeNotebook && (
+              <button className="button button-sm" onClick={() => openSystem(activeNotebook.file)}>
+                Open in System
               </button>
+            )}
+          </div>
+          <div className="panel-body">
+            {activeNotebook ? (
               <NotebookViewer notebook={notebookData} />
-            </>
-          ) : (
-            <p className="section-subtitle">Aucun notebook selectionne.</p>
-          )}
+            ) : (
+              <div className="empty-state">
+                <span className="empty-state-text">No notebook selected</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

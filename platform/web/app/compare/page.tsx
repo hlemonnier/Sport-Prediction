@@ -15,12 +15,10 @@ async function fetchRuns(): Promise<RunSummary[]> {
 export default async function ComparePage() {
   const runs = await fetchRuns();
   return (
-    <div className="stack">
+    <div className="stack-lg">
       <div>
-        <h1 className="section-title">Comparaison</h1>
-        <p className="section-subtitle">
-          Compare deux runs pour voir qui bouge, et de combien.
-        </p>
+        <h1 className="page-title">Compare</h1>
+        <p className="page-status">Select two runs to inspect what changed and by how much</p>
       </div>
       <RunsCompare runs={runs} />
     </div>

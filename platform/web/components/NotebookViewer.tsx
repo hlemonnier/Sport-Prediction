@@ -23,45 +23,59 @@ function normalizeSource(source: string[] | string | undefined): string {
 
 export default function NotebookViewer({ notebook }: { notebook: Notebook | null }) {
   if (!notebook || !notebook.cells) {
-    return <div className="viewer" />;
+    return (
+      <div className="empty-state">
+        <span className="empty-state-text">Loading notebook...</span>
+      </div>
+    );
   }
 
   return (
-    <div className="viewer" style={{ padding: 20, overflow: "auto" }}>
-      <div className="stack">
-        {notebook.cells.map((cell, index) => {
-          const content = normalizeSource(cell.source);
-          if (cell.cell_type === "markdown") {
-            return (
-              <div
-                key={`cell-${index}`}
-                dangerouslySetInnerHTML={{ __html: marked.parse(content) }}
-              />
-            );
-          }
-          if (cell.cell_type === "code") {
-            return (
-              <pre
-                key={`cell-${index}`}
-                style={{
-                  background: "#1f1b16",
-                  color: "#f5f2ee",
-                  padding: 16,
-                  borderRadius: 12,
-                  overflowX: "auto",
-                }}
-              >
-                <code>{content}</code>
-              </pre>
-            );
-          }
+    <div className="stack-sm">
+      {notebook.cells.map((cell, index) => {
+        const content = normalizeSource(cell.source);
+        if (cell.cell_type === "markdown") {
           return (
-            <pre key={`cell-${index}`}>
+            <div
+              key={`cell-${index}`}
+              style={{ fontSize: 13, lineHeight: 1.6, color: "var(--ink-2)" }}
+              dangerouslySetInnerHTML={{ __html: marked.parse(content) }}
+            />
+          );
+        }
+        if (cell.cell_type === "code") {
+          return (
+            <pre
+              key={`cell-${index}`}
+              style={{
+                background: "var(--input-bg)",
+                color: "var(--ink)",
+                padding: 12,
+                borderRadius: 4,
+                border: "1px solid var(--border)",
+                overflowX: "auto",
+                fontSize: 12,
+                fontFamily: "var(--font-mono), JetBrains Mono, monospace",
+                lineHeight: 1.5,
+              }}
+            >
               <code>{content}</code>
             </pre>
           );
-        })}
-      </div>
+        }
+        return (
+          <pre
+            key={`cell-${index}`}
+            style={{
+              fontSize: 12,
+              fontFamily: "var(--font-mono), JetBrains Mono, monospace",
+              color: "var(--muted)",
+            }}
+          >
+            <code>{content}</code>
+          </pre>
+        );
+      })}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 type F1Context = {
   season: string;
   round: string;
-  session: "Apercu" | "Qualif" | "Course" | "Analyse";
+  session: "Preview" | "Qualifying" | "Race" | "Review";
 };
 
 type FootballContext = {
@@ -15,12 +15,12 @@ type FootballContext = {
   match: string;
 };
 
-const F1_SESSIONS = ["Apercu", "Qualif", "Course", "Analyse"] as const;
+const F1_SESSIONS = ["Preview", "Qualifying", "Race", "Review"] as const;
 
 const defaultF1: F1Context = {
   season: "2026",
   round: "1",
-  session: "Apercu",
+  session: "Preview",
 };
 
 const defaultFootball: FootballContext = {
@@ -52,7 +52,7 @@ export default function TopBar() {
 
   useEffect(() => {
     const storedF1 = readLocal("context:f1", defaultF1);
-    const normalizedF1 = F1_SESSIONS.includes(storedF1.session)
+    const normalizedF1 = F1_SESSIONS.includes(storedF1.session as typeof F1_SESSIONS[number])
       ? storedF1
       : { ...storedF1, session: defaultF1.session };
     setF1Context(normalizedF1);
@@ -73,11 +73,11 @@ export default function TopBar() {
 
   return (
     <div className="topbar">
-      <div className="topbar-title">Contexte</div>
+      <div className="topbar-title">Context</div>
       {isF1 ? (
         <div className="context-grid">
           <div className="context-field">
-            <label>Saison</label>
+            <label>Season</label>
             <input
               value={f1Context.season}
               onChange={(event) =>
@@ -86,7 +86,7 @@ export default function TopBar() {
             />
           </div>
           <div className="context-field">
-            <label>Manche</label>
+            <label>Round</label>
             <input
               value={f1Context.round}
               onChange={(event) =>
@@ -116,7 +116,7 @@ export default function TopBar() {
       ) : isFootball ? (
         <div className="context-grid">
           <div className="context-field">
-            <label>Ligue</label>
+            <label>League</label>
             <input
               value={footballContext.league}
               onChange={(event) =>
@@ -125,7 +125,7 @@ export default function TopBar() {
             />
           </div>
           <div className="context-field">
-            <label>Saison</label>
+            <label>Season</label>
             <input
               value={footballContext.season}
               onChange={(event) =>
@@ -144,10 +144,13 @@ export default function TopBar() {
           </div>
         </div>
       ) : (
-        <div className="context-hint">Selectionne un sport pour regler le contexte.</div>
+        <div className="context-hint">Select a sport module to set context</div>
       )}
       <div className="topbar-actions">
-        <span className="pill">Mode local</span>
+        <span className="chip">
+          <span className="chip-led green" />
+          Local
+        </span>
       </div>
     </div>
   );

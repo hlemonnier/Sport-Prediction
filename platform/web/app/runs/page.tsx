@@ -16,5 +16,13 @@ async function fetchRuns(): Promise<RunSummary[]> {
 
 export default async function RunsPage() {
   const runs = await fetchRuns();
-  return <RunsCompare runs={runs} />;
+  return (
+    <div className="stack-lg">
+      <div>
+        <h1 className="page-title">Runs</h1>
+        <p className="page-status">{runs.length} run{runs.length !== 1 ? "s" : ""} recorded</p>
+      </div>
+      <RunsCompare runs={runs} />
+    </div>
+  );
 }

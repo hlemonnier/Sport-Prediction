@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ReactECharts from "echarts-for-react";
 import { API_BASE } from "@/lib/api";
 import type { RunSummary } from "@/lib/types";
 
@@ -27,10 +28,38 @@ type FixtureResponse = {
   warning?: string | null;
 };
 
+const SAMPLE_FIXTURES: Fixture[] = [
+  {
+    matchId: "sample-epl-1",
+    date: "2026-02-14 15:00",
+    season: "2026",
+    league: "EPL",
+    homeTeamId: "Arsenal",
+    awayTeamId: "Liverpool",
+  },
+  {
+    matchId: "sample-epl-2",
+    date: "2026-02-14 17:30",
+    season: "2026",
+    league: "EPL",
+    homeTeamId: "Chelsea",
+    awayTeamId: "Newcastle",
+  },
+  {
+    matchId: "sample-ligue1-1",
+    date: "2026-02-15 20:45",
+    season: "2026",
+    league: "Ligue 1",
+    homeTeamId: "PSG",
+    awayTeamId: "Monaco",
+  },
+];
+
 export default function HomeDashboard() {
   const [status, setStatus] = useState<DataStatus | null>(null);
   const [fixtures, setFixtures] = useState<FixtureResponse | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
+  const [usingSampleFixtures, setUsingSampleFixtures] = useState(false);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -48,6 +77,7 @@ export default function HomeDashboard() {
         const res = await fetch(`${API_BASE}/api/football/fixtures?limit=5`);
         if (res.ok) {
           setFixtures((await res.json()) as FixtureResponse);
+          setUsingSampleFixtures(false);
         }
       } catch {
         setFixtures(null);
@@ -68,34 +98,240 @@ export default function HomeDashboard() {
     fetchRuns();
   }, []);
 
-  const footballReady = status?.football.matches.exists && status?.football.fixtures.exists;
+  const footballReady = Boolean(status?.football.matches.exists && status?.football.fixtures.exists);
   const lastRun = runs.length > 0 ? runs[0] : null;
+  const doneRuns = runs.filter((run) => run.status === "done").length;
+  const failedRuns = runs.filter((run) => run.status === "error").length;
+  const pendingRuns = runs.length - doneRuns - failedRuns;
+  const readyDatasets = status
+    ? [status.football.teams, status.football.matches, status.football.fixtures].filter((item) => item.exists).length
+    : 0;
+
+  const dailyCounts = (() => {
+    const buckets: Record<string, number> = {};
+    const labels: string[] = [];
+    for (let offset = 6; offset >= 0; offset -= 1) {
+      const day = new Date();
+      day.setHours(0, 0, 0, 0);
+      day.setDate(day.getDate() - offset);
+      const key = day.toISOString().slice(0, 10);
+      buckets[key] = 0;
+      labels.push(key);
+    }
+    runs.forEach((run) => {
+      const key = new Date(run.createdAt).toISOString().slice(0, 10);
+      if (key in buckets) {
+        buckets[key] += 1;
+      }
+    });
+    return labels.map((key) => ({
+      label: key.slice(5),
+      count: buckets[key],
+    }));
+  })();
+
+  const statusChartOption = {
+    grid: { left: 44, right: 20, top: 12, bottom: 24 },
+    xAxis: {
+      type: "category",
+      data: ["Done", "Pending", "Error"],
+      axisLabel: { color: "#58554f", fontSize: 11 },
+      axisLine: { lineStyle: { color: "#e5e4e2" } },
+    },
+    yAxis: {
+      type: "value",
+      minInterval: 1,
+      axisLabel: { color: "#58554f", fontSize: 11 },
+      splitLine: { lineStyle: { color: "#ecebe9" } },
+    },
+    series: [
+      {
+        type: "bar",
+        data: [
+          { value: doneRuns, itemStyle: { color: "#16a34a" } },
+          { value: pendingRuns, itemStyle: { color: "#d97706" } },
+          { value: failedRuns, itemStyle: { color: "#dc2626" } },
+        ],
+        barMaxWidth: 40,
+        itemStyle: { borderRadius: [4, 4, 0, 0] },
+      },
+    ],
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "#ffffff",
+      borderColor: "#e5e4e2",
+      textStyle: { color: "#1a1a19", fontSize: 11 },
+    },
+  };
+
+  const trendChartOption = {
+    grid: { left: 42, right: 16, top: 12, bottom: 24 },
+    xAxis: {
+      type: "category",
+      data: dailyCounts.map((item) => item.label),
+      axisLabel: { color: "#58554f", fontSize: 11 },
+      axisLine: { lineStyle: { color: "#e5e4e2" } },
+    },
+    yAxis: {
+      type: "value",
+      minInterval: 1,
+      axisLabel: { color: "#58554f", fontSize: 11 },
+      splitLine: { lineStyle: { color: "#ecebe9" } },
+    },
+    series: [
+      {
+        type: "line",
+        smooth: true,
+        data: dailyCounts.map((item) => item.count),
+        itemStyle: { color: "#dc2626" },
+        lineStyle: { color: "#dc2626", width: 2 },
+        areaStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: "rgba(220, 38, 38, 0.18)" },
+              { offset: 1, color: "rgba(220, 38, 38, 0)" },
+            ],
+          },
+        },
+        symbolSize: 6,
+      },
+    ],
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "#ffffff",
+      borderColor: "#e5e4e2",
+      textStyle: { color: "#1a1a19", fontSize: 11 },
+    },
+  };
+
+  const loadSampleFixtures = () => {
+    setUsingSampleFixtures(true);
+    setFixtures({
+      fixtures: SAMPLE_FIXTURES,
+      warning: "Sample fixtures loaded locally for UI exploration.",
+    });
+  };
 
   return (
     <div className="stack-lg">
-      {/* Page header — compact, functional */}
       <div>
         <h1 className="page-title">Dashboard</h1>
-        <p className="page-status">
-          {runs.length} run{runs.length !== 1 ? "s" : ""} recorded
-          {lastRun ? ` · Last: ${new Date(lastRun.createdAt).toLocaleDateString()}` : ""}
-          {footballReady ? " · Football data ready" : ""}
-        </p>
+        <p className="page-status">Snapshot of data readiness, recent activity, and next actions.</p>
       </div>
 
-      {/* Top row: two wide panels */}
+      <div className="dashboard-kpis">
+        <div className="kpi-card primary">
+          <span className="kpi-label">Runs in workspace</span>
+          <span className="kpi-value">{runs.length}</span>
+          <span className="kpi-meta">
+            {doneRuns} completed · {failedRuns} failed
+          </span>
+          <div className="kpi-actions">
+            <Link href={runs.length > 0 ? "/runs" : "/f1/qualifying"} className="button button-sm">
+              {runs.length > 0 ? "Open runs" : "Run first prediction"}
+            </Link>
+          </div>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-label">Football data readiness</span>
+          <span className="kpi-value">{readyDatasets}/3</span>
+          <span className="kpi-meta">
+            {footballReady ? "Ready for preview and match workflows." : "Teams, matches, and fixtures are required."}
+          </span>
+          <div className="kpi-actions">
+            <Link href="/football/preview" className="button secondary button-sm">
+              Open football preview
+            </Link>
+          </div>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-label">Latest run</span>
+          <span className="kpi-value mono">{lastRun ? lastRun.id.slice(0, 8) : "—"}</span>
+          <span className="kpi-meta">
+            {lastRun
+              ? `${lastRun.project} · ${new Date(lastRun.createdAt).toLocaleDateString()}`
+              : "No run executed yet in this workspace."}
+          </span>
+          <div className="kpi-actions">
+            <Link href={lastRun ? `/runs/${lastRun.id}` : "/football/match"} className="button secondary button-sm">
+              {lastRun ? "Inspect run" : "Run first prediction"}
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="grid-two">
-        {/* Next Football Matches */}
+        <div className="panel">
+          <div className="panel-header">
+            <div className="panel-header-left">
+              <h2 className="module-title">Run Status Distribution</h2>
+              <span className="module-subtitle">Done vs pending vs failed</span>
+            </div>
+          </div>
+          <div className="panel-body">
+            {runs.length === 0 ? (
+              <div className="empty-state compact">
+                <span className="empty-state-text">No run data to chart yet.</span>
+                <span className="empty-state-hint">Launch a prediction to start visual tracking.</span>
+              </div>
+            ) : (
+              <ReactECharts option={statusChartOption} style={{ height: 220 }} />
+            )}
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-header">
+            <div className="panel-header-left">
+              <h2 className="module-title">Runs Trend (7 days)</h2>
+              <span className="module-subtitle">Daily execution volume</span>
+            </div>
+          </div>
+          <div className="panel-body">
+            {runs.length === 0 ? (
+              <div className="empty-state compact">
+                <span className="empty-state-text">No recent trend to display.</span>
+                <span className="empty-state-hint">The curve appears after your first runs.</span>
+              </div>
+            ) : (
+              <ReactECharts option={trendChartOption} style={{ height: 220 }} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid-two">
         <div className="panel">
           <div className="panel-header">
             <div className="panel-header-left">
               <h2 className="module-title">Upcoming Matches</h2>
-              <span className="module-subtitle">Football fixtures</span>
+              <span className="module-subtitle">
+                {usingSampleFixtures ? "Sample fixtures loaded locally" : "Football fixtures"}
+              </span>
             </div>
             <div className="panel-header-actions">
               <span className="chip">
-                <span className={`chip-led ${footballReady ? "green" : "red"}`} />
-                {footballReady ? "Data: OK" : "Data: Missing"}
+                <span
+                  className={`chip-led ${
+                    fixtures && fixtures.fixtures.length > 0
+                      ? usingSampleFixtures
+                        ? "amber"
+                        : "green"
+                      : "red"
+                  }`}
+                />
+                {fixtures && fixtures.fixtures.length > 0
+                  ? usingSampleFixtures
+                    ? "Sample"
+                    : "Live"
+                  : "Missing"}
               </span>
             </div>
           </div>
@@ -122,45 +358,68 @@ export default function HomeDashboard() {
                 </tbody>
               </table>
             ) : (
-              <div className="data-health">
-                <div className="data-health-row">
-                  <span className={`status-dot ${status?.football.fixtures.exists ? "ok" : "miss"}`} />
-                  <span className="data-health-label">Fixtures</span>
-                  <span className="data-health-hint">
-                    {status?.football.fixtures.exists ? "Loaded" : "Expected: fixtures.parquet"}
-                  </span>
+              <div className="stack-sm">
+                <div className="empty-state compact">
+                  <span className="empty-state-text">No fixtures file was found for preview.</span>
+                  <span className="empty-state-hint">Expected source: `data/football/fixtures.parquet`.</span>
+                  <div className="empty-state-actions">
+                    <button type="button" className="button button-sm" onClick={loadSampleFixtures}>
+                      Load sample fixtures
+                    </button>
+                    <Link href="/football/preview" className="button secondary button-sm">
+                      Open football preview
+                    </Link>
+                  </div>
                 </div>
-                <div className="data-health-row">
-                  <span className={`status-dot ${status?.football.matches.exists ? "ok" : "miss"}`} />
-                  <span className="data-health-label">Matches</span>
-                  <span className="data-health-hint">
-                    {status?.football.matches.exists ? "Loaded" : "Expected: matches.parquet"}
-                  </span>
+
+                <div className="data-health">
+                  <div className="data-health-row">
+                    <span className={`status-dot ${status?.football.fixtures.exists ? "ok" : "miss"}`} />
+                    <span className="data-health-label">Fixtures</span>
+                    <span className="data-health-hint">
+                      {status?.football.fixtures.exists ? "Loaded" : "Expected: fixtures.parquet"}
+                    </span>
+                  </div>
+                  <div className="data-health-row">
+                    <span className={`status-dot ${status?.football.matches.exists ? "ok" : "miss"}`} />
+                    <span className="data-health-label">Matches</span>
+                    <span className="data-health-hint">
+                      {status?.football.matches.exists ? "Loaded" : "Expected: matches.parquet"}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-          {fixtures?.warning && (
-            <div className="panel-footer">{fixtures.warning}</div>
-          )}
+          {fixtures?.warning && <div className="panel-footer">{fixtures.warning}</div>}
         </div>
 
-        {/* F1 Context */}
         <div className="panel">
           <div className="panel-header">
             <div className="panel-header-left">
               <h2 className="module-title">F1 Overview</h2>
-              <span className="module-subtitle">Next event context</span>
+              <span className="module-subtitle">Next event context and provider state</span>
             </div>
             <div className="panel-header-actions">
               <span className="chip">
                 <span className="chip-led amber" />
-                No source
+                Provider missing
               </span>
             </div>
           </div>
           <div className="panel-body">
-            <div className="data-health">
+            <div className="empty-state compact">
+              <span className="empty-state-text">No live provider is configured for F1 context yet.</span>
+              <span className="empty-state-hint">
+                Connect FastF1/OpenF1 to unlock circuit, weather, and session-aware preview.
+              </span>
+              <div className="empty-state-actions">
+                <Link href="/diagnostics" className="button secondary button-sm">
+                  Connect provider
+                </Link>
+              </div>
+            </div>
+            <div className="data-health" style={{ marginTop: 4 }}>
               <div className="data-health-row">
                 <span className="status-dot miss" />
                 <span className="data-health-label">FastF1</span>
@@ -174,46 +433,41 @@ export default function HomeDashboard() {
             </div>
           </div>
           <div className="panel-footer">
-            Use the top bar to set season &amp; round
+            <span>Use the top bar to set season and round.</span>
+            <Link href="/f1/preview" className="button secondary button-sm">
+              Open F1 preview
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Second row: three panels */}
       <div className="grid-three">
-        {/* Data Health */}
         <div className="panel">
           <div className="panel-header">
             <h2 className="module-title">Data Health</h2>
+            <span className="module-subtitle">{readyDatasets}/3 ready</span>
           </div>
           <div className="panel-body">
             <div className="data-health">
               <div className="data-health-row">
                 <span className={`status-dot ${status?.football.teams.exists ? "ok" : "miss"}`} />
                 <span className="data-health-label">Teams</span>
-                <span className="data-health-hint">
-                  {status?.football.teams.exists ? "OK" : "Missing"}
-                </span>
+                <span className="data-health-hint">{status?.football.teams.exists ? "Ready" : "Missing"}</span>
               </div>
               <div className="data-health-row">
                 <span className={`status-dot ${status?.football.matches.exists ? "ok" : "miss"}`} />
                 <span className="data-health-label">Matches</span>
-                <span className="data-health-hint">
-                  {status?.football.matches.exists ? "OK" : "Missing"}
-                </span>
+                <span className="data-health-hint">{status?.football.matches.exists ? "Ready" : "Missing"}</span>
               </div>
               <div className="data-health-row">
                 <span className={`status-dot ${status?.football.fixtures.exists ? "ok" : "miss"}`} />
                 <span className="data-health-label">Fixtures</span>
-                <span className="data-health-hint">
-                  {status?.football.fixtures.exists ? "OK" : "Missing"}
-                </span>
+                <span className="data-health-hint">{status?.football.fixtures.exists ? "Ready" : "Missing"}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Latest Runs */}
         <div className="panel">
           <div className="panel-header">
             <h2 className="module-title">Latest Runs</h2>
@@ -224,9 +478,14 @@ export default function HomeDashboard() {
           </div>
           <div className="panel-body">
             {runs.length === 0 ? (
-              <div className="empty-state">
+              <div className="empty-state compact">
                 <span className="empty-state-text">No runs recorded yet</span>
-                <span className="empty-state-hint">Launch a run from F1 or Football modules</span>
+                <span className="empty-state-hint">Start with one prediction run, then compare iterations.</span>
+                <div className="empty-state-actions">
+                  <Link href="/f1/qualifying" className="button button-sm">
+                    Run first prediction
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="stack-sm">
@@ -247,16 +506,22 @@ export default function HomeDashboard() {
           </div>
         </div>
 
-        {/* Quick Compare */}
         <div className="panel">
           <div className="panel-header">
             <h2 className="module-title">Quick Compare</h2>
           </div>
           <div className="panel-body">
             {runs.length < 2 ? (
-              <div className="empty-state">
+              <div className="empty-state compact">
                 <span className="empty-state-text">Need at least 2 runs to compare</span>
-                <span className="empty-state-hint">Run multiple iterations to track drift</span>
+                <span className="empty-state-hint">
+                  Run another prediction to unlock side-by-side comparison.
+                </span>
+                <div className="empty-state-actions">
+                  <Link href={runs.length === 0 ? "/football/match" : "/f1/race"} className="button button-sm">
+                    {runs.length === 0 ? "Run first prediction" : "Run another prediction"}
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="stack-sm">
@@ -277,7 +542,6 @@ export default function HomeDashboard() {
         </div>
       </div>
 
-      {/* Recent Runs Table */}
       {runs.length > 0 && (
         <div className="panel">
           <div className="panel-header">

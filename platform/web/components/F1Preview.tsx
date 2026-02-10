@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function F1Preview() {
   return (
     <div className="stack-lg">
@@ -22,6 +24,15 @@ export default function F1Preview() {
               </span>
             </div>
             <div className="panel-body">
+              <div className="empty-state compact">
+                <span className="empty-state-text">No live data provider is configured yet.</span>
+                <span className="empty-state-hint">Connect FastF1/OpenF1 to unlock session-aware preview data.</span>
+                <div className="empty-state-actions">
+                  <Link href="/diagnostics" className="button secondary button-sm">
+                    Connect provider
+                  </Link>
+                </div>
+              </div>
               <div className="data-health">
                 <div className="data-health-row">
                   <span className="status-dot miss" />
@@ -48,9 +59,14 @@ export default function F1Preview() {
               <h2 className="module-title">Strength Snapshot</h2>
             </div>
             <div className="panel-body">
-              <div className="empty-state">
+              <div className="empty-state compact">
                 <span className="empty-state-text">Awaiting data</span>
                 <span className="empty-state-hint">Team/driver proxy + uncertainty will appear here</span>
+                <div className="empty-state-actions">
+                  <Link href="/diagnostics" className="button secondary button-sm">
+                    Connect provider
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -89,9 +105,14 @@ export default function F1Preview() {
               </div>
             </div>
             <div className="panel-body">
-              <div className="empty-state">
+              <div className="empty-state compact">
                 <span className="empty-state-text">No notes yet</span>
                 <span className="empty-state-hint">Notes will persist per session context</span>
+                <div className="empty-state-actions">
+                  <Link href="/f1/qualifying" className="button secondary button-sm">
+                    Run first prediction
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

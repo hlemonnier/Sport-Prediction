@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+
+const dashboardItem = { label: "Dashboard", href: "/" };
 
 const groups = [
-  {
-    label: "Home",
-    items: [{ label: "Dashboard", href: "/" }],
-  },
   {
     label: "F1",
     items: [
@@ -39,6 +38,47 @@ const groups = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const storageKey = "sidebar:collapsed-groups";
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  const activeGroup = useMemo(
+    () =>
+      groups.find((group) =>
+        group.items.some((item) => pathname === item.href || pathname.startsWith(item.href + "/"))
+      )?.label,
+    [pathname]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, boolean>;
+      setCollapsed(parsed);
+    } catch {
+      setCollapsed({});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(storageKey, JSON.stringify(collapsed));
+  }, [collapsed]);
+
+  useEffect(() => {
+    if (!activeGroup) return;
+    setCollapsed((prev) => {
+      if (!prev[activeGroup]) return prev;
+      return { ...prev, [activeGroup]: false };
+    });
+  }, [activeGroup]);
+
+  const toggleGroup = (label: string) => {
+    setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  const dashboardActive = pathname === "/";
 
   return (
     <aside className="sidebar">
@@ -47,10 +87,29 @@ export default function Sidebar() {
         <div className="brand-subtitle">Prediction Engine</div>
       </div>
       <div className="sidebar-groups">
+        <div className="nav-dashboard">
+          <Link
+            href={dashboardItem.href}
+            className={`nav-item ${dashboardActive ? "active" : ""}`}
+          >
+            {dashboardItem.label}
+          </Link>
+        </div>
+
         {groups.map((group) => (
           <div className="nav-group" key={group.label}>
-            <div className="nav-group-title">{group.label}</div>
-            <div className="nav-group-links">
+            <button
+              type="button"
+              className="nav-group-toggle"
+              onClick={() => toggleGroup(group.label)}
+              aria-expanded={!collapsed[group.label]}
+            >
+              <span className="nav-group-title">{group.label}</span>
+              <span className={`nav-group-chevron ${collapsed[group.label] ? "collapsed" : ""}`}>
+                ▾
+              </span>
+            </button>
+            <div className={`nav-group-links ${collapsed[group.label] ? "collapsed" : ""}`}>
               {group.items.map((item) => {
                 const active =
                   item.href === "/"

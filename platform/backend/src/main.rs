@@ -10,10 +10,7 @@ use dotenvy::dotenv;
 use mime_guess::from_path;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use sqlx::{
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
-    FromRow, Row, SqlitePool,
-};
+use sqlx::{postgres::PgPoolOptions, PgPool, Row};
 use std::{
     collections::HashMap,
     fs,
@@ -30,7 +27,7 @@ use walkdir::{DirEntry, WalkDir};
 struct AppState {
     repo_root: PathBuf,
     data_dir: PathBuf,
-    db: SqlitePool,
+    db: PgPool,
 }
 
 #[derive(Debug)]
@@ -234,22 +231,6 @@ struct SweepResponse {
     run_ids: Vec<String>,
 }
 
-#[derive(Serialize, FromRow)]
-#[serde(rename_all = "camelCase")]
-struct RunRow {
-    id: String,
-    created_at: String,
-    sport: String,
-    project: String,
-    status: String,
-    config_json: String,
-    result_path: Option<String>,
-    stdout_path: Option<String>,
-    stderr_path: Option<String>,
-    duration_ms: Option<i64>,
-    sweep_id: Option<String>,
-}
-
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct RunSummary {
@@ -279,7 +260,7 @@ struct RunDetail {
     result_path: Option<String>,
 }
 
-#[derive(Serialize, FromRow)]
+#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SweepRow {
     id: String,
@@ -335,13 +316,12 @@ async fn main() -> anyhow::Result<()> {
     let data_dir = repo_root.join("platform/backend/data");
     fs::create_dir_all(&data_dir)?;
 
-    let db_path = data_dir.join("runs.db");
-    let connect_options = SqliteConnectOptions::new()
-        .filename(&db_path)
-        .create_if_missing(true);
-    let db = SqlitePoolOptions::new()
+    let database_url = std::env::var("DATABASE_URL").map_err(|_| {
+        anyhow::anyhow!("DATABASE_URL is required (use your Supabase Postgres URI)")
+    })?;
+    let db = PgPoolOptions::new()
         .max_connections(5)
-        .connect_with(connect_options)
+        .connect(&database_url)
         .await?;
 
     init_db(&db).await?;
@@ -387,7 +367,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn init_db(db: &SqlitePool) -> anyhow::Result<()> {
+async fn init_db(db: &PgPool) -> anyhow::Result<()> {
     sqlx::query(
         r#"
         CREATE TABLE IF NOT EXISTS runs (
@@ -433,6 +413,50 @@ async fn init_db(db: &SqlitePool) -> anyhow::Result<()> {
             param_value TEXT NOT NULL,
             PRIMARY KEY (sweep_id, run_id)
         );
+        "#,
+    )
+    .execute(db)
+    .await?;
+
+    harden_db_security(db).await?;
+
+    Ok(())
+}
+
+async fn harden_db_security(db: &PgPool) -> anyhow::Result<()> {
+    sqlx::query("ALTER TABLE public.runs ENABLE ROW LEVEL SECURITY")
+        .execute(db)
+        .await?;
+    sqlx::query("ALTER TABLE public.sweeps ENABLE ROW LEVEL SECURITY")
+        .execute(db)
+        .await?;
+    sqlx::query("ALTER TABLE public.sweep_runs ENABLE ROW LEVEL SECURITY")
+        .execute(db)
+        .await?;
+
+    sqlx::query(
+        "REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs FROM PUBLIC",
+    )
+    .execute(db)
+    .await?;
+
+    sqlx::query(
+        r#"
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+                REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs FROM anon;
+            END IF;
+
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+                REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs FROM authenticated;
+            END IF;
+
+            IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+                GRANT ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs TO service_role;
+            END IF;
+        END
+        $$;
         "#,
     )
     .execute(db)
@@ -521,7 +545,10 @@ async fn football_fixtures(
     }))
 }
 
-async fn serve_file(State(state): State<AppState>, Path(path): Path<String>) -> AppResult<Response> {
+async fn serve_file(
+    State(state): State<AppState>,
+    Path(path): Path<String>,
+) -> AppResult<Response> {
     let sanitized = sanitize_path(&state.repo_root, &path)?;
     if !sanitized.exists() {
         return Err(AppError::not_found("File not found"));
@@ -534,13 +561,17 @@ async fn serve_file(State(state): State<AppState>, Path(path): Path<String>) -> 
     let mut headers = HeaderMap::new();
     headers.insert(
         axum::http::header::CONTENT_TYPE,
-        HeaderValue::from_str(mime.as_ref()).unwrap_or_else(|_| HeaderValue::from_static("application/octet-stream")),
+        HeaderValue::from_str(mime.as_ref())
+            .unwrap_or_else(|_| HeaderValue::from_static("application/octet-stream")),
     );
 
     Ok((headers, bytes).into_response())
 }
 
-async fn open_path(State(state): State<AppState>, Json(payload): Json<OpenRequest>) -> AppResult<Json<Value>> {
+async fn open_path(
+    State(state): State<AppState>,
+    Json(payload): Json<OpenRequest>,
+) -> AppResult<Json<Value>> {
     let sanitized = sanitize_path(&state.repo_root, &payload.path)?;
     if !sanitized.exists() {
         return Err(AppError::not_found("File not found"));
@@ -558,8 +589,10 @@ async fn open_path(State(state): State<AppState>, Json(payload): Json<OpenReques
 }
 
 async fn list_runs(State(state): State<AppState>) -> AppResult<Json<Vec<RunSummary>>> {
-    let rows: Vec<RunRow> = sqlx::query_as::<_, RunRow>(
-        "SELECT * FROM runs ORDER BY created_at DESC",
+    let rows = sqlx::query(
+        r#"SELECT id, created_at, sport, project, status, duration_ms, sweep_id
+        FROM runs
+        ORDER BY created_at DESC"#,
     )
     .fetch_all(&state.db)
     .await
@@ -568,62 +601,77 @@ async fn list_runs(State(state): State<AppState>) -> AppResult<Json<Vec<RunSumma
     let summaries = rows
         .into_iter()
         .map(|row| RunSummary {
-            id: row.id,
-            created_at: row.created_at,
-            sport: row.sport,
-            project: row.project,
-            status: row.status,
-            duration_ms: row.duration_ms,
-            sweep_id: row.sweep_id,
+            id: row.try_get("id").unwrap_or_default(),
+            created_at: row.try_get("created_at").unwrap_or_default(),
+            sport: row.try_get("sport").unwrap_or_default(),
+            project: row.try_get("project").unwrap_or_default(),
+            status: row.try_get("status").unwrap_or_default(),
+            duration_ms: row.try_get("duration_ms").ok(),
+            sweep_id: row.try_get("sweep_id").ok(),
         })
         .collect();
 
     Ok(Json(summaries))
 }
 
-async fn get_run(State(state): State<AppState>, Path(id): Path<String>) -> AppResult<Json<RunDetail>> {
-    let row: RunRow = sqlx::query_as::<_, RunRow>("SELECT * FROM runs WHERE id = ?")
+async fn get_run(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> AppResult<Json<RunDetail>> {
+    let row = sqlx::query(
+        r#"SELECT id, created_at, sport, project, status, config_json, result_path, stdout_path, stderr_path, duration_ms, sweep_id
+        FROM runs
+        WHERE id = $1"#,
+    )
         .bind(&id)
         .fetch_optional(&state.db)
         .await
         .map_err(|_| AppError::internal("Failed to load run"))?
         .ok_or_else(|| AppError::not_found("Run not found"))?;
 
-    let config: Value = serde_json::from_str(&row.config_json).unwrap_or(json!({}));
-    let result = match row.result_path.clone() {
+    let config_json: String = row
+        .try_get("config_json")
+        .unwrap_or_else(|_| "{}".to_string());
+    let result_path: Option<String> = row.try_get("result_path").ok();
+    let stdout_path: Option<String> = row.try_get("stdout_path").ok();
+    let stderr_path: Option<String> = row.try_get("stderr_path").ok();
+
+    let config: Value = serde_json::from_str(&config_json).unwrap_or(json!({}));
+    let result = match result_path.clone() {
         Some(path) => read_json_path(&state.repo_root, &path),
         None => Ok(None),
     }?;
-    let stdout = match row.stdout_path.clone() {
+    let stdout = match stdout_path {
         Some(path) => read_text_path(&state.repo_root, &path),
         None => Ok(None),
     }?;
-    let stderr = match row.stderr_path.clone() {
+    let stderr = match stderr_path {
         Some(path) => read_text_path(&state.repo_root, &path),
         None => Ok(None),
     }?;
 
     let detail = RunDetail {
-        id: row.id,
-        created_at: row.created_at,
-        sport: row.sport,
-        project: row.project,
-        status: row.status,
-        duration_ms: row.duration_ms,
-        sweep_id: row.sweep_id,
+        id: row.try_get("id").unwrap_or_default(),
+        created_at: row.try_get("created_at").unwrap_or_default(),
+        sport: row.try_get("sport").unwrap_or_default(),
+        project: row.try_get("project").unwrap_or_default(),
+        status: row.try_get("status").unwrap_or_default(),
+        duration_ms: row.try_get("duration_ms").ok(),
+        sweep_id: row.try_get("sweep_id").ok(),
         config,
         result,
         stdout,
         stderr,
-        result_path: row
-            .result_path
-            .and_then(|p| to_relative(&state.repo_root, &PathBuf::from(p))),
+        result_path: result_path.and_then(|p| to_relative(&state.repo_root, &PathBuf::from(p))),
     };
 
     Ok(Json(detail))
 }
 
-async fn create_run(State(state): State<AppState>, Json(payload): Json<RunRequest>) -> AppResult<Json<RunResponse>> {
+async fn create_run(
+    State(state): State<AppState>,
+    Json(payload): Json<RunRequest>,
+) -> AppResult<Json<RunResponse>> {
     let project = resolve_project(&state.repo_root, &payload.sport, &payload.project)?;
     let run_id = Uuid::new_v4().to_string();
     let run_dir = state.data_dir.join("runs").join(&run_id);
@@ -631,7 +679,9 @@ async fn create_run(State(state): State<AppState>, Json(payload): Json<RunReques
 
     let mut params = payload.params.clone();
     if let Some(cache_dir) = payload.cache_dir.clone() {
-        params.entry("cache_dir".to_string()).or_insert(Value::String(cache_dir));
+        params
+            .entry("cache_dir".to_string())
+            .or_insert(Value::String(cache_dir));
     }
 
     let config_json = json!({
@@ -662,7 +712,7 @@ async fn create_run(State(state): State<AppState>, Json(payload): Json<RunReques
 
     sqlx::query(
         r#"INSERT INTO runs (id, created_at, sport, project, status, config_json, result_path, stdout_path, stderr_path, duration_ms, sweep_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         "#,
     )
     .bind(&run_id)
@@ -687,16 +737,39 @@ async fn create_run(State(state): State<AppState>, Json(payload): Json<RunReques
 }
 
 async fn list_sweeps(State(state): State<AppState>) -> AppResult<Json<Vec<SweepRow>>> {
-    let rows: Vec<SweepRow> = sqlx::query_as::<_, SweepRow>(
-        "SELECT * FROM sweeps ORDER BY created_at DESC",
+    let rows = sqlx::query(
+        r#"SELECT id, created_at, sport, project, param, values_json, base_config_json, status
+        FROM sweeps
+        ORDER BY created_at DESC"#,
     )
     .fetch_all(&state.db)
     .await
     .map_err(|_| AppError::internal("Failed to load sweeps"))?;
-    Ok(Json(rows))
+
+    let sweeps = rows
+        .into_iter()
+        .map(|row| SweepRow {
+            id: row.try_get("id").unwrap_or_default(),
+            created_at: row.try_get("created_at").unwrap_or_default(),
+            sport: row.try_get("sport").unwrap_or_default(),
+            project: row.try_get("project").unwrap_or_default(),
+            param: row.try_get("param").unwrap_or_default(),
+            values_json: row
+                .try_get("values_json")
+                .unwrap_or_else(|_| "[]".to_string()),
+            base_config_json: row
+                .try_get("base_config_json")
+                .unwrap_or_else(|_| "{}".to_string()),
+            status: row.try_get("status").unwrap_or_default(),
+        })
+        .collect();
+    Ok(Json(sweeps))
 }
 
-async fn create_sweep(State(state): State<AppState>, Json(payload): Json<SweepRequest>) -> AppResult<Json<SweepResponse>> {
+async fn create_sweep(
+    State(state): State<AppState>,
+    Json(payload): Json<SweepRequest>,
+) -> AppResult<Json<SweepResponse>> {
     let project = resolve_project(&state.repo_root, &payload.sport, &payload.project)?;
     let sweep_id = Uuid::new_v4().to_string();
 
@@ -708,7 +781,7 @@ async fn create_sweep(State(state): State<AppState>, Json(payload): Json<SweepRe
 
     sqlx::query(
         r#"INSERT INTO sweeps (id, created_at, sport, project, param, values_json, base_config_json, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         "#,
     )
     .bind(&sweep_id)
@@ -730,8 +803,7 @@ async fn create_sweep(State(state): State<AppState>, Json(payload): Json<SweepRe
         let run_id = Uuid::new_v4().to_string();
         run_ids.push(run_id.clone());
         let run_dir = state.data_dir.join("runs").join(&run_id);
-        fs::create_dir_all(&run_dir)
-            .map_err(|_| AppError::internal("Failed to create run dir"))?;
+        fs::create_dir_all(&run_dir).map_err(|_| AppError::internal("Failed to create run dir"))?;
 
         let mut params = payload.base_params.clone();
         params.insert(payload.sweep.param.clone(), value.clone());
@@ -767,7 +839,7 @@ async fn create_sweep(State(state): State<AppState>, Json(payload): Json<SweepRe
 
         sqlx::query(
             r#"INSERT INTO runs (id, created_at, sport, project, status, config_json, result_path, stdout_path, stderr_path, duration_ms, sweep_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             "#,
         )
         .bind(&run_id)
@@ -792,7 +864,7 @@ async fn create_sweep(State(state): State<AppState>, Json(payload): Json<SweepRe
             _ => serde_json::to_string(value).unwrap_or_else(|_| value.to_string()),
         };
         sqlx::query(
-            r#"INSERT INTO sweep_runs (sweep_id, run_id, param_value) VALUES (?, ?, ?)"#,
+            r#"INSERT INTO sweep_runs (sweep_id, run_id, param_value) VALUES ($1, $2, $3)"#,
         )
         .bind(&sweep_id)
         .bind(&run_id)
@@ -803,7 +875,7 @@ async fn create_sweep(State(state): State<AppState>, Json(payload): Json<SweepRe
     }
 
     let sweep_status = if any_failed { "partial" } else { "success" };
-    sqlx::query("UPDATE sweeps SET status = ? WHERE id = ?")
+    sqlx::query("UPDATE sweeps SET status = $1 WHERE id = $2")
         .bind(sweep_status)
         .bind(&sweep_id)
         .execute(&state.db)
@@ -813,19 +885,26 @@ async fn create_sweep(State(state): State<AppState>, Json(payload): Json<SweepRe
     Ok(Json(SweepResponse { sweep_id, run_ids }))
 }
 
-async fn get_sweep(State(state): State<AppState>, Path(id): Path<String>) -> AppResult<Json<SweepDetail>> {
-    let sweep: SweepRow = sqlx::query_as::<_, SweepRow>("SELECT * FROM sweeps WHERE id = ?")
-        .bind(&id)
-        .fetch_optional(&state.db)
-        .await
-        .map_err(|_| AppError::internal("Failed to load sweep"))?
-        .ok_or_else(|| AppError::not_found("Sweep not found"))?;
+async fn get_sweep(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> AppResult<Json<SweepDetail>> {
+    let sweep = sqlx::query(
+        r#"SELECT id, created_at, sport, project, param, values_json, base_config_json, status
+        FROM sweeps
+        WHERE id = $1"#,
+    )
+    .bind(&id)
+    .fetch_optional(&state.db)
+    .await
+    .map_err(|_| AppError::internal("Failed to load sweep"))?
+    .ok_or_else(|| AppError::not_found("Sweep not found"))?;
 
     let run_rows = sqlx::query(
         r#"SELECT r.id, r.created_at, r.status, r.result_path, sr.param_value
             FROM runs r
             JOIN sweep_runs sr ON r.id = sr.run_id
-            WHERE sr.sweep_id = ?
+            WHERE sr.sweep_id = $1
             ORDER BY r.created_at ASC"#,
     )
     .bind(&id)
@@ -862,16 +941,19 @@ async fn get_sweep(State(state): State<AppState>, Path(id): Path<String>) -> App
         });
     }
 
-    let values: Value = serde_json::from_str(&sweep.values_json).unwrap_or(json!([]));
+    let values_json: String = sweep
+        .try_get("values_json")
+        .unwrap_or_else(|_| "[]".to_string());
+    let values: Value = serde_json::from_str(&values_json).unwrap_or(json!([]));
 
     Ok(Json(SweepDetail {
-        id: sweep.id,
-        created_at: sweep.created_at,
-        sport: sweep.sport,
-        project: sweep.project,
-        param: sweep.param,
+        id: sweep.try_get("id").unwrap_or_default(),
+        created_at: sweep.try_get("created_at").unwrap_or_default(),
+        sport: sweep.try_get("sport").unwrap_or_default(),
+        project: sweep.try_get("project").unwrap_or_default(),
+        param: sweep.try_get("param").unwrap_or_default(),
         values,
-        status: sweep.status,
+        status: sweep.try_get("status").unwrap_or_default(),
         runs,
         summary,
     }))
@@ -880,8 +962,8 @@ async fn get_sweep(State(state): State<AppState>, Path(id): Path<String>) -> App
 fn build_catalog(repo_root: &PathBuf) -> AppResult<Vec<ProjectInfo>> {
     let mut projects = Vec::new();
     let projects_root = resolve_projects_root(repo_root);
-    for entry in fs::read_dir(&projects_root)
-        .map_err(|_| AppError::internal("Failed to scan repo"))?
+    for entry in
+        fs::read_dir(&projects_root).map_err(|_| AppError::internal("Failed to scan repo"))?
     {
         let entry = entry.map_err(|_| AppError::internal("Failed to scan repo"))?;
         let path = entry.path();
@@ -889,8 +971,11 @@ fn build_catalog(repo_root: &PathBuf) -> AppResult<Vec<ProjectInfo>> {
             continue;
         }
         let sport_name = entry.file_name().to_string_lossy().to_string();
-        for project_entry in fs::read_dir(&path).map_err(|_| AppError::internal("Failed to scan sport"))? {
-            let project_entry = project_entry.map_err(|_| AppError::internal("Failed to scan sport"))?;
+        for project_entry in
+            fs::read_dir(&path).map_err(|_| AppError::internal("Failed to scan sport"))?
+        {
+            let project_entry =
+                project_entry.map_err(|_| AppError::internal("Failed to scan sport"))?;
             let project_path = project_entry.path();
             if !project_path.is_dir() {
                 continue;
@@ -926,7 +1011,10 @@ fn is_sport_dir(path: &FsPath) -> bool {
     if name.starts_with('.') {
         return false;
     }
-    if matches!(name, "Research" | "research" | "platform" | "papers" | "projects" | ".git") {
+    if matches!(
+        name,
+        "Research" | "research" | "platform" | "papers" | "projects" | ".git"
+    ) {
         return false;
     }
     let mut has_project = false;
@@ -1089,14 +1177,18 @@ fn load_papers(repo_root: &PathBuf) -> AppResult<Vec<PaperEntry>> {
     if !research_dir.exists() {
         return Ok(papers);
     }
-    for entry in fs::read_dir(&research_dir).map_err(|_| AppError::internal("Failed to read research"))? {
+    for entry in
+        fs::read_dir(&research_dir).map_err(|_| AppError::internal("Failed to read research"))?
+    {
         let entry = entry.map_err(|_| AppError::internal("Failed to read research"))?;
         let sport_dir = entry.path();
         if !sport_dir.is_dir() {
             continue;
         }
         let sport = entry.file_name().to_string_lossy().to_string();
-        for pdf_entry in fs::read_dir(&sport_dir).map_err(|_| AppError::internal("Failed to read papers"))? {
+        for pdf_entry in
+            fs::read_dir(&sport_dir).map_err(|_| AppError::internal("Failed to read papers"))?
+        {
             let pdf_entry = pdf_entry.map_err(|_| AppError::internal("Failed to read papers"))?;
             let pdf_path = pdf_entry.path();
             if pdf_path.extension().and_then(|s| s.to_str()) != Some("pdf") {
@@ -1154,14 +1246,19 @@ fn parse_research_index(repo_root: &PathBuf) -> HashMap<String, HashMap<String, 
             }
             continue;
         }
-        if line.starts_with("- ") && !line.starts_with("- File:") && !line.starts_with("- Source:") {
+        if line.starts_with("- ") && !line.starts_with("- File:") && !line.starts_with("- Source:")
+        {
             current_title = Some(line[2..].trim().to_string());
             current_file = None;
             continue;
         }
         if line.starts_with("- File:") {
             let file = line.split('`').nth(1).unwrap_or("").trim().to_string();
-            let file_name = FsPath::new(&file).file_name().and_then(|s| s.to_str()).unwrap_or("").to_string();
+            let file_name = FsPath::new(&file)
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_string();
             if file_name.is_empty() {
                 continue;
             }
@@ -1237,7 +1334,9 @@ fn resolve_project(repo_root: &PathBuf, sport: &str, project: &str) -> AppResult
     let projects = build_catalog(repo_root)?;
     let mut matches: Vec<ProjectInfo> = projects
         .into_iter()
-        .filter(|p| normalize(&p.sport) == normalize(sport) && normalize(&p.name) == normalize(project))
+        .filter(|p| {
+            normalize(&p.sport) == normalize(sport) && normalize(&p.name) == normalize(project)
+        })
         .collect();
     if matches.is_empty() {
         return Err(AppError::not_found("Project not found"));
@@ -1323,8 +1422,14 @@ fn execute_python_run(
     let mut cmd = std::process::Command::new(command);
     cmd.current_dir(&project.python_dir)
         .args(args)
-        .stdout(Stdio::from(fs::File::create(stdout_path).map_err(|_| AppError::internal("Failed to open stdout"))?))
-        .stderr(Stdio::from(fs::File::create(stderr_path).map_err(|_| AppError::internal("Failed to open stderr"))?));
+        .stdout(Stdio::from(
+            fs::File::create(stdout_path)
+                .map_err(|_| AppError::internal("Failed to open stdout"))?,
+        ))
+        .stderr(Stdio::from(
+            fs::File::create(stderr_path)
+                .map_err(|_| AppError::internal("Failed to open stderr"))?,
+        ));
 
     let status = cmd
         .status()
@@ -1351,7 +1456,12 @@ fn build_command(
             let mode = get_str(params, "mode", None, true)?;
             let source = get_str(params, "source", None, true)?;
             let year = get_i64(params, "year", Some(2026), true)?;
-            let round = get_i64(params, "round_number", params.get("round").and_then(|v| v.as_i64()), true)?;
+            let round = get_i64(
+                params,
+                "round_number",
+                params.get("round").and_then(|v| v.as_i64()),
+                true,
+            )?;
             let train_seasons = get_str(params, "train_seasons", Some("auto"), false)?;
             let include_standings = get_bool(params, "include_standings", false);
             let cache_dir = params
@@ -1389,7 +1499,12 @@ fn build_command(
             let mode = get_str(params, "mode", None, true)?;
             let league = get_str(params, "league", None, true)?;
             let season = get_i64(params, "season", Some(2026), true)?;
-            let round = get_i64(params, "round_number", params.get("round").and_then(|v| v.as_i64()), true)?;
+            let round = get_i64(
+                params,
+                "round_number",
+                params.get("round").and_then(|v| v.as_i64()),
+                true,
+            )?;
             let data_source = get_str(params, "data_source", Some("placeholder"), false)?;
             let train_seasons = get_str(params, "train_seasons", Some("auto"), false)?;
             let cache_dir = params
@@ -1468,10 +1583,7 @@ fn get_i64(
 }
 
 fn get_bool(params: &serde_json::Map<String, Value>, key: &str, default: bool) -> bool {
-    params
-        .get(key)
-        .and_then(|v| v.as_bool())
-        .unwrap_or(default)
+    params.get(key).and_then(|v| v.as_bool()).unwrap_or(default)
 }
 
 fn read_json_path(repo_root: &PathBuf, path: &str) -> AppResult<Option<Value>> {
@@ -1484,8 +1596,10 @@ fn read_json_path(repo_root: &PathBuf, path: &str) -> AppResult<Option<Value>> {
     if !abs.exists() {
         return Ok(None);
     }
-    let content = fs::read_to_string(abs).map_err(|_| AppError::internal("Failed to read result"))?;
-    let parsed: Value = serde_json::from_str(&content).map_err(|_| AppError::internal("Invalid JSON"))?;
+    let content =
+        fs::read_to_string(abs).map_err(|_| AppError::internal("Failed to read result"))?;
+    let parsed: Value =
+        serde_json::from_str(&content).map_err(|_| AppError::internal("Invalid JSON"))?;
     Ok(Some(parsed))
 }
 
@@ -1519,8 +1633,10 @@ fn score_from_result(result: &Value) -> Option<f64> {
 }
 
 fn write_json(path: &PathBuf, value: &Value) -> AppResult<()> {
-    let mut file = fs::File::create(path).map_err(|_| AppError::internal("Failed to write JSON"))?;
-    let content = serde_json::to_string_pretty(value).map_err(|_| AppError::internal("Failed to serialize"))?;
+    let mut file =
+        fs::File::create(path).map_err(|_| AppError::internal("Failed to write JSON"))?;
+    let content = serde_json::to_string_pretty(value)
+        .map_err(|_| AppError::internal("Failed to serialize"))?;
     file.write_all(content.as_bytes())
         .map_err(|_| AppError::internal("Failed to write JSON"))?;
     Ok(())
@@ -1543,7 +1659,11 @@ fn data_file_status_raw(root: &PathBuf, name: &str, formats: &[&str]) -> (PathBu
         }
     }
     let default_format = formats.first().copied().unwrap_or("csv");
-    (root.join(format!("{}.{}", name, default_format)), default_format.to_string(), false)
+    (
+        root.join(format!("{}.{}", name, default_format)),
+        default_format.to_string(),
+        false,
+    )
 }
 
 fn read_fixtures_csv(path: &PathBuf, limit: usize) -> Result<Vec<FootballFixture>, AppError> {

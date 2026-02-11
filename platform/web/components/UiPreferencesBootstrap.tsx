@@ -1,19 +1,42 @@
 "use client";
 
 import { useEffect } from "react";
+import { getUserPreferences } from "@/lib/api";
 import {
   applyUiPreferences,
+  coerceUiPreferences,
   readUiPreferences,
   subscribeUiPreferences,
+  writeUiPreferences,
 } from "@/lib/uiPreferences";
 
 export default function UiPreferencesBootstrap() {
   useEffect(() => {
+    let cancelled = false;
+
     const sync = () => {
       applyUiPreferences(readUiPreferences());
     };
 
     sync();
+
+    const hydrateFromDatabase = async () => {
+      try {
+        const response = await getUserPreferences();
+        if (cancelled || !response.preferences) {
+          return;
+        }
+
+        const serverPreferences = coerceUiPreferences(response.preferences);
+        writeUiPreferences(serverPreferences);
+        applyUiPreferences(serverPreferences);
+      } catch (error) {
+        console.error("Failed to bootstrap user preferences", error);
+      }
+    };
+
+    void hydrateFromDatabase();
+
     const unsubscribe = subscribeUiPreferences(sync);
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -31,6 +54,7 @@ export default function UiPreferencesBootstrap() {
     }
 
     return () => {
+      cancelled = true;
       unsubscribe();
       if (typeof media.removeEventListener === "function") {
         media.removeEventListener("change", handleSystemTheme);

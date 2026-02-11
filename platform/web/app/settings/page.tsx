@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { getUserPreferences, saveUserPreferences } from "@/lib/api";
 import {
   applyUiPreferences,
+  coerceUiPreferences,
   defaultUiPreferences,
   readUiPreferences,
   type UiPreferences,
@@ -45,41 +47,107 @@ export default function SettingsPage() {
   const [preferences, setPreferences] = useState<UiPreferences>(defaultUiPreferences);
   const [savedSnapshot, setSavedSnapshot] = useState<UiPreferences>(defaultUiPreferences);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isHydrating, setIsHydrating] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  function toLocalTime(value: string): string | null {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+    return parsed.toLocaleTimeString();
+  }
 
   useEffect(() => {
-    const initial = readUiPreferences();
-    setPreferences(initial);
-    setSavedSnapshot(initial);
-    applyUiPreferences(initial);
+    let cancelled = false;
+
+    const local = readUiPreferences();
+    setPreferences(local);
+    setSavedSnapshot(local);
+    applyUiPreferences(local);
+
+    const hydrateFromDatabase = async () => {
+      setIsHydrating(true);
+      try {
+        const response = await getUserPreferences();
+        if (cancelled || !response.preferences) {
+          return;
+        }
+
+        const serverPreferences = coerceUiPreferences(response.preferences);
+        writeUiPreferences(serverPreferences);
+        applyUiPreferences(serverPreferences);
+        setPreferences(serverPreferences);
+        setSavedSnapshot(serverPreferences);
+
+        if (response.updatedAt) {
+          setSavedAt(toLocalTime(response.updatedAt));
+        }
+      } catch (error) {
+        console.error("Failed to load user preferences", error);
+      } finally {
+        if (!cancelled) {
+          setIsHydrating(false);
+        }
+      }
+    };
+
+    void hydrateFromDatabase();
+
+    return () => {
+      cancelled = true;
+      applyUiPreferences(readUiPreferences());
+    };
   }, []);
 
   useEffect(() => {
     applyUiPreferences(preferences);
   }, [preferences]);
 
-  useEffect(() => {
-    return () => {
-      applyUiPreferences(readUiPreferences());
-    };
-  }, []);
-
   const hasChanges = useMemo(
     () => JSON.stringify(preferences) !== JSON.stringify(savedSnapshot),
     [preferences, savedSnapshot]
   );
 
-  const savePreferences = () => {
-    writeUiPreferences(preferences);
-    setSavedSnapshot(preferences);
+  const persistPreferences = async (next: UiPreferences) => {
+    const normalized = coerceUiPreferences(next);
+    writeUiPreferences(normalized);
+    applyUiPreferences(normalized);
+
+    await saveUserPreferences({
+      preferences: normalized,
+      savings: {},
+    });
+
+    setPreferences(normalized);
+    setSavedSnapshot(normalized);
     setSavedAt(new Date().toLocaleTimeString());
+    setSaveError(null);
   };
 
-  const resetPreferences = () => {
-    setPreferences(defaultUiPreferences);
-    setSavedSnapshot(defaultUiPreferences);
-    writeUiPreferences(defaultUiPreferences);
-    applyUiPreferences(defaultUiPreferences);
-    setSavedAt(new Date().toLocaleTimeString());
+  const savePreferences = async () => {
+    setIsSaving(true);
+    try {
+      await persistPreferences(preferences);
+    } catch (error) {
+      console.error("Failed to save user preferences", error);
+      setSaveError("Failed to save to database. Local changes are still applied.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const resetPreferences = async () => {
+    setIsSaving(true);
+    try {
+      await persistPreferences(defaultUiPreferences);
+    } catch (error) {
+      console.error("Failed to reset user preferences", error);
+      setSaveError("Failed to save reset values to database.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -501,9 +569,15 @@ export default function SettingsPage() {
             <div className="stack-sm">
               <span className="module-title">Preferences</span>
               <span className="empty-state-hint">
-                Settings are saved in local storage for this browser.
+                Settings are saved in the database and mirrored in local storage.
                 {" "}
-                {savedAt
+                {saveError
+                  ? saveError
+                  : isHydrating
+                    ? "Loading saved preferences from database."
+                    : isSaving
+                      ? "Saving your changes."
+                      : savedAt
                   ? `Last saved at ${savedAt}.`
                   : hasChanges
                     ? "You have unsaved changes."
@@ -511,11 +585,21 @@ export default function SettingsPage() {
               </span>
             </div>
             <div className="row">
-              <button type="button" className="button secondary" onClick={resetPreferences}>
+              <button
+                type="button"
+                className="button secondary"
+                onClick={() => void resetPreferences()}
+                disabled={isSaving || isHydrating}
+              >
                 Reset defaults
               </button>
-              <button type="button" className="button" onClick={savePreferences} disabled={!hasChanges}>
-                Save changes
+              <button
+                type="button"
+                className="button"
+                onClick={() => void savePreferences()}
+                disabled={!hasChanges || isSaving || isHydrating}
+              >
+                {isSaving ? "Saving..." : "Save changes"}
               </button>
             </div>
           </div>

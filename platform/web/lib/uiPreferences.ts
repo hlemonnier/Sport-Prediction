@@ -56,6 +56,10 @@ export const defaultUiPreferences: UiPreferences = {
   dashboardChartStyle: "line",
 };
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function sanitizePreferences(raw: Partial<UiPreferences>): UiPreferences {
   const themeMode =
     raw.themeMode === "light" || raw.themeMode === "dark" || raw.themeMode === "system"
@@ -113,12 +117,20 @@ function sanitizePreferences(raw: Partial<UiPreferences>): UiPreferences {
   };
 }
 
+export function coerceUiPreferences(raw: unknown): UiPreferences {
+  if (!isObject(raw)) {
+    return defaultUiPreferences;
+  }
+
+  return sanitizePreferences(raw as Partial<UiPreferences>);
+}
+
 export function readUiPreferences(): UiPreferences {
   if (typeof window === "undefined") return defaultUiPreferences;
   try {
     const raw = window.localStorage.getItem(UI_PREFERENCES_STORAGE_KEY);
     if (!raw) return defaultUiPreferences;
-    return sanitizePreferences(JSON.parse(raw) as Partial<UiPreferences>);
+    return coerceUiPreferences(JSON.parse(raw));
   } catch {
     return defaultUiPreferences;
   }

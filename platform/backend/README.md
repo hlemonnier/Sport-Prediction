@@ -27,4 +27,4 @@ Env options:
 - Runs metadata and sweep history are stored in Supabase Postgres.
 - Run artifacts (`config.json`, `result.json`, logs) are stored in `platform/backend/data/`.
 - The backend expects Python pipelines in each project `Python/` folder.
-- On startup, the backend enables RLS and revokes `anon`/`authenticated` table privileges on `runs`, `sweeps`, and `sweep_runs`.
+- On startup, the backend enables RLS and revokes `anon`/`authenticated` table privileges on `runs`, `sweeps`, `sweep_runs`, and `user_preferences`.

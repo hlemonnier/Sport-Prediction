@@ -5,6 +5,55 @@ import { randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import postgres from "postgres";
 
+function parseEnvValue(raw) {
+  const trimmed = raw.trim();
+  if (
+    (trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return;
+  }
+
+  let content;
+  try {
+    content = fs.readFileSync(filePath, "utf8");
+  } catch {
+    return;
+  }
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const equalIndex = line.indexOf("=");
+    if (equalIndex <= 0) {
+      continue;
+    }
+
+    const key = line.slice(0, equalIndex).trim();
+    if (!key) {
+      continue;
+    }
+
+    const existingValue = process.env[key];
+    if (existingValue !== undefined && existingValue !== "") {
+      continue;
+    }
+
+    const rawValue = line.slice(equalIndex + 1);
+    process.env[key] = parseEnvValue(rawValue);
+  }
+}
+
 class AppError extends Error {
   constructor(status, message) {
     super(message);
@@ -120,6 +169,15 @@ async function initDb(db) {
     );
   `);
 
+  await db.unsafe(`
+    CREATE TABLE IF NOT EXISTS user_preferences (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      updated_at TEXT NOT NULL,
+      preferences_json TEXT NOT NULL,
+      savings_json TEXT NOT NULL DEFAULT '{}'
+    );
+  `);
+
   await hardenDbSecurity(db);
 }
 
@@ -127,24 +185,25 @@ async function hardenDbSecurity(db) {
   await db.unsafe("ALTER TABLE public.runs ENABLE ROW LEVEL SECURITY");
   await db.unsafe("ALTER TABLE public.sweeps ENABLE ROW LEVEL SECURITY");
   await db.unsafe("ALTER TABLE public.sweep_runs ENABLE ROW LEVEL SECURITY");
+  await db.unsafe("ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY");
 
   await db.unsafe(
-    "REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs FROM PUBLIC"
+    "REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs, public.user_preferences FROM PUBLIC"
   );
 
   await db.unsafe(`
     DO $$
     BEGIN
       IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
-        REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs FROM anon;
+        REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs, public.user_preferences FROM anon;
       END IF;
 
       IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
-        REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs FROM authenticated;
+        REVOKE ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs, public.user_preferences FROM authenticated;
       END IF;
 
       IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
-        GRANT ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs TO service_role;
+        GRANT ALL PRIVILEGES ON TABLE public.runs, public.sweeps, public.sweep_runs, public.user_preferences TO service_role;
       END IF;
     END
     $$;
@@ -1392,6 +1451,62 @@ async function handleGetSweep(state, sweepId) {
   });
 }
 
+async function handleGetUserPreferences(state) {
+  const rows = await state.db`
+    SELECT preferences_json, savings_json, updated_at
+    FROM user_preferences
+    WHERE id = 1
+  `;
+
+  const row = rows[0];
+  if (!row) {
+    return jsonResponse({
+      preferences: null,
+      savings: {},
+      updatedAt: null,
+    });
+  }
+
+  return jsonResponse({
+    preferences: parseJsonSafely(row.preferences_json ?? "{}", {}),
+    savings: parseJsonSafely(row.savings_json ?? "{}", {}),
+    updatedAt: row.updated_at ?? null,
+  });
+}
+
+async function handleSaveUserPreferences(state, request) {
+  const payload = await parseJsonBody(request);
+  if (!isObject(payload)) {
+    throw AppError.badRequest("Invalid request");
+  }
+
+  if (!isObject(payload.preferences)) {
+    throw AppError.badRequest("preferences must be an object");
+  }
+
+  if (payload.savings !== undefined && !isObject(payload.savings)) {
+    throw AppError.badRequest("savings must be an object when provided");
+  }
+
+  const updatedAt = new Date().toISOString();
+  const preferencesJson = JSON.stringify(payload.preferences);
+  const savingsJson = JSON.stringify(isObject(payload.savings) ? payload.savings : {});
+
+  await state.db`
+    INSERT INTO user_preferences (id, updated_at, preferences_json, savings_json)
+    VALUES (1, ${updatedAt}, ${preferencesJson}, ${savingsJson})
+    ON CONFLICT (id) DO UPDATE
+    SET updated_at = EXCLUDED.updated_at,
+        preferences_json = EXCLUDED.preferences_json,
+        savings_json = EXCLUDED.savings_json
+  `;
+
+  return jsonResponse({
+    status: "ok",
+    updatedAt,
+  });
+}
+
 async function handleRequest(request, state) {
   if (request.method === "OPTIONS") {
     return new Response(null, {
@@ -1433,6 +1548,14 @@ async function handleRequest(request, state) {
 
   if (request.method === "POST" && pathname === "/api/open") {
     return handleOpenPath(state, request);
+  }
+
+  if (request.method === "GET" && pathname === "/api/user-preferences") {
+    return handleGetUserPreferences(state);
+  }
+
+  if (request.method === "POST" && pathname === "/api/user-preferences") {
+    return handleSaveUserPreferences(state, request);
   }
 
   if (request.method === "GET" && pathname === "/api/runs") {
@@ -1498,10 +1621,21 @@ async function main() {
   const repoRoot = process.env.REPO_ROOT
     ? path.resolve(process.env.REPO_ROOT)
     : findRepoRoot(currentDir);
+
+  loadEnvFile(path.join(repoRoot, ".env"));
+  loadEnvFile(path.join(repoRoot, ".env.local"));
+  loadEnvFile(path.join(currentDir, ".env"));
+  loadEnvFile(path.join(currentDir, ".env.local"));
+
   const dataDir = path.join(repoRoot, "platform", "backend", "data");
   await fsp.mkdir(dataDir, { recursive: true });
 
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl =
+    process.env.DATABASE_URL ||
+    process.env.SUPABASE_DIRECT_CONNECTION_STRING ||
+    process.env.SUPABASE_DB_URL ||
+    process.env.SUPABASE_SESSION_POOLER_CONNECTION_STRING ||
+    process.env.SUPABASE_TRANSACTION_POOLER_CONNECTION_STRING;
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is required (use your Supabase Postgres URI)");
   }

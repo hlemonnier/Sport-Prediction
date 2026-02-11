@@ -122,10 +122,6 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="brand-title">Sport Lab</div>
-        <div className="brand-subtitle">Prediction Engine</div>
-      </div>
       <div className="sidebar-groups">
         <div className="nav-dashboard">
           <Link

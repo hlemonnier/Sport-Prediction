@@ -2,10 +2,15 @@ import { API_BASE } from "@/lib/api";
 import type { SweepDetail } from "@/lib/types";
 import SweepChart from "@/components/SweepChart";
 
-export default async function SweepDetailPage({ params }: { params: { id: string } }) {
+type SweepDetailPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function SweepDetailPage({ params }: SweepDetailPageProps) {
+  const { id } = await params;
   let sweep: SweepDetail | null = null;
   try {
-    const res = await fetch(`${API_BASE}/api/sweeps/${params.id}`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/sweeps/${id}`, { cache: "no-store" });
     if (res.ok) {
       sweep = (await res.json()) as SweepDetail;
     }

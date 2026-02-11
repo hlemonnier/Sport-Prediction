@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { readUiPreferences, subscribeUiPreferences } from "@/lib/uiPreferences";
 
 const dashboardItem = { label: "Dashboard", href: "/" };
 
@@ -40,6 +41,9 @@ export default function Sidebar() {
   const pathname = usePathname();
   const storageKey = "sidebar:collapsed-groups";
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [autoExpandActiveGroup, setAutoExpandActiveGroup] = useState(true);
+  const [autoCollapseNonActiveGroups, setAutoCollapseNonActiveGroups] = useState(false);
+  const [rememberSidebarState, setRememberSidebarState] = useState(true);
 
   const activeGroup = useMemo(
     () =>
@@ -50,7 +54,18 @@ export default function Sidebar() {
   );
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const syncPreferences = () => {
+      const prefs = readUiPreferences();
+      setAutoExpandActiveGroup(prefs.autoExpandActiveGroup);
+      setAutoCollapseNonActiveGroups(prefs.autoCollapseNonActiveGroups);
+      setRememberSidebarState(prefs.rememberSidebarState);
+    };
+    syncPreferences();
+    return subscribeUiPreferences(syncPreferences);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !rememberSidebarState) return;
     try {
       const raw = window.localStorage.getItem(storageKey);
       if (!raw) return;
@@ -59,26 +74,51 @@ export default function Sidebar() {
     } catch {
       setCollapsed({});
     }
-  }, []);
+  }, [rememberSidebarState]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!rememberSidebarState) {
+      setCollapsed({});
+    }
+  }, [rememberSidebarState]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !rememberSidebarState) return;
     window.localStorage.setItem(storageKey, JSON.stringify(collapsed));
-  }, [collapsed]);
+  }, [collapsed, rememberSidebarState]);
 
   useEffect(() => {
+    if (!autoExpandActiveGroup) return;
     if (!activeGroup) return;
     setCollapsed((prev) => {
-      if (!prev[activeGroup]) return prev;
-      return { ...prev, [activeGroup]: false };
+      const next = { ...prev };
+      if (autoCollapseNonActiveGroups) {
+        groups.forEach((group) => {
+          next[group.label] = group.label !== activeGroup;
+        });
+      } else {
+        next[activeGroup] = false;
+      }
+      return next;
     });
-  }, [activeGroup]);
+  }, [activeGroup, autoExpandActiveGroup, autoCollapseNonActiveGroups]);
 
   const toggleGroup = (label: string) => {
-    setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }));
+    setCollapsed((prev) => {
+      const next = { ...prev, [label]: !prev[label] };
+      if (autoCollapseNonActiveGroups && next[label] === false) {
+        groups.forEach((group) => {
+          if (group.label !== label) {
+            next[group.label] = true;
+          }
+        });
+      }
+      return next;
+    });
   };
 
   const dashboardActive = pathname === "/";
+  const settingsActive = pathname === "/settings" || pathname.startsWith("/settings/");
 
   return (
     <aside className="sidebar">
@@ -128,6 +168,14 @@ export default function Sidebar() {
             </div>
           </div>
         ))}
+      </div>
+      <div className="sidebar-bottom-actions">
+        <Link
+          href="/settings"
+          className={`nav-item ${settingsActive ? "active" : ""}`}
+        >
+          Settings
+        </Link>
       </div>
       <div className="sidebar-footer">
         Local mode &middot; No data leaves device

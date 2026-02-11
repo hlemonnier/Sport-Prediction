@@ -12,3 +12,5 @@ data/football/*.parquet
 data/football/*.feather
 data/football/*.json
 data/f1/*
+platform/backend/node_modules/
+platform/backend/.bun/

@@ -2,10 +2,15 @@ import { API_BASE } from "@/lib/api";
 import type { RunDetail } from "@/lib/types";
 import RunResult from "@/components/RunResult";
 
-export default async function RunDetailPage({ params }: { params: { id: string } }) {
+type RunDetailPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function RunDetailPage({ params }: RunDetailPageProps) {
+  const { id } = await params;
   let run: RunDetail | null = null;
   try {
-    const res = await fetch(`${API_BASE}/api/runs/${params.id}`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/runs/${id}`, { cache: "no-store" });
     if (res.ok) {
       run = (await res.json()) as RunDetail;
     }

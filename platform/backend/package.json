@@ -1,0 +1,14 @@
+{
+  "name": "sport-platform-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.js",
+    "start": "bun src/index.js",
+    "check": "node --check src/index.js"
+  },
+  "dependencies": {
+    "postgres": "^3.4.7"
+  }
+}

@@ -22,9 +22,9 @@ Football — Match Result Prediction. Objectif : predire les resultats de match 
 - Statut : scaffold (CLI + package + placeholders), a completer apres validation du notebook
 
 **Plateforme locale (UI + API)**
-- Backend Rust: `platform/backend` (Axum + Supabase Postgres)
+- Backend Bun: `platform/backend` (Bun + Postgres/Supabase)
 - Frontend Next.js: `platform/web`
-- Lancer le backend: `cd platform/backend && cargo run`
+- Lancer le backend: `cd platform/backend && bun install && bun run dev`
 - Lancer le frontend: `cd platform/web && pnpm install && pnpm dev`
 
 **CLI**

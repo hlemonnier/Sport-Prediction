@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
+import UiPreferencesBootstrap from "@/components/UiPreferencesBootstrap";
 import "./globals.css";
 
 const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-sans" });
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${space.variable} ${mono.variable}`}>
       <body>
+        <UiPreferencesBootstrap />
         <div className="bg-grid" />
         <div className="shell">
           <Sidebar />

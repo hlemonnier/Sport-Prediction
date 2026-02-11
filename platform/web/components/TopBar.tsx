@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import {
+  readUiPreferences,
+  subscribeUiPreferences,
+  updateUiPreferences,
+} from "@/lib/uiPreferences";
 
 type F1Context = {
   season: string;
@@ -49,6 +54,7 @@ export default function TopBar() {
 
   const [f1Context, setF1Context] = useState<F1Context>(defaultF1);
   const [footballContext, setFootballContext] = useState<FootballContext>(defaultFootball);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const storedF1 = readLocal("context:f1", defaultF1);
@@ -57,6 +63,15 @@ export default function TopBar() {
       : { ...storedF1, session: defaultF1.session };
     setF1Context(normalizedF1);
     setFootballContext(readLocal("context:football", defaultFootball));
+  }, []);
+
+  useEffect(() => {
+    const syncPreferences = () => {
+      const prefs = readUiPreferences();
+      setSidebarCollapsed(prefs.sidebarCollapsed);
+    };
+    syncPreferences();
+    return subscribeUiPreferences(syncPreferences);
   }, []);
 
   useEffect(() => {
@@ -147,6 +162,13 @@ export default function TopBar() {
         <div className="context-hint">Select a sport module to set context</div>
       )}
       <div className="topbar-actions">
+        <button
+          type="button"
+          className="button secondary button-sm topbar-sidebar-toggle"
+          onClick={() => updateUiPreferences({ sidebarCollapsed: !sidebarCollapsed })}
+        >
+          {sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+        </button>
         <span className="chip">
           <span className="chip-led green" />
           Local

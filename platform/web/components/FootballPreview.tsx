@@ -2,29 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { API_BASE } from "@/lib/api";
-
-type DataStatus = {
-  football: {
-    teams: { path: string; format: string; exists: boolean };
-    matches: { path: string; format: string; exists: boolean };
-    fixtures: { path: string; format: string; exists: boolean };
-  };
-};
-
-type Fixture = {
-  matchId: string;
-  date: string;
-  season: string;
-  league: string;
-  homeTeamId: string;
-  awayTeamId: string;
-};
-
-type FixtureResponse = {
-  fixtures: Fixture[];
-  warning?: string | null;
-};
+import { getDataStatus, getFootballFixtures } from "@/lib/api";
+import type { DataStatus, Fixture, FixtureResponse } from "@/lib/types";
 
 const SAMPLE_FIXTURES: Fixture[] = [
   {
@@ -61,21 +40,15 @@ export default function FootballPreview() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/data-status`);
-        if (res.ok) {
-          setStatus((await res.json()) as DataStatus);
-        }
+        setStatus(await getDataStatus());
       } catch {
         setStatus(null);
       }
     };
     const fetchFixtures = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/football/fixtures?limit=8`);
-        if (res.ok) {
-          setFixtures((await res.json()) as FixtureResponse);
-          setUsingSampleFixtures(false);
-        }
+        setFixtures(await getFootballFixtures(8));
+        setUsingSampleFixtures(false);
       } catch {
         setFixtures(null);
       }

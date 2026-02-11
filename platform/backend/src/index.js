@@ -130,6 +130,105 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+const DEFAULT_USER_SAVINGS = {
+  bankroll: 0,
+  monthlySavingsTarget: 0,
+  reserveBalance: 0,
+  defaultStake: 10,
+  maxStakePercent: 2,
+  autoSaveProfit: true,
+};
+
+function coerceNumber(value, fallback, min = 0, max = Number.POSITIVE_INFINITY) {
+  const asNumber =
+    typeof value === "number" && Number.isFinite(value)
+      ? value
+      : typeof value === "string"
+        ? Number.parseFloat(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(asNumber)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, asNumber));
+}
+
+function normalizeRunStatus(status) {
+  const normalized = String(status ?? "").toLowerCase();
+  if (normalized === "success") return "done";
+  if (normalized === "failed") return "error";
+  if (normalized === "done" || normalized === "error" || normalized === "running" || normalized === "queued") {
+    return normalized;
+  }
+  return normalized || "queued";
+}
+
+function normalizeSweepStatus(status) {
+  const normalized = String(status ?? "").toLowerCase();
+  if (normalized === "success") return "done";
+  if (normalized === "failed") return "error";
+  if (
+    normalized === "done" ||
+    normalized === "error" ||
+    normalized === "partial" ||
+    normalized === "running" ||
+    normalized === "queued"
+  ) {
+    return normalized;
+  }
+  return normalized || "queued";
+}
+
+function sanitizeUserSavings(raw) {
+  const source = isObject(raw) ? raw : {};
+  return {
+    bankroll: coerceNumber(source.bankroll, DEFAULT_USER_SAVINGS.bankroll, 0),
+    monthlySavingsTarget: coerceNumber(
+      source.monthlySavingsTarget,
+      DEFAULT_USER_SAVINGS.monthlySavingsTarget,
+      0
+    ),
+    reserveBalance: coerceNumber(source.reserveBalance, DEFAULT_USER_SAVINGS.reserveBalance, 0),
+    defaultStake: coerceNumber(source.defaultStake, DEFAULT_USER_SAVINGS.defaultStake, 0),
+    maxStakePercent: coerceNumber(source.maxStakePercent, DEFAULT_USER_SAVINGS.maxStakePercent, 0, 100),
+    autoSaveProfit:
+      typeof source.autoSaveProfit === "boolean"
+        ? source.autoSaveProfit
+        : DEFAULT_USER_SAVINGS.autoSaveProfit,
+  };
+}
+
+function enqueueBackgroundJob(state, name, job) {
+  state.jobQueue.push({ name, job });
+  drainBackgroundJobs(state);
+}
+
+function drainBackgroundJobs(state) {
+  if (state.jobQueueRunning) {
+    return;
+  }
+
+  const next = state.jobQueue.shift();
+  if (!next) {
+    return;
+  }
+
+  state.jobQueueRunning = true;
+
+  void (async () => {
+    try {
+      await next.job();
+    } catch (error) {
+      console.error(`Background job failed: ${next.name}`);
+      console.error(error);
+    } finally {
+      state.jobQueueRunning = false;
+      drainBackgroundJobs(state);
+    }
+  })();
+}
+
 async function initDb(db) {
   await db.unsafe(`
     CREATE TABLE IF NOT EXISTS runs (
@@ -1142,7 +1241,7 @@ async function handleListRuns(state) {
     createdAt: row.created_at ?? "",
     sport: row.sport ?? "",
     project: row.project ?? "",
-    status: row.status ?? "",
+    status: normalizeRunStatus(row.status),
     durationMs: row.duration_ms ?? null,
     sweepId: row.sweep_id ?? null,
   }));
@@ -1172,7 +1271,7 @@ async function handleGetRun(state, runId) {
     createdAt: row.created_at ?? "",
     sport: row.sport ?? "",
     project: row.project ?? "",
-    status: row.status ?? "",
+    status: normalizeRunStatus(row.status),
     durationMs: row.duration_ms ?? null,
     sweepId: row.sweep_id ?? null,
     config,
@@ -1231,19 +1330,51 @@ async function handleCreateRun(state, request) {
 
   await writeJson(configPath, config);
 
-  const start = Date.now();
-  const ok = await executePythonRun(project, config, outputPath, stdoutPath, stderrPath);
-  const durationMs = Date.now() - start;
-  const status = ok ? "success" : "failed";
-
+  const createdAt = new Date().toISOString();
   await state.db`
     INSERT INTO runs (id, created_at, sport, project, status, config_json, result_path, stdout_path, stderr_path, duration_ms, sweep_id)
-    VALUES (${runId}, ${new Date().toISOString()}, ${project.sport}, ${project.name}, ${status}, ${JSON.stringify(
+    VALUES (${runId}, ${createdAt}, ${project.sport}, ${project.name}, ${"queued"}, ${JSON.stringify(
       config
-    )}, ${outputPath}, ${stdoutPath}, ${stderrPath}, ${durationMs}, ${null})
+    )}, ${outputPath}, ${stdoutPath}, ${stderrPath}, ${null}, ${null})
   `;
 
-  return jsonResponse({ runId, status });
+  enqueueBackgroundJob(state, `run:${runId}`, async () => {
+    await state.db`
+      UPDATE runs
+      SET status = ${"running"}
+      WHERE id = ${runId}
+    `;
+
+    const startedAt = Date.now();
+    let ok = false;
+
+    try {
+      ok = await executePythonRun(project, config, outputPath, stdoutPath, stderrPath);
+    } catch (error) {
+      console.error(`Run job failed (${runId})`);
+      console.error(error);
+      try {
+        await fsp.appendFile(stderrPath, `\n${String(error)}\n`, "utf8");
+      } catch {
+        // Ignore best-effort stderr append failures.
+      }
+    }
+
+    const durationMs = Date.now() - startedAt;
+    const status = ok ? "done" : "error";
+
+    await state.db`
+      UPDATE runs
+      SET status = ${status},
+          duration_ms = ${durationMs},
+          result_path = ${outputPath},
+          stdout_path = ${stdoutPath},
+          stderr_path = ${stderrPath}
+      WHERE id = ${runId}
+    `;
+  });
+
+  return jsonResponse({ runId, status: "queued" }, 202);
 }
 
 async function handleListSweeps(state) {
@@ -1261,7 +1392,7 @@ async function handleListSweeps(state) {
     param: row.param ?? "",
     valuesJson: row.values_json ?? "[]",
     baseConfigJson: row.base_config_json ?? "{}",
-    status: row.status ?? "",
+    status: normalizeSweepStatus(row.status),
   }));
 
   return jsonResponse(sweeps);
@@ -1302,22 +1433,23 @@ async function handleCreateSweep(state, request) {
     params: payload.baseParams,
   };
 
+  const createdAt = new Date().toISOString();
   await state.db`
     INSERT INTO sweeps (id, created_at, sport, project, param, values_json, base_config_json, status)
     VALUES (
       ${sweepId},
-      ${new Date().toISOString()},
+      ${createdAt},
       ${project.sport},
       ${project.name},
       ${sweepParam},
       ${JSON.stringify(sweepValues)},
       ${JSON.stringify(baseConfig)},
-      ${"running"}
+      ${"queued"}
     )
   `;
 
   const runIds = [];
-  let anyFailed = false;
+  const runPlans = [];
 
   for (const value of sweepValues) {
     const runId = randomUUID();
@@ -1345,28 +1477,19 @@ async function handleCreateSweep(state, request) {
 
     await writeJson(configPath, config);
 
-    const start = Date.now();
-    const ok = await executePythonRun(project, config, outputPath, stdoutPath, stderrPath);
-    const durationMs = Date.now() - start;
-    const status = ok ? "success" : "failed";
-
-    if (!ok) {
-      anyFailed = true;
-    }
-
     await state.db`
       INSERT INTO runs (id, created_at, sport, project, status, config_json, result_path, stdout_path, stderr_path, duration_ms, sweep_id)
       VALUES (
         ${runId},
-        ${new Date().toISOString()},
+        ${createdAt},
         ${project.sport},
         ${project.name},
-        ${status},
+        ${"queued"},
         ${JSON.stringify(config)},
         ${outputPath},
         ${stdoutPath},
         ${stderrPath},
-        ${durationMs},
+        ${null},
         ${sweepId}
       )
     `;
@@ -1380,19 +1503,101 @@ async function handleCreateSweep(state, request) {
       INSERT INTO sweep_runs (sweep_id, run_id, param_value)
       VALUES (${sweepId}, ${runId}, ${paramValue})
     `;
+
+    runPlans.push({
+      runId,
+      config,
+      outputPath,
+      stdoutPath,
+      stderrPath,
+    });
   }
 
-  const status = anyFailed ? "partial" : "success";
-  await state.db`
-    UPDATE sweeps
-    SET status = ${status}
-    WHERE id = ${sweepId}
-  `;
+  enqueueBackgroundJob(state, `sweep:${sweepId}`, async () => {
+    try {
+      await state.db`
+        UPDATE sweeps
+        SET status = ${"running"}
+        WHERE id = ${sweepId}
+      `;
+
+      let successfulRuns = 0;
+      let failedRuns = 0;
+
+      for (const plan of runPlans) {
+        await state.db`
+          UPDATE runs
+          SET status = ${"running"}
+          WHERE id = ${plan.runId}
+        `;
+
+        const startedAt = Date.now();
+        let ok = false;
+        try {
+          ok = await executePythonRun(
+            project,
+            plan.config,
+            plan.outputPath,
+            plan.stdoutPath,
+            plan.stderrPath
+          );
+        } catch (error) {
+          console.error(`Sweep run failed (${plan.runId})`);
+          console.error(error);
+          try {
+            await fsp.appendFile(plan.stderrPath, `\n${String(error)}\n`, "utf8");
+          } catch {
+            // Ignore best-effort stderr append failures.
+          }
+        }
+
+        const durationMs = Date.now() - startedAt;
+        const runStatus = ok ? "done" : "error";
+        if (ok) {
+          successfulRuns += 1;
+        } else {
+          failedRuns += 1;
+        }
+
+        await state.db`
+          UPDATE runs
+          SET status = ${runStatus},
+              duration_ms = ${durationMs},
+              result_path = ${plan.outputPath},
+              stdout_path = ${plan.stdoutPath},
+              stderr_path = ${plan.stderrPath}
+          WHERE id = ${plan.runId}
+        `;
+      }
+
+      const sweepStatus =
+        failedRuns === 0 ? "done" : successfulRuns === 0 ? "error" : "partial";
+      await state.db`
+        UPDATE sweeps
+        SET status = ${sweepStatus}
+        WHERE id = ${sweepId}
+      `;
+    } catch (error) {
+      console.error(`Sweep job failed (${sweepId})`);
+      console.error(error);
+      await state.db`
+        UPDATE runs
+        SET status = ${"error"}
+        WHERE sweep_id = ${sweepId} AND status IN (${"queued"}, ${"running"})
+      `;
+      await state.db`
+        UPDATE sweeps
+        SET status = ${"error"}
+        WHERE id = ${sweepId}
+      `;
+    }
+  });
 
   return jsonResponse({
     sweepId,
     runIds,
-  });
+    status: "queued",
+  }, 202);
 }
 
 async function handleGetSweep(state, sweepId) {
@@ -1425,7 +1630,7 @@ async function handleGetSweep(state, sweepId) {
     runs.push({
       id: row.id ?? "",
       createdAt: row.created_at ?? "",
-      status: row.status ?? "",
+      status: normalizeRunStatus(row.status),
       paramValue: row.param_value ?? "",
       result,
     });
@@ -1445,7 +1650,7 @@ async function handleGetSweep(state, sweepId) {
     project: sweep.project ?? "",
     param: sweep.param ?? "",
     values,
-    status: sweep.status ?? "",
+    status: normalizeSweepStatus(sweep.status),
     runs,
     summary,
   });
@@ -1462,14 +1667,14 @@ async function handleGetUserPreferences(state) {
   if (!row) {
     return jsonResponse({
       preferences: null,
-      savings: {},
+      savings: DEFAULT_USER_SAVINGS,
       updatedAt: null,
     });
   }
 
   return jsonResponse({
     preferences: parseJsonSafely(row.preferences_json ?? "{}", {}),
-    savings: parseJsonSafely(row.savings_json ?? "{}", {}),
+    savings: sanitizeUserSavings(parseJsonSafely(row.savings_json ?? "{}", {})),
     updatedAt: row.updated_at ?? null,
   });
 }
@@ -1490,7 +1695,7 @@ async function handleSaveUserPreferences(state, request) {
 
   const updatedAt = new Date().toISOString();
   const preferencesJson = JSON.stringify(payload.preferences);
-  const savingsJson = JSON.stringify(isObject(payload.savings) ? payload.savings : {});
+  const savingsJson = JSON.stringify(sanitizeUserSavings(payload.savings));
 
   await state.db`
     INSERT INTO user_preferences (id, updated_at, preferences_json, savings_json)
@@ -1650,6 +1855,8 @@ async function main() {
     repoRoot,
     dataDir,
     db,
+    jobQueue: [],
+    jobQueueRunning: false,
   };
 
   const port = Number.parseInt(process.env.PORT ?? "4000", 10) || 4000;

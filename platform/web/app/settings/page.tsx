@@ -1,13 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getUserPreferences, saveUserPreferences } from "@/lib/api";
+import { saveUserPreferences } from "@/lib/api";
+import { showToast } from "@/lib/toast";
 import {
   applyUiPreferences,
   coerceUiPreferences,
+  coerceUserSavings,
+  defaultUserSavings,
   defaultUiPreferences,
+  readUserSavings,
   readUiPreferences,
+  subscribeUiPreferences,
+  subscribeUserSavings,
+  type UserSavings,
   type UiPreferences,
+  writeUserSavings,
   writeUiPreferences,
 } from "@/lib/uiPreferences";
 
@@ -43,60 +51,63 @@ function ToggleRow({
   );
 }
 
+function NumberRow({
+  label,
+  hint,
+  value,
+  onChange,
+  suffix,
+  min = 0,
+  step = 1,
+}: {
+  label: string;
+  hint?: string;
+  value: number;
+  onChange: (value: number) => void;
+  suffix?: string;
+  min?: number;
+  step?: number;
+}) {
+  return (
+    <div className="settings-row">
+      <div className="settings-row-copy">
+        <span className="data-health-label">{label}</span>
+        {hint ? <span className="empty-state-hint">{hint}</span> : null}
+      </div>
+      <div className="settings-number">
+        <input
+          type="number"
+          className="settings-number-input"
+          value={value}
+          min={min}
+          step={step}
+          onChange={(event) => onChange(Number(event.target.value))}
+        />
+        {suffix ? <span className="chip">{suffix}</span> : null}
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [preferences, setPreferences] = useState<UiPreferences>(defaultUiPreferences);
-  const [savedSnapshot, setSavedSnapshot] = useState<UiPreferences>(defaultUiPreferences);
+  const [savings, setSavings] = useState<UserSavings>(defaultUserSavings);
+  const [savedPreferencesSnapshot, setSavedPreferencesSnapshot] = useState<UiPreferences>(defaultUiPreferences);
+  const [savedSavingsSnapshot, setSavedSavingsSnapshot] = useState<UserSavings>(defaultUserSavings);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isHydrating, setIsHydrating] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  function toLocalTime(value: string): string | null {
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-      return null;
-    }
-    return parsed.toLocaleTimeString();
-  }
-
   useEffect(() => {
-    let cancelled = false;
-
-    const local = readUiPreferences();
-    setPreferences(local);
-    setSavedSnapshot(local);
-    applyUiPreferences(local);
-
-    const hydrateFromDatabase = async () => {
-      setIsHydrating(true);
-      try {
-        const response = await getUserPreferences();
-        if (cancelled || !response.preferences) {
-          return;
-        }
-
-        const serverPreferences = coerceUiPreferences(response.preferences);
-        writeUiPreferences(serverPreferences);
-        applyUiPreferences(serverPreferences);
-        setPreferences(serverPreferences);
-        setSavedSnapshot(serverPreferences);
-
-        if (response.updatedAt) {
-          setSavedAt(toLocalTime(response.updatedAt));
-        }
-      } catch (error) {
-        console.error("Failed to load user preferences", error);
-      } finally {
-        if (!cancelled) {
-          setIsHydrating(false);
-        }
-      }
-    };
-
-    void hydrateFromDatabase();
+    const localPreferences = readUiPreferences();
+    const localSavings = readUserSavings();
+    setPreferences(localPreferences);
+    setSavings(localSavings);
+    setSavedPreferencesSnapshot(localPreferences);
+    setSavedSavingsSnapshot(localSavings);
+    applyUiPreferences(localPreferences);
 
     return () => {
-      cancelled = true;
       applyUiPreferences(readUiPreferences());
     };
   }, []);
@@ -106,33 +117,63 @@ export default function SettingsPage() {
   }, [preferences]);
 
   const hasChanges = useMemo(
-    () => JSON.stringify(preferences) !== JSON.stringify(savedSnapshot),
-    [preferences, savedSnapshot]
+    () =>
+      JSON.stringify(preferences) !== JSON.stringify(savedPreferencesSnapshot) ||
+      JSON.stringify(savings) !== JSON.stringify(savedSavingsSnapshot),
+    [preferences, savedPreferencesSnapshot, savings, savedSavingsSnapshot]
   );
 
-  const persistPreferences = async (next: UiPreferences) => {
-    const normalized = coerceUiPreferences(next);
-    writeUiPreferences(normalized);
-    applyUiPreferences(normalized);
+  useEffect(() => {
+    const syncFromStorage = () => {
+      if (isSaving || hasChanges) {
+        return;
+      }
+      const localPreferences = readUiPreferences();
+      const localSavings = readUserSavings();
+      setPreferences(localPreferences);
+      setSavings(localSavings);
+      setSavedPreferencesSnapshot(localPreferences);
+      setSavedSavingsSnapshot(localSavings);
+    };
+
+    const unsubscribePrefs = subscribeUiPreferences(syncFromStorage);
+    const unsubscribeSavings = subscribeUserSavings(syncFromStorage);
+    return () => {
+      unsubscribePrefs();
+      unsubscribeSavings();
+    };
+  }, [isSaving, hasChanges]);
+
+  const persistSettings = async (nextPreferences: UiPreferences, nextSavings: UserSavings) => {
+    const normalizedPreferences = coerceUiPreferences(nextPreferences);
+    const normalizedSavings = coerceUserSavings(nextSavings);
+
+    writeUiPreferences(normalizedPreferences);
+    writeUserSavings(normalizedSavings);
+    applyUiPreferences(normalizedPreferences);
 
     await saveUserPreferences({
-      preferences: normalized,
-      savings: {},
+      preferences: normalizedPreferences,
+      savings: normalizedSavings,
     });
 
-    setPreferences(normalized);
-    setSavedSnapshot(normalized);
+    setPreferences(normalizedPreferences);
+    setSavings(normalizedSavings);
+    setSavedPreferencesSnapshot(normalizedPreferences);
+    setSavedSavingsSnapshot(normalizedSavings);
     setSavedAt(new Date().toLocaleTimeString());
     setSaveError(null);
+    showToast({ message: "Settings saved", kind: "success" });
   };
 
   const savePreferences = async () => {
     setIsSaving(true);
     try {
-      await persistPreferences(preferences);
+      await persistSettings(preferences, savings);
     } catch (error) {
       console.error("Failed to save user preferences", error);
       setSaveError("Failed to save to database. Local changes are still applied.");
+      showToast({ message: "Save failed", kind: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -141,10 +182,12 @@ export default function SettingsPage() {
   const resetPreferences = async () => {
     setIsSaving(true);
     try {
-      await persistPreferences(defaultUiPreferences);
+      await persistSettings(defaultUiPreferences, defaultUserSavings);
+      showToast({ message: "Defaults restored", kind: "info" });
     } catch (error) {
       console.error("Failed to reset user preferences", error);
       setSaveError("Failed to save reset values to database.");
+      showToast({ message: "Reset failed", kind: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -480,6 +523,81 @@ export default function SettingsPage() {
         <section className="panel">
           <div className="panel-header">
             <div className="panel-header-left">
+              <h2 className="module-title">Savings</h2>
+              <span className="module-subtitle">Budgeting and staking defaults</span>
+            </div>
+          </div>
+          <div className="panel-body">
+            <div className="stack-sm">
+              <NumberRow
+                label="Bankroll"
+                hint="Current bankroll tracked by the app."
+                value={savings.bankroll}
+                onChange={(value) => setSavings((prev) => ({ ...prev, bankroll: value }))}
+                suffix="USD"
+                min={0}
+                step={10}
+              />
+              <NumberRow
+                label="Monthly savings target"
+                hint="Personal monthly amount you want to save from results."
+                value={savings.monthlySavingsTarget}
+                onChange={(value) =>
+                  setSavings((prev) => ({ ...prev, monthlySavingsTarget: value }))
+                }
+                suffix="USD"
+                min={0}
+                step={10}
+              />
+              <NumberRow
+                label="Reserve balance"
+                hint="Safety reserve excluded from active staking."
+                value={savings.reserveBalance}
+                onChange={(value) => setSavings((prev) => ({ ...prev, reserveBalance: value }))}
+                suffix="USD"
+                min={0}
+                step={10}
+              />
+              <NumberRow
+                label="Default stake"
+                hint="Default amount used when launching models."
+                value={savings.defaultStake}
+                onChange={(value) => setSavings((prev) => ({ ...prev, defaultStake: value }))}
+                suffix="USD"
+                min={0}
+                step={1}
+              />
+              <NumberRow
+                label="Max stake percent"
+                hint="Upper cap per position relative to bankroll."
+                value={savings.maxStakePercent}
+                onChange={(value) =>
+                  setSavings((prev) => ({ ...prev, maxStakePercent: value }))
+                }
+                suffix="%"
+                min={0}
+                step={0.1}
+              />
+              <ToggleRow
+                label="Auto-save profit"
+                hint="Automatically move profits toward savings target."
+                enabled={savings.autoSaveProfit}
+                onLabel="Enabled"
+                offLabel="Disabled"
+                onToggle={() =>
+                  setSavings((prev) => ({
+                    ...prev,
+                    autoSaveProfit: !prev.autoSaveProfit,
+                  }))
+                }
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-header">
+            <div className="panel-header-left">
               <h2 className="module-title">Dashboard Modules</h2>
               <span className="module-subtitle">Show or hide dashboard sections</span>
             </div>
@@ -573,9 +691,7 @@ export default function SettingsPage() {
                 {" "}
                 {saveError
                   ? saveError
-                  : isHydrating
-                    ? "Loading saved preferences from database."
-                    : isSaving
+                  : isSaving
                       ? "Saving your changes."
                       : savedAt
                   ? `Last saved at ${savedAt}.`
@@ -589,7 +705,7 @@ export default function SettingsPage() {
                 type="button"
                 className="button secondary"
                 onClick={() => void resetPreferences()}
-                disabled={isSaving || isHydrating}
+                disabled={isSaving}
               >
                 Reset defaults
               </button>
@@ -597,7 +713,7 @@ export default function SettingsPage() {
                 type="button"
                 className="button"
                 onClick={() => void savePreferences()}
-                disabled={!hasChanges || isSaving || isHydrating}
+                disabled={!hasChanges || isSaving}
               >
                 {isSaving ? "Saving..." : "Save changes"}
               </button>

@@ -1,15 +1,11 @@
-import { API_BASE } from "@/lib/api";
-import type { CatalogResponse, CatalogProject, SweepRow } from "@/lib/types";
+import { getCatalog, listSweeps } from "@/lib/api";
+import type { CatalogProject, SweepRow } from "@/lib/types";
 import SweepForm from "@/components/SweepForm";
 import Link from "next/link";
 
 async function fetchCatalog(): Promise<CatalogProject[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/catalog`, { cache: "no-store" });
-    if (!res.ok) {
-      return [];
-    }
-    const data = (await res.json()) as CatalogResponse;
+    const data = await getCatalog();
     return data.projects;
   } catch {
     return [];
@@ -18,11 +14,7 @@ async function fetchCatalog(): Promise<CatalogProject[]> {
 
 async function fetchSweeps(): Promise<SweepRow[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/sweeps`, { cache: "no-store" });
-    if (!res.ok) {
-      return [];
-    }
-    return (await res.json()) as SweepRow[];
+    return await listSweeps();
   } catch {
     return [];
   }

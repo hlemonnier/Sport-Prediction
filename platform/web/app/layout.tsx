@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
+import ToastHost from "@/components/ToastHost";
 import UiPreferencesBootstrap from "@/components/UiPreferencesBootstrap";
 import "./globals.css";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${space.variable} ${mono.variable}`}>
       <body>
         <UiPreferencesBootstrap />
+        <ToastHost />
         <div className="bg-grid" />
         <div className="shell">
           <Sidebar />

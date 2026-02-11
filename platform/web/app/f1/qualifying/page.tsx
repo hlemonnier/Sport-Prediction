@@ -1,12 +1,10 @@
-import { API_BASE } from "@/lib/api";
-import type { CatalogProject, CatalogResponse } from "@/lib/types";
+import { getCatalog } from "@/lib/api";
+import type { CatalogProject } from "@/lib/types";
 import RunForm from "@/components/RunForm";
 
 async function fetchProject(): Promise<CatalogProject | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/catalog`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const data = (await res.json()) as CatalogResponse;
+    const data = await getCatalog();
     return data.projects.find((project) => project.sport === "F1") ?? null;
   } catch {
     return null;

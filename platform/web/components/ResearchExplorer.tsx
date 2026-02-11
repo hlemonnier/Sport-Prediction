@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { API_BASE, fileUrl } from "@/lib/api";
+import { fileUrl, openSystemPath } from "@/lib/api";
+import { showToast } from "@/lib/toast";
 import type { NotebookEntry, PaperEntry } from "@/lib/types";
 import NotebookViewer from "./NotebookViewer";
 
@@ -39,11 +40,13 @@ export default function ResearchExplorer({
   }, [activeNotebook]);
 
   const openSystem = async (path: string) => {
-    await fetch(`${API_BASE}/api/open`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path }),
-    });
+    try {
+      await openSystemPath(path);
+      showToast({ message: "Opened in system app", kind: "success", durationMs: 2000 });
+    } catch (error) {
+      console.error("Failed to open path in system", error);
+      showToast({ message: "Failed to open file", kind: "error" });
+    }
   };
 
   return (

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { API_BASE } from "@/lib/api";
+import { createRun, getRun, waitForRunCompletion } from "@/lib/api";
+import { showToast } from "@/lib/toast";
 import type { CatalogProject, ParamDef, RunDetail } from "@/lib/types";
 import RunResult from "./RunResult";
 
@@ -55,6 +56,7 @@ export default function RunForm({
   const [loading, setLoading] = useState(false);
   const [run, setRun] = useState<RunDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [runProgress, setRunProgress] = useState<string | null>(null);
 
   const formFields = useMemo(() => project.params, [project.params]);
 
@@ -86,30 +88,43 @@ export default function RunForm({
         params[param.name] = parseValue(param, raw ?? "");
       }
 
-      const runRes = await fetch(`${API_BASE}/api/runs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sport: project.sport,
-          project: project.name,
-          params,
-        }),
+      const runData = await createRun({
+        sport: project.sport,
+        project: project.name,
+        params,
       });
 
-      if (!runRes.ok) {
-        throw new Error(`Execution failed: ${runRes.status}`);
-      }
-      const runData = (await runRes.json()) as { runId: string };
-      const detailRes = await fetch(`${API_BASE}/api/runs/${runData.runId}`, {
-        cache: "no-store",
+      setRunProgress(`Queued run ${runData.runId.slice(0, 8)}...`);
+      showToast({ message: "Run queued. Processing started.", kind: "info" });
+
+      const firstDetail = await getRun(runData.runId);
+      setRun(firstDetail);
+
+      const finalDetail = await waitForRunCompletion(runData.runId, {
+        pollMs: 1500,
+        timeoutMs: 15 * 60 * 1000,
+        onTick: (detail) => {
+          setRun(detail);
+          setRunProgress(
+            detail.status === "queued" || detail.status === "running"
+              ? `${detail.status.toUpperCase()} — ${detail.id.slice(0, 8)}`
+              : null
+          );
+        },
       });
-      if (!detailRes.ok) {
-        throw new Error(`Detail not found: ${detailRes.status}`);
+      setRun(finalDetail);
+      setRunProgress(null);
+
+      if (finalDetail.status === "done") {
+        showToast({ message: "Run completed", kind: "success" });
+      } else {
+        showToast({ message: "Run finished with errors", kind: "error" });
       }
-      const detail = (await detailRes.json()) as RunDetail;
-      setRun(detail);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error");
+      const message = err instanceof Error ? err.message : "Unexpected error";
+      setRunProgress(null);
+      setError(message);
+      showToast({ message, kind: "error" });
     } finally {
       setLoading(false);
     }
@@ -179,6 +194,12 @@ export default function RunForm({
               <button className="button" type="submit" disabled={loading}>
                 {loading ? "Running..." : "Launch Run"}
               </button>
+              {runProgress && (
+                <span className="chip">
+                  <span className="chip-led amber" />
+                  {runProgress}
+                </span>
+              )}
               {error && (
                 <span className="chip">
                   <span className="chip-led red" />

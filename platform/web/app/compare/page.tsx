@@ -1,12 +1,10 @@
 import RunsCompare from "@/components/RunsCompare";
 import type { RunSummary } from "@/lib/types";
-import { API_BASE } from "@/lib/api";
+import { listRuns } from "@/lib/api";
 
 async function fetchRuns(): Promise<RunSummary[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/runs`, { cache: "no-store" });
-    if (!res.ok) return [];
-    return (await res.json()) as RunSummary[];
+    return await listRuns();
   } catch {
     return [];
   }

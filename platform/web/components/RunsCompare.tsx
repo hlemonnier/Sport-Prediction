@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { API_BASE } from "@/lib/api";
+import { getRun } from "@/lib/api";
 import type { RunDetail, RunSummary } from "@/lib/types";
 import RunResult from "./RunResult";
 
@@ -18,11 +18,11 @@ export default function RunsCompare({ runs }: { runs: RunSummary[] }) {
     const fetchDetails = async () => {
       const results = await Promise.all(
         selected.map(async (id) => {
-          const res = await fetch(`${API_BASE}/api/runs/${id}`, { cache: "no-store" });
-          if (!res.ok) {
+          try {
+            return await getRun(id);
+          } catch {
             return null;
           }
-          return (await res.json()) as RunDetail;
         })
       );
       if (active) {

@@ -88,7 +88,12 @@ export default function TopBar() {
 
   return (
     <div className="topbar">
-      <div className="topbar-title">Sport Lab Prediction Engine</div>
+      <div className="topbar-brand" aria-label="Sport Lab Prediction Engine">
+        <span className="topbar-brand-dot" />
+        <span className="topbar-brand-text">Sport Lab</span>
+        <span className="topbar-brand-sub">Prediction Engine</span>
+      </div>
+      <div className="topbar-title">Context</div>
       {isF1 ? (
         <div className="context-grid">
           <div className="context-field">

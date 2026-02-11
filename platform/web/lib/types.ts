@@ -37,7 +37,7 @@ export type RunSummary = {
   createdAt: string;
   sport: string;
   project: string;
-  status: string;
+  status: "queued" | "running" | "done" | "error";
   durationMs?: number | null;
   sweepId?: string | null;
 };
@@ -47,7 +47,7 @@ export type RunDetail = {
   createdAt: string;
   sport: string;
   project: string;
-  status: string;
+  status: "queued" | "running" | "done" | "error";
   durationMs?: number | null;
   sweepId?: string | null;
   config: Record<string, unknown>;
@@ -69,7 +69,7 @@ export type SweepRow = {
   param: string;
   valuesJson: string;
   baseConfigJson: string;
-  status: string;
+  status: "queued" | "running" | "done" | "partial" | "error";
 };
 
 export type SweepDetail = {
@@ -79,11 +79,11 @@ export type SweepDetail = {
   project: string;
   param: string;
   values: unknown;
-  status: string;
+  status: "queued" | "running" | "done" | "partial" | "error";
   runs: Array<{
     id: string;
     createdAt: string;
-    status: string;
+    status: "queued" | "running" | "done" | "error";
     paramValue: string;
     result?: Record<string, unknown> | null;
   }>;
@@ -91,4 +91,26 @@ export type SweepDetail = {
     paramValue: string;
     score?: number | null;
   }>;
+};
+
+export type DataStatus = {
+  football: {
+    teams: { path: string; format: string; exists: boolean };
+    matches: { path: string; format: string; exists: boolean };
+    fixtures: { path: string; format: string; exists: boolean };
+  };
+};
+
+export type Fixture = {
+  matchId: string;
+  date: string;
+  season: string;
+  league: string;
+  homeTeamId: string;
+  awayTeamId: string;
+};
+
+export type FixtureResponse = {
+  fixtures: Fixture[];
+  warning?: string | null;
 };

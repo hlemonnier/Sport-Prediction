@@ -1,5 +1,7 @@
 export const UI_PREFERENCES_STORAGE_KEY = "settings:ui-preferences";
 export const UI_PREFERENCES_EVENT = "ui-preferences:changed";
+export const USER_SAVINGS_STORAGE_KEY = "settings:user-savings";
+export const USER_SAVINGS_EVENT = "user-savings:changed";
 
 export type ThemeMode = "system" | "light" | "dark";
 export type AccentPreset = "red" | "blue" | "emerald" | "amber";
@@ -32,6 +34,15 @@ export type UiPreferences = {
   dashboardChartStyle: ChartStyle;
 };
 
+export type UserSavings = {
+  bankroll: number;
+  monthlySavingsTarget: number;
+  reserveBalance: number;
+  defaultStake: number;
+  maxStakePercent: number;
+  autoSaveProfit: boolean;
+};
+
 export const defaultUiPreferences: UiPreferences = {
   themeMode: "system",
   accentPreset: "red",
@@ -56,8 +67,37 @@ export const defaultUiPreferences: UiPreferences = {
   dashboardChartStyle: "line",
 };
 
+export const defaultUserSavings: UserSavings = {
+  bankroll: 0,
+  monthlySavingsTarget: 0,
+  reserveBalance: 0,
+  defaultStake: 10,
+  maxStakePercent: 2,
+  autoSaveProfit: true,
+};
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function coerceNumber(
+  value: unknown,
+  fallback: number,
+  min = 0,
+  max = Number.POSITIVE_INFINITY
+): number {
+  const asNumber =
+    typeof value === "number" && Number.isFinite(value)
+      ? value
+      : typeof value === "string"
+        ? Number.parseFloat(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(asNumber)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, asNumber));
 }
 
 function sanitizePreferences(raw: Partial<UiPreferences>): UiPreferences {
@@ -117,12 +157,38 @@ function sanitizePreferences(raw: Partial<UiPreferences>): UiPreferences {
   };
 }
 
+function sanitizeUserSavings(raw: Partial<UserSavings>): UserSavings {
+  return {
+    bankroll: coerceNumber(raw.bankroll, defaultUserSavings.bankroll, 0),
+    monthlySavingsTarget: coerceNumber(
+      raw.monthlySavingsTarget,
+      defaultUserSavings.monthlySavingsTarget,
+      0
+    ),
+    reserveBalance: coerceNumber(raw.reserveBalance, defaultUserSavings.reserveBalance, 0),
+    defaultStake: coerceNumber(raw.defaultStake, defaultUserSavings.defaultStake, 0),
+    maxStakePercent: coerceNumber(raw.maxStakePercent, defaultUserSavings.maxStakePercent, 0, 100),
+    autoSaveProfit:
+      typeof raw.autoSaveProfit === "boolean"
+        ? raw.autoSaveProfit
+        : defaultUserSavings.autoSaveProfit,
+  };
+}
+
 export function coerceUiPreferences(raw: unknown): UiPreferences {
   if (!isObject(raw)) {
     return defaultUiPreferences;
   }
 
   return sanitizePreferences(raw as Partial<UiPreferences>);
+}
+
+export function coerceUserSavings(raw: unknown): UserSavings {
+  if (!isObject(raw)) {
+    return defaultUserSavings;
+  }
+
+  return sanitizeUserSavings(raw as Partial<UserSavings>);
 }
 
 export function readUiPreferences(): UiPreferences {
@@ -133,6 +199,17 @@ export function readUiPreferences(): UiPreferences {
     return coerceUiPreferences(JSON.parse(raw));
   } catch {
     return defaultUiPreferences;
+  }
+}
+
+export function readUserSavings(): UserSavings {
+  if (typeof window === "undefined") return defaultUserSavings;
+  try {
+    const raw = window.localStorage.getItem(USER_SAVINGS_STORAGE_KEY);
+    if (!raw) return defaultUserSavings;
+    return coerceUserSavings(JSON.parse(raw));
+  } catch {
+    return defaultUserSavings;
   }
 }
 
@@ -170,6 +247,12 @@ export function writeUiPreferences(prefs: UiPreferences): void {
   window.dispatchEvent(new CustomEvent(UI_PREFERENCES_EVENT));
 }
 
+export function writeUserSavings(savings: UserSavings): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(USER_SAVINGS_STORAGE_KEY, JSON.stringify(savings));
+  window.dispatchEvent(new CustomEvent(USER_SAVINGS_EVENT));
+}
+
 export function updateUiPreferences(partial: Partial<UiPreferences>): UiPreferences {
   const next = sanitizePreferences({
     ...readUiPreferences(),
@@ -191,5 +274,19 @@ export function subscribeUiPreferences(onChange: () => void): () => void {
   return () => {
     window.removeEventListener("storage", handleStorage);
     window.removeEventListener(UI_PREFERENCES_EVENT, onChange as EventListener);
+  };
+}
+
+export function subscribeUserSavings(onChange: () => void): () => void {
+  if (typeof window === "undefined") return () => undefined;
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key && event.key !== USER_SAVINGS_STORAGE_KEY) return;
+    onChange();
+  };
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(USER_SAVINGS_EVENT, onChange as EventListener);
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(USER_SAVINGS_EVENT, onChange as EventListener);
   };
 }

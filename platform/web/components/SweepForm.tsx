@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { API_BASE } from "@/lib/api";
+import { createSweep, waitForSweepCompletion } from "@/lib/api";
+import { showToast } from "@/lib/toast";
 import type { CatalogProject, ParamDef } from "@/lib/types";
 
 function initValues(params: ParamDef[]): Record<string, string | number | boolean> {
@@ -45,6 +46,7 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
   const [paramName, setParamName] = useState(projects[0]?.params[0]?.name ?? "");
   const [valuesInput, setValuesInput] = useState("1,2,3");
   const [status, setStatus] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const selectedProject = useMemo(
     () => projects.find((p) => `${p.sport}::${p.name}` === projectKey),
@@ -67,36 +69,57 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
     if (!selectedProject) {
       return;
     }
-    setStatus("running");
-    const params: Record<string, unknown> = {};
-    for (const param of selectedProject.params) {
-      params[param.name] = parseValue(param, baseValues[param.name] ?? "");
-    }
-    const sweepParam = selectedProject.params.find((p) => p.name === paramName);
-    const values = valuesInput
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean)
-      .map((value) => (sweepParam ? parseValue(sweepParam, value) : value));
+    setSubmitting(true);
+    try {
+      const params: Record<string, unknown> = {};
+      for (const param of selectedProject.params) {
+        params[param.name] = parseValue(param, baseValues[param.name] ?? "");
+      }
+      const sweepParam = selectedProject.params.find((p) => p.name === paramName);
+      const values = valuesInput
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => (sweepParam ? parseValue(sweepParam, value) : value));
 
-    const res = await fetch(`${API_BASE}/api/sweeps`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      const data = await createSweep({
         sport: selectedProject.sport,
         project: selectedProject.name,
         baseParams: params,
         sweep: { param: paramName, values },
-      }),
-    });
+      });
 
-    if (!res.ok) {
+      setStatus(`queued: ${data.sweepId.slice(0, 8)}`);
+      showToast({ message: "Sweep queued. Processing started.", kind: "info" });
+
+      const finalSweep = await waitForSweepCompletion(data.sweepId, {
+        pollMs: 2000,
+        timeoutMs: 30 * 60 * 1000,
+        onTick: (detail) => {
+          const finishedCount = detail.runs.filter(
+            (run) => run.status === "done" || run.status === "error"
+          ).length;
+          setStatus(`${detail.status}: ${finishedCount}/${detail.runs.length}`);
+        },
+      });
+
+      setStatus(`created: ${data.sweepId} (${finalSweep.status})`);
+      showToast({
+        message:
+          finalSweep.status === "done"
+            ? "Sweep completed"
+            : finalSweep.status === "partial"
+              ? "Sweep completed with partial failures"
+              : "Sweep failed",
+        kind: finalSweep.status === "done" ? "success" : "error",
+      });
+    } catch (error) {
+      console.error("Failed to create sweep", error);
       setStatus("failed");
-      return;
+      showToast({ message: "Failed to launch sweep", kind: "error" });
+    } finally {
+      setSubmitting(false);
     }
-
-    const data = (await res.json()) as { sweepId: string };
-    setStatus(`created: ${data.sweepId}`);
   };
 
   return (
@@ -180,10 +203,12 @@ export default function SweepForm({ projects }: { projects: CatalogProject[] }) 
           </div>
 
           <div className="row" style={{ gap: 12 }}>
-            <button className="button" type="submit">Launch Sweep</button>
+            <button className="button" type="submit" disabled={submitting}>
+              {submitting ? "Running..." : "Launch Sweep"}
+            </button>
             {status && (
               <span className="chip">
-                <span className={`chip-led ${status === "failed" ? "red" : status === "running" ? "amber" : "green"}`} />
+                <span className={`chip-led ${status === "failed" ? "red" : status.startsWith("queued") || status.startsWith("running") ? "amber" : "green"}`} />
                 {status}
               </span>
             )}

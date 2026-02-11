@@ -5,8 +5,10 @@ import { getUserPreferences } from "@/lib/api";
 import {
   applyUiPreferences,
   coerceUiPreferences,
+  coerceUserSavings,
   readUiPreferences,
   subscribeUiPreferences,
+  writeUserSavings,
   writeUiPreferences,
 } from "@/lib/uiPreferences";
 
@@ -23,13 +25,17 @@ export default function UiPreferencesBootstrap() {
     const hydrateFromDatabase = async () => {
       try {
         const response = await getUserPreferences();
-        if (cancelled || !response.preferences) {
+        if (cancelled) {
           return;
         }
 
-        const serverPreferences = coerceUiPreferences(response.preferences);
-        writeUiPreferences(serverPreferences);
-        applyUiPreferences(serverPreferences);
+        if (response.preferences) {
+          const serverPreferences = coerceUiPreferences(response.preferences);
+          writeUiPreferences(serverPreferences);
+          applyUiPreferences(serverPreferences);
+        }
+
+        writeUserSavings(coerceUserSavings(response.savings));
       } catch (error) {
         console.error("Failed to bootstrap user preferences", error);
       }

@@ -3,35 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import ReactECharts from "echarts-for-react";
-import { API_BASE } from "@/lib/api";
-import type { RunSummary } from "@/lib/types";
+import { getDataStatus, getFootballFixtures, listRuns } from "@/lib/api";
+import type { Fixture, FixtureResponse, RunSummary, DataStatus } from "@/lib/types";
 import {
   defaultUiPreferences,
   readUiPreferences,
   subscribeUiPreferences,
 } from "@/lib/uiPreferences";
-
-type DataStatus = {
-  football: {
-    teams: { path: string; format: string; exists: boolean };
-    matches: { path: string; format: string; exists: boolean };
-    fixtures: { path: string; format: string; exists: boolean };
-  };
-};
-
-type Fixture = {
-  matchId: string;
-  date: string;
-  season: string;
-  league: string;
-  homeTeamId: string;
-  awayTeamId: string;
-};
-
-type FixtureResponse = {
-  fixtures: Fixture[];
-  warning?: string | null;
-};
 
 const SAMPLE_FIXTURES: Fixture[] = [
   {
@@ -70,31 +48,22 @@ export default function HomeDashboard() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/data-status`);
-        if (res.ok) {
-          setStatus((await res.json()) as DataStatus);
-        }
+        setStatus(await getDataStatus());
       } catch {
         setStatus(null);
       }
     };
     const fetchFixtures = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/football/fixtures?limit=5`);
-        if (res.ok) {
-          setFixtures((await res.json()) as FixtureResponse);
-          setUsingSampleFixtures(false);
-        }
+        setFixtures(await getFootballFixtures(5));
+        setUsingSampleFixtures(false);
       } catch {
         setFixtures(null);
       }
     };
     const fetchRuns = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/runs`);
-        if (res.ok) {
-          setRuns((await res.json()) as RunSummary[]);
-        }
+        setRuns(await listRuns());
       } catch {
         setRuns([]);
       }

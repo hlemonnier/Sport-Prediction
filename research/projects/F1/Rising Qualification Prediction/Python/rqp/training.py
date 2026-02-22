@@ -66,6 +66,10 @@ class FeaturePipeline:
     def _base_frame(self, frame: pd.DataFrame) -> pd.DataFrame:
         X = frame.reindex(columns=self.feature_cols).copy()
         X = X.apply(pd.to_numeric, errors="coerce")
+        if not X.empty:
+            all_missing_cols = [col for col in X.columns if X[col].notna().sum() == 0]
+            if all_missing_cols:
+                X[all_missing_cols] = 0.0
         return X
 
     def fit(self, frame: pd.DataFrame) -> None:
@@ -179,6 +183,26 @@ class FittedModel:
         for label, calibrator in self.calibrators.items():
             output[label] = calibrator.predict(scores)
         return output
+
+
+class QualifyingPositionBaseline:
+    """Race baseline that predicts finish order from qualifying order."""
+
+    def __init__(self, fill_value: float = 10.0) -> None:
+        self.fill_value = float(fill_value)
+
+    def predict(self, frame: pd.DataFrame) -> np.ndarray:
+        if frame.empty:
+            return np.asarray([], dtype=float)
+        if "qualy_position" not in frame.columns:
+            return np.full(shape=(len(frame),), fill_value=self.fill_value, dtype=float)
+        values = pd.to_numeric(frame["qualy_position"], errors="coerce")
+        if values.notna().sum() == 0:
+            return np.full(shape=(len(frame),), fill_value=self.fill_value, dtype=float)
+        fill = float(values.median(skipna=True))
+        if not np.isfinite(fill):
+            fill = self.fill_value
+        return values.fillna(fill).to_numpy(dtype=float)
 
 
 def _candidate_models() -> list[CandidateSpec]:
@@ -470,6 +494,47 @@ def _evaluate_candidate(
     )
 
 
+def _evaluate_qualifying_baseline(
+    train: pd.DataFrame,
+    folds: list[tuple[set[int], int]],
+) -> Optional[CandidateScore]:
+    if "qualy_position" not in train.columns:
+        return None
+    event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
+    if event_key is None:
+        return None
+    fold_metrics: list[dict[str, float]] = []
+    for train_keys, val_key in folds:
+        train_df = train.loc[event_key.isin(train_keys)]
+        val_df = train.loc[event_key == val_key]
+        if train_df.empty or val_df.empty:
+            continue
+        train_q = pd.to_numeric(train_df.get("qualy_position"), errors="coerce")
+        fill_value = float(train_q.median(skipna=True)) if train_q.notna().sum() > 0 else 10.0
+        val_rows, y_val, event_val = _prepare_training_rows(val_df)
+        if val_rows.empty:
+            continue
+        pred = pd.to_numeric(val_rows.get("qualy_position"), errors="coerce")
+        pred = pred.fillna(fill_value)
+        pred = pd.Series(pred.to_numpy(dtype=float), index=val_rows.index, dtype=float)
+        fold_metrics.append(_fold_metrics(y_val, pred, event_val))
+    if not fold_metrics:
+        return None
+    mae = float(sum(m["mae"] for m in fold_metrics) / len(fold_metrics))
+    spearman = float(sum(m["spearman"] for m in fold_metrics) / len(fold_metrics))
+    ndcg10 = float(sum(m["ndcg10"] for m in fold_metrics) / len(fold_metrics))
+    hit10 = float(sum(m["hit10"] for m in fold_metrics) / len(fold_metrics))
+    composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
+    return CandidateScore(
+        name="qualifying_baseline",
+        mae=mae,
+        spearman=spearman,
+        ndcg10=ndcg10,
+        hit10=hit10,
+        composite=composite,
+    )
+
+
 def _topk_labels_from_target(y: pd.Series, event_key: pd.Series, k: int) -> pd.Series:
     labels = pd.Series(0.0, index=y.index, dtype=float)
     for idx in _event_groups(event_key, y.index):
@@ -515,7 +580,8 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
         return TrainingResult(model=None, model_name="heuristic", notes=notes)
 
     candidates = _candidate_models()
-    if not candidates:
+    baseline_supported = "qualy_position" in feature_cols
+    if not candidates and not baseline_supported:
         notes.append("Aucun modele ML disponible (installer scikit-learn ou xgboost).")
         return TrainingResult(model=None, model_name="heuristic", notes=notes)
 
@@ -524,16 +590,21 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
         "0.25*NDCG@10 + 0.15*Top10Hit (MAE_score=1/(1+MAE), Spearman_norm=(rho+1)/2).",
     )
 
-    best_candidate: Optional[CandidateSpec] = None
+    score_lookup: dict[str, CandidateScore] = {}
+    candidate_lookup: dict[str, CandidateSpec] = {c.name: c for c in candidates}
+    selected_from_cv: Optional[str] = None
+
     folds = _walk_forward_folds(train)
     if folds:
-        score_lookup: dict[str, CandidateScore] = {}
-        candidate_lookup: dict[str, CandidateSpec] = {c.name: c for c in candidates}
         for candidate in candidates:
             score = _evaluate_candidate(train, feature_cols, candidate, folds)
             if score is None:
                 continue
             score_lookup[candidate.name] = score
+        if baseline_supported:
+            baseline_score = _evaluate_qualifying_baseline(train, folds)
+            if baseline_score is not None:
+                score_lookup[baseline_score.name] = baseline_score
         if score_lookup:
             ranking = sorted(
                 score_lookup.values(),
@@ -547,50 +618,71 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
                 for s in ranking
             )
             notes.append(f"Model selection walk-forward: {leaderboard}.")
-            best_name = ranking[0].name
-            best_candidate = candidate_lookup.get(best_name)
-            notes.append(f"Modele retenu: {best_name} (score composite={ranking[0].composite:.3f}).")
+            selected_from_cv = ranking[0].name
+            notes.append(
+                f"Modele retenu: {selected_from_cv} (score composite={ranking[0].composite:.3f}).",
+            )
+        else:
+            notes.append("Aucun score walk-forward exploitable; selection par priorite.")
     else:
         notes.append("Historique insuffisant pour validation walk-forward, selection par priorite.")
+        if baseline_supported:
+            selected_from_cv = "qualifying_baseline"
+            notes.append("Mode conservateur: baseline qualif prioritaire sans folds.")
 
-    candidate_order: list[CandidateSpec] = []
-    if best_candidate is not None:
-        candidate_order.append(best_candidate)
-    candidate_order.extend([c for c in candidates if c.name != (best_candidate.name if best_candidate else "")])
-
-    fitted_model: Optional[FittedModel] = None
+    selected_model: Optional[object] = None
     selected_name: Optional[str] = None
-    for candidate in candidate_order:
-        fitted = _fit_candidate(train, feature_cols, candidate)
-        if fitted is None:
-            continue
-        fitted_model = fitted
-        selected_name = candidate.name
-        break
 
-    if fitted_model is None:
+    if selected_from_cv == "qualifying_baseline":
+        q = pd.to_numeric(train.get("qualy_position"), errors="coerce")
+        fill_value = float(q.median(skipna=True)) if q.notna().sum() > 0 else 10.0
+        selected_model = QualifyingPositionBaseline(fill_value=fill_value)
+        selected_name = "qualifying_baseline"
+    else:
+        candidate_order: list[CandidateSpec] = []
+        if selected_from_cv and selected_from_cv in candidate_lookup:
+            candidate_order.append(candidate_lookup[selected_from_cv])
+        candidate_order.extend([c for c in candidates if c.name != (selected_from_cv or "")])
+        for candidate in candidate_order:
+            fitted = _fit_candidate(train, feature_cols, candidate)
+            if fitted is None:
+                continue
+            selected_model = fitted
+            selected_name = candidate.name
+            break
+
+    if selected_model is None and baseline_supported:
+        q = pd.to_numeric(train.get("qualy_position"), errors="coerce")
+        fill_value = float(q.median(skipna=True)) if q.notna().sum() > 0 else 10.0
+        selected_model = QualifyingPositionBaseline(fill_value=fill_value)
+        selected_name = "qualifying_baseline"
+        notes.append("Fallback prioritaire active: baseline qualif.")
+
+    if selected_model is None:
         notes.append("Echec entrainement de tous les candidats: fallback heuristique.")
         return TrainingResult(model=None, model_name="heuristic", notes=notes)
 
-    if best_candidate is None and selected_name is not None:
+    if selected_from_cv is None and selected_name is not None:
         notes.append(f"Modele retenu par defaut: {selected_name}.")
 
     rows, y_train, event_train = _prepare_training_rows(train)
-    if not rows.empty:
-        in_sample_scores = fitted_model.predict(rows)
+    if isinstance(selected_model, FittedModel) and not rows.empty:
+        in_sample_scores = selected_model.predict(rows)
         top10_labels = _topk_labels_from_target(y_train, event_train, k=10)
         top3_labels = _topk_labels_from_target(y_train, event_train, k=3)
         calibrator_top10 = _fit_probability_calibrator(in_sample_scores, top10_labels)
         calibrator_top3 = _fit_probability_calibrator(in_sample_scores, top3_labels)
-        fitted_model.calibrators["top10"] = calibrator_top10
-        fitted_model.calibrators["top3"] = calibrator_top3
+        selected_model.calibrators["top10"] = calibrator_top10
+        selected_model.calibrators["top3"] = calibrator_top3
         notes.append(
             f"Calibration probabiliste: top10={calibrator_top10.method}, top3={calibrator_top3.method}.",
         )
+    elif selected_name == "qualifying_baseline":
+        notes.append("Prediction race: baseline qualifying position (guardrail anti-surapprentissage).")
 
     if SimpleImputer is None:
         notes.append("SimpleImputer indisponible: imputation mediane pandas utilisee.")
     if Ridge is not None and StandardScaler is None:
         notes.append("StandardScaler indisponible: scaling desactive pour Ridge.")
 
-    return TrainingResult(model=fitted_model, model_name=selected_name or "unknown", notes=notes)
+    return TrainingResult(model=selected_model, model_name=selected_name or "unknown", notes=notes)

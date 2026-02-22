@@ -19,15 +19,16 @@ def parse_train_seasons(value: str, target_year: int) -> list[int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Rising Qualification Prediction (FastF1 / OpenF1)"
+        description="Rising Qualification Prediction (FastF1 / OpenF1 / local offline)"
     )
     parser.add_argument("--mode", choices=["qualifying", "race"], required=True)
-    parser.add_argument("--source", choices=["fastf1", "openf1"], required=True)
+    parser.add_argument("--source", choices=["fastf1", "openf1", "local"], required=True)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--round", dest="round_number", type=int, required=True)
     parser.add_argument("--train-seasons", default="auto")
     parser.add_argument("--include-standings", action="store_true")
     parser.add_argument("--cache-dir", default=None)
+    parser.add_argument("--weekends-dir", default="data/f1/weekends")
     parser.add_argument("--meeting-name", default=None)
     parser.add_argument("--country-name", default=None)
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
@@ -46,6 +47,7 @@ def main() -> None:
         cache_dir=args.cache_dir,
         meeting_name=args.meeting_name,
         country_name=args.country_name,
+        weekends_dir=args.weekends_dir,
     )
 
     result = run_prediction(config)

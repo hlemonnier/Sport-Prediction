@@ -9,7 +9,7 @@ import pandas as pd
 
 from .config import PredictionConfig, PredictionResult
 from .data import build_current_features, build_training_data
-from .providers import FastF1Provider, OpenF1Provider, BaseProvider
+from .providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
 from .training import train_model
 from .utils import format_prediction_table
 
@@ -52,10 +52,18 @@ def _hierarchical_fallback(
     components: list[tuple[float, pd.Series]] = []
     if "qualy_position" in features.columns:
         components.append((0.55, _rank_percentile(features["qualy_position"])))
+    if "qualy_gap_to_best" in features.columns:
+        components.append((0.10, _rank_percentile(features["qualy_gap_to_best"])))
 
     driver_form = _average_rank_component(
         features,
         [
+            "fp_weighted_delta",
+            "fp_delta_std",
+            "fp_mean_top3_delta",
+            "fp_mean_lap_std",
+            "driver_form_3_fp_weighted_delta",
+            "driver_ewma_fp_weighted_delta",
             "driver_form_3_fp_mean_delta",
             "driver_form_5_fp_mean_delta",
             "driver_ewma_fp_mean_delta",
@@ -73,6 +81,8 @@ def _hierarchical_fallback(
             "team_form_3_fp_mean_delta",
             "team_form_5_fp_mean_delta",
             "team_ewma_fp_mean_delta",
+            "team_form_3_fp_weighted_delta",
+            "team_ewma_fp_weighted_delta",
         ],
     )
     if team_form is not None:
@@ -177,13 +187,15 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
     provider: BaseProvider
     if config.source == "fastf1":
         provider = FastF1Provider(config.cache_dir)
-    else:
+    elif config.source == "openf1":
         provider = OpenF1Provider(
             cache_dir=config.cache_dir,
             target_round=config.round_number,
             meeting_name=config.meeting_name,
             country_name=config.country_name,
         )
+    else:
+        provider = LocalWeekendProvider(weekends_dir=config.weekends_dir)
 
     train, notes = build_training_data(
         provider=provider,
@@ -209,24 +221,44 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             "fp1_delta",
             "fp2_delta",
             "fp3_delta",
+            "sq_delta",
+            "sprint_delta",
             "fp_mean_delta",
+            "fp_weighted_delta",
+            "fp_delta_std",
+            "fp_mean_top3_delta",
+            "fp_mean_lap_std",
+            "fp_total_laps",
             "fp1_rank",
             "fp2_rank",
             "fp3_rank",
+            "sq_rank",
+            "sprint_rank",
             "fp_mean_rank",
             "driver_ewma_fp_mean_delta",
             "driver_form_3_fp_mean_delta",
             "driver_form_5_fp_mean_delta",
+            "driver_ewma_fp_weighted_delta",
+            "driver_form_3_fp_weighted_delta",
             "team_ewma_fp_mean_delta",
             "team_form_3_fp_mean_delta",
             "team_form_5_fp_mean_delta",
+            "team_ewma_fp_weighted_delta",
+            "team_form_3_fp_weighted_delta",
             "event_driver_hist_idx",
         ]
         fallback_cols = [
             "fp_mean_delta",
+            "fp_weighted_delta",
+            "fp_delta_std",
+            "fp_mean_top3_delta",
+            "fp_mean_lap_std",
+            "fp_total_laps",
             "driver_form_3_fp_mean_delta",
             "driver_form_5_fp_mean_delta",
             "driver_ewma_fp_mean_delta",
+            "driver_form_3_fp_weighted_delta",
+            "driver_ewma_fp_weighted_delta",
             "team_form_3_fp_mean_delta",
             "team_form_5_fp_mean_delta",
             "event_driver_hist_idx",
@@ -236,30 +268,53 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             "fp1_delta",
             "fp2_delta",
             "fp3_delta",
+            "sq_delta",
+            "sprint_delta",
             "fp_mean_delta",
+            "fp_weighted_delta",
+            "fp_delta_std",
+            "pace_sessions_available",
+            "fp_mean_top3_delta",
+            "fp_mean_lap_std",
+            "fp_total_laps",
             "fp1_rank",
             "fp2_rank",
             "fp3_rank",
+            "sq_rank",
+            "sprint_rank",
             "fp_mean_rank",
             "qualy_position",
+            "qualy_gap_to_best",
             "driver_ewma_fp_mean_delta",
             "driver_form_3_fp_mean_delta",
             "driver_form_5_fp_mean_delta",
+            "driver_ewma_fp_weighted_delta",
+            "driver_form_3_fp_weighted_delta",
             "team_ewma_fp_mean_delta",
             "team_form_3_fp_mean_delta",
             "team_form_5_fp_mean_delta",
+            "team_ewma_fp_weighted_delta",
+            "team_form_3_fp_weighted_delta",
             "event_driver_hist_idx",
         ]
         if config.include_standings:
             feature_cols.append("position_start")
         fallback_cols = [
             "qualy_position",
+            "qualy_gap_to_best",
             "position_start",
+            "fp_weighted_delta",
+            "fp_delta_std",
+            "fp_mean_top3_delta",
             "driver_form_3_fp_mean_delta",
             "driver_form_5_fp_mean_delta",
             "driver_ewma_fp_mean_delta",
+            "driver_form_3_fp_weighted_delta",
+            "driver_ewma_fp_weighted_delta",
             "team_form_3_fp_mean_delta",
             "team_form_5_fp_mean_delta",
+            "team_form_3_fp_weighted_delta",
+            "team_ewma_fp_weighted_delta",
             "event_driver_hist_idx",
         ]
 

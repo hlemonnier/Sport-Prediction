@@ -5,7 +5,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import time
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -369,3 +371,428 @@ class OpenF1Provider(BaseProvider):
         df = pd.DataFrame(rows)
         df["position_start"] = pd.to_numeric(df["position_start"], errors="coerce")
         return df
+
+
+class LocalWeekendProvider(BaseProvider):
+    def __init__(self, weekends_dir: Optional[str] = None) -> None:
+        self.project_root = Path(__file__).resolve().parents[6]
+        if weekends_dir:
+            self.weekends_root = Path(weekends_dir).expanduser()
+            if not self.weekends_root.is_absolute():
+                self.weekends_root = self.project_root / self.weekends_root
+        else:
+            self.weekends_root = self.project_root / "data" / "f1" / "weekends"
+
+    @staticmethod
+    def _round_number_from_name(name: str) -> Optional[int]:
+        match = re.search(r"round_(\d+)", name)
+        if not match:
+            return None
+        try:
+            return int(match.group(1))
+        except ValueError:
+            return None
+
+    @staticmethod
+    def _safe_int(value: object, default: int = 0) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _normalize_driver_id(value: object) -> str:
+        if value is None or pd.isna(value):
+            return ""
+        text = str(value).strip()
+        if not text:
+            return ""
+        if re.fullmatch(r"\d+(\.0+)?", text):
+            return str(int(float(text)))
+        return text
+
+    @staticmethod
+    def _mode_or_first(values: pd.Series, fallback: str) -> str:
+        clean = values.dropna().astype(str).str.strip()
+        clean = clean[clean != ""]
+        if clean.empty:
+            return fallback
+        mode = clean.mode(dropna=True)
+        if mode.empty:
+            return str(clean.iloc[0])
+        return str(mode.iloc[0])
+
+    def _year_dir(self, year: int) -> Path:
+        return self.weekends_root / str(year)
+
+    def _read_weekend_meta(self, weekend_dir: Path) -> dict[str, object]:
+        meta_path = weekend_dir / "weekend_metadata.json"
+        if not meta_path.exists():
+            return {}
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+            if isinstance(payload, dict):
+                return payload
+            return {}
+        except Exception:
+            return {}
+
+    def _weekends_for_year(self, year: int) -> list[dict[str, object]]:
+        year_dir = self._year_dir(year)
+        if not year_dir.exists():
+            return []
+        weekends: list[dict[str, object]] = []
+        for candidate in sorted(year_dir.iterdir(), key=lambda p: p.name):
+            if not candidate.is_dir():
+                continue
+            round_number = self._round_number_from_name(candidate.name)
+            if round_number is None:
+                continue
+            meta = self._read_weekend_meta(candidate)
+            round_number = self._safe_int(meta.get("round_number"), default=round_number)
+            event_name = str(meta.get("event_name") or f"Round {round_number}")
+            sessions = meta.get("sessions")
+            if not isinstance(sessions, list):
+                sessions = []
+            weekends.append(
+                {
+                    "round_number": round_number,
+                    "event_name": event_name,
+                    "event_dir": candidate,
+                    "sessions": sessions,
+                },
+            )
+        weekends.sort(key=lambda item: int(item["round_number"]))
+        return weekends
+
+    def _weekend_for_round(self, year: int, round_number: int) -> Optional[dict[str, object]]:
+        for weekend in self._weekends_for_year(year):
+            if int(weekend["round_number"]) == int(round_number):
+                return weekend
+        return None
+
+    def _resolve_session_path(self, weekend_dir: Path, raw_path: object) -> Optional[Path]:
+        if raw_path is None:
+            return None
+        text = str(raw_path).strip()
+        if not text:
+            return None
+        path = Path(text).expanduser()
+        candidates: list[Path]
+        if path.is_absolute():
+            candidates = [path]
+        else:
+            candidates = [
+                self.project_root / path,
+                weekend_dir / path.name,
+                weekend_dir / path,
+            ]
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return None
+
+    def _read_session_csv(
+        self,
+        weekend_dir: Path,
+        session_entry: dict[str, object],
+        key: str,
+    ) -> pd.DataFrame:
+        path = self._resolve_session_path(weekend_dir, session_entry.get(key))
+        if path is None:
+            return pd.DataFrame()
+        try:
+            return pd.read_csv(path)
+        except Exception:
+            return pd.DataFrame()
+
+    def _session_entries(self, year: int, round_number: int) -> tuple[Path, list[dict[str, object]]]:
+        weekend = self._weekend_for_round(year, round_number)
+        if weekend is None:
+            return Path(), []
+        weekend_dir = weekend["event_dir"]
+        if not isinstance(weekend_dir, Path):
+            weekend_dir = Path(str(weekend_dir))
+        sessions_raw = weekend.get("sessions")
+        sessions: list[dict[str, object]] = []
+        if isinstance(sessions_raw, list):
+            for entry in sessions_raw:
+                if isinstance(entry, dict):
+                    sessions.append(dict(entry))
+        sessions.sort(key=lambda s: self._safe_int(s.get("session_order"), default=999))
+        return weekend_dir, sessions
+
+    def _select_fp_sessions(self, sessions: list[dict[str, object]]) -> list[dict[str, object]]:
+        qualifying_orders = [
+            self._safe_int(s.get("session_order"), default=999)
+            for s in sessions
+            if str(s.get("session_type", "")).strip().lower() == "qualifying"
+        ]
+        qualifying_order = min(qualifying_orders) if qualifying_orders else 999
+        selected = [
+            s
+            for s in sessions
+            if self._safe_int(s.get("session_order"), default=999) < qualifying_order
+            and str(s.get("session_type", "")).strip().lower()
+            in {"free_practice", "sprint_qualifying", "sprint_race"}
+        ]
+        if selected:
+            return selected
+        return [
+            s
+            for s in sessions
+            if str(s.get("session_type", "")).strip().lower() == "free_practice"
+        ]
+
+    def _session_label(self, session_type: str, free_practice_idx: int) -> str:
+        normalized = session_type.strip().lower()
+        if normalized == "free_practice":
+            return f"FP{free_practice_idx}"
+        if normalized == "sprint_qualifying":
+            return "SQ"
+        if normalized == "sprint_race":
+            return "Sprint"
+        return "Session"
+
+    def _session_pace_features(self, laps: pd.DataFrame, label: str) -> pd.DataFrame:
+        if laps.empty:
+            return pd.DataFrame()
+        driver_col = first_available(laps, ["DriverNumber", "driver_number", "Driver", "driver_id"])
+        lap_col = first_available(laps, ["LapTime", "lap_time", "duration"])
+        if driver_col is None or lap_col is None:
+            return pd.DataFrame()
+
+        work = laps.copy()
+        work["driver_id"] = work[driver_col].map(self._normalize_driver_id)
+        work = work[work["driver_id"] != ""]
+        if work.empty:
+            return pd.DataFrame()
+
+        name_col = first_available(work, ["Driver", "Abbreviation", "BroadcastName", "driver_name"])
+        team_col = first_available(work, ["Team", "TeamName", "team_name"])
+        if name_col:
+            work["driver_name"] = work[name_col].astype(str)
+        else:
+            work["driver_name"] = work["driver_id"]
+        if team_col:
+            work["team_name"] = work[team_col]
+        else:
+            work["team_name"] = pd.NA
+
+        work["lap_time"] = pd.to_numeric(work[lap_col], errors="coerce")
+        work = work[work["lap_time"].notna() & (work["lap_time"] > 0.0)]
+        if work.empty:
+            return pd.DataFrame()
+
+        if "IsAccurate" in work.columns:
+            accurate = work["IsAccurate"]
+            if accurate.dtype == bool:
+                accurate_mask = accurate
+            else:
+                accurate_mask = (
+                    accurate.astype(str).str.strip().str.lower().isin({"1", "true", "yes"})
+                )
+            if accurate_mask.any():
+                work = work[accurate_mask]
+        if work.empty:
+            return pd.DataFrame()
+
+        rows: list[dict[str, object]] = []
+        for driver_id, group in work.groupby("driver_id", sort=False):
+            lap_times = pd.to_numeric(group["lap_time"], errors="coerce").dropna().sort_values()
+            if lap_times.empty:
+                continue
+            top_count = min(3, len(lap_times))
+            best_lap = float(lap_times.iloc[0])
+            top3_lap = float(lap_times.iloc[:top_count].mean())
+            median_lap = float(lap_times.median())
+            lap_std = float(lap_times.std(ddof=0)) if len(lap_times) > 1 else 0.0
+            rows.append(
+                {
+                    "driver_id": str(driver_id),
+                    "driver_name": self._mode_or_first(group["driver_name"], fallback=str(driver_id)),
+                    "team_name": self._mode_or_first(group["team_name"], fallback=""),
+                    "best_lap": best_lap,
+                    "top3_lap": top3_lap,
+                    "median_lap": median_lap,
+                    "lap_std": lap_std,
+                    "lap_count": int(len(lap_times)),
+                },
+            )
+        if not rows:
+            return pd.DataFrame()
+
+        frame = pd.DataFrame(rows)
+        frame["delta"] = frame["best_lap"] - frame["best_lap"].min()
+        frame["rank"] = frame["best_lap"].rank(method="min").astype(int)
+        frame["top3_delta"] = frame["top3_lap"] - frame["top3_lap"].min()
+        frame["median_delta"] = frame["median_lap"] - frame["median_lap"].min()
+        frame["session"] = label
+        return frame[
+            [
+                "driver_id",
+                "driver_name",
+                "team_name",
+                "delta",
+                "rank",
+                "top3_delta",
+                "median_delta",
+                "lap_std",
+                "lap_count",
+                "session",
+            ]
+        ]
+
+    def _find_session_entry(
+        self,
+        sessions: list[dict[str, object]],
+        session_type: str,
+    ) -> Optional[dict[str, object]]:
+        normalized = session_type.strip().lower()
+        matches = [
+            s for s in sessions if str(s.get("session_type", "")).strip().lower() == normalized
+        ]
+        if not matches:
+            return None
+        matches.sort(key=lambda s: self._safe_int(s.get("session_order"), default=999))
+        return matches[0]
+
+    def list_rounds(self, year: int) -> List[Dict[str, object]]:
+        rounds: List[Dict[str, object]] = []
+        for weekend in self._weekends_for_year(year):
+            rounds.append(
+                {
+                    "round_number": int(weekend["round_number"]),
+                    "event_name": str(weekend["event_name"]),
+                },
+            )
+        return rounds
+
+    def get_fp_features(self, year: int, round_number: int) -> pd.DataFrame:
+        weekend_dir, sessions = self._session_entries(year, round_number)
+        if not sessions:
+            return pd.DataFrame()
+        selected = self._select_fp_sessions(sessions)
+        if not selected:
+            return pd.DataFrame()
+
+        frames: list[pd.DataFrame] = []
+        fp_idx = 0
+        for entry in selected:
+            session_type = str(entry.get("session_type", ""))
+            if session_type.strip().lower() == "free_practice":
+                fp_idx += 1
+                label = self._session_label(session_type, fp_idx)
+            else:
+                label = self._session_label(session_type, fp_idx)
+            laps = self._read_session_csv(weekend_dir, entry, "laps_path")
+            session_frame = self._session_pace_features(laps, label=label)
+            if session_frame.empty:
+                continue
+            frames.append(session_frame)
+        return merge_fp_frames(frames)
+
+    def get_qualifying_results(self, year: int, round_number: int) -> pd.DataFrame:
+        weekend_dir, sessions = self._session_entries(year, round_number)
+        if not sessions:
+            return pd.DataFrame()
+        entry = self._find_session_entry(sessions, "qualifying")
+        if entry is None:
+            return pd.DataFrame()
+        results = self._read_session_csv(weekend_dir, entry, "results_path")
+        if results.empty:
+            return pd.DataFrame()
+
+        driver_col = first_available(
+            results,
+            ["DriverNumber", "driver_number", "Abbreviation", "Driver", "DriverId", "FullName"],
+        )
+        if driver_col is None:
+            return pd.DataFrame()
+        name_col = first_available(results, ["Abbreviation", "BroadcastName", "FullName", "Driver"])
+        pos_col = first_available(results, ["Position", "ClassifiedPosition", "GridPosition"])
+        q3_col = first_available(results, ["Q3", "q3_time"])
+        team_col = first_available(results, ["TeamName", "Team", "team_name"])
+
+        frame = pd.DataFrame()
+        frame["driver_id"] = results[driver_col].map(self._normalize_driver_id)
+        if name_col:
+            frame["driver_name"] = results[name_col].fillna(frame["driver_id"]).astype(str)
+        else:
+            frame["driver_name"] = frame["driver_id"]
+        if pos_col:
+            frame["position"] = pd.to_numeric(results[pos_col], errors="coerce")
+        if q3_col:
+            frame["q3_time"] = pd.to_numeric(results[q3_col], errors="coerce")
+        if team_col:
+            frame["team_name"] = results[team_col].astype(str)
+        frame = frame[frame["driver_id"] != ""]
+        return frame
+
+    def get_race_results(self, year: int, round_number: int) -> pd.DataFrame:
+        weekend_dir, sessions = self._session_entries(year, round_number)
+        if not sessions:
+            return pd.DataFrame()
+        entry = self._find_session_entry(sessions, "race")
+        if entry is None:
+            return pd.DataFrame()
+        results = self._read_session_csv(weekend_dir, entry, "results_path")
+        if results.empty:
+            return pd.DataFrame()
+
+        driver_col = first_available(
+            results,
+            ["DriverNumber", "driver_number", "Abbreviation", "Driver", "DriverId", "FullName"],
+        )
+        pos_col = first_available(results, ["Position", "ClassifiedPosition"])
+        if driver_col is None or pos_col is None:
+            return pd.DataFrame()
+
+        name_col = first_available(results, ["Abbreviation", "BroadcastName", "FullName", "Driver"])
+        team_col = first_available(results, ["TeamName", "Team", "team_name"])
+        frame = pd.DataFrame()
+        frame["driver_id"] = results[driver_col].map(self._normalize_driver_id)
+        if name_col:
+            frame["driver_name"] = results[name_col].fillna(frame["driver_id"]).astype(str)
+        else:
+            frame["driver_name"] = frame["driver_id"]
+        frame["position"] = pd.to_numeric(results[pos_col], errors="coerce")
+        if team_col:
+            frame["team_name"] = results[team_col].astype(str)
+        frame = frame[frame["driver_id"] != ""]
+        return frame
+
+    def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:
+        if round_number <= 1:
+            return None
+        standings: dict[str, int] = {}
+        driver_name: dict[str, str] = {}
+        rounds = self.list_rounds(year)
+        for round_meta in rounds:
+            rnd = int(round_meta.get("round_number", 0))
+            if rnd <= 0 or rnd >= round_number:
+                continue
+            race = self.get_race_results(year, rnd)
+            if race.empty:
+                continue
+            for _, row in race.iterrows():
+                pos = pd.to_numeric(pd.Series([row.get("position")]), errors="coerce").iloc[0]
+                if pd.isna(pos):
+                    continue
+                pos_int = int(pos)
+                if pos_int < 1 or pos_int > 10:
+                    continue
+                driver_id = str(row.get("driver_id", "")).strip()
+                if not driver_id:
+                    continue
+                standings[driver_id] = standings.get(driver_id, 0) + POINTS_TABLE.get(pos_int, 0)
+                driver_name[driver_id] = str(row.get("driver_name", driver_id))
+        if not standings:
+            return None
+        frame = pd.DataFrame(
+            [(driver_id, pts, driver_name.get(driver_id, driver_id)) for driver_id, pts in standings.items()],
+            columns=["driver_id", "points", "driver_name"],
+        )
+        frame["position_start"] = frame["points"].rank(method="min", ascending=False).astype(int)
+        return frame[["driver_id", "driver_name", "position_start"]]

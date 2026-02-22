@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Iterable, Optional
 
 import pandas as pd
@@ -24,17 +25,31 @@ def normalize_event_name(value: object) -> str:
 
 
 def team_column(df: pd.DataFrame) -> Optional[str]:
-    return first_available(
-        df,
-        [
-            "team_id",
-            "constructor_id",
-            "team_name",
-            "constructor_name",
-            "constructor",
-            "team",
-        ],
-    )
+    candidates = [
+        "team_id",
+        "constructor_id",
+        "team_name",
+        "constructor_name",
+        "constructor",
+        "team",
+    ]
+    for col in candidates:
+        if col not in df.columns:
+            continue
+        values = df[col]
+        if values.notna().sum() == 0:
+            continue
+        text = values.astype(str).str.strip().str.lower()
+        text = text.replace({"nan": "", "none": "", "<na>": ""})
+        if (text != "").any():
+            return col
+    return None
+
+
+def _slug_token(value: object) -> str:
+    text = str(value).strip().lower()
+    text = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
+    return text or "session"
 
 
 def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
@@ -42,23 +57,85 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         return pd.DataFrame()
     merged = None
     for frame in frames:
-        label = frame["session"].iloc[0].lower()
+        if frame is None or frame.empty or "driver_id" not in frame.columns:
+            continue
+        label = _slug_token(frame["session"].iloc[0] if "session" in frame.columns else "session")
         frame = frame.copy()
-        frame = frame.rename(columns={
-            "delta": f"{label}_delta",
-            "rank": f"{label}_rank",
-        })
-        frame = frame.drop(columns=["session"])
+        frame["driver_id"] = frame["driver_id"].astype(str)
+        if "driver_name" not in frame.columns:
+            frame["driver_name"] = frame["driver_id"]
+        frame["driver_name"] = frame["driver_name"].fillna(frame["driver_id"]).astype(str)
+        rename_map = {}
+        for col in frame.columns:
+            if col in {"driver_id", "driver_name", "session"}:
+                continue
+            rename_map[col] = f"{label}_{_slug_token(col)}"
+        frame = frame.rename(columns=rename_map)
+        if "session" in frame.columns:
+            frame = frame.drop(columns=["session"])
+        frame = frame.drop_duplicates(subset=["driver_id"], keep="last")
         if merged is None:
             merged = frame
         else:
-            merged = merged.merge(frame, on=["driver_id", "driver_name"], how="outer")
+            merged = merged.merge(frame, on="driver_id", how="outer", suffixes=("", "_r"))
+            if "driver_name_r" in merged.columns:
+                if "driver_name" not in merged.columns:
+                    merged["driver_name"] = merged["driver_name_r"]
+                else:
+                    merged["driver_name"] = merged["driver_name"].fillna(merged["driver_name_r"])
+                merged = merged.drop(columns=["driver_name_r"])
     if merged is None:
         return pd.DataFrame()
-    delta_cols = [c for c in merged.columns if c.endswith("_delta")]
+
+    team_candidates = [
+        c
+        for c in merged.columns
+        if c.endswith("_team_name") or c.endswith("_team") or c.endswith("_constructor_name")
+    ]
+    if team_candidates and "team_name" not in merged.columns:
+        team_name = pd.Series(index=merged.index, dtype=object)
+        for col in team_candidates:
+            values = merged[col]
+            team_name = team_name.where(team_name.notna(), values)
+        if team_name.notna().any():
+            merged["team_name"] = team_name
+
+    delta_cols = [
+        c
+        for c in merged.columns
+        if c.endswith("_delta") and not c.endswith("_top3_delta") and not c.endswith("_median_delta")
+    ]
     rank_cols = [c for c in merged.columns if c.endswith("_rank")]
-    merged["fp_mean_delta"] = merged[delta_cols].mean(axis=1, skipna=True)
-    merged["fp_mean_rank"] = merged[rank_cols].mean(axis=1, skipna=True)
+    if delta_cols:
+        delta_frame = merged[delta_cols].apply(pd.to_numeric, errors="coerce")
+        merged["fp_mean_delta"] = delta_frame.mean(axis=1, skipna=True)
+        merged["fp_delta_std"] = delta_frame.std(axis=1, skipna=True)
+        merged["pace_sessions_available"] = delta_frame.notna().sum(axis=1)
+    else:
+        merged["fp_mean_delta"] = float("nan")
+        merged["fp_delta_std"] = float("nan")
+        merged["pace_sessions_available"] = 0
+    if rank_cols:
+        rank_frame = merged[rank_cols].apply(pd.to_numeric, errors="coerce")
+        merged["fp_mean_rank"] = rank_frame.mean(axis=1, skipna=True)
+    else:
+        merged["fp_mean_rank"] = float("nan")
+
+    top3_cols = [c for c in merged.columns if c.endswith("_top3_delta")]
+    if top3_cols:
+        merged["fp_mean_top3_delta"] = (
+            merged[top3_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+        )
+    lap_std_cols = [c for c in merged.columns if c.endswith("_lap_std")]
+    if lap_std_cols:
+        merged["fp_mean_lap_std"] = (
+            merged[lap_std_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+        )
+    lap_count_cols = [c for c in merged.columns if c.endswith("_lap_count")]
+    if lap_count_cols:
+        merged["fp_total_laps"] = (
+            merged[lap_count_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
+        )
     return merged
 
 

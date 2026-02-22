@@ -17,6 +17,7 @@ class PredictionConfig:
     cache_dir: Optional[str]
     meeting_name: Optional[str]
     country_name: Optional[str]
+    weekends_dir: Optional[str]
 
 
 @dataclass

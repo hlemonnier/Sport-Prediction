@@ -8,7 +8,7 @@ from typing import Callable, List, Optional
 
 import pandas as pd
 
-from .providers import BaseProvider, FastF1Provider, OpenF1Provider
+from .providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
 
 
 @dataclass
@@ -46,6 +46,8 @@ def _build_provider(source: str, cache_root: Optional[str]) -> BaseProvider:
         return FastF1Provider(cache_dir=cache_dir)
     if normalized == "openf1":
         return OpenF1Provider(cache_dir=cache_dir)
+    if normalized == "local":
+        return LocalWeekendProvider()
     raise ValueError(f"Unsupported source: {source}")
 
 

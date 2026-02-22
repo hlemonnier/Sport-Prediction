@@ -722,9 +722,18 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
 
     candidates = _candidate_models()
     race_baseline_supported = "qualy_position" in feature_cols
+    race_pace_baseline_cols = [
+        col for col in ["fp_race_sim_rank", "fp_race_sim_delta", "event_pace_index"] if col in feature_cols
+    ]
     qualifying_baseline_cols = [
         col
-        for col in ["event_pace_index", "fp_mean_rank", "fp_weighted_delta"]
+        for col in [
+            "fp_quali_sim_rank",
+            "fp_mean_rank",
+            "fp_quali_sim_delta",
+            "event_pace_index",
+            "fp_weighted_delta",
+        ]
         if col in feature_cols
     ]
     qualifying_baseline_supported = bool(qualifying_baseline_cols) and not race_baseline_supported
@@ -776,6 +785,16 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             )
             if baseline_score is not None:
                 score_lookup[baseline_score.name] = baseline_score
+            for col in race_pace_baseline_cols:
+                pace_score = _evaluate_column_baseline(
+                    train=train,
+                    folds=folds,
+                    column=col,
+                    name=f"pace_baseline::{col}",
+                    default_fill=0.0,
+                )
+                if pace_score is not None:
+                    score_lookup[pace_score.name] = pace_score
         if qualifying_baseline_supported:
             for col in qualifying_baseline_cols:
                 baseline_score = _evaluate_column_baseline(

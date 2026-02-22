@@ -56,6 +56,8 @@ def _ensure_fp_mean_delta(frame: pd.DataFrame) -> pd.DataFrame:
         and c not in {"fp_mean_delta", "fp_weighted_delta", "qualy_gap_to_best"}
         and not c.endswith("_top3_delta")
         and not c.endswith("_median_delta")
+        and not c.endswith("_quali_sim_delta")
+        and not c.endswith("_race_sim_delta")
     ]
     delta_frame = out[delta_cols].apply(pd.to_numeric, errors="coerce") if delta_cols else pd.DataFrame(index=out.index)
 
@@ -80,6 +82,116 @@ def _ensure_fp_mean_delta(frame: pd.DataFrame) -> pd.DataFrame:
         out["pace_sessions_available"] = delta_frame.notna().sum(axis=1)
     else:
         out["pace_sessions_available"] = 0.0
+
+    if "fp_quali_sim_delta" in out.columns:
+        out["fp_quali_sim_delta"] = pd.to_numeric(out["fp_quali_sim_delta"], errors="coerce")
+    else:
+        quali_sim_delta_cols = [c for c in out.columns if c.endswith("_quali_sim_delta")]
+        if quali_sim_delta_cols:
+            out["fp_quali_sim_delta"] = (
+                out[quali_sim_delta_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+            )
+        else:
+            out["fp_quali_sim_delta"] = float("nan")
+
+    if "fp_race_sim_delta" in out.columns:
+        out["fp_race_sim_delta"] = pd.to_numeric(out["fp_race_sim_delta"], errors="coerce")
+    else:
+        race_sim_delta_cols = [c for c in out.columns if c.endswith("_race_sim_delta")]
+        if race_sim_delta_cols:
+            out["fp_race_sim_delta"] = (
+                out[race_sim_delta_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+            )
+        else:
+            out["fp_race_sim_delta"] = float("nan")
+
+    if "fp_quali_sim_rank" in out.columns:
+        out["fp_quali_sim_rank"] = pd.to_numeric(out["fp_quali_sim_rank"], errors="coerce")
+    else:
+        quali_sim_rank_cols = [c for c in out.columns if c.endswith("_quali_sim_rank")]
+        if quali_sim_rank_cols:
+            out["fp_quali_sim_rank"] = (
+                out[quali_sim_rank_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+            )
+        else:
+            out["fp_quali_sim_rank"] = float("nan")
+
+    if "fp_race_sim_rank" in out.columns:
+        out["fp_race_sim_rank"] = pd.to_numeric(out["fp_race_sim_rank"], errors="coerce")
+    else:
+        race_sim_rank_cols = [c for c in out.columns if c.endswith("_race_sim_rank")]
+        if race_sim_rank_cols:
+            out["fp_race_sim_rank"] = (
+                out[race_sim_rank_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+            )
+        else:
+            out["fp_race_sim_rank"] = float("nan")
+
+    if "fp_quali_sim_laps" in out.columns:
+        out["fp_quali_sim_laps"] = pd.to_numeric(out["fp_quali_sim_laps"], errors="coerce")
+    else:
+        quali_sim_lap_cols = [c for c in out.columns if c.endswith("_quali_sim_lap_count")]
+        if quali_sim_lap_cols:
+            out["fp_quali_sim_laps"] = (
+                out[quali_sim_lap_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
+            )
+        else:
+            out["fp_quali_sim_laps"] = 0.0
+
+    if "fp_race_sim_laps" in out.columns:
+        out["fp_race_sim_laps"] = pd.to_numeric(out["fp_race_sim_laps"], errors="coerce")
+    else:
+        race_sim_lap_cols = [c for c in out.columns if c.endswith("_race_sim_lap_count")]
+        if race_sim_lap_cols:
+            out["fp_race_sim_laps"] = (
+                out[race_sim_lap_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
+            )
+        else:
+            out["fp_race_sim_laps"] = 0.0
+
+    if "quali_sim_sessions_available" in out.columns:
+        out["quali_sim_sessions_available"] = pd.to_numeric(out["quali_sim_sessions_available"], errors="coerce")
+    else:
+        quali_sim_delta_cols = [c for c in out.columns if c.endswith("_quali_sim_delta")]
+        if quali_sim_delta_cols:
+            out["quali_sim_sessions_available"] = (
+                out[quali_sim_delta_cols].apply(pd.to_numeric, errors="coerce").notna().sum(axis=1)
+            )
+        else:
+            out["quali_sim_sessions_available"] = 0.0
+
+    if "race_sim_sessions_available" in out.columns:
+        out["race_sim_sessions_available"] = pd.to_numeric(out["race_sim_sessions_available"], errors="coerce")
+    else:
+        race_sim_delta_cols = [c for c in out.columns if c.endswith("_race_sim_delta")]
+        if race_sim_delta_cols:
+            out["race_sim_sessions_available"] = (
+                out[race_sim_delta_cols].apply(pd.to_numeric, errors="coerce").notna().sum(axis=1)
+            )
+        else:
+            out["race_sim_sessions_available"] = 0.0
+
+    if "fp_slow_lap_ratio" in out.columns:
+        out["fp_slow_lap_ratio"] = pd.to_numeric(out["fp_slow_lap_ratio"], errors="coerce")
+    else:
+        slow_cols = [c for c in out.columns if c.endswith("_slow_lap_ratio")]
+        if slow_cols:
+            out["fp_slow_lap_ratio"] = (
+                out[slow_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+            )
+        else:
+            out["fp_slow_lap_ratio"] = float("nan")
+
+    if "fp_quali_vs_race_gap" in out.columns:
+        out["fp_quali_vs_race_gap"] = pd.to_numeric(out["fp_quali_vs_race_gap"], errors="coerce")
+    else:
+        gap_cols = [c for c in out.columns if c.endswith("_quali_vs_race_gap")]
+        if gap_cols:
+            out["fp_quali_vs_race_gap"] = (
+                out[gap_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+            )
+        else:
+            out["fp_quali_vs_race_gap"] = out["fp_race_sim_delta"] - out["fp_quali_sim_delta"]
 
     if "fp_weighted_delta" in out.columns:
         out["fp_weighted_delta"] = pd.to_numeric(out["fp_weighted_delta"], errors="coerce")
@@ -175,7 +287,13 @@ def _add_event_relative_features(frame: pd.DataFrame) -> pd.DataFrame:
 
         pace_core = _average_event_rank_component(
             event_rows,
-            ["fp_weighted_delta", "fp_mean_rank", "fp_mean_top3_delta"],
+            [
+                "fp_quali_sim_delta",
+                "fp_mean_rank",
+                "fp_weighted_delta",
+                "fp_mean_top3_delta",
+                "fp_race_sim_delta",
+            ],
             ascending=True,
         )
         if pace_core is not None:
@@ -184,7 +302,7 @@ def _add_event_relative_features(frame: pd.DataFrame) -> pd.DataFrame:
 
         consistency = _average_event_rank_component(
             event_rows,
-            ["fp_delta_std", "fp_mean_lap_std"],
+            ["fp_delta_std", "fp_mean_lap_std", "fp_slow_lap_ratio"],
             ascending=True,
         )
         if consistency is not None:
@@ -193,7 +311,14 @@ def _add_event_relative_features(frame: pd.DataFrame) -> pd.DataFrame:
 
         availability = _average_event_rank_component(
             event_rows,
-            ["pace_sessions_available", "fp_total_laps"],
+            [
+                "pace_sessions_available",
+                "fp_total_laps",
+                "quali_sim_sessions_available",
+                "race_sim_sessions_available",
+                "fp_quali_sim_laps",
+                "fp_race_sim_laps",
+            ],
             ascending=False,
         )
         if availability is not None:
@@ -267,6 +392,34 @@ def _add_temporal_features_train(frame: pd.DataFrame) -> pd.DataFrame:
     else:
         out["driver_ewma_fp_weighted_delta"] = float("nan")
         out["driver_form_3_fp_weighted_delta"] = float("nan")
+
+    driver_quali_sim_group = (
+        out.groupby("driver_id", sort=False)["fp_quali_sim_delta"] if "driver_id" in out.columns else None
+    )
+    if driver_quali_sim_group is not None:
+        out["driver_ewma_fp_quali_sim_delta"] = driver_quali_sim_group.transform(
+            lambda s: s.shift(1).ewm(alpha=0.5, adjust=False, min_periods=1).mean(),
+        )
+        out["driver_form_3_fp_quali_sim_delta"] = driver_quali_sim_group.transform(
+            lambda s: s.shift(1).rolling(window=3, min_periods=1).mean(),
+        )
+    else:
+        out["driver_ewma_fp_quali_sim_delta"] = float("nan")
+        out["driver_form_3_fp_quali_sim_delta"] = float("nan")
+
+    driver_race_sim_group = (
+        out.groupby("driver_id", sort=False)["fp_race_sim_delta"] if "driver_id" in out.columns else None
+    )
+    if driver_race_sim_group is not None:
+        out["driver_ewma_fp_race_sim_delta"] = driver_race_sim_group.transform(
+            lambda s: s.shift(1).ewm(alpha=0.5, adjust=False, min_periods=1).mean(),
+        )
+        out["driver_form_3_fp_race_sim_delta"] = driver_race_sim_group.transform(
+            lambda s: s.shift(1).rolling(window=3, min_periods=1).mean(),
+        )
+    else:
+        out["driver_ewma_fp_race_sim_delta"] = float("nan")
+        out["driver_form_3_fp_race_sim_delta"] = float("nan")
 
     team_col = team_column(out)
     if team_col:
@@ -343,6 +496,10 @@ def _attach_temporal_features_current(
         "driver_form_5_fp_mean_delta",
         "driver_ewma_fp_weighted_delta",
         "driver_form_3_fp_weighted_delta",
+        "driver_ewma_fp_quali_sim_delta",
+        "driver_form_3_fp_quali_sim_delta",
+        "driver_ewma_fp_race_sim_delta",
+        "driver_form_3_fp_race_sim_delta",
         "driver_form_3_vs_team_fp_weighted_delta",
         "team_ewma_fp_mean_delta",
         "team_form_3_fp_mean_delta",
@@ -371,6 +528,10 @@ def _attach_temporal_features_current(
         "driver_form_5_fp_mean_delta",
         "driver_ewma_fp_weighted_delta",
         "driver_form_3_fp_weighted_delta",
+        "driver_ewma_fp_quali_sim_delta",
+        "driver_form_3_fp_quali_sim_delta",
+        "driver_ewma_fp_race_sim_delta",
+        "driver_form_3_fp_race_sim_delta",
         "driver_form_3_vs_team_fp_weighted_delta",
     ]:
         if col in driver_last.columns:

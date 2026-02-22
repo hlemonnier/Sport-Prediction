@@ -103,9 +103,19 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
     delta_cols = [
         c
         for c in merged.columns
-        if c.endswith("_delta") and not c.endswith("_top3_delta") and not c.endswith("_median_delta")
+        if c.endswith("_delta")
+        and not c.endswith("_top3_delta")
+        and not c.endswith("_median_delta")
+        and not c.endswith("_quali_sim_delta")
+        and not c.endswith("_race_sim_delta")
     ]
-    rank_cols = [c for c in merged.columns if c.endswith("_rank")]
+    rank_cols = [
+        c
+        for c in merged.columns
+        if c.endswith("_rank")
+        and not c.endswith("_quali_sim_rank")
+        and not c.endswith("_race_sim_rank")
+    ]
     if delta_cols:
         delta_frame = merged[delta_cols].apply(pd.to_numeric, errors="coerce")
         merged["fp_mean_delta"] = delta_frame.mean(axis=1, skipna=True)
@@ -136,6 +146,72 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         merged["fp_total_laps"] = (
             merged[lap_count_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
         )
+
+    quali_sim_delta_cols = [c for c in merged.columns if c.endswith("_quali_sim_delta")]
+    if quali_sim_delta_cols:
+        quali_sim_delta_frame = merged[quali_sim_delta_cols].apply(pd.to_numeric, errors="coerce")
+        merged["fp_quali_sim_delta"] = quali_sim_delta_frame.mean(axis=1, skipna=True)
+        merged["quali_sim_sessions_available"] = quali_sim_delta_frame.notna().sum(axis=1)
+    else:
+        merged["fp_quali_sim_delta"] = float("nan")
+        merged["quali_sim_sessions_available"] = 0
+
+    race_sim_delta_cols = [c for c in merged.columns if c.endswith("_race_sim_delta")]
+    if race_sim_delta_cols:
+        race_sim_delta_frame = merged[race_sim_delta_cols].apply(pd.to_numeric, errors="coerce")
+        merged["fp_race_sim_delta"] = race_sim_delta_frame.mean(axis=1, skipna=True)
+        merged["race_sim_sessions_available"] = race_sim_delta_frame.notna().sum(axis=1)
+    else:
+        merged["fp_race_sim_delta"] = float("nan")
+        merged["race_sim_sessions_available"] = 0
+
+    quali_sim_rank_cols = [c for c in merged.columns if c.endswith("_quali_sim_rank")]
+    if quali_sim_rank_cols:
+        merged["fp_quali_sim_rank"] = (
+            merged[quali_sim_rank_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+        )
+    else:
+        merged["fp_quali_sim_rank"] = float("nan")
+
+    race_sim_rank_cols = [c for c in merged.columns if c.endswith("_race_sim_rank")]
+    if race_sim_rank_cols:
+        merged["fp_race_sim_rank"] = (
+            merged[race_sim_rank_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+        )
+    else:
+        merged["fp_race_sim_rank"] = float("nan")
+
+    quali_sim_lap_count_cols = [c for c in merged.columns if c.endswith("_quali_sim_lap_count")]
+    if quali_sim_lap_count_cols:
+        merged["fp_quali_sim_laps"] = (
+            merged[quali_sim_lap_count_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
+        )
+    else:
+        merged["fp_quali_sim_laps"] = 0.0
+
+    race_sim_lap_count_cols = [c for c in merged.columns if c.endswith("_race_sim_lap_count")]
+    if race_sim_lap_count_cols:
+        merged["fp_race_sim_laps"] = (
+            merged[race_sim_lap_count_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
+        )
+    else:
+        merged["fp_race_sim_laps"] = 0.0
+
+    slow_lap_ratio_cols = [c for c in merged.columns if c.endswith("_slow_lap_ratio")]
+    if slow_lap_ratio_cols:
+        merged["fp_slow_lap_ratio"] = (
+            merged[slow_lap_ratio_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+        )
+    else:
+        merged["fp_slow_lap_ratio"] = float("nan")
+
+    quali_vs_race_gap_cols = [c for c in merged.columns if c.endswith("_quali_vs_race_gap")]
+    if quali_vs_race_gap_cols:
+        merged["fp_quali_vs_race_gap"] = (
+            merged[quali_vs_race_gap_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+        )
+    else:
+        merged["fp_quali_vs_race_gap"] = float("nan")
     return merged
 
 

@@ -14,6 +14,29 @@ def first_available(df: pd.DataFrame, columns: Iterable[str]) -> Optional[str]:
     return None
 
 
+def normalize_event_name(value: object) -> str:
+    if value is None:
+        return ""
+    text = str(value).strip().lower()
+    if not text:
+        return ""
+    return " ".join(text.split())
+
+
+def team_column(df: pd.DataFrame) -> Optional[str]:
+    return first_available(
+        df,
+        [
+            "team_id",
+            "constructor_id",
+            "team_name",
+            "constructor_name",
+            "constructor",
+            "team",
+        ],
+    )
+
+
 def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
     if not frames:
         return pd.DataFrame()
@@ -44,4 +67,8 @@ def format_prediction_table(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
         return df
     df = df.copy().sort_values("pred", ascending=True).head(top_n)
     df["rank"] = range(1, len(df) + 1)
-    return df[["rank", "driver_name", "pred"]]
+    cols = ["rank", "driver_name", "pred"]
+    for col in ["proba_top10", "proba_top3"]:
+        if col in df.columns:
+            cols.append(col)
+    return df[cols]

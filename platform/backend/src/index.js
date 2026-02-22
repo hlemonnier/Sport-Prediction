@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import { lookup } from "node:dns/promises";
 import { randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import postgres from "postgres";
@@ -1821,6 +1822,45 @@ function findRepoRoot(startPath) {
   return path.resolve(startPath);
 }
 
+function parseDatabaseHost(connectionString) {
+  if (typeof connectionString !== "string" || connectionString.trim() === "") {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(connectionString.trim());
+    return parsed.hostname || null;
+  } catch {
+    return null;
+  }
+}
+
+async function selectDatabaseUrl(candidates) {
+  const validCandidates = candidates
+    .filter((candidate) => typeof candidate === "string" && candidate.trim() !== "")
+    .map((candidate) => candidate.trim());
+
+  if (validCandidates.length === 0) {
+    return null;
+  }
+
+  for (const candidate of validCandidates) {
+    const host = parseDatabaseHost(candidate);
+    if (!host) {
+      return candidate;
+    }
+
+    try {
+      await lookup(host);
+      return candidate;
+    } catch {
+      // Host DNS may be unavailable locally (e.g., direct DB endpoint); try next candidate.
+    }
+  }
+
+  return validCandidates[0];
+}
+
 async function main() {
   const currentDir = process.cwd();
   const repoRoot = process.env.REPO_ROOT
@@ -1835,12 +1875,13 @@ async function main() {
   const dataDir = path.join(repoRoot, "platform", "backend", "data");
   await fsp.mkdir(dataDir, { recursive: true });
 
-  const databaseUrl =
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DIRECT_CONNECTION_STRING ||
-    process.env.SUPABASE_DB_URL ||
-    process.env.SUPABASE_SESSION_POOLER_CONNECTION_STRING ||
-    process.env.SUPABASE_TRANSACTION_POOLER_CONNECTION_STRING;
+  const databaseUrl = await selectDatabaseUrl([
+    process.env.DATABASE_URL,
+    process.env.SUPABASE_DIRECT_CONNECTION_STRING,
+    process.env.SUPABASE_DB_URL,
+    process.env.SUPABASE_SESSION_POOLER_CONNECTION_STRING,
+    process.env.SUPABASE_TRANSACTION_POOLER_CONNECTION_STRING,
+  ]);
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is required (use your Supabase Postgres URI)");
   }

@@ -205,6 +205,61 @@ class QualifyingPositionBaseline:
         return values.fillna(fill).to_numpy(dtype=float)
 
 
+class ColumnBaselineModel:
+    """Generic baseline that predicts from a single numeric column."""
+
+    def __init__(self, column: str, fill_value: float = 0.0) -> None:
+        self.column = column
+        self.fill_value = float(fill_value)
+
+    def predict(self, frame: pd.DataFrame) -> np.ndarray:
+        if frame.empty:
+            return np.asarray([], dtype=float)
+        if self.column not in frame.columns:
+            return np.full(shape=(len(frame),), fill_value=self.fill_value, dtype=float)
+        values = pd.to_numeric(frame[self.column], errors="coerce")
+        if values.notna().sum() == 0:
+            return np.full(shape=(len(frame),), fill_value=self.fill_value, dtype=float)
+        fill = float(values.median(skipna=True))
+        if not np.isfinite(fill):
+            fill = self.fill_value
+        return values.fillna(fill).to_numpy(dtype=float)
+
+
+@dataclass
+class WeightedBlendModel:
+    primary_model: object
+    baseline_column: str
+    model_weight: float
+    baseline_fill: float = 0.0
+    calibrators: dict[str, ProbabilityCalibrator] = field(default_factory=dict)
+
+    def _baseline(self, frame: pd.DataFrame) -> pd.Series:
+        values = pd.to_numeric(frame.get(self.baseline_column), errors="coerce")
+        if values is None or len(values) == 0:
+            return pd.Series(self.baseline_fill, index=frame.index, dtype=float)
+        fill = float(values.median(skipna=True))
+        if not np.isfinite(fill):
+            fill = self.baseline_fill
+        return pd.Series(values.fillna(fill), index=frame.index, dtype=float)
+
+    def predict(self, frame: pd.DataFrame) -> pd.Series:
+        if frame.empty:
+            return pd.Series(dtype=float)
+        primary_raw = self.primary_model.predict(frame)
+        primary = pd.Series(primary_raw, index=frame.index, dtype=float)
+        baseline = self._baseline(frame)
+        weight = float(np.clip(self.model_weight, 0.0, 1.0))
+        pred = (weight * primary) + ((1.0 - weight) * baseline)
+        return pd.Series(pred, index=frame.index, dtype=float)
+
+    def predict_probabilities(self, scores: pd.Series) -> dict[str, pd.Series]:
+        output: dict[str, pd.Series] = {}
+        for label, calibrator in self.calibrators.items():
+            output[label] = calibrator.predict(scores)
+        return output
+
+
 def _candidate_models() -> list[CandidateSpec]:
     candidates: list[CandidateSpec] = []
     if XGBRanker is not None:
@@ -412,8 +467,8 @@ def _topk_hit_rate(actual_rank: pd.Series, pred_score: pd.Series, k: int) -> flo
 
 
 def _fold_metrics(y_true: pd.Series, pred: pd.Series, event_key: pd.Series) -> dict[str, float]:
-    mae = _mean_absolute_error(y_true, pred)
-    spearman = _safe_spearman(y_true, pred)
+    mae_values: list[float] = []
+    spearman_values: list[float] = []
     ndcg_values: list[float] = []
     hit_values: list[float] = []
     for idx in _event_groups(event_key, y_true.index):
@@ -422,8 +477,13 @@ def _fold_metrics(y_true: pd.Series, pred: pd.Series, event_key: pd.Series) -> d
         if y_event.empty:
             continue
         actual_rank = y_event.rank(method="first", ascending=True)
+        pred_rank = p_event.rank(method="first", ascending=True)
+        mae_values.append(_mean_absolute_error(actual_rank, pred_rank))
+        spearman_values.append(_safe_spearman(actual_rank, pred_rank))
         ndcg_values.append(_ndcg_at_k(actual_rank, p_event, k=10))
         hit_values.append(_topk_hit_rate(actual_rank, p_event, k=10))
+    mae = float(sum(mae_values) / len(mae_values)) if mae_values else float("inf")
+    spearman = float(sum(spearman_values) / len(spearman_values)) if spearman_values else 0.0
     ndcg10 = float(sum(ndcg_values) / len(ndcg_values)) if ndcg_values else 0.0
     hit10 = float(sum(hit_values) / len(hit_values)) if hit_values else 0.0
     return {
@@ -494,11 +554,14 @@ def _evaluate_candidate(
     )
 
 
-def _evaluate_qualifying_baseline(
+def _evaluate_column_baseline(
     train: pd.DataFrame,
     folds: list[tuple[set[int], int]],
+    column: str,
+    name: str,
+    default_fill: float = 0.0,
 ) -> Optional[CandidateScore]:
-    if "qualy_position" not in train.columns:
+    if column not in train.columns:
         return None
     event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
     if event_key is None:
@@ -509,12 +572,16 @@ def _evaluate_qualifying_baseline(
         val_df = train.loc[event_key == val_key]
         if train_df.empty or val_df.empty:
             continue
-        train_q = pd.to_numeric(train_df.get("qualy_position"), errors="coerce")
-        fill_value = float(train_q.median(skipna=True)) if train_q.notna().sum() > 0 else 10.0
+        train_col = pd.to_numeric(train_df.get(column), errors="coerce")
+        fill_value = (
+            float(train_col.median(skipna=True))
+            if train_col.notna().sum() > 0
+            else float(default_fill)
+        )
         val_rows, y_val, event_val = _prepare_training_rows(val_df)
         if val_rows.empty:
             continue
-        pred = pd.to_numeric(val_rows.get("qualy_position"), errors="coerce")
+        pred = pd.to_numeric(val_rows.get(column), errors="coerce")
         pred = pred.fillna(fill_value)
         pred = pd.Series(pred.to_numpy(dtype=float), index=val_rows.index, dtype=float)
         fold_metrics.append(_fold_metrics(y_val, pred, event_val))
@@ -526,13 +593,81 @@ def _evaluate_qualifying_baseline(
     hit10 = float(sum(m["hit10"] for m in fold_metrics) / len(fold_metrics))
     composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
     return CandidateScore(
-        name="qualifying_baseline",
+        name=name,
         mae=mae,
         spearman=spearman,
         ndcg10=ndcg10,
         hit10=hit10,
         composite=composite,
     )
+
+
+def _evaluate_blend_candidates(
+    train: pd.DataFrame,
+    feature_cols: List[str],
+    candidate: CandidateSpec,
+    folds: list[tuple[set[int], int]],
+    baseline_col: str,
+    model_weights: list[float],
+    default_baseline_fill: float = 0.0,
+) -> list[CandidateScore]:
+    if baseline_col not in train.columns:
+        return []
+    event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
+    if event_key is None:
+        return []
+    weights = sorted({float(np.clip(w, 0.0, 1.0)) for w in model_weights})
+    if not weights:
+        return []
+    fold_metrics_by_weight: dict[float, list[dict[str, float]]] = {w: [] for w in weights}
+    for train_keys, val_key in folds:
+        train_df = train.loc[event_key.isin(train_keys)]
+        val_df = train.loc[event_key == val_key]
+        if train_df.empty or val_df.empty:
+            continue
+        fitted = _fit_candidate(train_df, feature_cols, candidate)
+        if fitted is None:
+            return []
+        val_rows, y_val, event_val = _prepare_training_rows(val_df)
+        if val_rows.empty:
+            continue
+        model_pred = pd.Series(fitted.predict(val_rows), index=val_rows.index, dtype=float)
+        train_base = pd.to_numeric(train_df.get(baseline_col), errors="coerce")
+        base_fill = (
+            float(train_base.median(skipna=True))
+            if train_base.notna().sum() > 0
+            else float(default_baseline_fill)
+        )
+        base_pred = pd.Series(
+            pd.to_numeric(val_rows.get(baseline_col), errors="coerce").fillna(base_fill),
+            index=val_rows.index,
+            dtype=float,
+        )
+        for model_weight in weights:
+            blend = (model_weight * model_pred) + ((1.0 - model_weight) * base_pred)
+            fold_metrics_by_weight[model_weight].append(_fold_metrics(y_val, blend, event_val))
+
+    output: list[CandidateScore] = []
+    for model_weight in weights:
+        fold_metrics = fold_metrics_by_weight[model_weight]
+        if not fold_metrics:
+            continue
+        mae = float(sum(m["mae"] for m in fold_metrics) / len(fold_metrics))
+        spearman = float(sum(m["spearman"] for m in fold_metrics) / len(fold_metrics))
+        ndcg10 = float(sum(m["ndcg10"] for m in fold_metrics) / len(fold_metrics))
+        hit10 = float(sum(m["hit10"] for m in fold_metrics) / len(fold_metrics))
+        composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
+        output.append(
+            CandidateScore(
+                name=f"pace_blend::{candidate.name}::{baseline_col}::{model_weight:.2f}",
+                mae=mae,
+                spearman=spearman,
+                ndcg10=ndcg10,
+                hit10=hit10,
+                composite=composite,
+            )
+        )
+    return output
 
 
 def _topk_labels_from_target(y: pd.Series, event_key: pd.Series, k: int) -> pd.Series:
@@ -579,9 +714,38 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
         notes.append("Pas assez de data historique: fallback heuristique.")
         return TrainingResult(model=None, model_name="heuristic", notes=notes)
 
+    event_count = 0
+    if "event_key" in train.columns:
+        event_series = pd.to_numeric(train["event_key"], errors="coerce").dropna()
+        if not event_series.empty:
+            event_count = int(event_series.astype(int).nunique())
+
     candidates = _candidate_models()
-    baseline_supported = "qualy_position" in feature_cols
-    if not candidates and not baseline_supported:
+    race_baseline_supported = "qualy_position" in feature_cols
+    qualifying_baseline_cols = [
+        col
+        for col in ["event_pace_index", "fp_mean_rank", "fp_weighted_delta"]
+        if col in feature_cols
+    ]
+    qualifying_baseline_supported = bool(qualifying_baseline_cols) and not race_baseline_supported
+    small_history_qualifying = (
+        qualifying_baseline_supported
+        and event_count > 0
+        and event_count < 8
+    )
+    if (
+        small_history_qualifying
+        and "fp_weighted_delta" in qualifying_baseline_cols
+        and "fp_mean_rank" in qualifying_baseline_cols
+    ):
+        qualifying_baseline_cols = [col for col in qualifying_baseline_cols if col != "fp_weighted_delta"]
+        notes.append(
+            "Historique court (<8 events): baseline fp_weighted_delta retiree pour limiter l'instabilite.",
+        )
+    if small_history_qualifying:
+        notes.append("Historique court (<8 events): selection restreinte aux baselines qualif.")
+
+    if not candidates and not race_baseline_supported and not qualifying_baseline_supported:
         notes.append("Aucun modele ML disponible (installer scikit-learn ou xgboost).")
         return TrainingResult(model=None, model_name="heuristic", notes=notes)
 
@@ -596,15 +760,50 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
 
     folds = _walk_forward_folds(train)
     if folds:
-        for candidate in candidates:
-            score = _evaluate_candidate(train, feature_cols, candidate, folds)
-            if score is None:
-                continue
-            score_lookup[candidate.name] = score
-        if baseline_supported:
-            baseline_score = _evaluate_qualifying_baseline(train, folds)
+        if not small_history_qualifying:
+            for candidate in candidates:
+                score = _evaluate_candidate(train, feature_cols, candidate, folds)
+                if score is None:
+                    continue
+                score_lookup[candidate.name] = score
+        if race_baseline_supported:
+            baseline_score = _evaluate_column_baseline(
+                train=train,
+                folds=folds,
+                column="qualy_position",
+                name="qualifying_baseline",
+                default_fill=10.0,
+            )
             if baseline_score is not None:
                 score_lookup[baseline_score.name] = baseline_score
+        if qualifying_baseline_supported:
+            for col in qualifying_baseline_cols:
+                baseline_score = _evaluate_column_baseline(
+                    train=train,
+                    folds=folds,
+                    column=col,
+                    name=f"pace_baseline::{col}",
+                    default_fill=0.0,
+                )
+                if baseline_score is not None:
+                    score_lookup[baseline_score.name] = baseline_score
+
+            if not small_history_qualifying:
+                blend_weights = [0.20, 0.35, 0.50, 0.65, 0.80]
+                for candidate in candidates:
+                    for blend_col in qualifying_baseline_cols:
+                        blend_scores = _evaluate_blend_candidates(
+                            train=train,
+                            feature_cols=feature_cols,
+                            candidate=candidate,
+                            folds=folds,
+                            baseline_col=blend_col,
+                            model_weights=blend_weights,
+                            default_baseline_fill=0.0,
+                        )
+                        for blend_score in blend_scores:
+                            score_lookup[blend_score.name] = blend_score
+
         if score_lookup:
             ranking = sorted(
                 score_lookup.values(),
@@ -626,18 +825,61 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             notes.append("Aucun score walk-forward exploitable; selection par priorite.")
     else:
         notes.append("Historique insuffisant pour validation walk-forward, selection par priorite.")
-        if baseline_supported:
+        if race_baseline_supported:
             selected_from_cv = "qualifying_baseline"
             notes.append("Mode conservateur: baseline qualif prioritaire sans folds.")
+        elif qualifying_baseline_supported:
+            default_col = (
+                "event_pace_index"
+                if "event_pace_index" in qualifying_baseline_cols
+                else qualifying_baseline_cols[0]
+            )
+            selected_from_cv = f"pace_baseline::{default_col}"
+            notes.append("Mode conservateur: baseline pace prioritaire sans folds.")
 
     selected_model: Optional[object] = None
     selected_name: Optional[str] = None
 
+    def _median_fill(column: str, default_fill: float) -> float:
+        values = pd.to_numeric(train.get(column), errors="coerce")
+        if values.notna().sum() == 0:
+            return float(default_fill)
+        fill = float(values.median(skipna=True))
+        if not np.isfinite(fill):
+            return float(default_fill)
+        return fill
+
     if selected_from_cv == "qualifying_baseline":
-        q = pd.to_numeric(train.get("qualy_position"), errors="coerce")
-        fill_value = float(q.median(skipna=True)) if q.notna().sum() > 0 else 10.0
+        fill_value = _median_fill("qualy_position", 10.0)
         selected_model = QualifyingPositionBaseline(fill_value=fill_value)
         selected_name = "qualifying_baseline"
+    elif selected_from_cv and selected_from_cv.startswith("pace_baseline::"):
+        _, _, baseline_col = selected_from_cv.partition("::")
+        baseline_col = baseline_col.strip()
+        if baseline_col:
+            fill_value = _median_fill(baseline_col, 0.0)
+            selected_model = ColumnBaselineModel(column=baseline_col, fill_value=fill_value)
+            selected_name = selected_from_cv
+    elif selected_from_cv and selected_from_cv.startswith("pace_blend::"):
+        parts = selected_from_cv.split("::")
+        if len(parts) == 4:
+            _, candidate_name, baseline_col, weight_text = parts
+            candidate = candidate_lookup.get(candidate_name)
+            try:
+                model_weight = float(weight_text)
+            except ValueError:
+                model_weight = 0.30
+            if candidate is not None:
+                fitted = _fit_candidate(train, feature_cols, candidate)
+                if fitted is not None:
+                    selected_model = WeightedBlendModel(
+                        primary_model=fitted,
+                        baseline_column=baseline_col,
+                        model_weight=model_weight,
+                        baseline_fill=_median_fill(baseline_col, 0.0),
+                    )
+                    selected_name = selected_from_cv
+
     else:
         candidate_order: list[CandidateSpec] = []
         if selected_from_cv and selected_from_cv in candidate_lookup:
@@ -651,12 +893,23 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             selected_name = candidate.name
             break
 
-    if selected_model is None and baseline_supported:
-        q = pd.to_numeric(train.get("qualy_position"), errors="coerce")
-        fill_value = float(q.median(skipna=True)) if q.notna().sum() > 0 else 10.0
+    if selected_model is None and race_baseline_supported:
+        fill_value = _median_fill("qualy_position", 10.0)
         selected_model = QualifyingPositionBaseline(fill_value=fill_value)
         selected_name = "qualifying_baseline"
         notes.append("Fallback prioritaire active: baseline qualif.")
+    if selected_model is None and qualifying_baseline_supported:
+        default_col = (
+            "event_pace_index"
+            if "event_pace_index" in qualifying_baseline_cols
+            else qualifying_baseline_cols[0]
+        )
+        selected_model = ColumnBaselineModel(
+            column=default_col,
+            fill_value=_median_fill(default_col, 0.0),
+        )
+        selected_name = f"pace_baseline::{default_col}"
+        notes.append("Fallback prioritaire active: baseline pace.")
 
     if selected_model is None:
         notes.append("Echec entrainement de tous les candidats: fallback heuristique.")
@@ -666,19 +919,31 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
         notes.append(f"Modele retenu par defaut: {selected_name}.")
 
     rows, y_train, event_train = _prepare_training_rows(train)
-    if isinstance(selected_model, FittedModel) and not rows.empty:
-        in_sample_scores = selected_model.predict(rows)
-        top10_labels = _topk_labels_from_target(y_train, event_train, k=10)
-        top3_labels = _topk_labels_from_target(y_train, event_train, k=3)
-        calibrator_top10 = _fit_probability_calibrator(in_sample_scores, top10_labels)
-        calibrator_top3 = _fit_probability_calibrator(in_sample_scores, top3_labels)
-        selected_model.calibrators["top10"] = calibrator_top10
-        selected_model.calibrators["top3"] = calibrator_top3
-        notes.append(
-            f"Calibration probabiliste: top10={calibrator_top10.method}, top3={calibrator_top3.method}.",
-        )
-    elif selected_name == "qualifying_baseline":
+    if (
+        not rows.empty
+        and hasattr(selected_model, "calibrators")
+        and isinstance(getattr(selected_model, "calibrators"), dict)
+    ):
+        try:
+            in_sample_scores = pd.Series(selected_model.predict(rows), index=rows.index, dtype=float)
+            top10_labels = _topk_labels_from_target(y_train, event_train, k=10)
+            top3_labels = _topk_labels_from_target(y_train, event_train, k=3)
+            calibrator_top10 = _fit_probability_calibrator(in_sample_scores, top10_labels)
+            calibrator_top3 = _fit_probability_calibrator(in_sample_scores, top3_labels)
+            selected_model.calibrators["top10"] = calibrator_top10
+            selected_model.calibrators["top3"] = calibrator_top3
+            notes.append(
+                f"Calibration probabiliste: top10={calibrator_top10.method}, top3={calibrator_top3.method}.",
+            )
+        except Exception:
+            pass
+
+    if selected_name == "qualifying_baseline":
         notes.append("Prediction race: baseline qualifying position (guardrail anti-surapprentissage).")
+    elif selected_name and selected_name.startswith("pace_baseline::"):
+        notes.append("Prediction qualif: baseline pace local (FP/sprint).")
+    elif selected_name and selected_name.startswith("pace_blend::"):
+        notes.append("Prediction qualif: blend modele ML + baseline pace.")
 
     if SimpleImputer is None:
         notes.append("SimpleImputer indisponible: imputation mediane pandas utilisee.")

@@ -132,6 +132,99 @@ def _ensure_fp_mean_delta(frame: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def _rank_percentile(values: pd.Series, ascending: bool = True) -> pd.Series:
+    numeric = pd.to_numeric(values, errors="coerce")
+    if numeric.notna().sum() <= 1:
+        return pd.Series(0.5, index=numeric.index, dtype=float)
+    return numeric.rank(method="average", pct=True, ascending=ascending)
+
+
+def _average_event_rank_component(
+    frame: pd.DataFrame,
+    columns: list[str],
+    ascending: bool,
+) -> Optional[pd.Series]:
+    parts: list[pd.Series] = []
+    for col in columns:
+        if col not in frame.columns:
+            continue
+        ranked = _rank_percentile(frame[col], ascending=ascending)
+        if ranked.notna().sum() == 0:
+            continue
+        parts.append(ranked)
+    if not parts:
+        return None
+    return pd.concat(parts, axis=1).mean(axis=1, skipna=True)
+
+
+def _add_event_relative_features(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+
+    out = frame.copy()
+    if "event_key" in out.columns:
+        event_key = pd.to_numeric(out["event_key"], errors="coerce").fillna(-1).astype(int)
+    else:
+        event_key = pd.Series(0, index=out.index, dtype=int)
+
+    out["event_pace_index"] = float("nan")
+    for _, idx in event_key.groupby(event_key, sort=False).groups.items():
+        event_rows = out.loc[idx]
+        weighted = pd.Series(0.0, index=event_rows.index, dtype=float)
+        weight_total = pd.Series(0.0, index=event_rows.index, dtype=float)
+
+        pace_core = _average_event_rank_component(
+            event_rows,
+            ["fp_weighted_delta", "fp_mean_rank", "fp_mean_top3_delta"],
+            ascending=True,
+        )
+        if pace_core is not None:
+            weighted = weighted + (0.55 * pace_core)
+            weight_total = weight_total + 0.55
+
+        consistency = _average_event_rank_component(
+            event_rows,
+            ["fp_delta_std", "fp_mean_lap_std"],
+            ascending=True,
+        )
+        if consistency is not None:
+            weighted = weighted + (0.20 * consistency)
+            weight_total = weight_total + 0.20
+
+        availability = _average_event_rank_component(
+            event_rows,
+            ["pace_sessions_available", "fp_total_laps"],
+            ascending=False,
+        )
+        if availability is not None:
+            weighted = weighted + (0.25 * availability)
+            weight_total = weight_total + 0.25
+
+        score = weighted.divide(weight_total.where(weight_total > 0.0))
+        if score.notna().sum() == 0:
+            score = pd.Series(0.5, index=event_rows.index, dtype=float)
+        out.loc[event_rows.index, "event_pace_index"] = score.fillna(float(score.median(skipna=True)))
+
+    out["driver_vs_team_fp_weighted_delta"] = float("nan")
+    team_col = team_column(out)
+    if team_col and "fp_weighted_delta" in out.columns:
+        team_key = (
+            out[team_col]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .replace({"nan": pd.NA, "none": pd.NA, "<na>": pd.NA, "": pd.NA})
+        )
+        weighted = pd.to_numeric(out["fp_weighted_delta"], errors="coerce")
+        team_mean = weighted.groupby([event_key, team_key], sort=False).transform("mean")
+        event_mean = weighted.groupby(event_key, sort=False).transform("mean")
+        rel = weighted - team_mean
+        fallback_rel = weighted - event_mean
+        out["driver_vs_team_fp_weighted_delta"] = rel.fillna(fallback_rel)
+
+    return out
+
+
 def _add_temporal_features_train(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return frame
@@ -221,6 +314,15 @@ def _add_temporal_features_train(frame: pd.DataFrame) -> pd.DataFrame:
     else:
         out["event_driver_hist_idx"] = float("nan")
 
+    out = _add_event_relative_features(out)
+    if "driver_id" in out.columns:
+        driver_vs_team_group = out.groupby("driver_id", sort=False)["driver_vs_team_fp_weighted_delta"]
+        out["driver_form_3_vs_team_fp_weighted_delta"] = driver_vs_team_group.transform(
+            lambda s: s.shift(1).rolling(window=3, min_periods=1).mean(),
+        )
+    else:
+        out["driver_form_3_vs_team_fp_weighted_delta"] = float("nan")
+
     return out
 
 
@@ -241,6 +343,7 @@ def _attach_temporal_features_current(
         "driver_form_5_fp_mean_delta",
         "driver_ewma_fp_weighted_delta",
         "driver_form_3_fp_weighted_delta",
+        "driver_form_3_vs_team_fp_weighted_delta",
         "team_ewma_fp_mean_delta",
         "team_form_3_fp_mean_delta",
         "team_form_5_fp_mean_delta",
@@ -252,7 +355,7 @@ def _attach_temporal_features_current(
         out[col] = float("nan")
 
     if history is None or history.empty or "driver_id" not in history.columns:
-        return out
+        return _add_event_relative_features(out)
 
     hist = _add_temporal_features_train(history)
     hist = hist.copy()
@@ -268,6 +371,7 @@ def _attach_temporal_features_current(
         "driver_form_5_fp_mean_delta",
         "driver_ewma_fp_weighted_delta",
         "driver_form_3_fp_weighted_delta",
+        "driver_form_3_vs_team_fp_weighted_delta",
     ]:
         if col in driver_last.columns:
             out[col] = out["driver_id"].map(driver_last[col])
@@ -309,6 +413,7 @@ def _attach_temporal_features_current(
     driver_mean = hist.groupby("driver_id", sort=False)["fp_mean_delta"].mean()
     out["event_driver_hist_idx"] = out["event_driver_hist_idx"].fillna(out["driver_id"].map(driver_mean))
 
+    out = _add_event_relative_features(out)
     return out
 
 

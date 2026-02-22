@@ -7,10 +7,8 @@ platform/web/node_modules/
 platform/web/.next/
 platform/web/.turbo/
 platform/web/out/
-data/football/*.csv
-data/football/*.parquet
-data/football/*.feather
-data/football/*.json
-data/f1/*
+data/
+*.parquet
 platform/backend/node_modules/
 platform/backend/.bun/
+.cache/

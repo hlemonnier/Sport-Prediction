@@ -3,6 +3,8 @@
 This folder contains the production-style prediction code for football match outcomes.
 It is intentionally scaffolded to be filled once the research notebook is validated.
 
+The canonical experiment contract is declared in `../experiment.json` (context, snapshot root, model families, entrypoint).
+
 ## Quick start
 
 ```bash

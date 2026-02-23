@@ -1,0 +1,12 @@
+{
+  "id": "f1_rising_qualification",
+  "sport": "F1",
+  "name": "Rising Qualification Prediction",
+  "kind": "f1_profile",
+  "python_entrypoint": "run_profile.py",
+  "context_keys": ["season", "round", "phase"],
+  "dataset_snapshot_root": "data/f1",
+  "model_families": ["baseline", "ml", "dl"],
+  "outputs": ["rankings", "probabilities"],
+  "diagnostics": ["calibration", "rank_metrics", "mae", "top10_hit"]
+}

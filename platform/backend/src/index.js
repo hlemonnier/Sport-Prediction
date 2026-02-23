@@ -345,6 +345,67 @@ function normalize(value) {
     .trim();
 }
 
+const EXPERIMENT_MANIFEST_FILE = "experiment.json";
+
+function normalizeManifestKind(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("-", "_")
+    .replaceAll(" ", "_");
+}
+
+function kindFromManifest(kind) {
+  const normalized = normalizeManifestKind(kind);
+  if (normalized === "f1" || normalized === "f1_profile") {
+    return "F1";
+  }
+  if (normalized === "football" || normalized === "football_match") {
+    return "Football";
+  }
+  return "Unknown";
+}
+
+function inferProjectKindLegacy(sportName, projectName, pythonDir) {
+  if (sportName === "F1" && fs.existsSync(path.join(pythonDir, "run_profile.py"))) {
+    return "F1";
+  }
+  if (sportName === "Football" && projectName === "Match Result Prediction") {
+    return "Football";
+  }
+  return "Unknown";
+}
+
+function readExperimentManifest(projectPath) {
+  const manifestPath = path.join(projectPath, EXPERIMENT_MANIFEST_FILE);
+  if (!fs.existsSync(manifestPath)) {
+    return null;
+  }
+
+  try {
+    const payload = fs.readFileSync(manifestPath, "utf8");
+    const parsed = JSON.parse(payload);
+    return isObject(parsed) ? parsed : null;
+  } catch {
+    throw AppError.internal("Invalid experiment manifest JSON");
+  }
+}
+
+function resolvePythonEntrypoint(pythonDir, kind, manifest) {
+  const declared = typeof manifest?.python_entrypoint === "string" ? manifest.python_entrypoint.trim() : "";
+  if (declared) {
+    const candidate = path.isAbsolute(declared) ? declared : path.join(pythonDir, declared);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  if (kind === "F1") {
+    return path.join(pythonDir, "run_profile.py");
+  }
+  return path.join(pythonDir, "run_prediction.py");
+}
+
 function isSportDir(dirPath) {
   if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
     return false;
@@ -540,26 +601,34 @@ function buildCatalog(repoRoot) {
         continue;
       }
 
-      const projectName = projectEntry.name;
-      const projectPath = path.join(sportPath, projectName);
+      const directoryProjectName = projectEntry.name;
+      const projectPath = path.join(sportPath, directoryProjectName);
       const pythonDir = path.join(projectPath, "Python");
       if (!fs.existsSync(pythonDir)) {
         continue;
       }
 
       const notebook = path.join(projectPath, "Jupyter", "model-research.ipynb");
-      let kind = "Unknown";
-      if (sportEntry.name === "F1" && fs.existsSync(path.join(pythonDir, "run_profile.py"))) {
-        kind = "F1";
-      }
-      if (sportEntry.name === "Football" && projectName === "Match Result Prediction") {
-        kind = "Football";
-      }
+      const manifest = readExperimentManifest(projectPath);
+      const kind =
+        typeof manifest?.kind === "string" && manifest.kind.trim()
+          ? kindFromManifest(manifest.kind)
+          : inferProjectKindLegacy(sportEntry.name, directoryProjectName, pythonDir);
+      const pythonEntrypoint = resolvePythonEntrypoint(pythonDir, kind, manifest);
+      const displaySport =
+        typeof manifest?.sport === "string" && manifest.sport.trim()
+          ? manifest.sport.trim()
+          : sportEntry.name;
+      const displayName =
+        typeof manifest?.name === "string" && manifest.name.trim()
+          ? manifest.name.trim()
+          : directoryProjectName;
 
       projects.push({
-        sport: sportEntry.name,
-        name: projectName,
+        sport: displaySport,
+        name: displayName,
         pythonDir,
+        pythonEntrypoint,
         notebook: fs.existsSync(notebook) ? notebook : null,
         kind,
       });
@@ -1021,7 +1090,7 @@ function optionalInt(value) {
 }
 
 function buildCommand(project, params, outputPath) {
-  const script = path.join(project.pythonDir, project.kind === "F1" ? "run_profile.py" : "run_prediction.py");
+  const script = project.pythonEntrypoint;
   if (!fs.existsSync(script)) {
     throw AppError.internal("Python entrypoint not found");
   }

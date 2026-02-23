@@ -1,41 +1,48 @@
-**Overview**
-Sport Prediction regroupe des projets de prediction par sport. Chaque projet suit la meme structure et le meme flux de travail :
-1. Recherche dans un notebook.
-2. Stabilisation du modele.
-3. Passage en code Python plus "prod".
+**Sport Lab**
 
-**Structure commune**
-- `Jupyter/` contient la recherche (exploration, features, tests d'hypotheses, evaluation).
-- `Python/` contient le code "prod" (package, CLI, pipeline de prediction).
-- Chaque projet a son propre `README.md` dans `Python/` avec les commandes de lancement.
-- `research/papers/` centralise des papiers de recherche (PDF) par sport.
+Sport Lab is a local research cockpit for sport prediction experiments.
 
-**Projects**
-F1 — Rising Qualification Prediction. Objectif : predire les performances en qualification et en course.
-- Recherche : `research/projects/F1/rising_qualification_prediction/Jupyter/model-research.ipynb`
-- Code prod : `research/projects/F1/rising_qualification_prediction/Python/`
-- Commandes : voir `research/projects/F1/rising_qualification_prediction/Python/README.md`
-- Runner principal : `run_profile.py` (profils preseason + live)
+An experiment is the core unit of work. Each experiment has:
+1. Context (`season`, `round`, `league`, `phase`, etc.)
+2. Dataset snapshot (`data/...` at run time)
+3. Model family (`baseline`, `ml`, `dl`)
+4. Outputs + diagnostics (rankings/probabilities + calibration/rank metrics)
 
-Football — Match Result Prediction. Objectif : predire les resultats de match (1X2, scoreline).
-- Recherche : `research/projects/Football/Match Result Prediction/Jupyter/model-research.ipynb`
-- Code prod : `research/projects/Football/Match Result Prediction/Python/`
-- Statut : scaffold (CLI + package + placeholders), a completer apres validation du notebook
+## Repository map
 
-**Plateforme locale (UI + API)**
-- Backend Bun: `platform/backend` (Bun + Postgres/Supabase)
-- Frontend Next.js: `platform/web`
-- Lancer le backend: `cd platform/backend && bun install && bun run dev`
-- Lancer le frontend: `cd platform/web && pnpm install && pnpm dev`
+- `research/projects/<Sport>/<Project>/`
+  - `Jupyter/` exploration and hypothesis testing
+  - `Python/` production-style pipeline/runners
+  - `experiment.json` canonical experiment metadata (kind + entrypoint + contract)
+- `research/papers/` research papers by sport
+- `research/sport_cli.py` local CLI explorer
+- `platform/backend` API + orchestration for running experiments
+- `platform/web` local UI
+- `data/` local dataset snapshots used by experiments
 
-**CLI**
-- `research/sport_cli.py`
+## Current experiments
 
-**Data**
-- `data/football/` contient `teams`, `matches`, `fixtures` (CSV/Parquet)
+1. **F1 / Rising Qualification Prediction**
+- Path: `research/projects/F1/rising_qualification_prediction/`
+- Entrypoint: `Python/run_profile.py`
+- Snapshot root: `data/f1`
+- Model families: `baseline`, `ml`, `dl`
 
-**Ajouter un nouveau sport**
-- Creer un dossier racine par sport.
-- Ajouter `Jupyter/model-research.ipynb` pour la recherche.
-- Ajouter `Python/` avec un `run_prediction.py` et un package minimal.
-- Ajouter des papiers dans `research/papers/<Sport>/`.
+2. **Football / Match Result Prediction**
+- Path: `research/projects/Football/Match Result Prediction/`
+- Entrypoint: `Python/run_prediction.py`
+- Snapshot root: `data/football`
+- Model families: `baseline`, `ml`, `dl`
+
+## Local platform
+
+- Backend: `cd platform/backend && bun install && bun run dev`
+- Frontend: `cd platform/web && pnpm install && pnpm dev`
+
+## Add a new experiment
+
+1. Create `research/projects/<Sport>/<Project>/`.
+2. Add `Jupyter/model-research.ipynb` for research.
+3. Add `Python/` with a runnable entrypoint.
+4. Add `experiment.json` with `kind` and `python_entrypoint`.
+5. Store related papers in `research/papers/<Sport>/`.

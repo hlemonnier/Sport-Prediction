@@ -1,0 +1,12 @@
+{
+  "id": "football_match_result",
+  "sport": "Football",
+  "name": "Match Result Prediction",
+  "kind": "football_match",
+  "python_entrypoint": "run_prediction.py",
+  "context_keys": ["league", "season", "round"],
+  "dataset_snapshot_root": "data/football",
+  "model_families": ["baseline", "ml", "dl"],
+  "outputs": ["rankings", "probabilities"],
+  "diagnostics": ["calibration", "rank_metrics"]
+}

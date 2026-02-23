@@ -74,6 +74,7 @@ impl IntoResponse for AppError {
 }
 
 type AppResult<T> = Result<T, AppError>;
+const EXPERIMENT_MANIFEST_FILE: &str = "experiment.json";
 
 #[derive(Serialize)]
 struct HealthResponse {
@@ -85,6 +86,7 @@ struct ProjectInfo {
     sport: String,
     name: String,
     python_dir: PathBuf,
+    python_entrypoint: PathBuf,
     notebook: Option<PathBuf>,
     kind: ProjectKind,
 }
@@ -94,6 +96,15 @@ enum ProjectKind {
     F1,
     Football,
     Unknown,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+struct ExperimentManifest {
+    sport: Option<String>,
+    name: Option<String>,
+    kind: Option<String>,
+    python_entrypoint: Option<String>,
 }
 
 #[derive(Serialize, Clone)]
@@ -986,23 +997,99 @@ fn build_catalog(repo_root: &PathBuf) -> AppResult<Vec<ProjectInfo>> {
                 continue;
             }
             let notebook = project_path.join("Jupyter").join("model-research.ipynb");
-            let kind = if sport_name == "F1" && python_dir.join("run_profile.py").exists() {
-                ProjectKind::F1
-            } else if sport_name == "Football" && project_name == "Match Result Prediction" {
-                ProjectKind::Football
-            } else {
-                ProjectKind::Unknown
-            };
+            let manifest = load_experiment_manifest(&project_path)?;
+            let kind = manifest
+                .as_ref()
+                .and_then(|m| m.kind.as_deref())
+                .map(project_kind_from_manifest)
+                .unwrap_or_else(|| infer_project_kind_legacy(&sport_name, &project_name, &python_dir));
+            let python_entrypoint = resolve_python_entrypoint(&python_dir, &kind, manifest.as_ref());
+            let sport = manifest
+                .as_ref()
+                .and_then(|m| m.sport.as_ref())
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| sport_name.clone());
+            let name = manifest
+                .as_ref()
+                .and_then(|m| m.name.as_ref())
+                .map(|value| value.trim())
+                .filter(|value| !value.is_empty())
+                .map(|value| value.to_string())
+                .unwrap_or(project_name);
             projects.push(ProjectInfo {
-                sport: sport_name.clone(),
-                name: project_name,
+                sport,
+                name,
                 python_dir,
+                python_entrypoint,
                 notebook: notebook.exists().then_some(notebook),
                 kind,
             });
         }
     }
     Ok(projects)
+}
+
+fn load_experiment_manifest(project_path: &FsPath) -> AppResult<Option<ExperimentManifest>> {
+    let manifest_path = project_path.join(EXPERIMENT_MANIFEST_FILE);
+    if !manifest_path.exists() {
+        return Ok(None);
+    }
+    let payload = fs::read_to_string(&manifest_path)
+        .map_err(|_| AppError::internal("Failed to read experiment manifest"))?;
+    let manifest: ExperimentManifest = serde_json::from_str(&payload)
+        .map_err(|_| AppError::internal("Invalid experiment manifest JSON"))?;
+    Ok(Some(manifest))
+}
+
+fn project_kind_from_manifest(value: &str) -> ProjectKind {
+    let normalized = value
+        .trim()
+        .to_ascii_lowercase()
+        .replace('-', "_")
+        .replace(' ', "_");
+    match normalized.as_str() {
+        "f1" | "f1_profile" => ProjectKind::F1,
+        "football" | "football_match" => ProjectKind::Football,
+        _ => ProjectKind::Unknown,
+    }
+}
+
+fn infer_project_kind_legacy(sport: &str, project: &str, python_dir: &FsPath) -> ProjectKind {
+    if sport == "F1" && python_dir.join("run_profile.py").exists() {
+        return ProjectKind::F1;
+    }
+    if sport == "Football" && project == "Match Result Prediction" {
+        return ProjectKind::Football;
+    }
+    ProjectKind::Unknown
+}
+
+fn resolve_python_entrypoint(
+    python_dir: &FsPath,
+    kind: &ProjectKind,
+    manifest: Option<&ExperimentManifest>,
+) -> PathBuf {
+    if let Some(entrypoint) = manifest
+        .and_then(|m| m.python_entrypoint.as_ref())
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+    {
+        let candidate = if FsPath::new(entrypoint).is_absolute() {
+            PathBuf::from(entrypoint)
+        } else {
+            python_dir.join(entrypoint)
+        };
+        if candidate.exists() {
+            return candidate;
+        }
+    }
+
+    match kind {
+        ProjectKind::F1 => python_dir.join("run_profile.py"),
+        _ => python_dir.join("run_prediction.py"),
+    }
 }
 
 fn is_sport_dir(path: &FsPath) -> bool {
@@ -1442,11 +1529,7 @@ fn build_command(
     params: &serde_json::Map<String, Value>,
     output_path: &PathBuf,
 ) -> AppResult<(String, Vec<String>)> {
-    let script = if matches!(project.kind, ProjectKind::F1) {
-        project.python_dir.join("run_profile.py")
-    } else {
-        project.python_dir.join("run_prediction.py")
-    };
+    let script = project.python_entrypoint.clone();
     if !script.exists() {
         return Err(AppError::internal("Python entrypoint not found"));
     }

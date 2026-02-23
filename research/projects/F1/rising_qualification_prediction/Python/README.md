@@ -1,6 +1,10 @@
 # Rising Qualification Prediction (Python)
 
-This folder contains the F1 prediction runtime with separated lifecycle:
+This folder contains the F1 prediction runtime with separated lifecycle.
+
+The canonical experiment contract is declared in `../experiment.json` (context, snapshot root, model families, entrypoint).
+
+Lifecycle:
 - preseason proxy validation on 2025 (`data/f1/preseason/holdout_2025`)
 - live 2026 operations (`data/f1/live/2026`)
 - shared raw weekends (`data/f1/raw/weekends`)

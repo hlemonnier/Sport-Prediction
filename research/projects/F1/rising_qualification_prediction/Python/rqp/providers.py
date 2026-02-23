@@ -391,7 +391,7 @@ class LocalWeekendProvider(BaseProvider):
             if not self.weekends_root.is_absolute():
                 self.weekends_root = self.project_root / self.weekends_root
         else:
-            self.weekends_root = self.project_root / "data" / "f1" / "weekends"
+            self.weekends_root = self.project_root / "data" / "f1" / "raw" / "weekends"
         self._event_summary_cache: dict[tuple[int, int], Optional[dict[str, object]]] = {}
 
     @staticmethod

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import math
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -29,11 +29,22 @@ except Exception:  # pragma: no cover - optional dependency
     XGBRanker = None
     XGBRegressor = None
 
+from .dl_models import (
+    TorchTabularConfig,
+    TorchTabularRegressor,
+    resolve_device as resolve_dl_device,
+    torch_available,
+)
+
 
 @dataclass
 class TrainingResult:
     model: Optional[object]
     model_name: str
+    model_family: str
+    device_used: Optional[str]
+    dl_available: bool
+    candidate_leaderboard: List[dict[str, Any]]
     notes: List[str]
 
 
@@ -42,17 +53,21 @@ class CandidateSpec:
     name: str
     build_model: Callable[[], object]
     task: str  # regression | ranking
+    family: str  # ml | dl
     scale_features: bool = False
+    device_hint: Optional[str] = None
 
 
 @dataclass
 class CandidateScore:
     name: str
+    family: str
     mae: float
     spearman: float
     ndcg10: float
     hit10: float
     composite: float
+    device_used: Optional[str] = None
 
 
 class FeaturePipeline:
@@ -166,7 +181,9 @@ class FittedModel:
     estimator: object
     preprocessor: FeaturePipeline
     model_name: str
+    family: str
     task: str
+    device_used: Optional[str] = None
     calibrators: dict[str, ProbabilityCalibrator] = field(default_factory=dict)
 
     def predict(self, frame: pd.DataFrame) -> pd.Series:
@@ -273,13 +290,28 @@ class WeightedBlendModel:
         return output
 
 
-def _candidate_models() -> list[CandidateSpec]:
+def _candidate_models(
+    *,
+    enable_dl_candidates: bool,
+    compare_families: list[str],
+    dl_arch: str,
+    dl_hyperparams: dict[str, Any],
+    dl_seed: int,
+    dl_device: str,
+    notes: list[str],
+) -> tuple[list[CandidateSpec], bool]:
     candidates: list[CandidateSpec] = []
-    if XGBRanker is not None:
+    families = {str(item).strip().lower() for item in (compare_families or ["ml"])}
+    allow_ml = "ml" in families or "baseline" in families
+    allow_dl = enable_dl_candidates and ("dl" in families)
+    dl_available = torch_available()
+
+    if allow_ml and XGBRanker is not None:
         candidates.append(
             CandidateSpec(
                 name="xgboost_pairwise",
                 task="ranking",
+                family="ml",
                 build_model=lambda: XGBRanker(
                     objective="rank:pairwise",
                     n_estimators=500,
@@ -293,11 +325,12 @@ def _candidate_models() -> list[CandidateSpec]:
                 ),
             ),
         )
-    if XGBRegressor is not None:
+    if allow_ml and XGBRegressor is not None:
         candidates.append(
             CandidateSpec(
                 name="xgboost",
                 task="regression",
+                family="ml",
                 build_model=lambda: XGBRegressor(
                     objective="reg:squarederror",
                     n_estimators=400,
@@ -311,11 +344,12 @@ def _candidate_models() -> list[CandidateSpec]:
                 ),
             ),
         )
-    if HistGradientBoostingRegressor is not None:
+    if allow_ml and HistGradientBoostingRegressor is not None:
         candidates.append(
             CandidateSpec(
                 name="hist_gradient_boosting",
                 task="regression",
+                family="ml",
                 build_model=lambda: HistGradientBoostingRegressor(
                     learning_rate=0.05,
                     max_depth=5,
@@ -324,16 +358,52 @@ def _candidate_models() -> list[CandidateSpec]:
                 ),
             ),
         )
-    if Ridge is not None:
+    if allow_ml and Ridge is not None:
         candidates.append(
             CandidateSpec(
                 name="ridge",
                 task="regression",
+                family="ml",
                 scale_features=True,
                 build_model=lambda: Ridge(alpha=1.0),
             ),
         )
-    return candidates
+
+    if allow_dl:
+        if not dl_available:
+            notes.append("DL candidate skipped: PyTorch indisponible.")
+        elif dl_arch != "mlp_tabular_v1":
+            notes.append(f"DL candidate skipped: architecture non supportee ({dl_arch}).")
+        else:
+            hidden_dims_raw = dl_hyperparams.get("hidden_dims", [128, 64])
+            if not isinstance(hidden_dims_raw, (list, tuple)) or not hidden_dims_raw:
+                hidden_dims_raw = [128, 64]
+            hidden_dims = tuple(int(max(8, int(v))) for v in hidden_dims_raw)
+            cfg = TorchTabularConfig(
+                hidden_dims=hidden_dims,
+                dropout=float(dl_hyperparams.get("dropout", 0.15)),
+                lr=float(dl_hyperparams.get("lr", 1e-3)),
+                weight_decay=float(dl_hyperparams.get("weight_decay", 1e-4)),
+                epochs=int(dl_hyperparams.get("epochs", 400)),
+                batch_size=int(dl_hyperparams.get("batch_size", 64)),
+                early_stopping_patience=int(dl_hyperparams.get("early_stopping_patience", 30)),
+                seed=int(dl_seed),
+                device=str(dl_device or "auto"),
+            )
+            device_hint = resolve_dl_device(cfg.device)
+            notes.append(f"DL candidate active: torch_mlp_tabular_v1 (device={device_hint}).")
+            candidates.append(
+                CandidateSpec(
+                    name="torch_mlp_tabular_v1",
+                    task="regression",
+                    family="dl",
+                    scale_features=True,
+                    device_hint=device_hint,
+                    build_model=lambda cfg=cfg: TorchTabularRegressor(config=cfg),
+                ),
+            )
+
+    return candidates, dl_available
 
 
 def _prepare_training_rows(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
@@ -422,7 +492,9 @@ def _fit_candidate(
         estimator=model,
         preprocessor=preprocessor,
         model_name=candidate.name,
+        family=candidate.family,
         task=candidate.task,
+        device_used=getattr(model, "device_used", None),
     )
 
 
@@ -559,11 +631,13 @@ def _evaluate_candidate(
     composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
     return CandidateScore(
         name=candidate.name,
+        family=candidate.family,
         mae=mae,
         spearman=spearman,
         ndcg10=ndcg10,
         hit10=hit10,
         composite=composite,
+        device_used=candidate.device_hint if candidate.family == "dl" else None,
     )
 
 
@@ -607,6 +681,7 @@ def _evaluate_column_baseline(
     composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
     return CandidateScore(
         name=name,
+        family="baseline",
         mae=mae,
         spearman=spearman,
         ndcg10=ndcg10,
@@ -673,11 +748,13 @@ def _evaluate_blend_candidates(
         output.append(
             CandidateScore(
                 name=f"pace_blend::{candidate.name}::{baseline_col}::{model_weight:.2f}",
+                family=candidate.family,
                 mae=mae,
                 spearman=spearman,
                 ndcg10=ndcg10,
                 hit10=hit10,
                 composite=composite,
+                device_used=candidate.device_hint if candidate.family == "dl" else None,
             )
         )
     return output
@@ -721,11 +798,37 @@ def _fit_probability_calibrator(scores: pd.Series, labels: pd.Series) -> Probabi
     return ProbabilityCalibrator.heuristic(x, y)
 
 
-def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
+def train_model(
+    train: pd.DataFrame,
+    feature_cols: List[str],
+    *,
+    enable_dl_candidates: bool = False,
+    compare_families: Optional[List[str]] = None,
+    dl_device: str = "auto",
+    dl_arch: str = "mlp_tabular_v1",
+    dl_hyperparams: Optional[dict[str, Any]] = None,
+    dl_seed: int = 42,
+) -> TrainingResult:
     notes: List[str] = []
+    leaderboard_data: List[dict[str, Any]] = []
+    compare = compare_families or ["ml"]
+    dl_hparams = dict(dl_hyperparams or {})
+    dl_available = torch_available()
+    dl_requested = enable_dl_candidates and ("dl" in {str(f).strip().lower() for f in compare})
+
     if train.empty:
+        if dl_requested and not dl_available:
+            notes.append("DL candidate skipped: PyTorch indisponible.")
         notes.append("Pas assez de data historique: fallback heuristique.")
-        return TrainingResult(model=None, model_name="heuristic", notes=notes)
+        return TrainingResult(
+            model=None,
+            model_name="heuristic",
+            model_family="heuristic",
+            device_used=None,
+            dl_available=dl_available,
+            candidate_leaderboard=leaderboard_data,
+            notes=notes,
+        )
 
     event_count = 0
     if "event_key" in train.columns:
@@ -733,7 +836,15 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
         if not event_series.empty:
             event_count = int(event_series.astype(int).nunique())
 
-    candidates = _candidate_models()
+    candidates, dl_available = _candidate_models(
+        enable_dl_candidates=enable_dl_candidates,
+        compare_families=compare,
+        dl_arch=dl_arch,
+        dl_hyperparams=dl_hparams,
+        dl_seed=dl_seed,
+        dl_device=dl_device,
+        notes=notes,
+    )
     race_baseline_col = "qualy_context_position" if "qualy_context_position" in feature_cols else "qualy_position"
     race_baseline_supported = race_baseline_col in feature_cols
     race_pace_baseline_cols = [
@@ -769,8 +880,16 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
         notes.append("Historique court (<8 events): selection restreinte aux baselines qualif.")
 
     if not candidates and not race_baseline_supported and not qualifying_baseline_supported:
-        notes.append("Aucun modele ML disponible (installer scikit-learn ou xgboost).")
-        return TrainingResult(model=None, model_name="heuristic", notes=notes)
+        notes.append("Aucun modele disponible: fallback heuristique.")
+        return TrainingResult(
+            model=None,
+            model_name="heuristic",
+            model_family="heuristic",
+            device_used=None,
+            dl_available=dl_available,
+            candidate_leaderboard=leaderboard_data,
+            notes=notes,
+        )
 
     notes.append(
         "Score composite model selection: 0.35*MAE_score + 0.25*Spearman_norm + "
@@ -842,9 +961,22 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
                 score_lookup.values(),
                 key=lambda s: (-s.composite, s.mae),
             )
+            leaderboard_data = [
+                {
+                    "name": s.name,
+                    "family": s.family,
+                    "device_used": s.device_used,
+                    "composite": float(s.composite),
+                    "mae": float(s.mae),
+                    "spearman": float(s.spearman),
+                    "ndcg10": float(s.ndcg10),
+                    "hit10": float(s.hit10),
+                }
+                for s in ranking
+            ]
             leaderboard = ", ".join(
                 (
-                    f"{s.name}(C={s.composite:.3f}, MAE={s.mae:.3f}, "
+                    f"{s.name}[{s.family}](C={s.composite:.3f}, MAE={s.mae:.3f}, "
                     f"rho={s.spearman:.3f}, NDCG10={s.ndcg10:.3f}, Hit10={s.hit10:.3f})"
                 )
                 for s in ranking
@@ -872,6 +1004,8 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
 
     selected_model: Optional[object] = None
     selected_name: Optional[str] = None
+    selected_family = "heuristic"
+    selected_device: Optional[str] = None
 
     def _median_fill(column: str, default_fill: float) -> float:
         values = pd.to_numeric(train.get(column), errors="coerce")
@@ -890,6 +1024,7 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             fallback_column="qualy_position",
         )
         selected_name = "qualifying_baseline"
+        selected_family = "baseline"
     elif selected_from_cv and selected_from_cv.startswith("pace_baseline::"):
         _, _, baseline_col = selected_from_cv.partition("::")
         baseline_col = baseline_col.strip()
@@ -897,6 +1032,7 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             fill_value = _median_fill(baseline_col, 0.0)
             selected_model = ColumnBaselineModel(column=baseline_col, fill_value=fill_value)
             selected_name = selected_from_cv
+            selected_family = "baseline"
     elif selected_from_cv and selected_from_cv.startswith("pace_blend::"):
         parts = selected_from_cv.split("::")
         if len(parts) == 4:
@@ -916,6 +1052,8 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
                         baseline_fill=_median_fill(baseline_col, 0.0),
                     )
                     selected_name = selected_from_cv
+                    selected_family = candidate.family
+                    selected_device = fitted.device_used
 
     else:
         candidate_order: list[CandidateSpec] = []
@@ -928,6 +1066,8 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
                 continue
             selected_model = fitted
             selected_name = candidate.name
+            selected_family = candidate.family
+            selected_device = fitted.device_used
             break
 
     if selected_model is None and race_baseline_supported:
@@ -938,6 +1078,7 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             fallback_column="qualy_position",
         )
         selected_name = "qualifying_baseline"
+        selected_family = "baseline"
         notes.append("Fallback prioritaire active: baseline qualif.")
     if selected_model is None and qualifying_baseline_supported:
         default_col = (
@@ -950,11 +1091,20 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             fill_value=_median_fill(default_col, 0.0),
         )
         selected_name = f"pace_baseline::{default_col}"
+        selected_family = "baseline"
         notes.append("Fallback prioritaire active: baseline pace.")
 
     if selected_model is None:
         notes.append("Echec entrainement de tous les candidats: fallback heuristique.")
-        return TrainingResult(model=None, model_name="heuristic", notes=notes)
+        return TrainingResult(
+            model=None,
+            model_name="heuristic",
+            model_family="heuristic",
+            device_used=None,
+            dl_available=dl_available,
+            candidate_leaderboard=leaderboard_data,
+            notes=notes,
+        )
 
     if selected_from_cv is None and selected_name is not None:
         notes.append(f"Modele retenu par defaut: {selected_name}.")
@@ -984,11 +1134,21 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
     elif selected_name and selected_name.startswith("pace_baseline::"):
         notes.append("Prediction qualif: baseline pace local (FP/sprint).")
     elif selected_name and selected_name.startswith("pace_blend::"):
-        notes.append("Prediction qualif: blend modele ML + baseline pace.")
+        notes.append("Prediction qualif: blend modele + baseline pace.")
+    elif selected_name and selected_name.startswith("torch_"):
+        notes.append("Prediction DL active: MLP tabulaire PyTorch.")
 
     if SimpleImputer is None:
         notes.append("SimpleImputer indisponible: imputation mediane pandas utilisee.")
     if Ridge is not None and StandardScaler is None:
         notes.append("StandardScaler indisponible: scaling desactive pour Ridge.")
 
-    return TrainingResult(model=selected_model, model_name=selected_name or "unknown", notes=notes)
+    return TrainingResult(
+        model=selected_model,
+        model_name=selected_name or "unknown",
+        model_family=selected_family,
+        device_used=selected_device or getattr(selected_model, "device_used", None),
+        dl_available=dl_available,
+        candidate_leaderboard=leaderboard_data,
+        notes=notes,
+    )

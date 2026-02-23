@@ -48,7 +48,7 @@ LAP_COLUMNS = [
 
 def default_output_dir() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "data" / "f1" / "weekends")
+    return str(project_root / "data" / "f1" / "raw" / "weekends")
 
 
 def slugify(value: str) -> str:

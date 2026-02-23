@@ -13,6 +13,33 @@ from .providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF
 from .training import train_model
 from .utils import format_prediction_table
 
+RUNSIM_EXACT_COLUMNS = {"fp_slow_lap_ratio", "fp_quali_vs_race_gap"}
+
+
+def _is_runsim_column(column: str) -> bool:
+    return (
+        column.startswith("fp_quali_sim_")
+        or column.startswith("fp_race_sim_")
+        or column in RUNSIM_EXACT_COLUMNS
+    )
+
+
+def _apply_runsim_ablation(feature_cols: List[str], fallback_cols: List[str], disable: bool) -> tuple[List[str], List[str]]:
+    if not disable:
+        return feature_cols, fallback_cols
+    filtered_features = [col for col in feature_cols if not _is_runsim_column(col)]
+    filtered_fallback = [col for col in fallback_cols if not _is_runsim_column(col)]
+    return filtered_features, filtered_fallback
+
+
+def _drop_runsim_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    cols = [col for col in frame.columns if _is_runsim_column(col)]
+    if not cols:
+        return frame
+    return frame.drop(columns=cols, errors="ignore")
+
 
 def compute_version(round_number: int, include_standings: bool) -> str:
     suffix = "S" if include_standings else "B"
@@ -215,7 +242,7 @@ def _predict_probabilities(model: Optional[object], preds: pd.Series) -> tuple[p
     return top10, pd.Series(top3, index=preds.index, dtype=float)
 
 
-def _qualifying_feature_sets() -> tuple[List[str], List[str]]:
+def _qualifying_feature_sets(disable_runsim: bool = False) -> tuple[List[str], List[str]]:
     feature_cols = [
         "fp1_delta",
         "fp2_delta",
@@ -296,10 +323,10 @@ def _qualifying_feature_sets() -> tuple[List[str], List[str]]:
         "driver_vs_team_fp_weighted_delta",
         "event_driver_hist_idx",
     ]
-    return feature_cols, fallback_cols
+    return _apply_runsim_ablation(feature_cols, fallback_cols, disable_runsim)
 
 
-def _race_feature_sets(include_standings: bool) -> tuple[List[str], List[str]]:
+def _race_feature_sets(include_standings: bool, disable_runsim: bool = False) -> tuple[List[str], List[str]]:
     feature_cols = [
         "fp1_delta",
         "fp2_delta",
@@ -424,7 +451,7 @@ def _race_feature_sets(include_standings: bool) -> tuple[List[str], List[str]]:
         "track_chaos_index",
         "track_qualy_importance",
     ]
-    return feature_cols, fallback_cols
+    return _apply_runsim_ablation(feature_cols, fallback_cols, disable_runsim)
 
 
 def _build_qualifying_signal_frame(
@@ -567,8 +594,21 @@ def _merge_predicted_qualifying_context(
         notes.append("[Race<-Quali] Impossible de construire un signal de qualif predit.")
         return _add_race_context_interactions(race_train), _add_race_context_interactions(race_features)
 
-    qual_feature_cols, qual_fallback_cols = _qualifying_feature_sets()
-    qual_model = train_model(qual_train, qual_feature_cols)
+    if config.disable_runsim_features:
+        qual_train = _drop_runsim_columns(qual_train)
+        qual_features = _drop_runsim_columns(qual_features)
+
+    qual_feature_cols, qual_fallback_cols = _qualifying_feature_sets(disable_runsim=config.disable_runsim_features)
+    qual_model = train_model(
+        qual_train,
+        qual_feature_cols,
+        enable_dl_candidates=config.enable_dl_candidates,
+        compare_families=config.compare_families,
+        dl_device=config.dl_device,
+        dl_arch=config.dl_arch,
+        dl_hyperparams=config.dl_hyperparams,
+        dl_seed=config.dl_seed,
+    )
     notes.append(f"[Race<-Quali] Modele qualif contexte: {qual_model.model_name}.")
     for note in qual_model.notes:
         if note.startswith("Modele retenu:") or note.startswith("Prediction qualif:") or "fallback" in note.lower():
@@ -669,12 +709,29 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             notes=notes,
         )
 
-    if config.mode == "qualifying":
-        feature_cols, fallback_cols = _qualifying_feature_sets()
-    else:
-        feature_cols, fallback_cols = _race_feature_sets(include_standings=config.include_standings)
+    if config.disable_runsim_features:
+        train = _drop_runsim_columns(train)
+        features = _drop_runsim_columns(features)
+        notes.append("Ablation active: run-sim features supprimees (fp_quali_sim_*, fp_race_sim_*, fp_slow_lap_ratio, fp_quali_vs_race_gap).")
 
-    training_result = train_model(train, feature_cols)
+    if config.mode == "qualifying":
+        feature_cols, fallback_cols = _qualifying_feature_sets(disable_runsim=config.disable_runsim_features)
+    else:
+        feature_cols, fallback_cols = _race_feature_sets(
+            include_standings=config.include_standings,
+            disable_runsim=config.disable_runsim_features,
+        )
+
+    training_result = train_model(
+        train,
+        feature_cols,
+        enable_dl_candidates=config.enable_dl_candidates,
+        compare_families=config.compare_families,
+        dl_device=config.dl_device,
+        dl_arch=config.dl_arch,
+        dl_hyperparams=config.dl_hyperparams,
+        dl_seed=config.dl_seed,
+    )
     notes.extend(training_result.notes)
     if training_result.model is None:
         notes.append(
@@ -696,4 +753,13 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
 
     version = compute_version(config.round_number, config.include_standings)
     table = format_prediction_table(output, top_n=10)
-    return PredictionResult(version=version, table=table, notes=notes)
+    return PredictionResult(
+        version=version,
+        table=table,
+        notes=notes,
+        model_name=training_result.model_name,
+        model_family=training_result.model_family,
+        device_used=training_result.device_used,
+        dl_available=training_result.dl_available,
+        candidate_leaderboard=training_result.candidate_leaderboard,
+    )

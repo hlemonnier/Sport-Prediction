@@ -1,0 +1,56 @@
+{
+  "profile_version": 1,
+  "name": "preseason_holdout_2025",
+  "mission": "preseason_proxy",
+  "workflow": "backtest_ablation_compare",
+  "defaults": {
+    "source": "local",
+    "year": 2025,
+    "include_standings": true,
+    "weekends_dir": "data/f1/raw/weekends",
+    "cache_dir": null
+  },
+  "training": {
+    "holdout_strict": true,
+    "train_seasons": [2022, 2023, 2024]
+  },
+  "experiments": {
+    "enable_dl_candidates": true,
+    "compare_families": ["ml", "dl"]
+  },
+  "dl": {
+    "device": "auto",
+    "arch": "mlp_tabular_v1",
+    "seed": 42,
+    "hyperparams": {
+      "hidden_dims": [128, 64],
+      "dropout": 0.15,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "epochs": 400,
+      "batch_size": 64,
+      "early_stopping_patience": 30
+    }
+  },
+  "evaluation": {
+    "holdout_year": 2025,
+    "round_start": 6,
+    "round_end": 24,
+    "modes": ["qualifying", "race"],
+    "block_size_rounds": 5,
+    "gates": {
+      "block_stability_enabled": true,
+      "qualifying": {
+        "min_mae_gain": 0.05,
+        "min_top10_gain": 0.005
+      },
+      "race": {
+        "min_mae_gain": 0.03,
+        "min_top10_gain": 0.005
+      }
+    }
+  },
+  "outputs": {
+    "base_dir": "data/f1/preseason/holdout_2025"
+  }
+}

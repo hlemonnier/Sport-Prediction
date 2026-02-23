@@ -389,66 +389,59 @@ function paramsForProject(kind) {
   if (kind === "F1") {
     return [
       {
-        name: "mode",
-        label: "Mode",
-        kind: "select",
+        name: "profile",
+        label: "Profile",
+        kind: "string",
         required: true,
-        default: "qualifying",
-        options: ["qualifying", "race"],
-      },
-      {
-        name: "source",
-        label: "Source",
-        kind: "select",
-        required: true,
-        default: "fastf1",
-        options: ["fastf1", "openf1"],
+        default: "profiles/live_2026_prequal.yaml",
       },
       {
         name: "year",
         label: "Year",
         kind: "int",
-        required: true,
+        required: false,
         default: 2026,
       },
       {
         name: "round_number",
         label: "Round",
         kind: "int",
-        required: true,
+        required: false,
         default: 1,
       },
       {
-        name: "train_seasons",
-        label: "Train Seasons",
-        kind: "string",
+        name: "phase",
+        label: "Phase",
+        kind: "select",
         required: false,
-        default: "auto",
+        default: null,
+        options: ["pre-qualifying", "post-qualifying", "post-race", "full"],
       },
       {
-        name: "include_standings",
-        label: "Include Standings",
-        kind: "bool",
+        name: "source",
+        label: "Source",
+        kind: "select",
         required: false,
-        default: false,
+        default: "local",
+        options: ["local", "fastf1", "openf1"],
+      },
+      {
+        name: "weekends_dir",
+        label: "Weekends Dir",
+        kind: "string",
+        required: false,
+        default: "data/f1/raw/weekends",
       },
       {
         name: "cache_dir",
         label: "Cache Dir",
         kind: "string",
         required: false,
-        default: ".cache/fastf1",
-      },
-      {
-        name: "meeting_name",
-        label: "Meeting Name",
-        kind: "string",
-        required: false,
         default: null,
       },
       {
-        name: "country_name",
-        label: "Country Name",
+        name: "output_dir",
+        label: "Output Dir",
         kind: "string",
         required: false,
         default: null,
@@ -556,7 +549,7 @@ function buildCatalog(repoRoot) {
 
       const notebook = path.join(projectPath, "Jupyter", "model-research.ipynb");
       let kind = "Unknown";
-      if (sportEntry.name === "F1" && projectName === "Rising Qualification Prediction") {
+      if (sportEntry.name === "F1" && fs.existsSync(path.join(pythonDir, "run_profile.py"))) {
         kind = "F1";
       }
       if (sportEntry.name === "Football" && projectName === "Match Result Prediction") {
@@ -1028,29 +1021,39 @@ function optionalInt(value) {
 }
 
 function buildCommand(project, params, outputPath) {
-  const script = path.join(project.pythonDir, "run_prediction.py");
+  const script = path.join(project.pythonDir, project.kind === "F1" ? "run_profile.py" : "run_prediction.py");
   if (!fs.existsSync(script)) {
-    throw AppError.internal("run_prediction.py not found");
+    throw AppError.internal("Python entrypoint not found");
   }
 
   const args = [script];
 
   if (project.kind === "F1") {
-    const mode = getString(params, "mode", undefined, true);
-    const source = getString(params, "source", undefined, true);
-    const year = getInt(params, "year", 2026, true);
-    const round = getInt(params, "round_number", optionalInt(params.round), true);
-    const trainSeasons = getString(params, "train_seasons", "auto", false);
-    const includeStandings = getBool(params, "include_standings", false);
+    const profile = getString(params, "profile", undefined, true);
+    const year = optionalInt(params.year);
+    const round = getInt(params, "round_number", optionalInt(params.round), false);
 
-    args.push("--mode", mode);
-    args.push("--source", source);
-    args.push("--year", String(year));
-    args.push("--round", String(round));
-    args.push("--train-seasons", trainSeasons);
+    args.push("--profile", profile);
+    if (year !== null) {
+      args.push("--year", String(year));
+    }
+    if (round > 0) {
+      args.push("--round", String(round));
+    }
 
-    if (includeStandings) {
-      args.push("--include-standings");
+    const phase = typeof params.phase === "string" ? params.phase.trim() : "";
+    if (phase) {
+      args.push("--phase", phase);
+    }
+
+    const source = typeof params.source === "string" ? params.source.trim() : "";
+    if (source) {
+      args.push("--source", source);
+    }
+
+    const weekendsDir = typeof params.weekends_dir === "string" ? params.weekends_dir.trim() : "";
+    if (weekendsDir) {
+      args.push("--weekends-dir", weekendsDir);
     }
 
     const cacheDir = typeof params.cache_dir === "string" ? params.cache_dir.trim() : "";
@@ -1058,14 +1061,9 @@ function buildCommand(project, params, outputPath) {
       args.push("--cache-dir", cacheDir);
     }
 
-    const meetingName = typeof params.meeting_name === "string" ? params.meeting_name.trim() : "";
-    if (meetingName) {
-      args.push("--meeting-name", meetingName);
-    }
-
-    const countryName = typeof params.country_name === "string" ? params.country_name.trim() : "";
-    if (countryName) {
-      args.push("--country-name", countryName);
+    const outputDir = typeof params.output_dir === "string" ? params.output_dir.trim() : "";
+    if (outputDir) {
+      args.push("--output-dir", outputDir);
     }
   } else if (project.kind === "Football") {
     const mode = getString(params, "mode", undefined, true);

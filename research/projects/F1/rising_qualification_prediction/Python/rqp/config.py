@@ -1,0 +1,39 @@
+"""Configuration objects for predictions."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any, List, Optional
+
+
+@dataclass
+class PredictionConfig:
+    source: str
+    mode: str
+    year: int
+    round_number: int
+    train_seasons: List[int]
+    include_standings: bool
+    cache_dir: Optional[str]
+    meeting_name: Optional[str]
+    country_name: Optional[str]
+    weekends_dir: Optional[str]
+    enable_dl_candidates: bool = False
+    compare_families: List[str] = field(default_factory=lambda: ["ml"])
+    dl_device: str = "auto"
+    dl_arch: str = "mlp_tabular_v1"
+    dl_hyperparams: dict[str, Any] = field(default_factory=dict)
+    dl_seed: int = 42
+    disable_runsim_features: bool = False
+
+
+@dataclass
+class PredictionResult:
+    version: str
+    table: "object"  # pandas DataFrame
+    notes: List[str]
+    model_name: str
+    model_family: str
+    device_used: Optional[str]
+    dl_available: bool
+    candidate_leaderboard: List[dict[str, Any]]

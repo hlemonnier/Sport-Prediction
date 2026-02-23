@@ -986,10 +986,12 @@ fn build_catalog(repo_root: &PathBuf) -> AppResult<Vec<ProjectInfo>> {
                 continue;
             }
             let notebook = project_path.join("Jupyter").join("model-research.ipynb");
-            let kind = match (sport_name.as_str(), project_name.as_str()) {
-                ("F1", "Rising Qualification Prediction") => ProjectKind::F1,
-                ("Football", "Match Result Prediction") => ProjectKind::Football,
-                _ => ProjectKind::Unknown,
+            let kind = if sport_name == "F1" && python_dir.join("run_profile.py").exists() {
+                ProjectKind::F1
+            } else if sport_name == "Football" && project_name == "Match Result Prediction" {
+                ProjectKind::Football
+            } else {
+                ProjectKind::Unknown
             };
             projects.push(ProjectInfo {
                 sport: sport_name.clone(),
@@ -1036,26 +1038,18 @@ fn params_for_project(kind: &ProjectKind) -> Vec<ParamDef> {
     match kind {
         ProjectKind::F1 => vec![
             ParamDef {
-                name: "mode".to_string(),
-                label: "Mode".to_string(),
-                kind: "select".to_string(),
+                name: "profile".to_string(),
+                label: "Profile".to_string(),
+                kind: "string".to_string(),
                 required: true,
-                default: Some(Value::String("qualifying".to_string())),
-                options: Some(vec!["qualifying".into(), "race".into()]),
-            },
-            ParamDef {
-                name: "source".to_string(),
-                label: "Source".to_string(),
-                kind: "select".to_string(),
-                required: true,
-                default: Some(Value::String("fastf1".to_string())),
-                options: Some(vec!["fastf1".into(), "openf1".into()]),
+                default: Some(Value::String("profiles/live_2026_prequal.yaml".to_string())),
+                options: None,
             },
             ParamDef {
                 name: "year".to_string(),
                 label: "Year".to_string(),
                 kind: "int".to_string(),
-                required: true,
+                required: false,
                 default: Some(Value::Number(2026.into())),
                 options: None,
             },
@@ -1063,24 +1057,37 @@ fn params_for_project(kind: &ProjectKind) -> Vec<ParamDef> {
                 name: "round_number".to_string(),
                 label: "Round".to_string(),
                 kind: "int".to_string(),
-                required: true,
+                required: false,
                 default: Some(Value::Number(1.into())),
                 options: None,
             },
             ParamDef {
-                name: "train_seasons".to_string(),
-                label: "Train Seasons".to_string(),
-                kind: "string".to_string(),
+                name: "phase".to_string(),
+                label: "Phase".to_string(),
+                kind: "select".to_string(),
                 required: false,
-                default: Some(Value::String("auto".to_string())),
-                options: None,
+                default: None,
+                options: Some(vec![
+                    "pre-qualifying".into(),
+                    "post-qualifying".into(),
+                    "post-race".into(),
+                    "full".into(),
+                ]),
             },
             ParamDef {
-                name: "include_standings".to_string(),
-                label: "Include Standings".to_string(),
-                kind: "bool".to_string(),
+                name: "source".to_string(),
+                label: "Source".to_string(),
+                kind: "select".to_string(),
                 required: false,
-                default: Some(Value::Bool(false)),
+                default: Some(Value::String("local".to_string())),
+                options: Some(vec!["local".into(), "fastf1".into(), "openf1".into()]),
+            },
+            ParamDef {
+                name: "weekends_dir".to_string(),
+                label: "Weekends Dir".to_string(),
+                kind: "string".to_string(),
+                required: false,
+                default: Some(Value::String("data/f1/raw/weekends".to_string())),
                 options: None,
             },
             ParamDef {
@@ -1088,20 +1095,12 @@ fn params_for_project(kind: &ProjectKind) -> Vec<ParamDef> {
                 label: "Cache Dir".to_string(),
                 kind: "string".to_string(),
                 required: false,
-                default: Some(Value::String(".cache/fastf1".to_string())),
-                options: None,
-            },
-            ParamDef {
-                name: "meeting_name".to_string(),
-                label: "Meeting Name".to_string(),
-                kind: "string".to_string(),
-                required: false,
                 default: None,
                 options: None,
             },
             ParamDef {
-                name: "country_name".to_string(),
-                label: "Country Name".to_string(),
+                name: "output_dir".to_string(),
+                label: "Output Dir".to_string(),
                 kind: "string".to_string(),
                 required: false,
                 default: None,
@@ -1443,9 +1442,13 @@ fn build_command(
     params: &serde_json::Map<String, Value>,
     output_path: &PathBuf,
 ) -> AppResult<(String, Vec<String>)> {
-    let script = project.python_dir.join("run_prediction.py");
+    let script = if matches!(project.kind, ProjectKind::F1) {
+        project.python_dir.join("run_profile.py")
+    } else {
+        project.python_dir.join("run_prediction.py")
+    };
     if !script.exists() {
-        return Err(AppError::internal("run_prediction.py not found"));
+        return Err(AppError::internal("Python entrypoint not found"));
     }
 
     let mut args = Vec::new();
@@ -1453,46 +1456,57 @@ fn build_command(
 
     match project.kind {
         ProjectKind::F1 => {
-            let mode = get_str(params, "mode", None, true)?;
-            let source = get_str(params, "source", None, true)?;
-            let year = get_i64(params, "year", Some(2026), true)?;
+            let profile = get_str(params, "profile", None, true)?;
+            let year = get_i64(params, "year", Some(2026), false)?;
             let round = get_i64(
                 params,
                 "round_number",
                 params.get("round").and_then(|v| v.as_i64()),
-                true,
+                false,
             )?;
-            let train_seasons = get_str(params, "train_seasons", Some("auto"), false)?;
-            let include_standings = get_bool(params, "include_standings", false);
+
+            args.extend(["--profile".to_string(), profile]);
+            if year > 0 {
+                args.extend(["--year".to_string(), year.to_string()]);
+            }
+            if round > 0 {
+                args.extend(["--round".to_string(), round.to_string()]);
+            }
+            let phase = params
+                .get("phase")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let source = params
+                .get("source")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let weekends_dir = params
+                .get("weekends_dir")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
             let cache_dir = params
                 .get("cache_dir")
                 .and_then(|v| v.as_str())
                 .filter(|s| !s.is_empty());
-            let meeting_name = params
-                .get("meeting_name")
-                .and_then(|v| v.as_str())
-                .filter(|s| !s.is_empty());
-            let country_name = params
-                .get("country_name")
+            let output_dir = params
+                .get("output_dir")
                 .and_then(|v| v.as_str())
                 .filter(|s| !s.is_empty());
 
-            args.extend(["--mode".to_string(), mode]);
-            args.extend(["--source".to_string(), source]);
-            args.extend(["--year".to_string(), year.to_string()]);
-            args.extend(["--round".to_string(), round.to_string()]);
-            args.extend(["--train-seasons".to_string(), train_seasons]);
-            if include_standings {
-                args.push("--include-standings".to_string());
+            if let Some(phase_value) = phase {
+                args.extend(["--phase".to_string(), phase_value.to_string()]);
+            }
+            if let Some(source_value) = source {
+                args.extend(["--source".to_string(), source_value.to_string()]);
+            }
+            if let Some(weekends_value) = weekends_dir {
+                args.extend(["--weekends-dir".to_string(), weekends_value.to_string()]);
             }
             if let Some(cache) = cache_dir {
                 args.extend(["--cache-dir".to_string(), cache.to_string()]);
             }
-            if let Some(meeting) = meeting_name {
-                args.extend(["--meeting-name".to_string(), meeting.to_string()]);
-            }
-            if let Some(country) = country_name {
-                args.extend(["--country-name".to_string(), country.to_string()]);
+            if let Some(output) = output_dir {
+                args.extend(["--output-dir".to_string(), output.to_string()]);
             }
         }
         ProjectKind::Football => {
@@ -1580,10 +1594,6 @@ fn get_i64(
         return Err(AppError::bad_request(format!("Missing param: {}", key)));
     }
     Ok(0)
-}
-
-fn get_bool(params: &serde_json::Map<String, Value>, key: &str, default: bool) -> bool {
-    params.get(key).and_then(|v| v.as_bool()).unwrap_or(default)
 }
 
 fn read_json_path(repo_root: &PathBuf, path: &str) -> AppResult<Option<Value>> {

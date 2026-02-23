@@ -1,0 +1,46 @@
+{
+  "profile_version": 1,
+  "name": "live_2026_prequal",
+  "mission": "live_ops",
+  "workflow": "weekend_phase",
+  "defaults": {
+    "phase": "pre-qualifying",
+    "source": "local",
+    "year": 2026,
+    "round_number": 1,
+    "include_standings": true,
+    "weekends_dir": "data/f1/raw/weekends",
+    "cache_dir": null
+  },
+  "training": {
+    "train_seasons": [2022, 2023, 2024, 2026]
+  },
+  "experiments": {
+    "enable_dl_candidates": false,
+    "compare_families": ["ml"]
+  },
+  "dl": {
+    "device": "auto",
+    "arch": "mlp_tabular_v1",
+    "seed": 42,
+    "hyperparams": {
+      "hidden_dims": [128, 64],
+      "dropout": 0.15,
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "epochs": 300,
+      "batch_size": 64,
+      "early_stopping_patience": 25
+    }
+  },
+  "evaluation": {
+    "gates": {
+      "block_stability_enabled": true,
+      "min_mae_gain": 0.03,
+      "min_top10_gain": 0.005
+    }
+  },
+  "outputs": {
+    "base_dir": "data/f1/live/2026"
+  }
+}

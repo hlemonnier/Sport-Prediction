@@ -12,9 +12,10 @@ Sport Prediction regroupe des projets de prediction par sport. Chaque projet sui
 
 **Projects**
 F1 — Rising Qualification Prediction. Objectif : predire les performances en qualification et en course.
-- Recherche : `research/projects/F1/Rising Qualification Prediction/Jupyter/model-research.ipynb`
-- Code prod : `research/projects/F1/Rising Qualification Prediction/Python/`
-- Commandes : voir `research/projects/F1/Rising Qualification Prediction/Python/README.md`
+- Recherche : `research/projects/F1/rising_qualification_prediction/Jupyter/model-research.ipynb`
+- Code prod : `research/projects/F1/rising_qualification_prediction/Python/`
+- Commandes : voir `research/projects/F1/rising_qualification_prediction/Python/README.md`
+- Runner principal : `run_profile.py` (profils preseason + live)
 
 Football — Match Result Prediction. Objectif : predire les resultats de match (1X2, scoreline).
 - Recherche : `research/projects/Football/Match Result Prediction/Jupyter/model-research.ipynb`

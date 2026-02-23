@@ -8,6 +8,6 @@ This directory groups all research assets.
 - `sport_cli.py` — CLI navigator for projects and papers.
 
 ## Quick paths
-- F1 project: `research/projects/F1/Rising Qualification Prediction/`
+- F1 project: `research/projects/F1/rising_qualification_prediction/`
 - Football project: `research/projects/Football/Match Result Prediction/`
 - Papers index: `research/papers/README.md`

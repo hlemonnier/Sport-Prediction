@@ -74,5 +74,5 @@ jobs:
       - name: Compile Python sources
         run: |
           python -m compileall research/sport_cli.py
-          python -m compileall "research/projects/F1/Rising Qualification Prediction/Python"
+          python -m compileall "research/projects/F1/rising_qualification_prediction/Python"
           python -m compileall "research/projects/Football/Match Result Prediction/Python"

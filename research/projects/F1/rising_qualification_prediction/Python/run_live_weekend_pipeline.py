@@ -38,7 +38,7 @@ def parse_train_seasons(value: str, target_year: int, policy: str) -> list[int]:
 
 def default_output_dir() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "data" / "f1" / "live_pipeline")
+    return str(project_root / "data" / "f1" / "live" / "2026" / "pipeline_runs")
 
 
 def _build_provider(
@@ -75,6 +75,11 @@ def _prediction_payload(config: PredictionConfig) -> dict[str, Any]:
         "config": asdict(config),
         "rows": rows,
         "notes": result.notes,
+        "model_name": result.model_name,
+        "model_family": result.model_family,
+        "device_used": result.device_used,
+        "dl_available": result.dl_available,
+        "candidate_leaderboard": result.candidate_leaderboard,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
 
@@ -201,6 +206,13 @@ def _run_qualifying_prediction(
     weekends_dir: Optional[str],
     meeting_name: Optional[str],
     country_name: Optional[str],
+    enable_dl_candidates: bool,
+    compare_families: list[str],
+    dl_device: str,
+    dl_arch: str,
+    dl_hyperparams: dict[str, Any],
+    dl_seed: int,
+    disable_runsim_features: bool,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -213,6 +225,13 @@ def _run_qualifying_prediction(
         meeting_name=meeting_name,
         country_name=country_name,
         weekends_dir=weekends_dir,
+        enable_dl_candidates=enable_dl_candidates,
+        compare_families=compare_families,
+        dl_device=dl_device,
+        dl_arch=dl_arch,
+        dl_hyperparams=dl_hyperparams,
+        dl_seed=dl_seed,
+        disable_runsim_features=disable_runsim_features,
     )
     return _prediction_payload(config)
 
@@ -228,6 +247,13 @@ def _run_race_prediction(
     weekends_dir: Optional[str],
     meeting_name: Optional[str],
     country_name: Optional[str],
+    enable_dl_candidates: bool,
+    compare_families: list[str],
+    dl_device: str,
+    dl_arch: str,
+    dl_hyperparams: dict[str, Any],
+    dl_seed: int,
+    disable_runsim_features: bool,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -240,6 +266,13 @@ def _run_race_prediction(
         meeting_name=meeting_name,
         country_name=country_name,
         weekends_dir=weekends_dir,
+        enable_dl_candidates=enable_dl_candidates,
+        compare_families=compare_families,
+        dl_device=dl_device,
+        dl_arch=dl_arch,
+        dl_hyperparams=dl_hyperparams,
+        dl_seed=dl_seed,
+        disable_runsim_features=disable_runsim_features,
     )
     return _prediction_payload(config)
 
@@ -256,6 +289,13 @@ def _run_pre_qualifying(
     weekends_dir: Optional[str],
     meeting_name: Optional[str],
     country_name: Optional[str],
+    enable_dl_candidates: bool,
+    compare_families: list[str],
+    dl_device: str,
+    dl_arch: str,
+    dl_hyperparams: dict[str, Any],
+    dl_seed: int,
+    disable_runsim_features: bool,
 ) -> dict[str, str]:
     qualifying_payload = _run_qualifying_prediction(
         source=source,
@@ -266,6 +306,13 @@ def _run_pre_qualifying(
         weekends_dir=weekends_dir,
         meeting_name=meeting_name,
         country_name=country_name,
+        enable_dl_candidates=enable_dl_candidates,
+        compare_families=compare_families,
+        dl_device=dl_device,
+        dl_arch=dl_arch,
+        dl_hyperparams=dl_hyperparams,
+        dl_seed=dl_seed,
+        disable_runsim_features=disable_runsim_features,
     )
     qualifying_path = output_dir / "prequal_qualifying_prediction.json"
     _write_json(qualifying_path, qualifying_payload)
@@ -280,6 +327,13 @@ def _run_pre_qualifying(
         weekends_dir=weekends_dir,
         meeting_name=meeting_name,
         country_name=country_name,
+        enable_dl_candidates=enable_dl_candidates,
+        compare_families=compare_families,
+        dl_device=dl_device,
+        dl_arch=dl_arch,
+        dl_hyperparams=dl_hyperparams,
+        dl_seed=dl_seed,
+        disable_runsim_features=disable_runsim_features,
     )
     race_path = output_dir / "prequal_race_prediction.json"
     _write_json(race_path, race_payload)
@@ -302,6 +356,13 @@ def _run_post_qualifying(
     weekends_dir: Optional[str],
     meeting_name: Optional[str],
     country_name: Optional[str],
+    enable_dl_candidates: bool,
+    compare_families: list[str],
+    dl_device: str,
+    dl_arch: str,
+    dl_hyperparams: dict[str, Any],
+    dl_seed: int,
+    disable_runsim_features: bool,
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
         source=source,
@@ -313,6 +374,13 @@ def _run_post_qualifying(
         weekends_dir=weekends_dir,
         meeting_name=meeting_name,
         country_name=country_name,
+        enable_dl_candidates=enable_dl_candidates,
+        compare_families=compare_families,
+        dl_device=dl_device,
+        dl_arch=dl_arch,
+        dl_hyperparams=dl_hyperparams,
+        dl_seed=dl_seed,
+        disable_runsim_features=disable_runsim_features,
     )
     race_path = output_dir / "postqual_race_prediction.json"
     _write_json(race_path, race_payload)
@@ -419,9 +487,16 @@ def main() -> None:
     )
     parser.add_argument("--include-standings", action="store_true")
     parser.add_argument("--cache-dir", default=None)
-    parser.add_argument("--weekends-dir", default="data/f1/weekends")
+    parser.add_argument("--weekends-dir", default="data/f1/raw/weekends")
     parser.add_argument("--meeting-name", default=None)
     parser.add_argument("--country-name", default=None)
+    parser.add_argument("--enable-dl-candidates", action="store_true")
+    parser.add_argument("--compare-families", default="ml")
+    parser.add_argument("--dl-device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--dl-arch", default="mlp_tabular_v1")
+    parser.add_argument("--dl-hyperparams", default="{}")
+    parser.add_argument("--dl-seed", type=int, default=42)
+    parser.add_argument("--disable-runsim-features", action="store_true")
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
@@ -429,6 +504,15 @@ def main() -> None:
     args = parser.parse_args()
 
     train_seasons = parse_train_seasons(args.train_seasons, args.year, args.train_policy)
+    compare_families = [part.strip().lower() for part in args.compare_families.split(",") if part.strip()]
+    if not compare_families:
+        compare_families = ["ml"]
+    try:
+        dl_hyperparams = json.loads(args.dl_hyperparams)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid --dl-hyperparams JSON: {exc}") from exc
+    if not isinstance(dl_hyperparams, dict):
+        raise SystemExit("Invalid --dl-hyperparams: expected JSON object.")
     output_dir = _round_dir(args.output_dir, args.year, args.round_number)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -456,6 +540,13 @@ def main() -> None:
             weekends_dir=args.weekends_dir,
             meeting_name=args.meeting_name,
             country_name=args.country_name,
+            enable_dl_candidates=args.enable_dl_candidates,
+            compare_families=compare_families,
+            dl_device=args.dl_device,
+            dl_arch=args.dl_arch,
+            dl_hyperparams=dl_hyperparams,
+            dl_seed=args.dl_seed,
+            disable_runsim_features=args.disable_runsim_features,
         )
         executed.append("pre-qualifying")
 
@@ -472,6 +563,13 @@ def main() -> None:
             weekends_dir=args.weekends_dir,
             meeting_name=args.meeting_name,
             country_name=args.country_name,
+            enable_dl_candidates=args.enable_dl_candidates,
+            compare_families=compare_families,
+            dl_device=args.dl_device,
+            dl_arch=args.dl_arch,
+            dl_hyperparams=dl_hyperparams,
+            dl_seed=args.dl_seed,
+            disable_runsim_features=args.disable_runsim_features,
         )
         executed.append("post-qualifying")
 
@@ -494,6 +592,12 @@ def main() -> None:
         "phases_executed": executed,
         "train_seasons": train_seasons,
         "train_policy": args.train_policy,
+        "enable_dl_candidates": bool(args.enable_dl_candidates),
+        "compare_families": compare_families,
+        "dl_device": args.dl_device,
+        "dl_arch": args.dl_arch,
+        "dl_seed": int(args.dl_seed),
+        "disable_runsim_features": bool(args.disable_runsim_features),
         "output_dir": str(output_dir),
         "artifacts": artifacts,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),

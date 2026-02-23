@@ -26,6 +26,14 @@ def parse_train_seasons(value: str, target_year: int, train_policy: str) -> list
     return sorted({int(y) for y in seasons if int(y) > 0})
 
 
+def parse_compare_families(value: str) -> list[str]:
+    families = [part.strip().lower() for part in str(value).split(",") if part.strip()]
+    if not families:
+        return ["ml"]
+    allowed = {"ml", "dl", "baseline"}
+    return [f for f in families if f in allowed] or ["ml"]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Rising Qualification Prediction (FastF1 / OpenF1 / local offline)"
@@ -43,14 +51,28 @@ def main() -> None:
     )
     parser.add_argument("--include-standings", action="store_true")
     parser.add_argument("--cache-dir", default=None)
-    parser.add_argument("--weekends-dir", default="data/f1/weekends")
+    parser.add_argument("--weekends-dir", default="data/f1/raw/weekends")
     parser.add_argument("--meeting-name", default=None)
     parser.add_argument("--country-name", default=None)
+    parser.add_argument("--enable-dl-candidates", action="store_true")
+    parser.add_argument("--compare-families", default="ml")
+    parser.add_argument("--dl-device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--dl-arch", default="mlp_tabular_v1")
+    parser.add_argument("--dl-hyperparams", default="{}")
+    parser.add_argument("--dl-seed", type=int, default=42)
+    parser.add_argument("--disable-runsim-features", action="store_true")
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
     parser.add_argument("--quiet", action="store_true")
 
     args = parser.parse_args()
+
+    try:
+        dl_hyperparams = json.loads(args.dl_hyperparams)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid --dl-hyperparams JSON: {exc}") from exc
+    if not isinstance(dl_hyperparams, dict):
+        raise SystemExit("Invalid --dl-hyperparams: expected JSON object.")
 
     config = PredictionConfig(
         source=args.source,
@@ -63,6 +85,13 @@ def main() -> None:
         meeting_name=args.meeting_name,
         country_name=args.country_name,
         weekends_dir=args.weekends_dir,
+        enable_dl_candidates=args.enable_dl_candidates,
+        compare_families=parse_compare_families(args.compare_families),
+        dl_device=args.dl_device,
+        dl_arch=args.dl_arch,
+        dl_hyperparams=dl_hyperparams,
+        dl_seed=args.dl_seed,
+        disable_runsim_features=args.disable_runsim_features,
     )
 
     result = run_prediction(config)
@@ -79,6 +108,11 @@ def main() -> None:
             "config": asdict(config),
             "rows": rows,
             "notes": result.notes,
+            "model_name": result.model_name,
+            "model_family": result.model_family,
+            "device_used": result.device_used,
+            "dl_available": result.dl_available,
+            "candidate_leaderboard": result.candidate_leaderboard,
             "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
         if args.output_path:
@@ -96,6 +130,9 @@ def main() -> None:
         f"Mode: {config.mode} | Source: {config.source} | Year: {config.year} | Round: {config.round_number}"
     )
     print(f"Model version: {result.version}")
+    print(f"Model selected: {result.model_name} [{result.model_family}]")
+    if result.device_used:
+        print(f"Device: {result.device_used}")
     print("=" * 72)
     if result.table.empty:
         print("Aucune prediction disponible.")

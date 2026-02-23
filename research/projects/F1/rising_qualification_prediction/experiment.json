@@ -3,7 +3,7 @@
   "sport": "F1",
   "name": "Rising Qualification Prediction",
   "kind": "f1_profile",
-  "python_entrypoint": "run_profile.py",
+  "python_entrypoint": "run_experiment.py",
   "context_keys": ["season", "round", "phase"],
   "dataset_snapshot_root": "data/f1",
   "model_families": ["baseline", "ml", "dl"],

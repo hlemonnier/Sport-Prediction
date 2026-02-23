@@ -346,6 +346,74 @@ function normalize(value) {
 }
 
 const EXPERIMENT_MANIFEST_FILE = "experiment.json";
+const REQUIRED_CONTRACT_STRING_FIELDS = [
+  "id",
+  "sport",
+  "name",
+  "kind",
+  "python_entrypoint",
+  "dataset_snapshot_root",
+];
+const REQUIRED_CONTRACT_STRING_ARRAY_FIELDS = [
+  "context_keys",
+  "model_families",
+  "outputs",
+  "diagnostics",
+];
+
+function projectLabelFromPath(projectPath) {
+  return `'${path.basename(path.dirname(projectPath))} / ${path.basename(projectPath)}'`;
+}
+
+function validateRequiredStringField(manifest, field, errors) {
+  const value = manifest[field];
+  if (typeof value === "string" && value.trim()) {
+    return;
+  }
+  if (value === undefined) {
+    errors.push(`missing required field \`${field}\``);
+    return;
+  }
+  if (typeof value === "string") {
+    errors.push(`\`${field}\` must be a non-empty string`);
+    return;
+  }
+  errors.push(`\`${field}\` must be a string`);
+}
+
+function validateRequiredStringArrayField(manifest, field, errors) {
+  const value = manifest[field];
+  if (value === undefined) {
+    errors.push(`missing required field \`${field}\``);
+    return;
+  }
+  if (!Array.isArray(value)) {
+    errors.push(`\`${field}\` must be an array of strings`);
+    return;
+  }
+
+  value.forEach((item, index) => {
+    if (typeof item === "string" && item.trim()) {
+      return;
+    }
+    if (typeof item === "string") {
+      errors.push(`\`${field}\`[${index}] must be a non-empty string`);
+      return;
+    }
+    errors.push(`\`${field}\`[${index}] must be a string`);
+  });
+}
+
+function collectExperimentContractErrors(manifest) {
+  const errors = [];
+  for (const field of REQUIRED_CONTRACT_STRING_FIELDS) {
+    validateRequiredStringField(manifest, field, errors);
+  }
+  for (const field of REQUIRED_CONTRACT_STRING_ARRAY_FIELDS) {
+    validateRequiredStringArrayField(manifest, field, errors);
+  }
+  return errors;
+}
 
 function normalizeManifestKind(value) {
   return String(value ?? "")
@@ -376,19 +444,68 @@ function inferProjectKindLegacy(sportName, projectName, pythonDir) {
   return "Unknown";
 }
 
-function readExperimentManifest(projectPath) {
+function readExperimentManifest(projectPath, options = {}) {
+  const strict = options.strict === true;
+  const label = projectLabelFromPath(projectPath);
   const manifestPath = path.join(projectPath, EXPERIMENT_MANIFEST_FILE);
   if (!fs.existsSync(manifestPath)) {
+    if (strict) {
+      throw AppError.badRequest(
+        `Invalid experiment contract for ${label}: missing ${EXPERIMENT_MANIFEST_FILE}`
+      );
+    }
     return null;
   }
 
+  let payload;
   try {
-    const payload = fs.readFileSync(manifestPath, "utf8");
-    const parsed = JSON.parse(payload);
-    return isObject(parsed) ? parsed : null;
-  } catch {
-    throw AppError.internal("Invalid experiment manifest JSON");
+    payload = fs.readFileSync(manifestPath, "utf8");
+  } catch (error) {
+    if (strict) {
+      throw AppError.badRequest(
+        `Invalid experiment contract for ${label}: failed to read ${manifestPath} (${String(error)})`
+      );
+    }
+    console.warn(`Skipping manifest at ${manifestPath}: failed to read (${String(error)})`);
+    return null;
   }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(payload);
+  } catch (error) {
+    if (strict) {
+      throw AppError.badRequest(
+        `Invalid experiment contract for ${label}: invalid JSON in ${manifestPath} (${String(error)})`
+      );
+    }
+    console.warn(`Skipping manifest at ${manifestPath}: invalid JSON (${String(error)})`);
+    return null;
+  }
+
+  if (!isObject(parsed)) {
+    if (strict) {
+      throw AppError.badRequest(
+        `Invalid experiment contract for ${label}: ${manifestPath} must contain a JSON object`
+      );
+    }
+    console.warn(`Skipping manifest at ${manifestPath}: JSON root is not an object`);
+    return null;
+  }
+
+  if (strict) {
+    const errors = collectExperimentContractErrors(parsed);
+    if (errors.length > 0) {
+      throw AppError.badRequest(`Invalid experiment contract for ${label}: ${errors.join("; ")}`);
+    }
+  }
+
+  return parsed;
+}
+
+function validateExperimentContractForRun(project) {
+  const projectPath = path.dirname(project.pythonDir);
+  readExperimentManifest(projectPath, { strict: true });
 }
 
 function resolvePythonEntrypoint(pythonDir, kind, manifest) {
@@ -1367,6 +1484,7 @@ async function handleCreateRun(state, request) {
   }
 
   const project = resolveProject(state.repoRoot, sport, projectName);
+  validateExperimentContractForRun(project);
   const runId = randomUUID();
   const runDir = path.join(state.dataDir, "runs", runId);
   await fsp.mkdir(runDir, { recursive: true });
@@ -1493,6 +1611,7 @@ async function handleCreateSweep(state, request) {
   }
 
   const project = resolveProject(state.repoRoot, sport, projectName);
+  validateExperimentContractForRun(project);
   const sweepId = randomUUID();
 
   const baseConfig = {

@@ -3,7 +3,7 @@
   "sport": "Football",
   "name": "Match Result Prediction",
   "kind": "football_match",
-  "python_entrypoint": "run_prediction.py",
+  "python_entrypoint": "run_experiment.py",
   "context_keys": ["league", "season", "round"],
   "dataset_snapshot_root": "data/football",
   "model_families": ["baseline", "ml", "dl"],

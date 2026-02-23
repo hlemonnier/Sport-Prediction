@@ -8,6 +8,9 @@ from typing import Any, Callable
 
 from .constants import (
     AWAY_WIN_CLASS,
+    BASELINE_PSEUDOCOUNT,
+    BASELINE_SEASON_WINDOW,
+    BASELINE_TEAM_WEIGHT,
     BENCHMARK_MIN_SAMPLES,
     BENCHMARK_MIN_VALIDATION,
     BENCHMARK_VALIDATION_FRACTION,
@@ -24,6 +27,7 @@ from .constants import (
     DIXON_COLES_RHO_MIN,
     DIXON_COLES_RHO_STEP,
     DIXON_COLES_TOLERANCE,
+    DIAGNOSTIC_ECE_BINS,
     DRAW_CLASS,
     HOME_WIN_CLASS,
     OUTCOME_CLASSES,
@@ -108,6 +112,276 @@ class BenchmarkModel:
             aligned[DRAW_CLASS],
             aligned[AWAY_WIN_CLASS],
         )
+
+
+@dataclass
+class FrequencyBaselineModel:
+    outcome_counts: tuple[float, float, float]
+    season_outcome_counts: dict[int, tuple[float, float, float]]
+    home_team_outcome_counts: dict[str, tuple[float, float, float]]
+    away_team_outcome_counts: dict[str, tuple[float, float, float]]
+    pseudo_count: float = BASELINE_PSEUDOCOUNT
+    team_weight: float = BASELINE_TEAM_WEIGHT
+    season_window: int = BASELINE_SEASON_WINDOW
+
+    def predict(self, record: FixtureRecord | MatchRecord) -> tuple[float, float, float]:
+        weighted = [self.pseudo_count, self.pseudo_count, self.pseudo_count]
+        season = record.season if isinstance(record.season, int) else None
+
+        season_weight_total = 0.0
+        if season is not None:
+            for known_season, counts in self.season_outcome_counts.items():
+                distance = abs(known_season - season)
+                if distance > self.season_window:
+                    continue
+                weight = float(self.season_window + 1 - distance)
+                season_weight_total += weight
+                for cls in OUTCOME_CLASSES:
+                    weighted[cls] += counts[cls] * weight
+
+        if season_weight_total <= 0:
+            for cls in OUTCOME_CLASSES:
+                weighted[cls] += self.outcome_counts[cls]
+
+        home_counts = self.home_team_outcome_counts.get(record.home_team_id)
+        if home_counts is not None:
+            for cls in OUTCOME_CLASSES:
+                weighted[cls] += home_counts[cls] * self.team_weight
+
+        away_counts = self.away_team_outcome_counts.get(record.away_team_id)
+        if away_counts is not None:
+            for cls in OUTCOME_CLASSES:
+                weighted[cls] += away_counts[cls] * self.team_weight
+
+        return normalize_probabilities(
+            (
+                weighted[HOME_WIN_CLASS],
+                weighted[DRAW_CLASS],
+                weighted[AWAY_WIN_CLASS],
+            )
+        )
+
+
+def _empty_outcome_counts() -> list[float]:
+    return [0.0, 0.0, 0.0]
+
+
+def _freeze_counts(counts: list[float]) -> tuple[float, float, float]:
+    return (
+        float(counts[HOME_WIN_CLASS]),
+        float(counts[DRAW_CLASS]),
+        float(counts[AWAY_WIN_CLASS]),
+    )
+
+
+def _freeze_nested_counts(
+    counts: dict[Any, list[float]],
+) -> dict[Any, tuple[float, float, float]]:
+    return {key: _freeze_counts(value) for key, value in counts.items()}
+
+
+def fit_frequency_baseline(matches: list[MatchRecord], notes: list[str]) -> FrequencyBaselineModel:
+    outcome_counts = _empty_outcome_counts()
+    season_counts: dict[int, list[float]] = {}
+    home_team_counts: dict[str, list[float]] = {}
+    away_team_counts: dict[str, list[float]] = {}
+    used_matches = 0
+
+    for match in matches:
+        if match.home_goals is None or match.away_goals is None:
+            continue
+        used_matches += 1
+        label = outcome_class(match.home_goals, match.away_goals)
+        outcome_counts[label] += 1.0
+
+        if isinstance(match.season, int):
+            season_bucket = season_counts.setdefault(match.season, _empty_outcome_counts())
+            season_bucket[label] += 1.0
+
+        home_bucket = home_team_counts.setdefault(match.home_team_id, _empty_outcome_counts())
+        away_bucket = away_team_counts.setdefault(match.away_team_id, _empty_outcome_counts())
+        home_bucket[label] += 1.0
+        away_bucket[label] += 1.0
+
+    if used_matches == 0:
+        notes.append("Baseline frequence: historique vide, fallback uniforme.")
+    else:
+        notes.append(
+            "Baseline frequence entraine "
+            f"(n={used_matches}, seasons={len(season_counts)}, teams_home={len(home_team_counts)}, teams_away={len(away_team_counts)})."
+        )
+
+    return FrequencyBaselineModel(
+        outcome_counts=_freeze_counts(outcome_counts),
+        season_outcome_counts=_freeze_nested_counts(season_counts),
+        home_team_outcome_counts=_freeze_nested_counts(home_team_counts),
+        away_team_outcome_counts=_freeze_nested_counts(away_team_counts),
+    )
+
+
+def normalize_probabilities(probabilities: tuple[float, float, float]) -> tuple[float, float, float]:
+    clipped = [max(0.0, float(value)) for value in probabilities]
+    total = sum(clipped)
+    if total <= 0:
+        return (1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)
+    return (
+        clipped[HOME_WIN_CLASS] / total,
+        clipped[DRAW_CLASS] / total,
+        clipped[AWAY_WIN_CLASS] / total,
+    )
+
+
+def rank_outcome_classes(probabilities: tuple[float, float, float]) -> list[int]:
+    normalized = normalize_probabilities(probabilities)
+    return sorted(OUTCOME_CLASSES, key=lambda cls: (-normalized[cls], cls))
+
+
+def _multiclass_log_loss(y_true: list[int], probabilities: list[list[float]]) -> float:
+    if not y_true:
+        return float("nan")
+    eps = 1e-12
+    total = 0.0
+    for outcome, probs in zip(y_true, probabilities):
+        probability = min(max(probs[outcome], eps), 1.0)
+        total += -math.log(probability)
+    return total / len(y_true)
+
+
+def _ranking_metrics(y_true: list[int], probabilities: list[list[float]]) -> tuple[float, float, float, float]:
+    if not y_true:
+        return (float("nan"), float("nan"), float("nan"), float("nan"))
+    top1_hits = 0.0
+    top2_hits = 0.0
+    reciprocal_rank_sum = 0.0
+    confidence_sum = 0.0
+
+    for outcome, probs in zip(y_true, probabilities):
+        ranked = rank_outcome_classes((probs[0], probs[1], probs[2]))
+        if ranked[0] == outcome:
+            top1_hits += 1.0
+        if outcome in ranked[:2]:
+            top2_hits += 1.0
+        reciprocal_rank_sum += 1.0 / float(ranked.index(outcome) + 1)
+        confidence_sum += probs[ranked[0]]
+
+    sample_size = float(len(y_true))
+    return (
+        top1_hits / sample_size,
+        top2_hits / sample_size,
+        reciprocal_rank_sum / sample_size,
+        confidence_sum / sample_size,
+    )
+
+
+def _expected_calibration_error(
+    y_true: list[int], probabilities: list[list[float]], bins: int
+) -> tuple[float, list[dict[str, float | int | None]]]:
+    if not y_true:
+        return float("nan"), []
+
+    n_bins = max(2, bins)
+    bin_counts = [0] * n_bins
+    bin_conf_sum = [0.0] * n_bins
+    bin_accuracy_sum = [0.0] * n_bins
+
+    for outcome, probs in zip(y_true, probabilities):
+        ranked = rank_outcome_classes((probs[0], probs[1], probs[2]))
+        predicted = ranked[0]
+        confidence = probs[predicted]
+        index = min(int(confidence * n_bins), n_bins - 1)
+        bin_counts[index] += 1
+        bin_conf_sum[index] += confidence
+        if predicted == outcome:
+            bin_accuracy_sum[index] += 1.0
+
+    sample_size = float(len(y_true))
+    ece = 0.0
+    calibration_bins: list[dict[str, float | int | None]] = []
+    for index in range(n_bins):
+        lower = index / n_bins
+        upper = (index + 1) / n_bins
+        count = bin_counts[index]
+        if count == 0:
+            calibration_bins.append(
+                {
+                    "lower": lower,
+                    "upper": upper,
+                    "count": 0,
+                    "avg_confidence": None,
+                    "accuracy": None,
+                }
+            )
+            continue
+        avg_conf = bin_conf_sum[index] / float(count)
+        accuracy = bin_accuracy_sum[index] / float(count)
+        ece += (float(count) / sample_size) * abs(accuracy - avg_conf)
+        calibration_bins.append(
+            {
+                "lower": lower,
+                "upper": upper,
+                "count": count,
+                "avg_confidence": avg_conf,
+                "accuracy": accuracy,
+            }
+        )
+
+    return ece, calibration_bins
+
+
+def evaluate_match_probabilities(
+    matches: list[MatchRecord],
+    predictor: Callable[[MatchRecord], tuple[float, float, float]],
+    bins: int = DIAGNOSTIC_ECE_BINS,
+) -> dict[str, Any]:
+    y_true: list[int] = []
+    probabilities: list[list[float]] = []
+
+    for match in sorted(matches, key=record_sort_key):
+        if match.home_goals is None or match.away_goals is None:
+            continue
+        predicted = normalize_probabilities(predictor(match))
+        y_true.append(outcome_class(match.home_goals, match.away_goals))
+        probabilities.append([predicted[0], predicted[1], predicted[2]])
+
+    if not y_true:
+        return {
+            "sample_size": 0,
+            "calibration": {
+                "log_loss": None,
+                "brier": None,
+                "ece": None,
+                "bins": [],
+            },
+            "ranking": {
+                "top1_accuracy": None,
+                "top2_accuracy": None,
+                "mean_reciprocal_rank": None,
+                "avg_confidence": None,
+            },
+        }
+
+    log_loss_value = _multiclass_log_loss(y_true, probabilities)
+    brier_value = _multiclass_brier_score(y_true, probabilities)
+    ece_value, calibration_bins = _expected_calibration_error(y_true, probabilities, bins=bins)
+    top1_accuracy, top2_accuracy, mean_reciprocal_rank, avg_confidence = _ranking_metrics(
+        y_true, probabilities
+    )
+
+    return {
+        "sample_size": len(y_true),
+        "calibration": {
+            "log_loss": log_loss_value,
+            "brier": brier_value,
+            "ece": ece_value,
+            "bins": calibration_bins,
+        },
+        "ranking": {
+            "top1_accuracy": top1_accuracy,
+            "top2_accuracy": top2_accuracy,
+            "mean_reciprocal_rank": mean_reciprocal_rank,
+            "avg_confidence": avg_confidence,
+        },
+    }
 
 
 def _identity(value: float) -> float:

@@ -13,7 +13,7 @@ Lifecycle:
 
 ```bash
 cd "research/projects/F1/rising_qualification_prediction/Python"
-python run_profile.py --profile profiles/preseason_holdout_2025.yaml --output-format json
+python run_experiment.py profile --profile profiles/preseason_holdout_2025.yaml --output-format json
 ```
 
 ## Profile-Driven Workflows
@@ -27,7 +27,7 @@ Profiles are in `profiles/*.yaml` and define:
 ### Preseason benchmark + ablation (ML vs DL, ALL vs NO_RUNSIM)
 
 ```bash
-python run_profile.py --profile profiles/preseason_holdout_2025.yaml
+python run_experiment.py profile --profile profiles/preseason_holdout_2025.yaml
 ```
 
 This runs:
@@ -47,9 +47,9 @@ NO_RUNSIM removes:
 ### Live 2026 phase runs
 
 ```bash
-python run_profile.py --profile profiles/live_2026_prequal.yaml --round 1 --year 2026
-python run_profile.py --profile profiles/live_2026_postqual.yaml --round 1 --year 2026
-python run_profile.py --profile profiles/live_2026_postrace.yaml --round 1 --year 2026
+python run_experiment.py profile --profile profiles/live_2026_prequal.yaml --round 1 --year 2026
+python run_experiment.py profile --profile profiles/live_2026_postqual.yaml --round 1 --year 2026
+python run_experiment.py profile --profile profiles/live_2026_postrace.yaml --round 1 --year 2026
 ```
 
 ## Raw Data Download
@@ -64,10 +64,10 @@ Output folder:
 
 ## Direct CLI (low-level)
 
-`run_prediction.py` stays available for direct calls:
+Canonical direct CLI uses `run_experiment.py prediction`:
 
 ```bash
-python run_prediction.py \
+python run_experiment.py prediction \
   --mode qualifying \
   --source local \
   --year 2025 \
@@ -81,6 +81,10 @@ python run_prediction.py \
   --dl-seed 42 \
   --output-format json
 ```
+
+Compatibility wrappers remain available:
+- `run_profile.py` -> `run_experiment.py profile`
+- `run_prediction.py` -> `run_experiment.py prediction`
 
 Additional ablation flag:
 - `--disable-runsim-features`

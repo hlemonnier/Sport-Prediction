@@ -684,6 +684,7 @@ async fn create_run(
     Json(payload): Json<RunRequest>,
 ) -> AppResult<Json<RunResponse>> {
     let project = resolve_project(&state.repo_root, &payload.sport, &payload.project)?;
+    validate_experiment_contract_for_run(&project)?;
     let run_id = Uuid::new_v4().to_string();
     let run_dir = state.data_dir.join("runs").join(&run_id);
     fs::create_dir_all(&run_dir).map_err(|_| AppError::internal("Failed to create run dir"))?;
@@ -782,6 +783,7 @@ async fn create_sweep(
     Json(payload): Json<SweepRequest>,
 ) -> AppResult<Json<SweepResponse>> {
     let project = resolve_project(&state.repo_root, &payload.sport, &payload.project)?;
+    validate_experiment_contract_for_run(&project)?;
     let sweep_id = Uuid::new_v4().to_string();
 
     let base_config = json!({
@@ -997,13 +999,16 @@ fn build_catalog(repo_root: &PathBuf) -> AppResult<Vec<ProjectInfo>> {
                 continue;
             }
             let notebook = project_path.join("Jupyter").join("model-research.ipynb");
-            let manifest = load_experiment_manifest(&project_path)?;
+            let manifest = load_experiment_manifest(&project_path);
             let kind = manifest
                 .as_ref()
                 .and_then(|m| m.kind.as_deref())
                 .map(project_kind_from_manifest)
-                .unwrap_or_else(|| infer_project_kind_legacy(&sport_name, &project_name, &python_dir));
-            let python_entrypoint = resolve_python_entrypoint(&python_dir, &kind, manifest.as_ref());
+                .unwrap_or_else(|| {
+                    infer_project_kind_legacy(&sport_name, &project_name, &python_dir)
+                });
+            let python_entrypoint =
+                resolve_python_entrypoint(&python_dir, &kind, manifest.as_ref());
             let sport = manifest
                 .as_ref()
                 .and_then(|m| m.sport.as_ref())
@@ -1031,16 +1036,135 @@ fn build_catalog(repo_root: &PathBuf) -> AppResult<Vec<ProjectInfo>> {
     Ok(projects)
 }
 
-fn load_experiment_manifest(project_path: &FsPath) -> AppResult<Option<ExperimentManifest>> {
+fn load_experiment_manifest(project_path: &FsPath) -> Option<ExperimentManifest> {
     let manifest_path = project_path.join(EXPERIMENT_MANIFEST_FILE);
     if !manifest_path.exists() {
-        return Ok(None);
+        return None;
     }
-    let payload = fs::read_to_string(&manifest_path)
-        .map_err(|_| AppError::internal("Failed to read experiment manifest"))?;
-    let manifest: ExperimentManifest = serde_json::from_str(&payload)
-        .map_err(|_| AppError::internal("Invalid experiment manifest JSON"))?;
-    Ok(Some(manifest))
+    let payload = match fs::read_to_string(&manifest_path) {
+        Ok(payload) => payload,
+        Err(error) => {
+            eprintln!(
+                "Skipping manifest at {}: failed to read ({})",
+                manifest_path.display(),
+                error
+            );
+            return None;
+        }
+    };
+    let manifest: ExperimentManifest = match serde_json::from_str(&payload) {
+        Ok(manifest) => manifest,
+        Err(error) => {
+            eprintln!(
+                "Skipping manifest at {}: invalid JSON ({})",
+                manifest_path.display(),
+                error
+            );
+            return None;
+        }
+    };
+    Some(manifest)
+}
+
+fn validate_experiment_contract_for_run(project: &ProjectInfo) -> AppResult<()> {
+    let project_root = project.python_dir.parent().ok_or_else(|| {
+        AppError::internal("Invalid project layout: Python directory has no parent")
+    })?;
+    let manifest_path = project_root.join(EXPERIMENT_MANIFEST_FILE);
+    if !manifest_path.exists() {
+        return Err(AppError::bad_request(format!(
+            "Invalid experiment contract for '{} / {}': missing {}",
+            project.sport, project.name, EXPERIMENT_MANIFEST_FILE
+        )));
+    }
+
+    let payload = fs::read_to_string(&manifest_path).map_err(|error| {
+        AppError::bad_request(format!(
+            "Invalid experiment contract for '{} / {}': failed to read {} ({})",
+            project.sport,
+            project.name,
+            manifest_path.display(),
+            error
+        ))
+    })?;
+    let value: Value = serde_json::from_str(&payload).map_err(|error| {
+        AppError::bad_request(format!(
+            "Invalid experiment contract for '{} / {}': invalid JSON in {} ({})",
+            project.sport,
+            project.name,
+            manifest_path.display(),
+            error
+        ))
+    })?;
+    let object = value.as_object().ok_or_else(|| {
+        AppError::bad_request(format!(
+            "Invalid experiment contract for '{} / {}': {} must contain a JSON object",
+            project.sport,
+            project.name,
+            manifest_path.display()
+        ))
+    })?;
+
+    let mut errors = Vec::new();
+    for field in [
+        "id",
+        "sport",
+        "name",
+        "kind",
+        "python_entrypoint",
+        "dataset_snapshot_root",
+    ] {
+        validate_required_string_field(object, field, &mut errors);
+    }
+    for field in ["context_keys", "model_families", "outputs", "diagnostics"] {
+        validate_required_string_array_field(object, field, &mut errors);
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(AppError::bad_request(format!(
+            "Invalid experiment contract for '{} / {}': {}",
+            project.sport,
+            project.name,
+            errors.join("; ")
+        )))
+    }
+}
+
+fn validate_required_string_field(
+    object: &serde_json::Map<String, Value>,
+    field: &str,
+    errors: &mut Vec<String>,
+) {
+    match object.get(field) {
+        Some(Value::String(value)) if !value.trim().is_empty() => {}
+        Some(Value::String(_)) => errors.push(format!("`{}` must be a non-empty string", field)),
+        Some(_) => errors.push(format!("`{}` must be a string", field)),
+        None => errors.push(format!("missing required field `{}`", field)),
+    }
+}
+
+fn validate_required_string_array_field(
+    object: &serde_json::Map<String, Value>,
+    field: &str,
+    errors: &mut Vec<String>,
+) {
+    match object.get(field) {
+        Some(Value::Array(items)) => {
+            for (index, item) in items.iter().enumerate() {
+                match item {
+                    Value::String(value) if !value.trim().is_empty() => {}
+                    Value::String(_) => {
+                        errors.push(format!("`{}`[{}] must be a non-empty string", field, index))
+                    }
+                    _ => errors.push(format!("`{}`[{}] must be a string", field, index)),
+                }
+            }
+        }
+        Some(_) => errors.push(format!("`{}` must be an array of strings", field)),
+        None => errors.push(format!("missing required field `{}`", field)),
+    }
 }
 
 fn project_kind_from_manifest(value: &str) -> ProjectKind {

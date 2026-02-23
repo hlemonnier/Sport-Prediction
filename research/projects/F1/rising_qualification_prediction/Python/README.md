@@ -22,6 +22,7 @@ Profiles are in `profiles/*.yaml` and define:
 - `experiments.enable_dl_candidates`
 - `experiments.compare_families`
 - `dl.device`, `dl.arch`, `dl.hyperparams`, `dl.seed`
+- `f1.mode` and `f1.live.{source,model,horizon_laps,seed,cache_dir,replay_path}`
 - `evaluation.gates`
 
 ### Preseason benchmark + ablation (ML vs DL, ALL vs NO_RUNSIM)
@@ -50,6 +51,15 @@ NO_RUNSIM removes:
 python run_experiment.py profile --profile profiles/live_2026_prequal.yaml --round 1 --year 2026
 python run_experiment.py profile --profile profiles/live_2026_postqual.yaml --round 1 --year 2026
 python run_experiment.py profile --profile profiles/live_2026_postrace.yaml --round 1 --year 2026
+
+# Horizon B live race snapshot (state-space lap-by-lap)
+python run_experiment.py profile \
+  --profile profiles/live_2026_prequal.yaml \
+  --phase live-race \
+  --f1_mode live \
+  --f1_live_source auto \
+  --round 1 \
+  --year 2026
 ```
 
 ## Raw Data Download
@@ -88,6 +98,15 @@ Compatibility wrappers remain available:
 
 Additional ablation flag:
 - `--disable-runsim-features`
+
+Horizon B live flags:
+- `--f1_mode` (`offline` by default, `live` opt-in)
+- `--f1_live_source` (`auto|local|fastf1`)
+- `--f1_live_model` (`ssm_v1`)
+- `--f1_live_horizon_laps` (default `10`)
+- `--f1_live_seed` (default `42`)
+- `--f1_live_cache_dir`
+- `--f1_live_replay_path`
 
 ## Optional Deep Learning Dependency
 

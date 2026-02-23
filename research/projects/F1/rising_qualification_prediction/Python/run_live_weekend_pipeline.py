@@ -48,7 +48,7 @@ def _prediction_payload(config: PredictionConfig) -> dict[str, Any]:
         rows = []
     else:
         rows = json.loads(result.table.to_json(orient="records"))
-    return {
+    payload = {
         "version": result.version,
         "sport": "F1",
         "project": "Rising Qualification Prediction",
@@ -62,6 +62,9 @@ def _prediction_payload(config: PredictionConfig) -> dict[str, Any]:
         "candidate_leaderboard": result.candidate_leaderboard,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
+    if isinstance(result.extras, dict) and result.extras:
+        payload.update(result.extras)
+    return payload
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -144,6 +147,13 @@ def _run_race_prediction(
     dl_hyperparams: dict[str, Any],
     dl_seed: int,
     disable_runsim_features: bool,
+    f1_mode: str = "offline",
+    f1_live_source: str = "auto",
+    f1_live_model: str = "ssm_v1",
+    f1_live_horizon_laps: int = 10,
+    f1_live_seed: int = 42,
+    f1_live_cache_dir: Optional[str] = None,
+    f1_live_replay_path: Optional[str] = None,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -163,6 +173,13 @@ def _run_race_prediction(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        f1_mode=f1_mode,
+        f1_live_source=f1_live_source,
+        f1_live_model=f1_live_model,
+        f1_live_horizon_laps=f1_live_horizon_laps,
+        f1_live_seed=f1_live_seed,
+        f1_live_cache_dir=f1_live_cache_dir,
+        f1_live_replay_path=f1_live_replay_path,
     )
     return _prediction_payload(config)
 
@@ -224,6 +241,7 @@ def _run_pre_qualifying(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        f1_mode="offline",
     )
     race_path = output_dir / "prequal_race_prediction.json"
     _write_json(race_path, race_payload)
@@ -271,6 +289,7 @@ def _run_post_qualifying(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        f1_mode="offline",
     )
     race_path = output_dir / "postqual_race_prediction.json"
     _write_json(race_path, race_payload)
@@ -361,11 +380,92 @@ def _run_post_race(
     return {"evaluation": str(output_path)}
 
 
+def _run_live_race(
+    output_dir: Path,
+    *,
+    source: str,
+    year: int,
+    round_number: int,
+    train_seasons: list[int],
+    include_standings: bool,
+    cache_dir: Optional[str],
+    weekends_dir: Optional[str],
+    meeting_name: Optional[str],
+    country_name: Optional[str],
+    enable_dl_candidates: bool,
+    compare_families: list[str],
+    dl_device: str,
+    dl_arch: str,
+    dl_hyperparams: dict[str, Any],
+    dl_seed: int,
+    disable_runsim_features: bool,
+    f1_live_source: str,
+    f1_live_model: str,
+    f1_live_horizon_laps: int,
+    f1_live_seed: int,
+    f1_live_cache_dir: Optional[str],
+    f1_live_replay_path: Optional[str],
+) -> dict[str, Any]:
+    race_payload = _run_race_prediction(
+        source=source,
+        year=year,
+        round_number=round_number,
+        train_seasons=train_seasons,
+        include_standings=include_standings,
+        cache_dir=cache_dir,
+        weekends_dir=weekends_dir,
+        meeting_name=meeting_name,
+        country_name=country_name,
+        enable_dl_candidates=enable_dl_candidates,
+        compare_families=compare_families,
+        dl_device=dl_device,
+        dl_arch=dl_arch,
+        dl_hyperparams=dl_hyperparams,
+        dl_seed=dl_seed,
+        disable_runsim_features=disable_runsim_features,
+        f1_mode="live",
+        f1_live_source=f1_live_source,
+        f1_live_model=f1_live_model,
+        f1_live_horizon_laps=f1_live_horizon_laps,
+        f1_live_seed=f1_live_seed,
+        f1_live_cache_dir=f1_live_cache_dir,
+        f1_live_replay_path=f1_live_replay_path,
+    )
+    snapshot_path = output_dir / "live_race_snapshot.json"
+    _write_json(snapshot_path, race_payload)
+
+    live_summary = race_payload.get("live_summary")
+    summary_path = output_dir / "live_race_summary.json"
+    if isinstance(live_summary, dict):
+        _write_json(summary_path, live_summary)
+    else:
+        _write_json(
+            summary_path,
+            {
+                "available": False,
+                "reason": "live_summary_missing",
+                "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            },
+        )
+
+    return {
+        "snapshot": str(snapshot_path),
+        "summary": str(summary_path),
+        "trace_path": race_payload.get("trace_path"),
+        "trace_path_jsonl": race_payload.get("trace_path_jsonl"),
+        "trace_format_effective": race_payload.get("trace_format_effective"),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Live weekend pipeline: pre-qualifying, post-qualifying, post-race.",
+        description="Live weekend pipeline: pre-qualifying, post-qualifying, post-race, live-race.",
     )
-    parser.add_argument("--phase", choices=["pre-qualifying", "post-qualifying", "post-race", "full"], required=True)
+    parser.add_argument(
+        "--phase",
+        choices=["pre-qualifying", "post-qualifying", "post-race", "live-race", "full"],
+        required=True,
+    )
     parser.add_argument("--source", choices=["fastf1", "openf1", "local"], required=True)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--round", dest="round_number", type=int, required=True)
@@ -391,6 +491,13 @@ def main() -> None:
     parser.add_argument("--dl-hyperparams", default="{}")
     parser.add_argument("--dl-seed", type=int, default=42)
     parser.add_argument("--disable-runsim-features", action="store_true")
+    parser.add_argument("--f1-mode", choices=["offline", "live"], default="offline")
+    parser.add_argument("--f1-live-source", choices=["auto", "local", "fastf1"], default="auto")
+    parser.add_argument("--f1-live-model", choices=["ssm_v1"], default="ssm_v1")
+    parser.add_argument("--f1-live-horizon-laps", type=int, default=10)
+    parser.add_argument("--f1-live-seed", type=int, default=42)
+    parser.add_argument("--f1-live-cache-dir", default=None)
+    parser.add_argument("--f1-live-replay-path", default=None)
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
@@ -469,6 +576,44 @@ def main() -> None:
         )
         executed.append("post-race")
 
+    if args.phase == "live-race":
+        artifacts["live_race"] = _run_live_race(
+            output_dir=output_dir,
+            source=args.source,
+            year=args.year,
+            round_number=args.round_number,
+            train_seasons=train_seasons,
+            include_standings=args.include_standings,
+            cache_dir=args.cache_dir,
+            weekends_dir=args.weekends_dir,
+            meeting_name=args.meeting_name,
+            country_name=args.country_name,
+            enable_dl_candidates=args.enable_dl_candidates,
+            compare_families=compare_families,
+            dl_device=args.dl_device,
+            dl_arch=args.dl_arch,
+            dl_hyperparams=dl_hyperparams,
+            dl_seed=args.dl_seed,
+            disable_runsim_features=args.disable_runsim_features,
+            f1_live_source=args.f1_live_source,
+            f1_live_model=args.f1_live_model,
+            f1_live_horizon_laps=args.f1_live_horizon_laps,
+            f1_live_seed=args.f1_live_seed,
+            f1_live_cache_dir=args.f1_live_cache_dir,
+            f1_live_replay_path=args.f1_live_replay_path,
+        )
+        executed.append("live-race")
+
+    live_snapshot_payload: Optional[dict[str, Any]] = None
+    if args.phase == "live-race":
+        live_artifacts = artifacts.get("live_race")
+        if isinstance(live_artifacts, dict):
+            snapshot_path = live_artifacts.get("snapshot")
+            if isinstance(snapshot_path, str) and snapshot_path:
+                live_snapshot_payload = _load_json(Path(snapshot_path))
+
+    f1_mode_effective = "live" if args.phase == "live-race" else str(args.f1_mode)
+
     payload = {
         "sport": "F1",
         "project": "Rising Qualification Prediction",
@@ -485,10 +630,35 @@ def main() -> None:
         "dl_arch": args.dl_arch,
         "dl_seed": int(args.dl_seed),
         "disable_runsim_features": bool(args.disable_runsim_features),
+        "f1_mode": str(args.f1_mode),
+        "f1_mode_effective": f1_mode_effective,
+        "f1_live_source": str(args.f1_live_source),
+        "f1_live_model": str(args.f1_live_model),
+        "f1_live_horizon_laps": int(args.f1_live_horizon_laps),
+        "f1_live_seed": int(args.f1_live_seed),
+        "f1_live_cache_dir": args.f1_live_cache_dir,
+        "f1_live_replay_path": args.f1_live_replay_path,
         "output_dir": str(output_dir),
         "artifacts": artifacts,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
+    if isinstance(live_snapshot_payload, dict):
+        for key in [
+            "version",
+            "rows",
+            "notes",
+            "model_name",
+            "model_family",
+            "device_used",
+            "dl_available",
+            "candidate_leaderboard",
+            "live_summary",
+            "trace_path",
+            "trace_path_jsonl",
+            "trace_format_effective",
+        ]:
+            if key in live_snapshot_payload:
+                payload[key] = live_snapshot_payload[key]
 
     if args.output_path:
         _write_json(Path(args.output_path), payload)

@@ -31,6 +31,13 @@ class PredictionConfig:
     f1_pl_temperature: float = 1.0
     f1_listwise_seed: int = 42
     shadow_eval: bool = True
+    f1_mode: str = "offline"
+    f1_live_source: str = "auto"
+    f1_live_model: str = "ssm_v1"
+    f1_live_horizon_laps: int = 10
+    f1_live_seed: int = 42
+    f1_live_cache_dir: Optional[str] = None
+    f1_live_replay_path: Optional[str] = None
 
 
 @dataclass
@@ -43,3 +50,4 @@ class PredictionResult:
     device_used: Optional[str]
     dl_available: bool
     candidate_leaderboard: List[dict[str, Any]]
+    extras: dict[str, Any] = field(default_factory=dict)

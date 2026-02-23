@@ -593,7 +593,7 @@ function paramsForProject(kind) {
         kind: "select",
         required: false,
         default: null,
-        options: ["pre-qualifying", "post-qualifying", "post-race", "full"],
+        options: ["pre-qualifying", "post-qualifying", "post-race", "live-race", "full"],
       },
       {
         name: "source",
@@ -660,6 +660,58 @@ function paramsForProject(kind) {
         kind: "int",
         required: false,
         default: 42,
+      },
+      {
+        name: "f1_mode",
+        label: "F1 Mode",
+        kind: "select",
+        required: false,
+        default: "offline",
+        options: ["offline", "live"],
+      },
+      {
+        name: "f1_live_source",
+        label: "F1 Live Source",
+        kind: "select",
+        required: false,
+        default: "auto",
+        options: ["auto", "local", "fastf1"],
+      },
+      {
+        name: "f1_live_model",
+        label: "F1 Live Model",
+        kind: "select",
+        required: false,
+        default: "ssm_v1",
+        options: ["ssm_v1"],
+      },
+      {
+        name: "f1_live_horizon_laps",
+        label: "F1 Live Horizon",
+        kind: "int",
+        required: false,
+        default: 10,
+      },
+      {
+        name: "f1_live_seed",
+        label: "F1 Live Seed",
+        kind: "int",
+        required: false,
+        default: 42,
+      },
+      {
+        name: "f1_live_cache_dir",
+        label: "F1 Live Cache Dir",
+        kind: "string",
+        required: false,
+        default: null,
+      },
+      {
+        name: "f1_live_replay_path",
+        label: "F1 Live Replay",
+        kind: "string",
+        required: false,
+        default: null,
       },
       {
         name: "shadow_eval",
@@ -1342,6 +1394,35 @@ function buildCommand(project, params, outputPath) {
     const f1ListwiseSeed = optionalInt(params.f1_listwise_seed);
     if (f1ListwiseSeed !== null) {
       args.push("--f1_listwise_seed", String(f1ListwiseSeed));
+    }
+    const f1Mode = typeof params.f1_mode === "string" ? params.f1_mode.trim() : "";
+    if (f1Mode) {
+      args.push("--f1_mode", f1Mode);
+    }
+    const f1LiveSource = typeof params.f1_live_source === "string" ? params.f1_live_source.trim() : "";
+    if (f1LiveSource) {
+      args.push("--f1_live_source", f1LiveSource);
+    }
+    const f1LiveModel = typeof params.f1_live_model === "string" ? params.f1_live_model.trim() : "";
+    if (f1LiveModel) {
+      args.push("--f1_live_model", f1LiveModel);
+    }
+    const f1LiveHorizonLaps = optionalInt(params.f1_live_horizon_laps);
+    if (f1LiveHorizonLaps !== null && f1LiveHorizonLaps > 0) {
+      args.push("--f1_live_horizon_laps", String(f1LiveHorizonLaps));
+    }
+    const f1LiveSeed = optionalInt(params.f1_live_seed);
+    if (f1LiveSeed !== null) {
+      args.push("--f1_live_seed", String(f1LiveSeed));
+    }
+    const f1LiveCacheDir = typeof params.f1_live_cache_dir === "string" ? params.f1_live_cache_dir.trim() : "";
+    if (f1LiveCacheDir) {
+      args.push("--f1_live_cache_dir", f1LiveCacheDir);
+    }
+    const f1LiveReplayPath =
+      typeof params.f1_live_replay_path === "string" ? params.f1_live_replay_path.trim() : "";
+    if (f1LiveReplayPath) {
+      args.push("--f1_live_replay_path", f1LiveReplayPath);
     }
     const shadowEval =
       typeof params.shadow_eval === "boolean"

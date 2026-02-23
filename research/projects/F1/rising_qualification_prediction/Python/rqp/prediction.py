@@ -10,6 +10,7 @@ import pandas as pd
 
 from .config import PredictionConfig, PredictionResult
 from .data import build_current_features, build_training_data
+from .live_runner import run_live_race_prediction
 from .providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
 from .training import train_model
 from .utils import format_prediction_table
@@ -835,6 +836,47 @@ def _merge_predicted_qualifying_context(
 
 
 def run_prediction(config: PredictionConfig) -> PredictionResult:
+    mode_live = str(config.f1_mode or "offline").strip().lower() == "live"
+    if mode_live:
+        if str(config.mode).strip().lower() != "race":
+            notes = ["f1_mode=live is only supported with mode=race in Horizon B v1."]
+            return PredictionResult(
+                version=compute_version(config.round_number, config.include_standings),
+                table=pd.DataFrame(),
+                notes=notes,
+                model_name="live_disabled",
+                model_family="live",
+                device_used=None,
+                dl_available=False,
+                candidate_leaderboard=[],
+                extras={
+                    "live_summary": {
+                        "available": False,
+                        "reason": "live_mode_requires_race",
+                        "f1_mode": str(config.f1_mode),
+                    }
+                },
+            )
+        live_result = run_live_race_prediction(config)
+        live_summary = dict(live_result.summary)
+        version = compute_version(config.round_number, config.include_standings)
+        return PredictionResult(
+            version=version,
+            table=live_result.snapshot,
+            notes=live_result.notes,
+            model_name=str(config.f1_live_model or "ssm_v1"),
+            model_family="live_ssm",
+            device_used=None,
+            dl_available=False,
+            candidate_leaderboard=[],
+            extras={
+                "live_summary": live_summary,
+                "trace_path": live_summary.get("trace_path"),
+                "trace_path_jsonl": live_summary.get("trace_path_jsonl"),
+                "trace_format_effective": live_summary.get("trace_format_effective"),
+            },
+        )
+
     provider: BaseProvider
     if config.source == "fastf1":
         provider = FastF1Provider(config.cache_dir)

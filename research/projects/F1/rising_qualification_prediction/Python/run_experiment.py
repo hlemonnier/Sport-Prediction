@@ -210,6 +210,8 @@ def _prediction_payload(config: PredictionConfig, *, workflow: str) -> tuple[dic
             candidate_leaderboard=list(result.candidate_leaderboard),
             selected_model_name=result.model_name,
         )
+    if isinstance(result.extras, dict) and result.extras:
+        payload.update(result.extras)
     return payload, rows
 
 
@@ -220,6 +222,7 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
     dl = profile.get("dl", {})
     f1 = profile.get("f1", {})
     f1_listwise = f1.get("listwise", {}) if isinstance(f1, dict) else {}
+    f1_live = f1.get("live", {}) if isinstance(f1, dict) else {}
     if not isinstance(defaults, dict):
         defaults = {}
     if not isinstance(training, dict):
@@ -232,6 +235,8 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
         f1 = {}
     if not isinstance(f1_listwise, dict):
         f1_listwise = {}
+    if not isinstance(f1_live, dict):
+        f1_live = {}
 
     year = _as_int(args.year if args.year is not None else defaults.get("year"), 2025)
     round_number = _as_int(args.round_number if args.round_number is not None else defaults.get("round_number"), 1)
@@ -287,6 +292,43 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
             42,
         ),
         "shadow_eval": _as_on_off(shadow_eval_raw, True),
+        "f1_mode": str(
+            args.f1_mode
+            if getattr(args, "f1_mode", None) is not None
+            else f1.get("mode", "offline"),
+        ).strip().lower(),
+        "f1_live_source": str(
+            args.f1_live_source
+            if getattr(args, "f1_live_source", None) is not None
+            else f1_live.get("source", "auto"),
+        ).strip().lower(),
+        "f1_live_model": str(
+            args.f1_live_model
+            if getattr(args, "f1_live_model", None) is not None
+            else f1_live.get("model", "ssm_v1"),
+        ).strip().lower(),
+        "f1_live_horizon_laps": _as_int(
+            getattr(args, "f1_live_horizon_laps", None)
+            if getattr(args, "f1_live_horizon_laps", None) is not None
+            else f1_live.get("horizon_laps", 10),
+            10,
+        ),
+        "f1_live_seed": _as_int(
+            getattr(args, "f1_live_seed", None)
+            if getattr(args, "f1_live_seed", None) is not None
+            else f1_live.get("seed", 42),
+            42,
+        ),
+        "f1_live_cache_dir": _resolve_project_path(
+            getattr(args, "f1_live_cache_dir", None)
+            if getattr(args, "f1_live_cache_dir", None) is not None
+            else f1_live.get("cache_dir")
+        ),
+        "f1_live_replay_path": _resolve_project_path(
+            getattr(args, "f1_live_replay_path", None)
+            if getattr(args, "f1_live_replay_path", None) is not None
+            else f1_live.get("replay_path")
+        ),
     }
 
 
@@ -323,6 +365,13 @@ def _build_prediction_config(
         f1_pl_temperature=float(base.get("f1_pl_temperature", 1.0)),
         f1_listwise_seed=int(base.get("f1_listwise_seed", 42)),
         shadow_eval=bool(base.get("shadow_eval", True)),
+        f1_mode=str(base.get("f1_mode", "offline")),
+        f1_live_source=str(base.get("f1_live_source", "auto")),
+        f1_live_model=str(base.get("f1_live_model", "ssm_v1")),
+        f1_live_horizon_laps=int(base.get("f1_live_horizon_laps", 10)),
+        f1_live_seed=int(base.get("f1_live_seed", 42)),
+        f1_live_cache_dir=base.get("f1_live_cache_dir"),
+        f1_live_replay_path=base.get("f1_live_replay_path"),
     )
 
 
@@ -518,8 +567,17 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
     cmd.extend(["--dl-arch", str(base["dl_arch"])])
     cmd.extend(["--dl-hyperparams", json.dumps(base["dl_hyperparams"])])
     cmd.extend(["--dl-seed", str(base["dl_seed"])])
+    cmd.extend(["--f1-mode", str(base["f1_mode"])])
+    cmd.extend(["--f1-live-source", str(base["f1_live_source"])])
+    cmd.extend(["--f1-live-model", str(base["f1_live_model"])])
+    cmd.extend(["--f1-live-horizon-laps", str(base["f1_live_horizon_laps"])])
+    cmd.extend(["--f1-live-seed", str(base["f1_live_seed"])])
     if base.get("cache_dir"):
         cmd.extend(["--cache-dir", str(base["cache_dir"])])
+    if base.get("f1_live_cache_dir"):
+        cmd.extend(["--f1-live-cache-dir", str(base["f1_live_cache_dir"])])
+    if base.get("f1_live_replay_path"):
+        cmd.extend(["--f1-live-replay-path", str(base["f1_live_replay_path"])])
 
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -547,6 +605,13 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
             "dl_arch": str(base["dl_arch"]),
             "dl_hyperparams": dict(base["dl_hyperparams"]),
             "dl_seed": int(base["dl_seed"]),
+            "f1_mode": str(base["f1_mode"]),
+            "f1_live_source": str(base["f1_live_source"]),
+            "f1_live_model": str(base["f1_live_model"]),
+            "f1_live_horizon_laps": int(base["f1_live_horizon_laps"]),
+            "f1_live_seed": int(base["f1_live_seed"]),
+            "f1_live_cache_dir": base.get("f1_live_cache_dir"),
+            "f1_live_replay_path": base.get("f1_live_replay_path"),
             "output_dir": str(output_dir),
         },
         rows=rows,
@@ -762,6 +827,13 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_pl_samples", type=int, default=None)
         parser.add_argument("--f1_pl_temperature", type=float, default=None)
         parser.add_argument("--f1_listwise_seed", type=int, default=None)
+        parser.add_argument("--f1_mode", choices=["offline", "live"], default=None)
+        parser.add_argument("--f1_live_source", choices=["auto", "local", "fastf1"], default=None)
+        parser.add_argument("--f1_live_model", choices=["ssm_v1"], default=None)
+        parser.add_argument("--f1_live_horizon_laps", type=int, default=None)
+        parser.add_argument("--f1_live_seed", type=int, default=None)
+        parser.add_argument("--f1_live_cache_dir", default=None)
+        parser.add_argument("--f1_live_replay_path", default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default=None)
         parser.add_argument("--output-format", choices=["text", "json"], default="json")
         parser.add_argument("--output-path", default=None)
@@ -800,6 +872,13 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_pl_samples", type=int, default=2000)
         parser.add_argument("--f1_pl_temperature", type=float, default=1.0)
         parser.add_argument("--f1_listwise_seed", type=int, default=42)
+        parser.add_argument("--f1_mode", choices=["offline", "live"], default="offline")
+        parser.add_argument("--f1_live_source", choices=["auto", "local", "fastf1"], default="auto")
+        parser.add_argument("--f1_live_model", choices=["ssm_v1"], default="ssm_v1")
+        parser.add_argument("--f1_live_horizon_laps", type=int, default=10)
+        parser.add_argument("--f1_live_seed", type=int, default=42)
+        parser.add_argument("--f1_live_cache_dir", default=None)
+        parser.add_argument("--f1_live_replay_path", default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
         parser.add_argument("--output-format", choices=["text", "json"], default="text")
         parser.add_argument("--output-path", default=None)
@@ -884,6 +963,13 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         f1_pl_temperature=args.f1_pl_temperature,
         f1_listwise_seed=args.f1_listwise_seed,
         shadow_eval=_as_on_off(args.shadow_eval, True),
+        f1_mode=args.f1_mode,
+        f1_live_source=args.f1_live_source,
+        f1_live_model=args.f1_live_model,
+        f1_live_horizon_laps=args.f1_live_horizon_laps,
+        f1_live_seed=args.f1_live_seed,
+        f1_live_cache_dir=args.f1_live_cache_dir,
+        f1_live_replay_path=args.f1_live_replay_path,
     )
 
     result = run_prediction(config)
@@ -909,6 +995,8 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
             candidate_leaderboard=list(result.candidate_leaderboard),
             selected_model_name=result.model_name,
         )
+    if isinstance(result.extras, dict) and result.extras:
+        payload.update(result.extras)
 
     if args.output_format == "json":
         if args.output_path:

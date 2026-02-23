@@ -33,6 +33,17 @@
       "early_stopping_patience": 25
     }
   },
+  "f1": {
+    "mode": "offline",
+    "live": {
+      "source": "auto",
+      "model": "ssm_v1",
+      "horizon_laps": 10,
+      "seed": 42,
+      "cache_dir": null,
+      "replay_path": null
+    }
+  },
   "evaluation": {
     "gates": {
       "block_stability_enabled": true,

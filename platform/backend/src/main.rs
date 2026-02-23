@@ -1282,6 +1282,7 @@ fn params_for_project(kind: &ProjectKind) -> Vec<ParamDef> {
                     "pre-qualifying".into(),
                     "post-qualifying".into(),
                     "post-race".into(),
+                    "live-race".into(),
                     "full".into(),
                 ]),
             },
@@ -1361,6 +1362,62 @@ fn params_for_project(kind: &ProjectKind) -> Vec<ParamDef> {
                 kind: "int".to_string(),
                 required: false,
                 default: Some(Value::Number(42.into())),
+                options: None,
+            },
+            ParamDef {
+                name: "f1_mode".to_string(),
+                label: "F1 Mode".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("offline".to_string())),
+                options: Some(vec!["offline".into(), "live".into()]),
+            },
+            ParamDef {
+                name: "f1_live_source".to_string(),
+                label: "F1 Live Source".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("auto".to_string())),
+                options: Some(vec!["auto".into(), "local".into(), "fastf1".into()]),
+            },
+            ParamDef {
+                name: "f1_live_model".to_string(),
+                label: "F1 Live Model".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("ssm_v1".to_string())),
+                options: Some(vec!["ssm_v1".into()]),
+            },
+            ParamDef {
+                name: "f1_live_horizon_laps".to_string(),
+                label: "F1 Live Horizon".to_string(),
+                kind: "int".to_string(),
+                required: false,
+                default: Some(Value::Number(10.into())),
+                options: None,
+            },
+            ParamDef {
+                name: "f1_live_seed".to_string(),
+                label: "F1 Live Seed".to_string(),
+                kind: "int".to_string(),
+                required: false,
+                default: Some(Value::Number(42.into())),
+                options: None,
+            },
+            ParamDef {
+                name: "f1_live_cache_dir".to_string(),
+                label: "F1 Live Cache Dir".to_string(),
+                kind: "string".to_string(),
+                required: false,
+                default: None,
+                options: None,
+            },
+            ParamDef {
+                name: "f1_live_replay_path".to_string(),
+                label: "F1 Live Replay".to_string(),
+                kind: "string".to_string(),
+                required: false,
+                default: None,
                 options: None,
             },
             ParamDef {
@@ -1803,6 +1860,28 @@ fn build_command(
                         .map(|v| v.to_string())
                 });
             let f1_listwise_seed = get_i64(params, "f1_listwise_seed", None, false)?;
+            let f1_mode = params
+                .get("f1_mode")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let f1_live_source = params
+                .get("f1_live_source")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let f1_live_model = params
+                .get("f1_live_model")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let f1_live_horizon_laps = get_i64(params, "f1_live_horizon_laps", None, false)?;
+            let f1_live_seed = get_i64(params, "f1_live_seed", None, false)?;
+            let f1_live_cache_dir = params
+                .get("f1_live_cache_dir")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let f1_live_replay_path = params
+                .get("f1_live_replay_path")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
             let shadow_eval = params
                 .get("shadow_eval")
                 .and_then(|v| {
@@ -1845,6 +1924,30 @@ fn build_command(
             }
             if f1_listwise_seed != 0 {
                 args.extend(["--f1_listwise_seed".to_string(), f1_listwise_seed.to_string()]);
+            }
+            if let Some(value) = f1_mode {
+                args.extend(["--f1_mode".to_string(), value.to_string()]);
+            }
+            if let Some(value) = f1_live_source {
+                args.extend(["--f1_live_source".to_string(), value.to_string()]);
+            }
+            if let Some(value) = f1_live_model {
+                args.extend(["--f1_live_model".to_string(), value.to_string()]);
+            }
+            if f1_live_horizon_laps > 0 {
+                args.extend([
+                    "--f1_live_horizon_laps".to_string(),
+                    f1_live_horizon_laps.to_string(),
+                ]);
+            }
+            if f1_live_seed != 0 {
+                args.extend(["--f1_live_seed".to_string(), f1_live_seed.to_string()]);
+            }
+            if let Some(value) = f1_live_cache_dir {
+                args.extend(["--f1_live_cache_dir".to_string(), value.to_string()]);
+            }
+            if let Some(value) = f1_live_replay_path {
+                args.extend(["--f1_live_replay_path".to_string(), value.to_string()]);
             }
             if let Some(value) = shadow_eval {
                 args.extend(["--shadow_eval".to_string(), value]);

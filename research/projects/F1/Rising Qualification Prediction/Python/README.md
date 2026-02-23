@@ -9,6 +9,12 @@ cd "Rising Qualification Prediction/Python"
 python run_prediction.py --mode qualifying --source fastf1 --year 2025 --round 1 --cache-dir .cache/fastf1
 ```
 
+`run_prediction.py` supports `--train-policy` when `--train-seasons auto`:
+- `legacy_auto` (default): `Y-2,Y-1,Y`
+- `rolling`: `Y-3,Y-2,Y-1,Y`
+- `strict_transfer`: `Y-4,Y-3,Y-2,Y` (excludes `Y-1`)
+- `frozen_preseason`: `Y-4,Y-3,Y-2`
+
 ## Model selection
 - The training step now selects the best model on historical rounds with walk-forward validation (MAE).
 - Candidate models:
@@ -19,7 +25,9 @@ python run_prediction.py --mode qualifying --source fastf1 --year 2025 --round 1
 
 ## Modes
 - `qualifying`: predicts Q3 outcome (top 10) using FP1/FP2/FP3.
-- `race`: predicts race top 10 once qualifying results are available.
+- `race`: predicts race top 10.
+  - If qualifying results are available, race uses real qualifying + predicted qualifying context.
+  - If qualifying results are not available yet, race runs in FP-only mode with predicted qualifying context.
 
 ## Data pipeline (OpenF1 + FastF1)
 Build a reusable dataset for training/analysis:
@@ -71,3 +79,53 @@ python run_prediction.py --mode race --source local --year 2025 --round 5 --incl
 Notes:
 - `--source local` uses only local CSV/JSON files under `data/f1/weekends/`.
 - No FastF1/OpenF1 API request is made in local mode.
+
+## 2026 season operational pipeline
+Goal: train on historical years, then run by race-weekend phases for the new season.
+
+Typical flow per weekend:
+1. `pre-qualifying`: only FP data available -> run qualifying + race previews.
+2. `post-qualifying`: qualifying done -> rerun race prediction with real qualifying.
+3. `post-race`: race done -> evaluate predictions vs real qualifying/race results.
+
+CLI:
+
+```bash
+cd "Rising Qualification Prediction/Python"
+python run_live_weekend_pipeline.py \
+  --phase pre-qualifying \
+  --source local \
+  --year 2026 \
+  --round 1 \
+  --train-seasons auto \
+  --train-policy strict_transfer \
+  --include-standings \
+  --weekends-dir data/f1/weekends
+```
+
+```bash
+python run_live_weekend_pipeline.py \
+  --phase post-qualifying \
+  --source local \
+  --year 2026 \
+  --round 1 \
+  --train-seasons auto \
+  --train-policy strict_transfer \
+  --include-standings \
+  --weekends-dir data/f1/weekends
+```
+
+```bash
+python run_live_weekend_pipeline.py \
+  --phase post-race \
+  --source local \
+  --year 2026 \
+  --round 1 \
+  --train-seasons auto \
+  --train-policy strict_transfer \
+  --include-standings \
+  --weekends-dir data/f1/weekends
+```
+
+Artifacts are saved under:
+- `data/f1/live_pipeline/<year>/round_<XX>/`

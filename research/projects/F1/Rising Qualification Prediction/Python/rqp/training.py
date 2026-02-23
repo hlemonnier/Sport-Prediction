@@ -186,18 +186,31 @@ class FittedModel:
 
 
 class QualifyingPositionBaseline:
-    """Race baseline that predicts finish order from qualifying order."""
+    """Race baseline that predicts finish order from qualifying context."""
 
-    def __init__(self, fill_value: float = 10.0) -> None:
+    def __init__(
+        self,
+        fill_value: float = 10.0,
+        primary_column: str = "qualy_position",
+        fallback_column: str = "qualy_position",
+    ) -> None:
         self.fill_value = float(fill_value)
+        self.primary_column = primary_column
+        self.fallback_column = fallback_column
+
+    @staticmethod
+    def _column_values(frame: pd.DataFrame, column: str) -> pd.Series:
+        if column not in frame.columns:
+            return pd.Series(dtype=float)
+        return pd.to_numeric(frame[column], errors="coerce")
 
     def predict(self, frame: pd.DataFrame) -> np.ndarray:
         if frame.empty:
             return np.asarray([], dtype=float)
-        if "qualy_position" not in frame.columns:
-            return np.full(shape=(len(frame),), fill_value=self.fill_value, dtype=float)
-        values = pd.to_numeric(frame["qualy_position"], errors="coerce")
-        if values.notna().sum() == 0:
+        values = self._column_values(frame, self.primary_column)
+        if values.empty or values.notna().sum() == 0:
+            values = self._column_values(frame, self.fallback_column)
+        if values.empty or values.notna().sum() == 0:
             return np.full(shape=(len(frame),), fill_value=self.fill_value, dtype=float)
         fill = float(values.median(skipna=True))
         if not np.isfinite(fill):
@@ -721,7 +734,8 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             event_count = int(event_series.astype(int).nunique())
 
     candidates = _candidate_models()
-    race_baseline_supported = "qualy_position" in feature_cols
+    race_baseline_col = "qualy_context_position" if "qualy_context_position" in feature_cols else "qualy_position"
+    race_baseline_supported = race_baseline_col in feature_cols
     race_pace_baseline_cols = [
         col for col in ["fp_race_sim_rank", "fp_race_sim_delta", "event_pace_index"] if col in feature_cols
     ]
@@ -779,7 +793,7 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             baseline_score = _evaluate_column_baseline(
                 train=train,
                 folds=folds,
-                column="qualy_position",
+                column=race_baseline_col,
                 name="qualifying_baseline",
                 default_fill=10.0,
             )
@@ -869,8 +883,12 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
         return fill
 
     if selected_from_cv == "qualifying_baseline":
-        fill_value = _median_fill("qualy_position", 10.0)
-        selected_model = QualifyingPositionBaseline(fill_value=fill_value)
+        fill_value = _median_fill(race_baseline_col, 10.0)
+        selected_model = QualifyingPositionBaseline(
+            fill_value=fill_value,
+            primary_column=race_baseline_col,
+            fallback_column="qualy_position",
+        )
         selected_name = "qualifying_baseline"
     elif selected_from_cv and selected_from_cv.startswith("pace_baseline::"):
         _, _, baseline_col = selected_from_cv.partition("::")
@@ -913,8 +931,12 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             break
 
     if selected_model is None and race_baseline_supported:
-        fill_value = _median_fill("qualy_position", 10.0)
-        selected_model = QualifyingPositionBaseline(fill_value=fill_value)
+        fill_value = _median_fill(race_baseline_col, 10.0)
+        selected_model = QualifyingPositionBaseline(
+            fill_value=fill_value,
+            primary_column=race_baseline_col,
+            fallback_column="qualy_position",
+        )
         selected_name = "qualifying_baseline"
         notes.append("Fallback prioritaire active: baseline qualif.")
     if selected_model is None and qualifying_baseline_supported:
@@ -958,7 +980,7 @@ def train_model(train: pd.DataFrame, feature_cols: List[str]) -> TrainingResult:
             pass
 
     if selected_name == "qualifying_baseline":
-        notes.append("Prediction race: baseline qualifying position (guardrail anti-surapprentissage).")
+        notes.append("Prediction race: baseline qualif contextuelle (qualif + signal predit).")
     elif selected_name and selected_name.startswith("pace_baseline::"):
         notes.append("Prediction qualif: baseline pace local (FP/sprint).")
     elif selected_name and selected_name.startswith("pace_blend::"):

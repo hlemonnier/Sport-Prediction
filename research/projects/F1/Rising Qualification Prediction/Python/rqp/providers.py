@@ -14,7 +14,7 @@ import pandas as pd
 import requests
 
 from .constants import POINTS_TABLE
-from .utils import first_available, merge_fp_frames
+from .utils import first_available, merge_fp_frames, normalize_event_name
 
 try:
     import fastf1
@@ -36,6 +36,9 @@ class BaseProvider:
         raise NotImplementedError
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:
+        return None
+
+    def get_track_stats(self, year: int, round_number: int) -> Optional[dict[str, float]]:
         return None
 
 
@@ -389,6 +392,7 @@ class LocalWeekendProvider(BaseProvider):
                 self.weekends_root = self.project_root / self.weekends_root
         else:
             self.weekends_root = self.project_root / "data" / "f1" / "weekends"
+        self._event_summary_cache: dict[tuple[int, int], Optional[dict[str, object]]] = {}
 
     @staticmethod
     def _round_number_from_name(name: str) -> Optional[int]:
@@ -786,6 +790,215 @@ class LocalWeekendProvider(BaseProvider):
             return None
         matches.sort(key=lambda s: self._safe_int(s.get("session_order"), default=999))
         return matches[0]
+
+    @staticmethod
+    def _track_status_codes(value: object) -> set[str]:
+        if value is None:
+            return set()
+        try:
+            if pd.isna(value):
+                return set()
+        except Exception:
+            pass
+        text = str(value).strip()
+        if not text:
+            return set()
+        return {char for char in text if char.isdigit()}
+
+    def _race_event_summary(self, year: int, round_number: int) -> Optional[dict[str, object]]:
+        cache_key = (int(year), int(round_number))
+        if cache_key in self._event_summary_cache:
+            return self._event_summary_cache[cache_key]
+
+        weekend = self._weekend_for_round(year, round_number)
+        if weekend is None:
+            self._event_summary_cache[cache_key] = None
+            return None
+        event_name_norm = normalize_event_name(weekend.get("event_name"))
+
+        qualy = self.get_qualifying_results(year, round_number)
+        race = self.get_race_results(year, round_number)
+        if qualy.empty or race.empty:
+            self._event_summary_cache[cache_key] = None
+            return None
+
+        qualy_pos = pd.DataFrame(
+            {
+                "driver_id": qualy["driver_id"].astype(str),
+                "qualy_position": pd.to_numeric(qualy.get("position"), errors="coerce"),
+            },
+        )
+        race_pos = pd.DataFrame(
+            {
+                "driver_id": race["driver_id"].astype(str),
+                "race_position": pd.to_numeric(race.get("position"), errors="coerce"),
+            },
+        )
+        merged = qualy_pos.merge(race_pos, on="driver_id", how="inner")
+        merged = merged.dropna(subset=["qualy_position", "race_position"])
+        if merged.empty:
+            self._event_summary_cache[cache_key] = None
+            return None
+
+        field_size = float(len(merged))
+        pos_delta = merged["qualy_position"] - merged["race_position"]
+        overtake_propensity = float(pos_delta.abs().mean() / max(1.0, field_size - 1.0))
+        overtake_propensity = float(min(1.0, max(0.0, overtake_propensity)))
+        grid_corr = merged["qualy_position"].corr(merged["race_position"], method="spearman")
+        grid_stability = 0.5 if pd.isna(grid_corr) else float(min(1.0, max(0.0, abs(grid_corr))))
+
+        weekend_dir, sessions = self._session_entries(year, round_number)
+        race_entry = self._find_session_entry(sessions, "race")
+        laps = self._read_session_csv(weekend_dir, race_entry, "laps_path") if race_entry else pd.DataFrame()
+        race_results_raw = (
+            self._read_session_csv(weekend_dir, race_entry, "results_path") if race_entry else pd.DataFrame()
+        )
+
+        safety_car_presence = 0.0
+        sc_lap_ratio = 0.0
+        vsc_lap_ratio = 0.0
+        pit_stop_intensity = 0.0
+        if not laps.empty:
+            status_col = first_available(laps, ["TrackStatus", "track_status"])
+            lap_number_col = first_available(laps, ["LapNumber", "lap_number"])
+            if status_col:
+                if lap_number_col:
+                    lap_numbers = pd.to_numeric(laps[lap_number_col], errors="coerce")
+                    lap_df = pd.DataFrame({"lap": lap_numbers, "status": laps[status_col]})
+                    lap_df = lap_df.dropna(subset=["lap"])
+                    status_sets = lap_df.groupby("lap", sort=False)["status"].apply(
+                        lambda values: set().union(*(self._track_status_codes(v) for v in values)),
+                    )
+                else:
+                    status_sets = laps[status_col].apply(self._track_status_codes)
+                if not status_sets.empty:
+                    sc_flags = status_sets.apply(lambda codes: ("4" in codes) or ("6" in codes) or ("7" in codes))
+                    vsc_flags = status_sets.apply(lambda codes: ("6" in codes) or ("7" in codes))
+                    sc_lap_ratio = float(sc_flags.mean())
+                    vsc_lap_ratio = float(vsc_flags.mean())
+                    safety_car_presence = float(sc_flags.any())
+
+            driver_col = first_available(laps, ["DriverNumber", "driver_number", "Driver", "driver_id"])
+            pit_in_col = first_available(laps, ["PitInTime", "pit_in_time", "pit_in"])
+            if driver_col and pit_in_col:
+                work = pd.DataFrame(
+                    {
+                        "driver_id": laps[driver_col].map(self._normalize_driver_id),
+                        "pit_in": laps[pit_in_col],
+                    },
+                )
+                work = work[(work["driver_id"] != "") & work["pit_in"].notna()]
+                if not work.empty:
+                    pit_count = work.groupby("driver_id", sort=False)["pit_in"].size()
+                    pit_stop_intensity = float(pit_count.mean())
+
+        dnf_rate = 0.0
+        if not race_results_raw.empty:
+            status_col = first_available(race_results_raw, ["Status", "status"])
+            class_col = first_available(race_results_raw, ["ClassifiedPosition", "Classified", "Position"])
+            dnf_mask = pd.Series(False, index=race_results_raw.index, dtype=bool)
+            if status_col:
+                status_text = race_results_raw[status_col].astype(str).str.strip().str.lower()
+                dnf_mask = dnf_mask | status_text.str.contains(
+                    r"retired|accident|disqual|dnf|did not|not classified|collision|damage|engine|gearbox|brake",
+                    regex=True,
+                )
+            if class_col:
+                classified = pd.to_numeric(race_results_raw[class_col], errors="coerce")
+                dnf_mask = dnf_mask | classified.isna()
+            dnf_rate = float(dnf_mask.mean())
+
+        summary: dict[str, object] = {
+            "event_name_norm": event_name_norm,
+            "event_year": int(year),
+            "event_round": int(round_number),
+            "overtake_propensity": overtake_propensity,
+            "grid_stability": grid_stability,
+            "safety_car_presence": float(safety_car_presence),
+            "sc_lap_ratio": float(sc_lap_ratio),
+            "vsc_lap_ratio": float(vsc_lap_ratio),
+            "dnf_rate": float(max(0.0, min(1.0, dnf_rate))),
+            "pit_stop_intensity": float(max(0.0, pit_stop_intensity)),
+        }
+        self._event_summary_cache[cache_key] = summary
+        return summary
+
+    def get_track_stats(self, year: int, round_number: int) -> Optional[dict[str, float]]:
+        weekend = self._weekend_for_round(year, round_number)
+        if weekend is None:
+            return None
+        if not self.weekends_root.exists():
+            return None
+        target_event_norm = normalize_event_name(weekend.get("event_name"))
+
+        history: list[dict[str, object]] = []
+        for year_dir in sorted(self.weekends_root.iterdir(), key=lambda p: p.name):
+            if not year_dir.is_dir():
+                continue
+            try:
+                event_year = int(year_dir.name)
+            except ValueError:
+                continue
+            if event_year > int(year):
+                continue
+            for round_meta in self._weekends_for_year(event_year):
+                event_round = int(round_meta.get("round_number", 0))
+                if event_round <= 0:
+                    continue
+                if event_year == int(year) and event_round >= int(round_number):
+                    continue
+                summary = self._race_event_summary(event_year, event_round)
+                if summary is not None:
+                    history.append(summary)
+
+        if not history:
+            return None
+
+        same_track = [
+            s
+            for s in history
+            if normalize_event_name(s.get("event_name_norm")) == target_event_norm
+        ]
+        source = same_track if same_track else history
+        source_frame = pd.DataFrame(source)
+        if source_frame.empty:
+            return None
+
+        overtake = pd.to_numeric(source_frame.get("overtake_propensity"), errors="coerce")
+        grid_stability = pd.to_numeric(source_frame.get("grid_stability"), errors="coerce")
+        sc_presence = pd.to_numeric(source_frame.get("safety_car_presence"), errors="coerce")
+        sc_lap_ratio = pd.to_numeric(source_frame.get("sc_lap_ratio"), errors="coerce")
+        vsc_lap_ratio = pd.to_numeric(source_frame.get("vsc_lap_ratio"), errors="coerce")
+        dnf_rate = pd.to_numeric(source_frame.get("dnf_rate"), errors="coerce")
+        pit_stop = pd.to_numeric(source_frame.get("pit_stop_intensity"), errors="coerce")
+
+        same_track_count = float(len(same_track))
+        history_count = float(len(source))
+        if same_track_count > 0:
+            reliability = min(1.0, same_track_count / 3.0)
+        else:
+            reliability = min(0.4, history_count / 10.0)
+
+        chaos = (
+            (0.45 * overtake.fillna(overtake.mean(skipna=True)))
+            + (0.35 * sc_presence.fillna(sc_presence.mean(skipna=True)))
+            + (0.20 * dnf_rate.fillna(dnf_rate.mean(skipna=True)))
+        )
+        chaos_value = float(chaos.mean(skipna=True)) if chaos.notna().sum() > 0 else 0.5
+
+        return {
+            "track_overtake_propensity": float(overtake.mean(skipna=True)),
+            "track_grid_stability": float(grid_stability.mean(skipna=True)),
+            "track_safety_car_propensity": float(sc_presence.mean(skipna=True)),
+            "track_sc_lap_ratio": float(sc_lap_ratio.mean(skipna=True)),
+            "track_vsc_lap_ratio": float(vsc_lap_ratio.mean(skipna=True)),
+            "track_dnf_rate": float(dnf_rate.mean(skipna=True)),
+            "track_pit_stop_intensity": float(pit_stop.mean(skipna=True)),
+            "track_same_event_count": same_track_count,
+            "track_history_count": history_count,
+            "track_stats_reliability": float(reliability),
+            "track_chaos_index": float(min(1.0, max(0.0, chaos_value))),
+        }
 
     def list_rounds(self, year: int) -> List[Dict[str, object]]:
         rounds: List[Dict[str, object]] = []

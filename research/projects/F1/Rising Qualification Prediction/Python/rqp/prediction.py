@@ -51,7 +51,22 @@ def _hierarchical_fallback(
 
     components: list[tuple[float, pd.Series]] = []
     if "qualy_position" in features.columns:
-        components.append((0.55, _rank_percentile(features["qualy_position"])))
+        qualy_rank = _rank_percentile(features["qualy_position"])
+        if "track_qualy_importance" in features.columns:
+            qualy_importance = pd.to_numeric(features["track_qualy_importance"], errors="coerce")
+            qualy_importance = qualy_importance.clip(lower=0.0, upper=1.0).fillna(0.6)
+            qualy_rank = (qualy_importance * qualy_rank) + ((1.0 - qualy_importance) * 0.5)
+        components.append((0.45, qualy_rank))
+    if "qualy_context_position" in features.columns:
+        components.append((0.25, _rank_percentile(features["qualy_context_position"])))
+    if "qualy_pred_position" in features.columns:
+        components.append((0.10, _rank_percentile(features["qualy_pred_position"])))
+    if "qualy_pred_rank_pct" in features.columns:
+        pred_pct = pd.to_numeric(features["qualy_pred_rank_pct"], errors="coerce")
+        components.append((0.10, pred_pct.clip(lower=0.0, upper=1.0)))
+    if "qualy_pred_top10_proba" in features.columns:
+        pred_top10 = pd.to_numeric(features["qualy_pred_top10_proba"], errors="coerce")
+        components.append((0.05, _rank_percentile(1.0 - pred_top10)))
     if "qualy_gap_to_best" in features.columns:
         components.append((0.10, _rank_percentile(features["qualy_gap_to_best"])))
 
@@ -80,6 +95,13 @@ def _hierarchical_fallback(
             "event_driver_hist_idx",
             "fp_mean_delta",
             "fp_mean_rank",
+            "qualy_context_position",
+            "qualy_context_position_track_adj",
+            "qualy_position_track_adj",
+            "qualy_pred_position",
+            "qualy_pred_position_track_adj",
+            "qualy_pred_vs_actual_gap",
+            "track_chaos_index",
         ],
     )
     if driver_form is not None:
@@ -193,6 +215,418 @@ def _predict_probabilities(model: Optional[object], preds: pd.Series) -> tuple[p
     return top10, pd.Series(top3, index=preds.index, dtype=float)
 
 
+def _qualifying_feature_sets() -> tuple[List[str], List[str]]:
+    feature_cols = [
+        "fp1_delta",
+        "fp2_delta",
+        "fp3_delta",
+        "sq_delta",
+        "sprint_delta",
+        "fp_mean_delta",
+        "fp_weighted_delta",
+        "fp_quali_sim_delta",
+        "fp_quali_sim_rank",
+        "fp_quali_sim_laps",
+        "quali_sim_sessions_available",
+        "fp_race_sim_delta",
+        "fp_race_sim_rank",
+        "fp_race_sim_laps",
+        "race_sim_sessions_available",
+        "fp_slow_lap_ratio",
+        "fp_quali_vs_race_gap",
+        "fp_delta_std",
+        "pace_sessions_available",
+        "fp_mean_top3_delta",
+        "fp_mean_lap_std",
+        "fp_total_laps",
+        "fp1_rank",
+        "fp2_rank",
+        "fp3_rank",
+        "sq_rank",
+        "sprint_rank",
+        "fp_mean_rank",
+        "driver_ewma_fp_mean_delta",
+        "driver_form_3_fp_mean_delta",
+        "driver_form_5_fp_mean_delta",
+        "driver_ewma_fp_weighted_delta",
+        "driver_form_3_fp_weighted_delta",
+        "driver_ewma_fp_quali_sim_delta",
+        "driver_form_3_fp_quali_sim_delta",
+        "driver_ewma_fp_race_sim_delta",
+        "driver_form_3_fp_race_sim_delta",
+        "driver_form_3_vs_team_fp_weighted_delta",
+        "team_ewma_fp_mean_delta",
+        "team_form_3_fp_mean_delta",
+        "team_form_5_fp_mean_delta",
+        "team_ewma_fp_weighted_delta",
+        "team_form_3_fp_weighted_delta",
+        "event_driver_hist_idx",
+        "event_pace_index",
+        "driver_vs_team_fp_weighted_delta",
+    ]
+    fallback_cols = [
+        "fp_mean_delta",
+        "fp_weighted_delta",
+        "fp_quali_sim_delta",
+        "fp_quali_sim_rank",
+        "fp_quali_sim_laps",
+        "fp_race_sim_delta",
+        "fp_race_sim_rank",
+        "fp_race_sim_laps",
+        "fp_slow_lap_ratio",
+        "fp_quali_vs_race_gap",
+        "fp_delta_std",
+        "pace_sessions_available",
+        "fp_mean_top3_delta",
+        "fp_mean_lap_std",
+        "fp_total_laps",
+        "driver_form_3_fp_mean_delta",
+        "driver_form_5_fp_mean_delta",
+        "driver_ewma_fp_mean_delta",
+        "driver_form_3_fp_weighted_delta",
+        "driver_form_3_fp_quali_sim_delta",
+        "driver_ewma_fp_quali_sim_delta",
+        "driver_form_3_fp_race_sim_delta",
+        "driver_ewma_fp_race_sim_delta",
+        "driver_form_3_vs_team_fp_weighted_delta",
+        "driver_ewma_fp_weighted_delta",
+        "team_form_3_fp_mean_delta",
+        "team_form_5_fp_mean_delta",
+        "event_pace_index",
+        "driver_vs_team_fp_weighted_delta",
+        "event_driver_hist_idx",
+    ]
+    return feature_cols, fallback_cols
+
+
+def _race_feature_sets(include_standings: bool) -> tuple[List[str], List[str]]:
+    feature_cols = [
+        "fp1_delta",
+        "fp2_delta",
+        "fp3_delta",
+        "sq_delta",
+        "sprint_delta",
+        "fp_mean_delta",
+        "fp_weighted_delta",
+        "fp_weighted_delta_track_adj",
+        "fp_quali_sim_delta",
+        "fp_quali_sim_rank",
+        "fp_quali_sim_laps",
+        "quali_sim_sessions_available",
+        "fp_race_sim_delta",
+        "fp_race_sim_delta_track_adj",
+        "fp_race_sim_rank",
+        "fp_race_sim_laps",
+        "race_sim_sessions_available",
+        "fp_slow_lap_ratio",
+        "fp_quali_vs_race_gap",
+        "fp_delta_std",
+        "pace_sessions_available",
+        "fp_mean_top3_delta",
+        "fp_mean_lap_std",
+        "fp_total_laps",
+        "fp1_rank",
+        "fp2_rank",
+        "fp3_rank",
+        "sq_rank",
+        "sprint_rank",
+        "fp_mean_rank",
+        "qualy_position",
+        "qualy_context_position",
+        "qualy_context_position_track_adj",
+        "qualy_position_track_adj",
+        "qualy_gap_to_best",
+        "qualy_gap_track_adj",
+        "qualy_pred_position",
+        "qualy_pred_rank_pct",
+        "qualy_pred_top10_proba",
+        "qualy_pred_top3_proba",
+        "qualy_pred_vs_actual_gap",
+        "qualy_pred_position_track_adj",
+        "driver_ewma_fp_mean_delta",
+        "driver_form_3_fp_mean_delta",
+        "driver_form_5_fp_mean_delta",
+        "driver_ewma_fp_weighted_delta",
+        "driver_form_3_fp_weighted_delta",
+        "driver_ewma_fp_quali_sim_delta",
+        "driver_form_3_fp_quali_sim_delta",
+        "driver_ewma_fp_race_sim_delta",
+        "driver_form_3_fp_race_sim_delta",
+        "driver_form_3_vs_team_fp_weighted_delta",
+        "team_ewma_fp_mean_delta",
+        "team_form_3_fp_mean_delta",
+        "team_form_5_fp_mean_delta",
+        "team_ewma_fp_weighted_delta",
+        "team_form_3_fp_weighted_delta",
+        "event_driver_hist_idx",
+        "event_pace_index",
+        "driver_vs_team_fp_weighted_delta",
+        "track_overtake_propensity",
+        "track_grid_stability",
+        "track_safety_car_propensity",
+        "track_sc_lap_ratio",
+        "track_vsc_lap_ratio",
+        "track_dnf_rate",
+        "track_pit_stop_intensity",
+        "track_same_event_count",
+        "track_history_count",
+        "track_stats_reliability",
+        "track_chaos_index",
+        "track_qualy_importance",
+    ]
+    if include_standings:
+        feature_cols.append("position_start")
+
+    fallback_cols = [
+        "qualy_position",
+        "qualy_context_position",
+        "qualy_context_position_track_adj",
+        "qualy_position_track_adj",
+        "qualy_gap_to_best",
+        "qualy_gap_track_adj",
+        "qualy_pred_position",
+        "qualy_pred_rank_pct",
+        "qualy_pred_top10_proba",
+        "position_start",
+        "fp_weighted_delta",
+        "fp_weighted_delta_track_adj",
+        "fp_quali_sim_delta",
+        "fp_quali_sim_rank",
+        "fp_quali_sim_laps",
+        "fp_race_sim_delta",
+        "fp_race_sim_delta_track_adj",
+        "fp_race_sim_rank",
+        "fp_race_sim_laps",
+        "fp_slow_lap_ratio",
+        "fp_quali_vs_race_gap",
+        "pace_sessions_available",
+        "fp_delta_std",
+        "fp_mean_top3_delta",
+        "driver_form_3_fp_mean_delta",
+        "driver_form_5_fp_mean_delta",
+        "driver_ewma_fp_mean_delta",
+        "driver_form_3_fp_weighted_delta",
+        "driver_form_3_fp_quali_sim_delta",
+        "driver_ewma_fp_quali_sim_delta",
+        "driver_form_3_fp_race_sim_delta",
+        "driver_ewma_fp_race_sim_delta",
+        "driver_form_3_vs_team_fp_weighted_delta",
+        "driver_ewma_fp_weighted_delta",
+        "team_form_3_fp_mean_delta",
+        "team_form_5_fp_mean_delta",
+        "team_form_3_fp_weighted_delta",
+        "team_ewma_fp_weighted_delta",
+        "event_pace_index",
+        "driver_vs_team_fp_weighted_delta",
+        "event_driver_hist_idx",
+        "track_overtake_propensity",
+        "track_safety_car_propensity",
+        "track_chaos_index",
+        "track_qualy_importance",
+    ]
+    return feature_cols, fallback_cols
+
+
+def _build_qualifying_signal_frame(
+    frame: pd.DataFrame,
+    preds: pd.Series,
+    top10: pd.Series,
+    top3: pd.Series,
+) -> pd.DataFrame:
+    if frame.empty:
+        return pd.DataFrame()
+    if "driver_id" not in frame.columns:
+        return pd.DataFrame()
+    out = pd.DataFrame(index=frame.index)
+    out["driver_id"] = frame["driver_id"].astype(str)
+    if "event_key" in frame.columns:
+        out["event_key"] = pd.to_numeric(frame["event_key"], errors="coerce")
+    out["qualy_pred_position"] = pd.to_numeric(preds, errors="coerce")
+    out["qualy_pred_top10_proba"] = pd.to_numeric(top10, errors="coerce")
+    out["qualy_pred_top3_proba"] = pd.to_numeric(top3, errors="coerce")
+    if "event_key" in out.columns:
+        valid = out["event_key"].notna()
+        out["qualy_pred_rank_pct"] = float("nan")
+        if valid.any():
+            out.loc[valid, "qualy_pred_rank_pct"] = (
+                out.loc[valid]
+                .groupby("event_key", sort=False)["qualy_pred_position"]
+                .rank(method="average", pct=True, ascending=True)
+            )
+    else:
+        out["qualy_pred_rank_pct"] = _rank_percentile(out["qualy_pred_position"])
+    subset = ["driver_id"]
+    if "event_key" in out.columns:
+        subset.insert(0, "event_key")
+    out = out.drop_duplicates(subset=subset, keep="last")
+    return out.reset_index(drop=True)
+
+
+def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    out = frame.copy()
+    numeric_cols = [
+        "qualy_position",
+        "qualy_pred_position",
+        "track_qualy_importance",
+        "track_overtake_propensity",
+        "track_safety_car_propensity",
+        "track_chaos_index",
+    ]
+    for col in numeric_cols:
+        if col in out.columns:
+            out[col] = pd.to_numeric(out[col], errors="coerce")
+
+    if "qualy_pred_position" in out.columns and "qualy_position" in out.columns:
+        out["qualy_pred_vs_actual_gap"] = (out["qualy_position"] - out["qualy_pred_position"]).abs()
+    else:
+        out["qualy_pred_vs_actual_gap"] = float("nan")
+
+    if "track_qualy_importance" in out.columns:
+        qualy_importance = out["track_qualy_importance"].clip(lower=0.0, upper=1.0).fillna(0.5)
+    else:
+        overtake_raw = out["track_overtake_propensity"] if "track_overtake_propensity" in out.columns else pd.Series(
+            0.5,
+            index=out.index,
+            dtype=float,
+        )
+        safety_raw = out["track_safety_car_propensity"] if "track_safety_car_propensity" in out.columns else pd.Series(
+            0.2,
+            index=out.index,
+            dtype=float,
+        )
+        overtake = pd.to_numeric(overtake_raw, errors="coerce").reindex(out.index).fillna(0.5)
+        safety = pd.to_numeric(safety_raw, errors="coerce").reindex(out.index).fillna(0.2)
+        qualy_importance = (1.0 - (0.65 * overtake) - (0.35 * safety)).clip(lower=0.0, upper=1.0)
+        out["track_qualy_importance"] = qualy_importance
+
+    if "qualy_pred_position" in out.columns:
+        out["qualy_pred_position_track_adj"] = out["qualy_pred_position"] * (0.35 + qualy_importance)
+    else:
+        out["qualy_pred_position_track_adj"] = float("nan")
+
+    qualy_actual = pd.to_numeric(out.get("qualy_position"), errors="coerce")
+    qualy_pred = pd.to_numeric(out.get("qualy_pred_position"), errors="coerce")
+    if isinstance(qualy_actual, pd.Series) and isinstance(qualy_pred, pd.Series):
+        out["qualy_context_position"] = (qualy_importance * qualy_actual) + ((1.0 - qualy_importance) * qualy_pred)
+        out["qualy_context_position"] = out["qualy_context_position"].where(
+            out["qualy_context_position"].notna(),
+            qualy_actual,
+        )
+        out["qualy_context_position"] = out["qualy_context_position"].where(
+            out["qualy_context_position"].notna(),
+            qualy_pred,
+        )
+    elif isinstance(qualy_actual, pd.Series):
+        out["qualy_context_position"] = qualy_actual
+    elif isinstance(qualy_pred, pd.Series):
+        out["qualy_context_position"] = qualy_pred
+    else:
+        out["qualy_context_position"] = float("nan")
+
+    out["qualy_context_position_track_adj"] = (
+        pd.to_numeric(out["qualy_context_position"], errors="coerce") * (0.35 + qualy_importance)
+    )
+
+    return out
+
+
+def _merge_predicted_qualifying_context(
+    provider: BaseProvider,
+    config: PredictionConfig,
+    race_train: pd.DataFrame,
+    race_features: pd.DataFrame,
+    notes: List[str],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if race_train.empty and race_features.empty:
+        return race_train, race_features
+
+    qual_train, qual_notes = build_training_data(
+        provider=provider,
+        mode="qualifying",
+        train_seasons=config.train_seasons,
+        target_year=config.year,
+        target_round=config.round_number,
+        include_standings=False,
+    )
+    qual_features, qual_feature_notes = build_current_features(
+        provider=provider,
+        mode="qualifying",
+        year=config.year,
+        round_number=config.round_number,
+        include_standings=False,
+        history=qual_train,
+    )
+    for note in qual_notes + qual_feature_notes:
+        note_lower = note.lower()
+        if note_lower.startswith("echec") or "indisponible" in note_lower or "aucune" in note_lower or "pas assez" in note_lower:
+            notes.append(f"[Race<-Quali] {note}")
+
+    if qual_train.empty and qual_features.empty:
+        notes.append("[Race<-Quali] Impossible de construire un signal de qualif predit.")
+        return _add_race_context_interactions(race_train), _add_race_context_interactions(race_features)
+
+    qual_feature_cols, qual_fallback_cols = _qualifying_feature_sets()
+    qual_model = train_model(qual_train, qual_feature_cols)
+    notes.append(f"[Race<-Quali] Modele qualif contexte: {qual_model.model_name}.")
+    for note in qual_model.notes:
+        if note.startswith("Modele retenu:") or note.startswith("Prediction qualif:") or "fallback" in note.lower():
+            notes.append(f"[Race<-Quali] {note}")
+
+    train_signal = pd.DataFrame()
+    if not qual_train.empty:
+        qual_train_pred = predict_with_model(qual_model.model, qual_train, qual_feature_cols, qual_fallback_cols)
+        qual_train_top10, qual_train_top3 = _predict_probabilities(qual_model.model, qual_train_pred)
+        train_signal = _build_qualifying_signal_frame(
+            qual_train,
+            qual_train_pred,
+            qual_train_top10,
+            qual_train_top3,
+        )
+
+    current_signal = pd.DataFrame()
+    if not qual_features.empty:
+        qual_current_pred = predict_with_model(qual_model.model, qual_features, qual_feature_cols, qual_fallback_cols)
+        qual_current_top10, qual_current_top3 = _predict_probabilities(qual_model.model, qual_current_pred)
+        current_signal = _build_qualifying_signal_frame(
+            qual_features,
+            qual_current_pred,
+            qual_current_top10,
+            qual_current_top3,
+        )
+
+    if not race_train.empty and not train_signal.empty:
+        left = race_train.copy()
+        left["driver_id"] = left["driver_id"].astype(str)
+        if "event_key" in left.columns and "event_key" in train_signal.columns:
+            left["event_key"] = pd.to_numeric(left["event_key"], errors="coerce")
+            race_train = left.merge(train_signal, on=["event_key", "driver_id"], how="left")
+        else:
+            race_train = left.merge(
+                train_signal.drop(columns=["event_key"], errors="ignore"),
+                on=["driver_id"],
+                how="left",
+            )
+
+    if not race_features.empty and not current_signal.empty:
+        right = race_features.copy()
+        right["driver_id"] = right["driver_id"].astype(str)
+        if "event_key" in right.columns and "event_key" in current_signal.columns:
+            right["event_key"] = pd.to_numeric(right["event_key"], errors="coerce")
+            race_features = right.merge(current_signal, on=["event_key", "driver_id"], how="left")
+        else:
+            race_features = right.merge(
+                current_signal.drop(columns=["event_key"], errors="ignore"),
+                on=["driver_id"],
+                how="left",
+            )
+
+    race_train = _add_race_context_interactions(race_train)
+    race_features = _add_race_context_interactions(race_features)
+    return race_train, race_features
+
+
 def run_prediction(config: PredictionConfig) -> PredictionResult:
     provider: BaseProvider
     if config.source == "fastf1":
@@ -226,174 +660,19 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
     )
     notes.extend(feature_notes)
 
+    if config.mode == "race":
+        train, features = _merge_predicted_qualifying_context(
+            provider=provider,
+            config=config,
+            race_train=train,
+            race_features=features,
+            notes=notes,
+        )
+
     if config.mode == "qualifying":
-        feature_cols = [
-            "fp1_delta",
-            "fp2_delta",
-            "fp3_delta",
-            "sq_delta",
-            "sprint_delta",
-            "fp_mean_delta",
-            "fp_weighted_delta",
-            "fp_quali_sim_delta",
-            "fp_quali_sim_rank",
-            "fp_quali_sim_laps",
-            "quali_sim_sessions_available",
-            "fp_race_sim_delta",
-            "fp_race_sim_rank",
-            "fp_race_sim_laps",
-            "race_sim_sessions_available",
-            "fp_slow_lap_ratio",
-            "fp_quali_vs_race_gap",
-            "fp_delta_std",
-            "pace_sessions_available",
-            "fp_mean_top3_delta",
-            "fp_mean_lap_std",
-            "fp_total_laps",
-            "fp1_rank",
-            "fp2_rank",
-            "fp3_rank",
-            "sq_rank",
-            "sprint_rank",
-            "fp_mean_rank",
-            "driver_ewma_fp_mean_delta",
-            "driver_form_3_fp_mean_delta",
-            "driver_form_5_fp_mean_delta",
-            "driver_ewma_fp_weighted_delta",
-            "driver_form_3_fp_weighted_delta",
-            "driver_ewma_fp_quali_sim_delta",
-            "driver_form_3_fp_quali_sim_delta",
-            "driver_ewma_fp_race_sim_delta",
-            "driver_form_3_fp_race_sim_delta",
-            "driver_form_3_vs_team_fp_weighted_delta",
-            "team_ewma_fp_mean_delta",
-            "team_form_3_fp_mean_delta",
-            "team_form_5_fp_mean_delta",
-            "team_ewma_fp_weighted_delta",
-            "team_form_3_fp_weighted_delta",
-            "event_driver_hist_idx",
-            "event_pace_index",
-            "driver_vs_team_fp_weighted_delta",
-        ]
-        fallback_cols = [
-            "fp_mean_delta",
-            "fp_weighted_delta",
-            "fp_quali_sim_delta",
-            "fp_quali_sim_rank",
-            "fp_quali_sim_laps",
-            "fp_race_sim_delta",
-            "fp_race_sim_rank",
-            "fp_race_sim_laps",
-            "fp_slow_lap_ratio",
-            "fp_quali_vs_race_gap",
-            "fp_delta_std",
-            "pace_sessions_available",
-            "fp_mean_top3_delta",
-            "fp_mean_lap_std",
-            "fp_total_laps",
-            "driver_form_3_fp_mean_delta",
-            "driver_form_5_fp_mean_delta",
-            "driver_ewma_fp_mean_delta",
-            "driver_form_3_fp_weighted_delta",
-            "driver_form_3_fp_quali_sim_delta",
-            "driver_ewma_fp_quali_sim_delta",
-            "driver_form_3_fp_race_sim_delta",
-            "driver_ewma_fp_race_sim_delta",
-            "driver_form_3_vs_team_fp_weighted_delta",
-            "driver_ewma_fp_weighted_delta",
-            "team_form_3_fp_mean_delta",
-            "team_form_5_fp_mean_delta",
-            "event_pace_index",
-            "driver_vs_team_fp_weighted_delta",
-            "event_driver_hist_idx",
-        ]
+        feature_cols, fallback_cols = _qualifying_feature_sets()
     else:
-        feature_cols = [
-            "fp1_delta",
-            "fp2_delta",
-            "fp3_delta",
-            "sq_delta",
-            "sprint_delta",
-            "fp_mean_delta",
-            "fp_weighted_delta",
-            "fp_quali_sim_delta",
-            "fp_quali_sim_rank",
-            "fp_quali_sim_laps",
-            "quali_sim_sessions_available",
-            "fp_race_sim_delta",
-            "fp_race_sim_rank",
-            "fp_race_sim_laps",
-            "race_sim_sessions_available",
-            "fp_slow_lap_ratio",
-            "fp_quali_vs_race_gap",
-            "fp_delta_std",
-            "pace_sessions_available",
-            "fp_mean_top3_delta",
-            "fp_mean_lap_std",
-            "fp_total_laps",
-            "fp1_rank",
-            "fp2_rank",
-            "fp3_rank",
-            "sq_rank",
-            "sprint_rank",
-            "fp_mean_rank",
-            "qualy_position",
-            "qualy_gap_to_best",
-            "driver_ewma_fp_mean_delta",
-            "driver_form_3_fp_mean_delta",
-            "driver_form_5_fp_mean_delta",
-            "driver_ewma_fp_weighted_delta",
-            "driver_form_3_fp_weighted_delta",
-            "driver_ewma_fp_quali_sim_delta",
-            "driver_form_3_fp_quali_sim_delta",
-            "driver_ewma_fp_race_sim_delta",
-            "driver_form_3_fp_race_sim_delta",
-            "driver_form_3_vs_team_fp_weighted_delta",
-            "team_ewma_fp_mean_delta",
-            "team_form_3_fp_mean_delta",
-            "team_form_5_fp_mean_delta",
-            "team_ewma_fp_weighted_delta",
-            "team_form_3_fp_weighted_delta",
-            "event_driver_hist_idx",
-            "event_pace_index",
-            "driver_vs_team_fp_weighted_delta",
-        ]
-        if config.include_standings:
-            feature_cols.append("position_start")
-        fallback_cols = [
-            "qualy_position",
-            "qualy_gap_to_best",
-            "position_start",
-            "fp_weighted_delta",
-            "fp_quali_sim_delta",
-            "fp_quali_sim_rank",
-            "fp_quali_sim_laps",
-            "fp_race_sim_delta",
-            "fp_race_sim_rank",
-            "fp_race_sim_laps",
-            "fp_slow_lap_ratio",
-            "fp_quali_vs_race_gap",
-            "pace_sessions_available",
-            "fp_delta_std",
-            "fp_mean_top3_delta",
-            "driver_form_3_fp_mean_delta",
-            "driver_form_5_fp_mean_delta",
-            "driver_ewma_fp_mean_delta",
-            "driver_form_3_fp_weighted_delta",
-            "driver_form_3_fp_quali_sim_delta",
-            "driver_ewma_fp_quali_sim_delta",
-            "driver_form_3_fp_race_sim_delta",
-            "driver_ewma_fp_race_sim_delta",
-            "driver_form_3_vs_team_fp_weighted_delta",
-            "driver_ewma_fp_weighted_delta",
-            "team_form_3_fp_mean_delta",
-            "team_form_5_fp_mean_delta",
-            "team_form_3_fp_weighted_delta",
-            "team_ewma_fp_weighted_delta",
-            "event_pace_index",
-            "driver_vs_team_fp_weighted_delta",
-            "event_driver_hist_idx",
-        ]
+        feature_cols, fallback_cols = _race_feature_sets(include_standings=config.include_standings)
 
     training_result = train_model(train, feature_cols)
     notes.extend(training_result.notes)

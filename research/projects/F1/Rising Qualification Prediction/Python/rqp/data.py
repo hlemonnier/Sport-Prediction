@@ -47,6 +47,118 @@ def _event_name_for_round(
     return f"Round {round_number}"
 
 
+def _attach_track_stats(
+    frame: pd.DataFrame,
+    provider: BaseProvider,
+    year: int,
+    round_number: int,
+    notes: List[str],
+) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    getter = getattr(provider, "get_track_stats", None)
+    if getter is None:
+        return _add_track_interactions(frame)
+    try:
+        stats = getter(year, round_number)
+    except (Exception, SystemExit) as exc:
+        notes.append(f"Echec stats circuit {year} round {round_number}: {exc}")
+        return _add_track_interactions(frame)
+    if not isinstance(stats, dict) or not stats:
+        return _add_track_interactions(frame)
+    out = frame.copy()
+    for key, value in stats.items():
+        if value is None:
+            continue
+        numeric = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+        if pd.isna(numeric):
+            continue
+        out[key] = float(numeric)
+    out = _add_track_interactions(out)
+    return out
+
+
+def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    out = frame.copy()
+    track_cols = [
+        "track_overtake_propensity",
+        "track_grid_stability",
+        "track_safety_car_propensity",
+        "track_sc_lap_ratio",
+        "track_vsc_lap_ratio",
+        "track_dnf_rate",
+        "track_pit_stop_intensity",
+        "track_stats_reliability",
+        "track_chaos_index",
+    ]
+    for col in track_cols:
+        if col in out.columns:
+            out[col] = pd.to_numeric(out[col], errors="coerce")
+
+    overtake = (
+        out["track_overtake_propensity"]
+        if "track_overtake_propensity" in out.columns
+        else pd.Series(0.5, index=out.index, dtype=float)
+    )
+    safety = (
+        out["track_safety_car_propensity"]
+        if "track_safety_car_propensity" in out.columns
+        else pd.Series(0.2, index=out.index, dtype=float)
+    )
+    dnf = (
+        out["track_dnf_rate"]
+        if "track_dnf_rate" in out.columns
+        else pd.Series(0.1, index=out.index, dtype=float)
+    )
+
+    if "track_chaos_index" not in out.columns:
+        out["track_chaos_index"] = (0.45 * overtake.fillna(0.5)) + (0.35 * safety.fillna(0.2)) + (0.20 * dnf.fillna(0.1))
+    out["track_chaos_index"] = out["track_chaos_index"].clip(lower=0.0, upper=1.0)
+
+    out["track_qualy_importance"] = (1.0 - (0.65 * overtake.fillna(0.5)) - (0.35 * safety.fillna(0.2))).clip(
+        lower=0.0,
+        upper=1.0,
+    )
+
+    if "qualy_position" in out.columns:
+        qualy_pos = pd.to_numeric(out["qualy_position"], errors="coerce")
+        out["qualy_position_track_adj"] = qualy_pos * (0.35 + out["track_qualy_importance"])
+    else:
+        out["qualy_position_track_adj"] = float("nan")
+
+    if "qualy_gap_to_best" in out.columns:
+        qualy_gap = pd.to_numeric(out["qualy_gap_to_best"], errors="coerce")
+        out["qualy_gap_track_adj"] = qualy_gap * (0.35 + out["track_qualy_importance"])
+    else:
+        out["qualy_gap_track_adj"] = float("nan")
+
+    if "fp_race_sim_delta" in out.columns:
+        fp_race = pd.to_numeric(out["fp_race_sim_delta"], errors="coerce")
+        out["fp_race_sim_delta_track_adj"] = fp_race * (
+            1.0 + (0.75 * overtake.fillna(0.5)) + (0.35 * safety.fillna(0.2))
+        )
+    else:
+        out["fp_race_sim_delta_track_adj"] = float("nan")
+
+    if "fp_weighted_delta" in out.columns:
+        fp_weighted = pd.to_numeric(out["fp_weighted_delta"], errors="coerce")
+        out["fp_weighted_delta_track_adj"] = fp_weighted * (
+            1.0 + (0.45 * overtake.fillna(0.5)) + (0.20 * safety.fillna(0.2))
+        )
+    else:
+        out["fp_weighted_delta_track_adj"] = float("nan")
+
+    if "qualy_pred_position" in out.columns:
+        qualy_pred = pd.to_numeric(out["qualy_pred_position"], errors="coerce")
+        out["qualy_pred_position_track_adj"] = qualy_pred * (0.35 + out["track_qualy_importance"])
+    else:
+        out["qualy_pred_position_track_adj"] = float("nan")
+
+    return out
+
+
 def _ensure_fp_mean_delta(frame: pd.DataFrame) -> pd.DataFrame:
     out = frame.copy()
     delta_cols = [
@@ -691,6 +803,13 @@ def build_training_data(
                 merged["event_year"] = year
                 merged["event_round"] = round_number
                 merged["event_key"] = (year * 100) + round_number
+                merged = _attach_track_stats(
+                    frame=merged,
+                    provider=provider,
+                    year=year,
+                    round_number=round_number,
+                    notes=notes,
+                )
                 rows.append(merged)
     if not rows:
         notes.append("Pas assez de data historique: fallback heuristique.")
@@ -727,26 +846,31 @@ def build_current_features(
         fp_features["event_key"] = (year * 100) + round_number
         current = _attach_temporal_features_current(fp_features, history)
         return current, notes
+    qualy = pd.DataFrame()
     try:
         qualy = provider.get_qualifying_results(year, round_number)
     except (Exception, SystemExit) as exc:
         notes.append(f"Echec recuperation qualifications: {exc}")
-        return pd.DataFrame(), notes
+        qualy = pd.DataFrame()
+
     if qualy.empty:
-        notes.append("Resultats qualifications indisponibles: impossible de predire la course.")
-        return pd.DataFrame(), notes
-    qualy = qualy.copy()
-    qualy["driver_id"] = qualy["driver_id"].astype(str)
-    qualy["position"] = pd.to_numeric(qualy["position"], errors="coerce")
-    qualy_merge_cols = ["driver_id", "position"]
-    if "q3_time" in qualy.columns:
-        qualy["q3_time"] = pd.to_numeric(qualy["q3_time"], errors="coerce")
-        best_q3 = qualy["q3_time"].min(skipna=True)
-        if pd.notna(best_q3):
-            qualy["qualy_gap_to_best"] = qualy["q3_time"] - best_q3
-            qualy_merge_cols.append("qualy_gap_to_best")
-    merged = fp_features.merge(qualy[qualy_merge_cols], on="driver_id", how="inner")
-    merged = merged.rename(columns={"position": "qualy_position"})
+        merged = fp_features.copy()
+        merged["qualy_position"] = float("nan")
+        merged["qualy_gap_to_best"] = float("nan")
+        notes.append("Resultats qualifications indisponibles: mode FP-only active pour prediction race.")
+    else:
+        qualy = qualy.copy()
+        qualy["driver_id"] = qualy["driver_id"].astype(str)
+        qualy["position"] = pd.to_numeric(qualy["position"], errors="coerce")
+        qualy_merge_cols = ["driver_id", "position"]
+        if "q3_time" in qualy.columns:
+            qualy["q3_time"] = pd.to_numeric(qualy["q3_time"], errors="coerce")
+            best_q3 = qualy["q3_time"].min(skipna=True)
+            if pd.notna(best_q3):
+                qualy["qualy_gap_to_best"] = qualy["q3_time"] - best_q3
+                qualy_merge_cols.append("qualy_gap_to_best")
+        merged = fp_features.merge(qualy[qualy_merge_cols], on="driver_id", how="inner")
+        merged = merged.rename(columns={"position": "qualy_position"})
     if include_standings:
         try:
             standings = provider.get_standings(year, round_number)
@@ -765,5 +889,12 @@ def build_current_features(
     merged["event_year"] = year
     merged["event_round"] = round_number
     merged["event_key"] = (year * 100) + round_number
+    merged = _attach_track_stats(
+        frame=merged,
+        provider=provider,
+        year=year,
+        round_number=round_number,
+        notes=notes,
+    )
     current = _attach_temporal_features_current(merged, history)
     return current, notes

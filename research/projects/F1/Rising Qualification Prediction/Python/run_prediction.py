@@ -11,10 +11,19 @@ from datetime import datetime, timezone
 from rqp import PredictionConfig, run_prediction
 
 
-def parse_train_seasons(value: str, target_year: int) -> list[int]:
-    if value.lower() in {"auto", "default"}:
-        return [target_year - 2, target_year - 1, target_year]
-    return [int(x.strip()) for x in value.split(",") if x.strip()]
+def parse_train_seasons(value: str, target_year: int, train_policy: str) -> list[int]:
+    if value.lower() not in {"auto", "default"}:
+        return sorted({int(x.strip()) for x in value.split(",") if x.strip()})
+
+    if train_policy == "strict_transfer":
+        seasons = [target_year - 4, target_year - 3, target_year - 2, target_year]
+    elif train_policy == "rolling":
+        seasons = [target_year - 3, target_year - 2, target_year - 1, target_year]
+    elif train_policy == "frozen_preseason":
+        seasons = [target_year - 4, target_year - 3, target_year - 2]
+    else:
+        seasons = [target_year - 2, target_year - 1, target_year]
+    return sorted({int(y) for y in seasons if int(y) > 0})
 
 
 def main() -> None:
@@ -26,6 +35,12 @@ def main() -> None:
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--round", dest="round_number", type=int, required=True)
     parser.add_argument("--train-seasons", default="auto")
+    parser.add_argument(
+        "--train-policy",
+        choices=["strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
+        default="legacy_auto",
+        help="Policy used only when --train-seasons=auto.",
+    )
     parser.add_argument("--include-standings", action="store_true")
     parser.add_argument("--cache-dir", default=None)
     parser.add_argument("--weekends-dir", default="data/f1/weekends")
@@ -42,7 +57,7 @@ def main() -> None:
         mode=args.mode,
         year=args.year,
         round_number=args.round_number,
-        train_seasons=parse_train_seasons(args.train_seasons, args.year),
+        train_seasons=parse_train_seasons(args.train_seasons, args.year, args.train_policy),
         include_standings=args.include_standings,
         cache_dir=args.cache_dir,
         meeting_name=args.meeting_name,

@@ -25,6 +25,12 @@ class PredictionConfig:
     dl_hyperparams: dict[str, Any] = field(default_factory=dict)
     dl_seed: int = 42
     disable_runsim_features: bool = False
+    f1_model: str = "auto"
+    f1_listwise: str = "off"
+    f1_pl_samples: int = 2000
+    f1_pl_temperature: float = 1.0
+    f1_listwise_seed: int = 42
+    shadow_eval: bool = True
 
 
 @dataclass

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from .constants import (
@@ -32,6 +32,7 @@ from .constants import (
     HOME_WIN_CLASS,
     OUTCOME_CLASSES,
     OUTCOME_GOAL_GRID_MAX,
+    HYBRID_WEIGHT_GRID,
     RECENT_FORM_WINDOW,
     SCORELINE_GOAL_GRID_MAX,
 )
@@ -103,6 +104,9 @@ class BenchmarkModel:
     log_loss_value: float
     brier_value: float
     feature_names: list[str]
+    validation_labels: list[int] = field(default_factory=list)
+    validation_probabilities: list[tuple[float, float, float]] = field(default_factory=list)
+    validation_pairs: list[tuple[str, str]] = field(default_factory=list)
 
     def predict(self, features: list[float]) -> tuple[float, float, float]:
         raw = self.model.predict_proba([features])
@@ -704,6 +708,173 @@ def fit_probability_calibrator(
     return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
 
 
+def fit_probability_calibrator_from_rows(
+    probabilities: list[tuple[float, float, float]],
+    labels: list[int],
+    notes: list[str],
+    *,
+    policy: str = "auto",
+    context: str = "model",
+) -> ProbabilityCalibrator:
+    policy_name = str(policy or "auto").strip().lower()
+    if policy_name == "off":
+        notes.append(f"Calibration {context}: forcee off, identity.")
+        return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+    if not SKLEARN_AVAILABLE:
+        notes.append(f"Calibration {context}: scikit-learn indisponible, identity.")
+        return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+    if len(labels) < CALIBRATION_MIN_SAMPLES or len(probabilities) < CALIBRATION_MIN_SAMPLES:
+        notes.append(
+            f"Calibration {context}: echantillon insuffisant "
+            f"({min(len(labels), len(probabilities))}<{CALIBRATION_MIN_SAMPLES}), identity."
+        )
+        return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+    y = np.asarray(labels, dtype=int)
+    p = np.asarray(probabilities, dtype=float)
+    if p.ndim != 2 or p.shape[1] != 3:
+        notes.append(f"Calibration {context}: format proba invalide, identity.")
+        return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+    def _fit_isotonic() -> tuple[ProbabilityCalibrator | None, int]:
+        isotonic_functions: list[Callable[[float], float]] = []
+        isotonic_count = 0
+        for cls in OUTCOME_CLASSES:
+            x_cls = p[:, cls]
+            y_cls = (y == cls).astype(int)
+            positives = int(y_cls.sum())
+            negatives = int(len(y_cls) - positives)
+            if positives < CALIBRATION_MIN_CLASS_SAMPLES or negatives < CALIBRATION_MIN_CLASS_SAMPLES:
+                isotonic_functions.append(_identity)
+                continue
+            if len(np.unique(x_cls)) < 4:
+                isotonic_functions.append(_identity)
+                continue
+            model_iso = IsotonicRegression(out_of_bounds="clip")
+            model_iso.fit(x_cls, y_cls)
+
+            def _iso_fn(value: float, transformer: IsotonicRegression = model_iso) -> float:
+                return float(transformer.predict([value])[0])
+
+            isotonic_functions.append(_iso_fn)
+            isotonic_count += 1
+        if isotonic_count < 1:
+            return None, 0
+        return ProbabilityCalibrator(method="isotonic", per_class_functions=isotonic_functions), isotonic_count
+
+    def _fit_platt() -> tuple[ProbabilityCalibrator | None, int]:
+        platt_functions: list[Callable[[float], float]] = []
+        platt_count = 0
+        for cls in OUTCOME_CLASSES:
+            x_cls = p[:, cls].reshape(-1, 1)
+            y_cls = (y == cls).astype(int)
+            positives = int(y_cls.sum())
+            negatives = int(len(y_cls) - positives)
+            if positives < CALIBRATION_MIN_CLASS_SAMPLES or negatives < CALIBRATION_MIN_CLASS_SAMPLES:
+                platt_functions.append(_identity)
+                continue
+            model_lr = LogisticRegression(max_iter=400)
+            model_lr.fit(x_cls, y_cls)
+
+            def _platt_fn(value: float, transformer: LogisticRegression = model_lr) -> float:
+                return float(transformer.predict_proba([[value]])[0][1])
+
+            platt_functions.append(_platt_fn)
+            platt_count += 1
+        if platt_count < 1:
+            return None, 0
+        return ProbabilityCalibrator(method="platt", per_class_functions=platt_functions), platt_count
+
+    if policy_name in {"auto", "isotonic"}:
+        calibrator, count = _fit_isotonic()
+        if calibrator is not None:
+            notes.append(f"Calibration {context}: isotonic active sur {count}/3 classes.")
+            return calibrator
+        if policy_name == "isotonic":
+            notes.append(f"Calibration {context}: isotonic impossible, fallback identity.")
+            return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+    if policy_name in {"auto", "platt"}:
+        calibrator, count = _fit_platt()
+        if calibrator is not None:
+            notes.append(f"Calibration {context}: Platt active sur {count}/3 classes.")
+            return calibrator
+        if policy_name == "platt":
+            notes.append(f"Calibration {context}: Platt impossible, fallback identity.")
+            return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+    notes.append(f"Calibration {context}: fallback identity.")
+    return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+
+def fit_probability_calibrator_with_policy(
+    matches: list[MatchRecord],
+    model: DixonColesModel,
+    notes: list[str],
+    *,
+    policy: str = "auto",
+) -> ProbabilityCalibrator:
+    policy_name = str(policy or "auto").strip().lower()
+    if policy_name == "auto":
+        return fit_probability_calibrator(matches, model, notes)
+    if policy_name == "off":
+        return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+
+    probabilities: list[tuple[float, float, float]] = []
+    labels: list[int] = []
+    for match in matches:
+        if match.home_goals is None or match.away_goals is None:
+            continue
+        labels.append(outcome_class(match.home_goals, match.away_goals))
+        lambda_home, lambda_away = model.expected_goals(match.home_team_id, match.away_team_id)
+        probabilities.append(outcome_probabilities(lambda_home, lambda_away, model.rho))
+    return fit_probability_calibrator_from_rows(
+        probabilities=probabilities,
+        labels=labels,
+        notes=notes,
+        policy=policy_name,
+        context="dixon",
+    )
+
+
+def select_hybrid_weight(
+    labels: list[int],
+    dc_probabilities: list[tuple[float, float, float]],
+    gbdt_probabilities: list[tuple[float, float, float]],
+    notes: list[str],
+) -> float:
+    if not labels or not dc_probabilities or not gbdt_probabilities:
+        notes.append("Hybrid weight: validation indisponible, w=0.0.")
+        return 0.0
+    if not (len(labels) == len(dc_probabilities) == len(gbdt_probabilities)):
+        notes.append("Hybrid weight: tailles validation incoherentes, w=0.0.")
+        return 0.0
+
+    best_weight = 0.0
+    best_loss = float("inf")
+    for weight in HYBRID_WEIGHT_GRID:
+        blended_rows: list[list[float]] = []
+        for dc, gbdt in zip(dc_probabilities, gbdt_probabilities):
+            blended = normalize_probabilities(
+                (
+                    (weight * gbdt[HOME_WIN_CLASS]) + ((1.0 - weight) * dc[HOME_WIN_CLASS]),
+                    (weight * gbdt[DRAW_CLASS]) + ((1.0 - weight) * dc[DRAW_CLASS]),
+                    (weight * gbdt[AWAY_WIN_CLASS]) + ((1.0 - weight) * dc[AWAY_WIN_CLASS]),
+                )
+            )
+            blended_rows.append([blended[HOME_WIN_CLASS], blended[DRAW_CLASS], blended[AWAY_WIN_CLASS]])
+        loss_value = _multiclass_log_loss(labels, blended_rows)
+        if not math.isfinite(loss_value):
+            continue
+        if loss_value < best_loss:
+            best_loss = loss_value
+            best_weight = float(weight)
+    notes.append(f"Hybrid weight selection: w={best_weight:.1f} (log-loss={best_loss:.4f}).")
+    return float(best_weight)
+
+
 def _empty_history() -> list[dict[str, float]]:
     return []
 
@@ -842,6 +1013,7 @@ def train_gradient_boosting_benchmark(
     history: dict[str, list[dict[str, float]]] = {}
     features: list[list[float]] = []
     labels: list[int] = []
+    feature_matches: list[MatchRecord] = []
     for match in sorted(matches, key=record_sort_key):
         if match.home_goals is None or match.away_goals is None:
             continue
@@ -853,6 +1025,7 @@ def train_gradient_boosting_benchmark(
         )
         features.append(feature_vector)
         labels.append(outcome_class(match.home_goals, match.away_goals))
+        feature_matches.append(match)
 
         home_xg = match.home_xg if match.home_xg is not None else float(match.home_goals)
         away_xg = match.away_xg if match.away_xg is not None else float(match.away_goals)
@@ -889,6 +1062,7 @@ def train_gradient_boosting_benchmark(
     y_train = np.asarray(labels[:split_index], dtype=int)
     x_valid = np.asarray(features[split_index:], dtype=float)
     y_valid = np.asarray(labels[split_index:], dtype=int)
+    valid_matches = feature_matches[split_index:]
 
     if len(set(y_train.tolist())) < 2:
         notes.append("Benchmark GBM: classes insuffisantes dans le train split.")
@@ -925,4 +1099,14 @@ def train_gradient_boosting_benchmark(
             "home_recent_games",
             "away_recent_games",
         ],
+        validation_labels=y_valid_list,
+        validation_probabilities=[
+            (
+                float(row[HOME_WIN_CLASS]),
+                float(row[DRAW_CLASS]),
+                float(row[AWAY_WIN_CLASS]),
+            )
+            for row in aligned_probabilities
+        ],
+        validation_pairs=[(match.home_team_id, match.away_team_id) for match in valid_matches],
     )

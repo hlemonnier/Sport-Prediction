@@ -624,6 +624,51 @@ function paramsForProject(kind) {
         required: false,
         default: null,
       },
+      {
+        name: "f1_model",
+        label: "F1 Model",
+        kind: "select",
+        required: false,
+        default: "auto",
+        options: ["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"],
+      },
+      {
+        name: "f1_listwise",
+        label: "F1 Listwise",
+        kind: "select",
+        required: false,
+        default: "off",
+        options: ["off", "pl_gumbel"],
+      },
+      {
+        name: "f1_pl_samples",
+        label: "F1 PL Samples",
+        kind: "int",
+        required: false,
+        default: 2000,
+      },
+      {
+        name: "f1_pl_temperature",
+        label: "F1 PL Temp",
+        kind: "string",
+        required: false,
+        default: 1.0,
+      },
+      {
+        name: "f1_listwise_seed",
+        label: "F1 Listwise Seed",
+        kind: "int",
+        required: false,
+        default: 42,
+      },
+      {
+        name: "shadow_eval",
+        label: "Shadow Eval",
+        kind: "select",
+        required: false,
+        default: "on",
+        options: ["on", "off"],
+      },
     ];
   }
 
@@ -678,6 +723,30 @@ function paramsForProject(kind) {
         kind: "string",
         required: false,
         default: null,
+      },
+      {
+        name: "football_model",
+        label: "Football Model",
+        kind: "select",
+        required: false,
+        default: "dixon",
+        options: ["dixon", "gbdt", "hybrid"],
+      },
+      {
+        name: "football_calibration",
+        label: "Football Calibration",
+        kind: "select",
+        required: false,
+        default: "auto",
+        options: ["off", "auto", "platt", "isotonic"],
+      },
+      {
+        name: "shadow_eval",
+        label: "Shadow Eval",
+        kind: "select",
+        required: false,
+        default: "on",
+        options: ["on", "off"],
       },
     ];
   }
@@ -1251,6 +1320,40 @@ function buildCommand(project, params, outputPath) {
     if (outputDir) {
       args.push("--output-dir", outputDir);
     }
+
+    const f1Model = typeof params.f1_model === "string" ? params.f1_model.trim() : "";
+    if (f1Model) {
+      args.push("--f1_model", f1Model);
+    }
+    const f1Listwise = typeof params.f1_listwise === "string" ? params.f1_listwise.trim() : "";
+    if (f1Listwise) {
+      args.push("--f1_listwise", f1Listwise);
+    }
+    const f1PlSamples = optionalInt(params.f1_pl_samples);
+    if (f1PlSamples !== null && f1PlSamples > 0) {
+      args.push("--f1_pl_samples", String(f1PlSamples));
+    }
+    if (Object.hasOwn(params, "f1_pl_temperature") && params.f1_pl_temperature !== null && params.f1_pl_temperature !== undefined) {
+      const temperature = Number.parseFloat(String(params.f1_pl_temperature));
+      if (Number.isFinite(temperature) && temperature > 0) {
+        args.push("--f1_pl_temperature", String(temperature));
+      }
+    }
+    const f1ListwiseSeed = optionalInt(params.f1_listwise_seed);
+    if (f1ListwiseSeed !== null) {
+      args.push("--f1_listwise_seed", String(f1ListwiseSeed));
+    }
+    const shadowEval =
+      typeof params.shadow_eval === "boolean"
+        ? params.shadow_eval
+          ? "on"
+          : "off"
+        : typeof params.shadow_eval === "string"
+          ? params.shadow_eval.trim()
+          : "";
+    if (shadowEval) {
+      args.push("--shadow_eval", shadowEval);
+    }
   } else if (project.kind === "Football") {
     const mode = getString(params, "mode", undefined, true);
     const league = getString(params, "league", undefined, true);
@@ -1258,6 +1361,14 @@ function buildCommand(project, params, outputPath) {
     const round = getInt(params, "round_number", optionalInt(params.round), true);
     const dataSource = getString(params, "data_source", "placeholder", false);
     const trainSeasons = getString(params, "train_seasons", "auto", false);
+    const footballModel = getString(params, "football_model", "dixon", false);
+    const footballCalibration = getString(params, "football_calibration", "auto", false);
+    const shadowEval =
+      typeof params.shadow_eval === "boolean"
+        ? params.shadow_eval
+          ? "on"
+          : "off"
+        : getString(params, "shadow_eval", "on", false);
 
     args.push("--mode", mode);
     args.push("--league", league);
@@ -1265,6 +1376,9 @@ function buildCommand(project, params, outputPath) {
     args.push("--round", String(round));
     args.push("--data-source", dataSource);
     args.push("--train-seasons", trainSeasons);
+    args.push("--football_model", footballModel);
+    args.push("--football_calibration", footballCalibration);
+    args.push("--shadow_eval", shadowEval);
 
     const cacheDir = typeof params.cache_dir === "string" ? params.cache_dir.trim() : "";
     if (cacheDir) {

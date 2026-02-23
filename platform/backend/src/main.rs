@@ -1317,6 +1317,60 @@ fn params_for_project(kind: &ProjectKind) -> Vec<ParamDef> {
                 default: None,
                 options: None,
             },
+            ParamDef {
+                name: "f1_model".to_string(),
+                label: "F1 Model".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("auto".to_string())),
+                options: Some(vec![
+                    "auto".into(),
+                    "baseline".into(),
+                    "xgb_rank".into(),
+                    "eb_rank".into(),
+                    "lgbm_rank".into(),
+                ]),
+            },
+            ParamDef {
+                name: "f1_listwise".to_string(),
+                label: "F1 Listwise".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("off".to_string())),
+                options: Some(vec!["off".into(), "pl_gumbel".into()]),
+            },
+            ParamDef {
+                name: "f1_pl_samples".to_string(),
+                label: "F1 PL Samples".to_string(),
+                kind: "int".to_string(),
+                required: false,
+                default: Some(Value::Number(2000.into())),
+                options: None,
+            },
+            ParamDef {
+                name: "f1_pl_temperature".to_string(),
+                label: "F1 PL Temp".to_string(),
+                kind: "string".to_string(),
+                required: false,
+                default: Some(Value::String("1.0".to_string())),
+                options: None,
+            },
+            ParamDef {
+                name: "f1_listwise_seed".to_string(),
+                label: "F1 Listwise Seed".to_string(),
+                kind: "int".to_string(),
+                required: false,
+                default: Some(Value::Number(42.into())),
+                options: None,
+            },
+            ParamDef {
+                name: "shadow_eval".to_string(),
+                label: "Shadow Eval".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("on".to_string())),
+                options: Some(vec!["on".into(), "off".into()]),
+            },
         ],
         ProjectKind::Football => vec![
             ParamDef {
@@ -1374,6 +1428,35 @@ fn params_for_project(kind: &ProjectKind) -> Vec<ParamDef> {
                 required: false,
                 default: None,
                 options: None,
+            },
+            ParamDef {
+                name: "football_model".to_string(),
+                label: "Football Model".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("dixon".to_string())),
+                options: Some(vec!["dixon".into(), "gbdt".into(), "hybrid".into()]),
+            },
+            ParamDef {
+                name: "football_calibration".to_string(),
+                label: "Football Calibration".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("auto".to_string())),
+                options: Some(vec![
+                    "off".into(),
+                    "auto".into(),
+                    "platt".into(),
+                    "isotonic".into(),
+                ]),
+            },
+            ParamDef {
+                name: "shadow_eval".to_string(),
+                label: "Shadow Eval".to_string(),
+                kind: "select".to_string(),
+                required: false,
+                default: Some(Value::String("on".to_string())),
+                options: Some(vec!["on".into(), "off".into()]),
             },
         ],
         ProjectKind::Unknown => vec![],
@@ -1699,6 +1782,39 @@ fn build_command(
                 .get("output_dir")
                 .and_then(|v| v.as_str())
                 .filter(|s| !s.is_empty());
+            let f1_model = params
+                .get("f1_model")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let f1_listwise = params
+                .get("f1_listwise")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty());
+            let f1_pl_samples = get_i64(params, "f1_pl_samples", None, false)?;
+            let f1_pl_temperature = params
+                .get("f1_pl_temperature")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty())
+                .map(|s| s.to_string())
+                .or_else(|| {
+                    params
+                        .get("f1_pl_temperature")
+                        .and_then(|v| v.as_f64())
+                        .map(|v| v.to_string())
+                });
+            let f1_listwise_seed = get_i64(params, "f1_listwise_seed", None, false)?;
+            let shadow_eval = params
+                .get("shadow_eval")
+                .and_then(|v| {
+                    if let Some(s) = v.as_str() {
+                        Some(s.to_string())
+                    } else if let Some(b) = v.as_bool() {
+                        Some(if b { "on".to_string() } else { "off".to_string() })
+                    } else {
+                        None
+                    }
+                })
+                .filter(|s| !s.is_empty());
 
             if let Some(phase_value) = phase {
                 args.extend(["--phase".to_string(), phase_value.to_string()]);
@@ -1715,6 +1831,24 @@ fn build_command(
             if let Some(output) = output_dir {
                 args.extend(["--output-dir".to_string(), output.to_string()]);
             }
+            if let Some(value) = f1_model {
+                args.extend(["--f1_model".to_string(), value.to_string()]);
+            }
+            if let Some(value) = f1_listwise {
+                args.extend(["--f1_listwise".to_string(), value.to_string()]);
+            }
+            if f1_pl_samples > 0 {
+                args.extend(["--f1_pl_samples".to_string(), f1_pl_samples.to_string()]);
+            }
+            if let Some(value) = f1_pl_temperature {
+                args.extend(["--f1_pl_temperature".to_string(), value]);
+            }
+            if f1_listwise_seed != 0 {
+                args.extend(["--f1_listwise_seed".to_string(), f1_listwise_seed.to_string()]);
+            }
+            if let Some(value) = shadow_eval {
+                args.extend(["--shadow_eval".to_string(), value]);
+            }
         }
         ProjectKind::Football => {
             let mode = get_str(params, "mode", None, true)?;
@@ -1728,6 +1862,20 @@ fn build_command(
             )?;
             let data_source = get_str(params, "data_source", Some("placeholder"), false)?;
             let train_seasons = get_str(params, "train_seasons", Some("auto"), false)?;
+            let football_model = get_str(params, "football_model", Some("dixon"), false)?;
+            let football_calibration = get_str(params, "football_calibration", Some("auto"), false)?;
+            let shadow_eval = params
+                .get("shadow_eval")
+                .and_then(|v| {
+                    if let Some(s) = v.as_str() {
+                        Some(s.to_string())
+                    } else if let Some(b) = v.as_bool() {
+                        Some(if b { "on".to_string() } else { "off".to_string() })
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or_else(|| "on".to_string());
             let cache_dir = params
                 .get("cache_dir")
                 .and_then(|v| v.as_str())
@@ -1739,6 +1887,9 @@ fn build_command(
             args.extend(["--round".to_string(), round.to_string()]);
             args.extend(["--data-source".to_string(), data_source]);
             args.extend(["--train-seasons".to_string(), train_seasons]);
+            args.extend(["--football_model".to_string(), football_model]);
+            args.extend(["--football_calibration".to_string(), football_calibration]);
+            args.extend(["--shadow_eval".to_string(), shadow_eval]);
             if let Some(cache) = cache_dir {
                 args.extend(["--cache-dir".to_string(), cache.to_string()]);
             }

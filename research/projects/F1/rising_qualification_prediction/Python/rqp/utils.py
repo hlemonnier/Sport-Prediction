@@ -220,8 +220,26 @@ def format_prediction_table(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
         return df
     df = df.copy().sort_values("pred", ascending=True).head(top_n)
     df["rank"] = range(1, len(df) + 1)
-    cols = ["rank", "driver_name", "pred"]
-    for col in ["proba_top10", "proba_top3"]:
+    cols = ["rank", "driver_name", "pred", "proba_top10", "proba_top3"]
+    ordered = [col for col in cols if col in df.columns]
+
+    listwise_cols = [
+        "utility",
+        "p_win",
+        "p_top3",
+        "p_top10",
+        "exp_pos",
+        "pos_p10",
+        "pos_p50",
+        "pos_p90",
+        "listwise_method",
+        "listwise_samples",
+        "temperature",
+        "listwise_enabled",
+        "old_rank_based_top10",
+        "old_rank_based_top3",
+    ]
+    for col in listwise_cols:
         if col in df.columns:
-            cols.append(col)
-    return df[cols]
+            ordered.append(col)
+    return df[ordered]

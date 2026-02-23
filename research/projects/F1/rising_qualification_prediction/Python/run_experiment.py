@@ -40,6 +40,13 @@ def _as_int(value: Any, default: int) -> int:
         return int(default)
 
 
+def _as_float(value: Any, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
 def _as_bool(value: Any, default: bool = False) -> bool:
     if isinstance(value, bool):
         return value
@@ -50,6 +57,18 @@ def _as_bool(value: Any, default: bool = False) -> bool:
         if text in {"0", "false", "no", "n"}:
             return False
     return bool(default)
+
+
+def _as_on_off(value: Any, default: bool) -> bool:
+    if value is None:
+        return bool(default)
+    if isinstance(value, str):
+        text = value.strip().lower()
+        if text == "on":
+            return True
+        if text == "off":
+            return False
+    return _as_bool(value, default=default)
 
 
 def _as_list_str(value: Any, default: list[str]) -> list[str]:
@@ -137,6 +156,35 @@ def _make_envelope(
     }
 
 
+def _build_shadow_section(
+    candidate_leaderboard: list[dict[str, Any]],
+    selected_model_name: Optional[str],
+) -> dict[str, Any]:
+    selected_row = next(
+        (row for row in candidate_leaderboard if row.get("name") == selected_model_name),
+        None,
+    )
+    baseline_row = next(
+        (row for row in candidate_leaderboard if str(row.get("family")) == "baseline"),
+        None,
+    )
+    shadow: dict[str, Any] = {"enabled": True}
+    if selected_row is not None:
+        shadow["selected"] = selected_row
+    if baseline_row is not None:
+        shadow["baseline_reference"] = baseline_row
+    if selected_row is not None and baseline_row is not None:
+        selected_mae = selected_row.get("mae")
+        baseline_mae = baseline_row.get("mae")
+        selected_composite = selected_row.get("composite")
+        baseline_composite = baseline_row.get("composite")
+        if isinstance(selected_mae, (int, float)) and isinstance(baseline_mae, (int, float)):
+            shadow["mae_delta_vs_baseline"] = float(baseline_mae - selected_mae)
+        if isinstance(selected_composite, (int, float)) and isinstance(baseline_composite, (int, float)):
+            shadow["composite_delta_vs_baseline"] = float(selected_composite - baseline_composite)
+    return shadow
+
+
 def _prediction_payload(config: PredictionConfig, *, workflow: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     result = run_prediction(config)
     rows: list[dict[str, Any]]
@@ -155,8 +203,13 @@ def _prediction_payload(config: PredictionConfig, *, workflow: str) -> tuple[dic
         model_family=result.model_family,
         device_used=result.device_used,
         dl_available=result.dl_available,
-        candidate_leaderboard=list(result.candidate_leaderboard),
+        candidate_leaderboard=list(result.candidate_leaderboard) if config.shadow_eval else [],
     )
+    if config.shadow_eval:
+        payload["shadow"] = _build_shadow_section(
+            candidate_leaderboard=list(result.candidate_leaderboard),
+            selected_model_name=result.model_name,
+        )
     return payload, rows
 
 
@@ -165,6 +218,8 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
     training = profile.get("training", {})
     experiments = profile.get("experiments", {})
     dl = profile.get("dl", {})
+    f1 = profile.get("f1", {})
+    f1_listwise = f1.get("listwise", {}) if isinstance(f1, dict) else {}
     if not isinstance(defaults, dict):
         defaults = {}
     if not isinstance(training, dict):
@@ -173,6 +228,10 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
         experiments = {}
     if not isinstance(dl, dict):
         dl = {}
+    if not isinstance(f1, dict):
+        f1 = {}
+    if not isinstance(f1_listwise, dict):
+        f1_listwise = {}
 
     year = _as_int(args.year if args.year is not None else defaults.get("year"), 2025)
     round_number = _as_int(args.round_number if args.round_number is not None else defaults.get("round_number"), 1)
@@ -182,6 +241,7 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
     if not isinstance(train_seasons, list):
         train_seasons = [year - 3, year - 2, year - 1]
     train_seasons = sorted({int(v) for v in train_seasons})
+    shadow_eval_raw: Any = args.shadow_eval if getattr(args, "shadow_eval", None) is not None else profile.get("shadow_eval", True)
     return {
         "year": year,
         "round_number": round_number,
@@ -198,6 +258,35 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
         "dl_arch": str(dl.get("arch", "mlp_tabular_v1")).strip(),
         "dl_hyperparams": dl.get("hyperparams", {}) if isinstance(dl.get("hyperparams", {}), dict) else {},
         "dl_seed": _as_int(dl.get("seed", 42), 42),
+        "f1_model": str(
+            args.f1_model
+            if getattr(args, "f1_model", None) is not None
+            else f1.get("model", "auto"),
+        ).strip().lower(),
+        "f1_listwise": str(
+            args.f1_listwise
+            if getattr(args, "f1_listwise", None) is not None
+            else f1_listwise.get("method", "off"),
+        ).strip().lower(),
+        "f1_pl_samples": _as_int(
+            getattr(args, "f1_pl_samples", None)
+            if getattr(args, "f1_pl_samples", None) is not None
+            else f1_listwise.get("samples", 2000),
+            2000,
+        ),
+        "f1_pl_temperature": _as_float(
+            getattr(args, "f1_pl_temperature", None)
+            if getattr(args, "f1_pl_temperature", None) is not None
+            else f1_listwise.get("temperature", 1.0),
+            1.0,
+        ),
+        "f1_listwise_seed": _as_int(
+            getattr(args, "f1_listwise_seed", None)
+            if getattr(args, "f1_listwise_seed", None) is not None
+            else f1_listwise.get("seed", 42),
+            42,
+        ),
+        "shadow_eval": _as_on_off(shadow_eval_raw, True),
     }
 
 
@@ -228,6 +317,12 @@ def _build_prediction_config(
         dl_hyperparams=dict(base.get("dl_hyperparams", {})),
         dl_seed=int(base.get("dl_seed", 42)),
         disable_runsim_features=bool(disable_runsim_features),
+        f1_model=str(base.get("f1_model", "auto")),
+        f1_listwise=str(base.get("f1_listwise", "off")),
+        f1_pl_samples=int(base.get("f1_pl_samples", 2000)),
+        f1_pl_temperature=float(base.get("f1_pl_temperature", 1.0)),
+        f1_listwise_seed=int(base.get("f1_listwise_seed", 42)),
+        shadow_eval=bool(base.get("shadow_eval", True)),
     )
 
 
@@ -648,22 +743,79 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
     return payload
 
 
+def build_parser(runner: str) -> argparse.ArgumentParser:
+    runner_name = str(runner).strip().lower()
+    if runner_name == "profile":
+        parser = argparse.ArgumentParser(description="Run F1 experiment workflows from YAML/TOML profiles.")
+        parser.add_argument("--profile", required=True)
+        parser.add_argument("--workflow", default=None)
+        parser.add_argument("--mode", default=None)
+        parser.add_argument("--phase", default=None)
+        parser.add_argument("--source", default=None)
+        parser.add_argument("--year", type=int, default=None)
+        parser.add_argument("--round", dest="round_number", type=int, default=None)
+        parser.add_argument("--weekends-dir", default=None)
+        parser.add_argument("--cache-dir", default=None)
+        parser.add_argument("--output-dir", default=None)
+        parser.add_argument("--f1_model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default=None)
+        parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default=None)
+        parser.add_argument("--f1_pl_samples", type=int, default=None)
+        parser.add_argument("--f1_pl_temperature", type=float, default=None)
+        parser.add_argument("--f1_listwise_seed", type=int, default=None)
+        parser.add_argument("--shadow_eval", choices=["on", "off"], default=None)
+        parser.add_argument("--output-format", choices=["text", "json"], default="json")
+        parser.add_argument("--output-path", default=None)
+        parser.add_argument("--quiet", action="store_true")
+        return parser
+
+    if runner_name == "prediction":
+        parser = argparse.ArgumentParser(
+            description="Rising Qualification Prediction (FastF1 / OpenF1 / local offline)"
+        )
+        parser.add_argument("--mode", choices=["qualifying", "race"], required=True)
+        parser.add_argument("--source", choices=["fastf1", "openf1", "local"], required=True)
+        parser.add_argument("--year", type=int, required=True)
+        parser.add_argument("--round", dest="round_number", type=int, required=True)
+        parser.add_argument("--train-seasons", default="auto")
+        parser.add_argument(
+            "--train-policy",
+            choices=["strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
+            default="legacy_auto",
+            help="Policy used only when --train-seasons=auto.",
+        )
+        parser.add_argument("--include-standings", action="store_true")
+        parser.add_argument("--cache-dir", default=None)
+        parser.add_argument("--weekends-dir", default="data/f1/raw/weekends")
+        parser.add_argument("--meeting-name", default=None)
+        parser.add_argument("--country-name", default=None)
+        parser.add_argument("--enable-dl-candidates", action="store_true")
+        parser.add_argument("--compare-families", default="ml")
+        parser.add_argument("--dl-device", choices=["auto", "cpu", "cuda"], default="auto")
+        parser.add_argument("--dl-arch", default="mlp_tabular_v1")
+        parser.add_argument("--dl-hyperparams", default="{}")
+        parser.add_argument("--dl-seed", type=int, default=42)
+        parser.add_argument("--disable-runsim-features", action="store_true")
+        parser.add_argument("--f1_model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
+        parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default="off")
+        parser.add_argument("--f1_pl_samples", type=int, default=2000)
+        parser.add_argument("--f1_pl_temperature", type=float, default=1.0)
+        parser.add_argument("--f1_listwise_seed", type=int, default=42)
+        parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
+        parser.add_argument("--output-format", choices=["text", "json"], default="text")
+        parser.add_argument("--output-path", default=None)
+        parser.add_argument("--quiet", action="store_true")
+        return parser
+
+    raise SystemExit(f"Unsupported runner for parser: {runner}")
+
+
+def parse_args(runner: str, argv: Sequence[str]) -> argparse.Namespace:
+    parser = build_parser(runner)
+    return parser.parse_args(list(argv))
+
+
 def _run_profile_cli(argv: Sequence[str]) -> None:
-    parser = argparse.ArgumentParser(description="Run F1 experiment workflows from YAML/TOML profiles.")
-    parser.add_argument("--profile", required=True)
-    parser.add_argument("--workflow", default=None)
-    parser.add_argument("--mode", default=None)
-    parser.add_argument("--phase", default=None)
-    parser.add_argument("--source", default=None)
-    parser.add_argument("--year", type=int, default=None)
-    parser.add_argument("--round", dest="round_number", type=int, default=None)
-    parser.add_argument("--weekends-dir", default=None)
-    parser.add_argument("--cache-dir", default=None)
-    parser.add_argument("--output-dir", default=None)
-    parser.add_argument("--output-format", choices=["text", "json"], default="json")
-    parser.add_argument("--output-path", default=None)
-    parser.add_argument("--quiet", action="store_true")
-    args = parser.parse_args(list(argv))
+    args = parse_args("profile", argv)
 
     profile_path = Path(args.profile).expanduser()
     if not profile_path.exists() and not profile_path.is_absolute():
@@ -705,36 +857,7 @@ def _run_profile_cli(argv: Sequence[str]) -> None:
 
 
 def _run_prediction_cli(argv: Sequence[str]) -> None:
-    parser = argparse.ArgumentParser(
-        description="Rising Qualification Prediction (FastF1 / OpenF1 / local offline)"
-    )
-    parser.add_argument("--mode", choices=["qualifying", "race"], required=True)
-    parser.add_argument("--source", choices=["fastf1", "openf1", "local"], required=True)
-    parser.add_argument("--year", type=int, required=True)
-    parser.add_argument("--round", dest="round_number", type=int, required=True)
-    parser.add_argument("--train-seasons", default="auto")
-    parser.add_argument(
-        "--train-policy",
-        choices=["strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
-        default="legacy_auto",
-        help="Policy used only when --train-seasons=auto.",
-    )
-    parser.add_argument("--include-standings", action="store_true")
-    parser.add_argument("--cache-dir", default=None)
-    parser.add_argument("--weekends-dir", default="data/f1/raw/weekends")
-    parser.add_argument("--meeting-name", default=None)
-    parser.add_argument("--country-name", default=None)
-    parser.add_argument("--enable-dl-candidates", action="store_true")
-    parser.add_argument("--compare-families", default="ml")
-    parser.add_argument("--dl-device", choices=["auto", "cpu", "cuda"], default="auto")
-    parser.add_argument("--dl-arch", default="mlp_tabular_v1")
-    parser.add_argument("--dl-hyperparams", default="{}")
-    parser.add_argument("--dl-seed", type=int, default=42)
-    parser.add_argument("--disable-runsim-features", action="store_true")
-    parser.add_argument("--output-format", choices=["text", "json"], default="text")
-    parser.add_argument("--output-path", default=None)
-    parser.add_argument("--quiet", action="store_true")
-    args = parser.parse_args(list(argv))
+    args = parse_args("prediction", argv)
 
     dl_hyperparams = parse_json_object(args.dl_hyperparams, "--dl-hyperparams")
     config = PredictionConfig(
@@ -755,6 +878,12 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         dl_hyperparams=dl_hyperparams,
         dl_seed=args.dl_seed,
         disable_runsim_features=args.disable_runsim_features,
+        f1_model=args.f1_model,
+        f1_listwise=args.f1_listwise,
+        f1_pl_samples=args.f1_pl_samples,
+        f1_pl_temperature=args.f1_pl_temperature,
+        f1_listwise_seed=args.f1_listwise_seed,
+        shadow_eval=_as_on_off(args.shadow_eval, True),
     )
 
     result = run_prediction(config)
@@ -773,8 +902,13 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         model_family=result.model_family,
         device_used=result.device_used,
         dl_available=result.dl_available,
-        candidate_leaderboard=list(result.candidate_leaderboard),
+        candidate_leaderboard=list(result.candidate_leaderboard) if config.shadow_eval else [],
     )
+    if config.shadow_eval:
+        payload["shadow"] = _build_shadow_section(
+            candidate_leaderboard=list(result.candidate_leaderboard),
+            selected_model_name=result.model_name,
+        )
 
     if args.output_format == "json":
         if args.output_path:

@@ -29,12 +29,18 @@ except Exception:  # pragma: no cover - optional dependency
     XGBRanker = None
     XGBRegressor = None
 
+try:
+    from lightgbm import LGBMRanker
+except Exception:  # pragma: no cover - optional dependency
+    LGBMRanker = None
+
 from .dl_models import (
     TorchTabularConfig,
     TorchTabularRegressor,
     resolve_device as resolve_dl_device,
     torch_available,
 )
+from .utils import team_column
 
 
 @dataclass
@@ -52,7 +58,7 @@ class TrainingResult:
 class CandidateSpec:
     name: str
     build_model: Callable[[], object]
-    task: str  # regression | ranking
+    task: str  # regression | ranking | eb
     family: str  # ml | dl
     scale_features: bool = False
     device_hint: Optional[str] = None
@@ -256,6 +262,181 @@ class ColumnBaselineModel:
         return values.fillna(fill).to_numpy(dtype=float)
 
 
+class EBRankModel:
+    """Empirical-Bayes additive rank model using driver/team/track IDs."""
+
+    def __init__(
+        self,
+        *,
+        decay: float = 0.015,
+        driver_prior: float = 8.0,
+        team_prior: float = 10.0,
+        track_prior: float = 12.0,
+        iterations: int = 4,
+    ) -> None:
+        self.decay = float(max(decay, 0.0))
+        self.driver_prior = float(max(driver_prior, 1e-6))
+        self.team_prior = float(max(team_prior, 1e-6))
+        self.track_prior = float(max(track_prior, 1e-6))
+        self.iterations = int(max(iterations, 1))
+        self.global_mean: float = 10.0
+        self.driver_effects: dict[str, float] = {}
+        self.team_effects: dict[str, float] = {}
+        self.track_effects: dict[str, float] = {}
+        self.driver_col = "driver_id"
+        self.team_col: Optional[str] = None
+        self.track_col: Optional[str] = None
+        self.calibrators: dict[str, ProbabilityCalibrator] = {}
+
+    @staticmethod
+    def _clean_key(values: pd.Series, fallback: str) -> pd.Series:
+        clean = (
+            values.astype(str)
+            .str.strip()
+            .str.lower()
+            .replace({"": fallback, "nan": fallback, "none": fallback, "<na>": fallback})
+        )
+        return clean.fillna(fallback)
+
+    @staticmethod
+    def _weighted_mean(values: np.ndarray, weights: np.ndarray) -> float:
+        denom = float(weights.sum())
+        if denom <= 0.0:
+            return float(np.nanmean(values)) if values.size else 0.0
+        return float(np.dot(values, weights) / denom)
+
+    @staticmethod
+    def _shrink_effect(
+        keys: pd.Series,
+        residual: np.ndarray,
+        weights: np.ndarray,
+        prior: float,
+    ) -> dict[str, float]:
+        sum_wr: dict[str, float] = {}
+        sum_w: dict[str, float] = {}
+        for key, res, weight in zip(keys.tolist(), residual.tolist(), weights.tolist()):
+            key_str = str(key)
+            sum_wr[key_str] = sum_wr.get(key_str, 0.0) + (float(res) * float(weight))
+            sum_w[key_str] = sum_w.get(key_str, 0.0) + float(weight)
+        effects: dict[str, float] = {}
+        for key, total_weight in sum_w.items():
+            effects[key] = float(sum_wr[key] / (total_weight + float(prior)))
+        return effects
+
+    @staticmethod
+    def _sort_for_time_decay(frame: pd.DataFrame) -> pd.DataFrame:
+        sort_cols = [col for col in ["event_year", "event_round", "event_key"] if col in frame.columns]
+        if "driver_id" in frame.columns:
+            sort_cols.append("driver_id")
+        if not sort_cols:
+            return frame.copy()
+        return frame.sort_values(sort_cols, kind="mergesort").copy()
+
+    def _resolve_track_col(self, frame: pd.DataFrame) -> Optional[str]:
+        for candidate in ("event_name_norm", "track_id", "event_name"):
+            if candidate in frame.columns:
+                return candidate
+        return None
+
+    def fit(self, frame: pd.DataFrame) -> "EBRankModel":
+        if frame.empty or "target" not in frame.columns:
+            return self
+
+        rows = self._sort_for_time_decay(frame)
+        y = pd.to_numeric(rows["target"], errors="coerce")
+        valid = y.notna()
+        if valid.sum() == 0:
+            return self
+        rows = rows.loc[valid].copy()
+        y = y.loc[valid].astype(float)
+
+        self.team_col = team_column(rows)
+        self.track_col = self._resolve_track_col(rows)
+
+        driver_key = self._clean_key(rows.get("driver_id", pd.Series(index=rows.index, data="unknown_driver")), "unknown_driver")
+        if self.team_col:
+            team_key = self._clean_key(rows[self.team_col], "unknown_team")
+        else:
+            team_key = pd.Series("unknown_team", index=rows.index, dtype=object)
+        if self.track_col:
+            track_key = self._clean_key(rows[self.track_col], "unknown_track")
+        else:
+            track_key = pd.Series("unknown_track", index=rows.index, dtype=object)
+
+        n = len(rows)
+        age = np.arange(n, dtype=float)
+        if n > 1 and self.decay > 0.0:
+            weights = np.exp(-self.decay * (float(n - 1) - age))
+        else:
+            weights = np.ones(n, dtype=float)
+        weights = np.clip(weights, 1e-6, None)
+
+        y_np = y.to_numpy(dtype=float)
+        self.global_mean = self._weighted_mean(y_np, weights)
+        self.driver_effects = {}
+        self.team_effects = {}
+        self.track_effects = {}
+
+        for _ in range(self.iterations):
+            driver_pred = np.asarray([self.driver_effects.get(str(v), 0.0) for v in driver_key.tolist()], dtype=float)
+            team_pred = np.asarray([self.team_effects.get(str(v), 0.0) for v in team_key.tolist()], dtype=float)
+            track_pred = np.asarray([self.track_effects.get(str(v), 0.0) for v in track_key.tolist()], dtype=float)
+
+            residual_driver = y_np - (self.global_mean + team_pred + track_pred)
+            self.driver_effects = self._shrink_effect(
+                keys=driver_key,
+                residual=residual_driver,
+                weights=weights,
+                prior=self.driver_prior,
+            )
+
+            driver_pred = np.asarray([self.driver_effects.get(str(v), 0.0) for v in driver_key.tolist()], dtype=float)
+            residual_team = y_np - (self.global_mean + driver_pred + track_pred)
+            self.team_effects = self._shrink_effect(
+                keys=team_key,
+                residual=residual_team,
+                weights=weights,
+                prior=self.team_prior,
+            )
+
+            team_pred = np.asarray([self.team_effects.get(str(v), 0.0) for v in team_key.tolist()], dtype=float)
+            residual_track = y_np - (self.global_mean + driver_pred + team_pred)
+            self.track_effects = self._shrink_effect(
+                keys=track_key,
+                residual=residual_track,
+                weights=weights,
+                prior=self.track_prior,
+            )
+
+        return self
+
+    def predict(self, frame: pd.DataFrame) -> np.ndarray:
+        if frame.empty:
+            return np.asarray([], dtype=float)
+
+        driver_key = self._clean_key(frame.get("driver_id", pd.Series(index=frame.index, data="unknown_driver")), "unknown_driver")
+        if self.team_col and self.team_col in frame.columns:
+            team_key = self._clean_key(frame[self.team_col], "unknown_team")
+        else:
+            team_key = pd.Series("unknown_team", index=frame.index, dtype=object)
+        if self.track_col and self.track_col in frame.columns:
+            track_key = self._clean_key(frame[self.track_col], "unknown_track")
+        else:
+            track_key = pd.Series("unknown_track", index=frame.index, dtype=object)
+
+        pred = np.full(len(frame), self.global_mean, dtype=float)
+        pred += np.asarray([self.driver_effects.get(str(v), 0.0) for v in driver_key.tolist()], dtype=float)
+        pred += np.asarray([self.team_effects.get(str(v), 0.0) for v in team_key.tolist()], dtype=float)
+        pred += np.asarray([self.track_effects.get(str(v), 0.0) for v in track_key.tolist()], dtype=float)
+        return pred
+
+    def predict_probabilities(self, scores: pd.Series) -> dict[str, pd.Series]:
+        output: dict[str, pd.Series] = {}
+        for label, calibrator in self.calibrators.items():
+            output[label] = calibrator.predict(scores)
+        return output
+
+
 @dataclass
 class WeightedBlendModel:
     primary_model: object
@@ -298,34 +479,44 @@ def _candidate_models(
     dl_hyperparams: dict[str, Any],
     dl_seed: int,
     dl_device: str,
+    requested_model: str,
     notes: list[str],
 ) -> tuple[list[CandidateSpec], bool]:
     candidates: list[CandidateSpec] = []
+    requested = str(requested_model or "auto").strip().lower()
     families = {str(item).strip().lower() for item in (compare_families or ["ml"])}
     allow_ml = "ml" in families or "baseline" in families
-    allow_dl = enable_dl_candidates and ("dl" in families)
+    allow_dl = enable_dl_candidates and ("dl" in families) and requested == "auto"
     dl_available = torch_available()
+    include_default_ml = requested == "auto"
+    include_xgb_rank = requested in {"auto", "xgb_rank"}
+    include_eb_rank = requested == "eb_rank"
+    include_lgbm_rank = requested == "lgbm_rank"
 
-    if allow_ml and XGBRanker is not None:
-        candidates.append(
-            CandidateSpec(
-                name="xgboost_pairwise",
-                task="ranking",
-                family="ml",
-                build_model=lambda: XGBRanker(
-                    objective="rank:pairwise",
-                    n_estimators=500,
-                    learning_rate=0.05,
-                    max_depth=5,
-                    subsample=0.9,
-                    colsample_bytree=0.9,
-                    random_state=42,
-                    n_jobs=1,
-                    verbosity=0,
+    if include_xgb_rank and allow_ml:
+        if XGBRanker is None:
+            notes.append("XGBoost ranker indisponible: xgboost_pairwise ignore.")
+        else:
+            candidates.append(
+                CandidateSpec(
+                    name="xgboost_pairwise",
+                    task="ranking",
+                    family="ml",
+                    build_model=lambda: XGBRanker(
+                        objective="rank:pairwise",
+                        n_estimators=500,
+                        learning_rate=0.05,
+                        max_depth=5,
+                        subsample=0.9,
+                        colsample_bytree=0.9,
+                        random_state=42,
+                        n_jobs=1,
+                        verbosity=0,
+                    ),
                 ),
-            ),
-        )
-    if allow_ml and XGBRegressor is not None:
+            )
+
+    if include_default_ml and allow_ml and XGBRegressor is not None:
         candidates.append(
             CandidateSpec(
                 name="xgboost",
@@ -344,7 +535,8 @@ def _candidate_models(
                 ),
             ),
         )
-    if allow_ml and HistGradientBoostingRegressor is not None:
+
+    if include_default_ml and allow_ml and HistGradientBoostingRegressor is not None:
         candidates.append(
             CandidateSpec(
                 name="hist_gradient_boosting",
@@ -358,7 +550,8 @@ def _candidate_models(
                 ),
             ),
         )
-    if allow_ml and Ridge is not None:
+
+    if include_default_ml and allow_ml and Ridge is not None:
         candidates.append(
             CandidateSpec(
                 name="ridge",
@@ -368,6 +561,39 @@ def _candidate_models(
                 build_model=lambda: Ridge(alpha=1.0),
             ),
         )
+
+    if include_eb_rank:
+        candidates.append(
+            CandidateSpec(
+                name="eb_rank",
+                task="eb",
+                family="baseline",
+                build_model=lambda: EBRankModel(),
+            ),
+        )
+
+    if include_lgbm_rank:
+        if LGBMRanker is None:
+            notes.append("LightGBM indisponible: lgbm_rank ignore.")
+        else:
+            candidates.append(
+                CandidateSpec(
+                    name="lgbm_rank",
+                    task="ranking",
+                    family="ml",
+                    build_model=lambda: LGBMRanker(
+                        objective="lambdarank",
+                        n_estimators=500,
+                        learning_rate=0.05,
+                        num_leaves=31,
+                        subsample=0.9,
+                        colsample_bytree=0.9,
+                        random_state=42,
+                    ),
+                ),
+            )
+    elif requested in {"auto", "baseline", "xgb_rank", "eb_rank"} and LGBMRanker is None:
+        notes.append("LightGBM candidate skipped: package lightgbm indisponible.")
 
     if allow_dl:
         if not dl_available:
@@ -464,13 +690,17 @@ def _fit_candidate(
     train_df: pd.DataFrame,
     feature_cols: List[str],
     candidate: CandidateSpec,
-) -> Optional[FittedModel]:
+) -> Optional[object]:
     rows, y, event_key = _prepare_training_rows(train_df)
     if rows.empty:
         return None
     model = candidate.build_model()
-    preprocessor = FeaturePipeline(feature_cols=feature_cols, scale=candidate.scale_features)
     try:
+        if candidate.task == "eb":
+            model.fit(rows)
+            return model
+
+        preprocessor = FeaturePipeline(feature_cols=feature_cols, scale=candidate.scale_features)
         if candidate.task == "ranking":
             clean_event = _sanitize_event_key(event_key)
             if clean_event is None:
@@ -798,6 +1028,14 @@ def _fit_probability_calibrator(scores: pd.Series, labels: pd.Series) -> Probabi
     return ProbabilityCalibrator.heuristic(x, y)
 
 
+def _normalize_requested_model(value: str) -> str:
+    normalized = str(value or "auto").strip().lower()
+    allowed = {"auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"}
+    if normalized in allowed:
+        return normalized
+    return "auto"
+
+
 def train_model(
     train: pd.DataFrame,
     feature_cols: List[str],
@@ -808,13 +1046,21 @@ def train_model(
     dl_arch: str = "mlp_tabular_v1",
     dl_hyperparams: Optional[dict[str, Any]] = None,
     dl_seed: int = 42,
+    f1_model: str = "auto",
 ) -> TrainingResult:
     notes: List[str] = []
     leaderboard_data: List[dict[str, Any]] = []
     compare = compare_families or ["ml"]
     dl_hparams = dict(dl_hyperparams or {})
+    requested_model = _normalize_requested_model(f1_model)
     dl_available = torch_available()
     dl_requested = enable_dl_candidates and ("dl" in {str(f).strip().lower() for f in compare})
+
+    if requested_model == "lgbm_rank" and LGBMRanker is None:
+        raise SystemExit(
+            "f1_model=lgbm_rank demande mais LightGBM n'est pas installe. "
+            "Installez `lightgbm` ou choisissez un autre --f1_model."
+        )
 
     if train.empty:
         if dl_requested and not dl_available:
@@ -843,6 +1089,7 @@ def train_model(
         dl_hyperparams=dl_hparams,
         dl_seed=dl_seed,
         dl_device=dl_device,
+        requested_model=requested_model,
         notes=notes,
     )
     race_baseline_col = "qualy_context_position" if "qualy_context_position" in feature_cols else "qualy_position"
@@ -878,6 +1125,9 @@ def train_model(
         )
     if small_history_qualifying:
         notes.append("Historique court (<8 events): selection restreinte aux baselines qualif.")
+
+    if requested_model != "auto":
+        notes.append(f"Selection forcee via f1_model={requested_model}.")
 
     if not candidates and not race_baseline_supported and not qualifying_baseline_supported:
         notes.append("Aucun modele disponible: fallback heuristique.")
@@ -1002,6 +1252,28 @@ def train_model(
             selected_from_cv = f"pace_baseline::{default_col}"
             notes.append("Mode conservateur: baseline pace prioritaire sans folds.")
 
+    if requested_model == "baseline":
+        if race_baseline_supported:
+            selected_from_cv = "qualifying_baseline"
+        elif qualifying_baseline_supported:
+            default_col = (
+                "event_pace_index"
+                if "event_pace_index" in qualifying_baseline_cols
+                else qualifying_baseline_cols[0]
+            )
+            selected_from_cv = f"pace_baseline::{default_col}"
+        else:
+            notes.append("f1_model=baseline demande mais aucune baseline exploitable n'est disponible.")
+    elif requested_model == "xgb_rank":
+        selected_from_cv = "xgboost_pairwise"
+    elif requested_model == "eb_rank":
+        selected_from_cv = "eb_rank"
+    elif requested_model == "lgbm_rank":
+        selected_from_cv = "lgbm_rank"
+
+    if requested_model != "auto" and selected_from_cv:
+        notes.append(f"Selection finale forcee: {selected_from_cv}.")
+
     selected_model: Optional[object] = None
     selected_name: Optional[str] = None
     selected_family = "heuristic"
@@ -1053,7 +1325,7 @@ def train_model(
                     )
                     selected_name = selected_from_cv
                     selected_family = candidate.family
-                    selected_device = fitted.device_used
+                    selected_device = getattr(fitted, "device_used", None)
 
     else:
         candidate_order: list[CandidateSpec] = []
@@ -1067,7 +1339,7 @@ def train_model(
             selected_model = fitted
             selected_name = candidate.name
             selected_family = candidate.family
-            selected_device = fitted.device_used
+            selected_device = getattr(fitted, "device_used", None)
             break
 
     if selected_model is None and race_baseline_supported:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from typing import List, Optional
 
 import numpy as np
@@ -240,6 +241,171 @@ def _predict_probabilities(model: Optional[object], preds: pd.Series) -> tuple[p
     top3 = top3.clip(0.0, 1.0)
     top3 = np.minimum(top3, top10)
     return top10, pd.Series(top3, index=preds.index, dtype=float)
+
+
+def _normalize_event_name_for_key(value: object) -> str:
+    text = str(value or "").strip().lower()
+    if not text:
+        return "unknown_event"
+    return " ".join(text.split())
+
+
+def _event_group_id(frame: pd.DataFrame, mode: str) -> pd.Series:
+    if "event_key" in frame.columns:
+        event_key = pd.to_numeric(frame["event_key"], errors="coerce")
+        if event_key.notna().any():
+            return event_key.fillna(-1).astype(int).astype(str)
+
+    season_col = "event_year" if "event_year" in frame.columns else "year"
+    round_col = "event_round" if "event_round" in frame.columns else "round_number"
+    season = (
+        pd.to_numeric(frame[season_col], errors="coerce")
+        if season_col in frame.columns
+        else pd.Series(index=frame.index, data=np.nan, dtype=float)
+    )
+    round_number = (
+        pd.to_numeric(frame[round_col], errors="coerce")
+        if round_col in frame.columns
+        else pd.Series(index=frame.index, data=np.nan, dtype=float)
+    )
+    event_name = (
+        frame["event_name_norm"].map(_normalize_event_name_for_key)
+        if "event_name_norm" in frame.columns
+        else frame.get("event_name", pd.Series(index=frame.index, dtype=object)).map(_normalize_event_name_for_key)
+    )
+    season_token = season.fillna(-1).astype(int).astype(str)
+    round_token = round_number.fillna(-1).astype(int).astype(str)
+    mode_token = pd.Series(str(mode), index=frame.index, dtype=str)
+    return season_token + "-" + round_token + "-" + mode_token + "-" + event_name.astype(str)
+
+
+def _canonical_event_key(event_rows: pd.DataFrame, mode: str, fallback_group_id: str) -> str:
+    season_value: Optional[int] = None
+    for season_col in ("event_year", "year", "season"):
+        if season_col not in event_rows.columns:
+            continue
+        season_series = pd.to_numeric(event_rows[season_col], errors="coerce").dropna()
+        if not season_series.empty:
+            season_value = int(season_series.iloc[0])
+            break
+
+    round_value: Optional[int] = None
+    for round_col in ("event_round", "round_number", "round"):
+        if round_col not in event_rows.columns:
+            continue
+        round_series = pd.to_numeric(event_rows[round_col], errors="coerce").dropna()
+        if not round_series.empty:
+            round_value = int(round_series.iloc[0])
+            break
+
+    event_name_value = "unknown_event"
+    if "event_name_norm" in event_rows.columns:
+        series = event_rows["event_name_norm"]
+    elif "event_name" in event_rows.columns:
+        series = event_rows["event_name"]
+    else:
+        series = pd.Series(dtype=object)
+    if not series.empty:
+        first_non_empty = series.dropna()
+        if not first_non_empty.empty:
+            event_name_value = _normalize_event_name_for_key(first_non_empty.iloc[0])
+
+    if season_value is not None and round_value is not None:
+        return f"{season_value}-{round_value}-{mode}-{event_name_value}"
+
+    if "event_key" in event_rows.columns:
+        event_series = pd.to_numeric(event_rows["event_key"], errors="coerce").dropna()
+        if not event_series.empty:
+            return str(int(event_series.iloc[0]))
+
+    return str(fallback_group_id)
+
+
+def _stable_event_hash(event_key: str) -> int:
+    digest = hashlib.md5(str(event_key).encode("utf-8")).hexdigest()[:8]
+    return int(digest, 16)
+
+
+def _pl_gumbel_listwise(
+    *,
+    frame: pd.DataFrame,
+    preds: pd.Series,
+    mode: str,
+    samples: int,
+    temperature: float,
+    seed: int,
+) -> pd.DataFrame:
+    output = pd.DataFrame(index=frame.index)
+    output["utility"] = np.nan
+    output["p_win"] = 0.0
+    output["p_top3"] = 0.0
+    output["p_top10"] = 0.0
+    output["exp_pos"] = np.nan
+    output["pos_p10"] = np.nan
+    output["pos_p50"] = np.nan
+    output["pos_p90"] = np.nan
+    output["listwise_method"] = "pl_gumbel"
+    output["listwise_samples"] = int(max(1, samples))
+    output["temperature"] = float(max(temperature, 1e-6))
+    output["listwise_enabled"] = True
+
+    valid_mask = pd.to_numeric(preds, errors="coerce").notna()
+    if valid_mask.sum() == 0:
+        output["listwise_enabled"] = False
+        return output
+
+    group_id = _event_group_id(frame, mode=mode)
+    temperature_safe = float(max(temperature, 1e-6))
+    n_samples = int(max(1, samples))
+    for event_group in group_id.loc[valid_mask].dropna().unique().tolist():
+        idx = group_id.index[(group_id == event_group) & valid_mask]
+        if len(idx) == 0:
+            continue
+        event_rows = frame.loc[idx]
+        event_preds = pd.to_numeric(preds.loc[idx], errors="coerce")
+        utility = -event_preds.to_numpy(dtype=float)
+        output.loc[idx, "utility"] = utility
+
+        n_drivers = len(idx)
+        if n_drivers == 1:
+            output.loc[idx, "p_win"] = 1.0
+            output.loc[idx, "p_top3"] = 1.0
+            output.loc[idx, "p_top10"] = 1.0
+            output.loc[idx, "exp_pos"] = 1.0
+            output.loc[idx, "pos_p10"] = 1.0
+            output.loc[idx, "pos_p50"] = 1.0
+            output.loc[idx, "pos_p90"] = 1.0
+            continue
+
+        canonical_key = _canonical_event_key(event_rows, mode=mode, fallback_group_id=str(event_group))
+        h = _stable_event_hash(canonical_key)
+        event_seed = (int(seed) + h) % (2**32 - 1)
+        if event_seed <= 0:
+            event_seed = 1
+        rng = np.random.default_rng(event_seed)
+
+        noise = rng.gumbel(size=(n_samples, n_drivers))
+        sampled_scores = (utility / temperature_safe)[np.newaxis, :] + noise
+        sampled_order = np.argsort(-sampled_scores, axis=1)
+        sampled_positions = np.empty_like(sampled_order)
+        sampled_positions[np.arange(n_samples)[:, np.newaxis], sampled_order] = np.arange(1, n_drivers + 1)
+
+        p_win = (sampled_positions == 1).mean(axis=0)
+        p_top3 = (sampled_positions <= 3).mean(axis=0)
+        p_top10 = (sampled_positions <= 10).mean(axis=0)
+        expected_position = sampled_positions.mean(axis=0)
+        q10, q50, q90 = np.percentile(sampled_positions, [10, 50, 90], axis=0)
+
+        output.loc[idx, "p_win"] = np.clip(p_win, 0.0, 1.0)
+        output.loc[idx, "p_top3"] = np.clip(p_top3, 0.0, 1.0)
+        output.loc[idx, "p_top10"] = np.clip(p_top10, 0.0, 1.0)
+        output.loc[idx, "exp_pos"] = expected_position
+        output.loc[idx, "pos_p10"] = q10
+        output.loc[idx, "pos_p50"] = q50
+        output.loc[idx, "pos_p90"] = q90
+
+    output["p_top3"] = np.minimum(output["p_top3"], output["p_top10"])
+    return output
 
 
 def _qualifying_feature_sets(disable_runsim: bool = False) -> tuple[List[str], List[str]]:
@@ -608,6 +774,7 @@ def _merge_predicted_qualifying_context(
         dl_arch=config.dl_arch,
         dl_hyperparams=config.dl_hyperparams,
         dl_seed=config.dl_seed,
+        f1_model=config.f1_model,
     )
     notes.append(f"[Race<-Quali] Modele qualif contexte: {qual_model.model_name}.")
     for note in qual_model.notes:
@@ -731,6 +898,7 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         dl_arch=config.dl_arch,
         dl_hyperparams=config.dl_hyperparams,
         dl_seed=config.dl_seed,
+        f1_model=config.f1_model,
     )
     notes.extend(training_result.notes)
     if training_result.model is None:
@@ -743,6 +911,27 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
     proba_top10, proba_top3 = _predict_probabilities(training_result.model, preds)
     output["proba_top10"] = proba_top10
     output["proba_top3"] = proba_top3
+
+    if str(config.f1_listwise).strip().lower() == "pl_gumbel":
+        listwise = _pl_gumbel_listwise(
+            frame=output,
+            preds=preds,
+            mode=config.mode,
+            samples=int(config.f1_pl_samples),
+            temperature=float(config.f1_pl_temperature),
+            seed=int(config.f1_listwise_seed),
+        )
+        output = output.join(listwise)
+        output["old_rank_based_top10"] = proba_top10
+        output["old_rank_based_top3"] = proba_top3
+        output["proba_top10"] = output["p_top10"]
+        output["proba_top3"] = output["p_top3"]
+        notes.append(
+            "Listwise PL active: proba_top10/proba_top3 remplaces par p_top10/p_top3 (seed stable par event).",
+        )
+    else:
+        output["listwise_enabled"] = False
+
     if "driver_name" not in output.columns:
         if "driver_id" in output.columns:
             output["driver_name"] = output["driver_id"]

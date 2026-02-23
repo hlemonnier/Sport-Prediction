@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True)
+@dataclass
 class PredictionConfig:
     league: str
     season: int
@@ -14,3 +14,6 @@ class PredictionConfig:
     data_source: str | None = None
     train_seasons: list[int] | None = None
     cache_dir: str | None = None
+    football_model: str = "dixon"
+    football_calibration: str = "auto"
+    shadow_eval: bool = True

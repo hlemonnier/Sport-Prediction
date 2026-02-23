@@ -76,7 +76,7 @@ def _build_payload(config: PredictionConfig) -> tuple[dict[str, object], list[di
     return payload, result.rows
 
 
-def main(argv: Optional[Sequence[str]] = None) -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Match Result Prediction (football)")
     parser.add_argument("--mode", choices=["match_result", "scoreline"], required=True)
     parser.add_argument("--league", required=True)
@@ -85,11 +85,22 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument("--data-source", default="placeholder")
     parser.add_argument("--train-seasons", default="auto")
     parser.add_argument("--cache-dir", default=None)
+    parser.add_argument("--football_model", choices=["dixon", "gbdt", "hybrid"], default="dixon")
+    parser.add_argument("--football_calibration", choices=["off", "auto", "platt", "isotonic"], default="auto")
+    parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
     parser.add_argument("--quiet", action="store_true")
+    return parser
 
-    args = parser.parse_args(list(argv) if argv is not None else None)
+
+def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = build_parser()
+    return parser.parse_args(list(argv) if argv is not None else None)
+
+
+def main(argv: Optional[Sequence[str]] = None) -> None:
+    args = parse_args(argv)
 
     config = PredictionConfig(
         league=args.league,
@@ -99,6 +110,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         data_source=args.data_source,
         train_seasons=parse_train_seasons(args.train_seasons, args.season),
         cache_dir=args.cache_dir,
+        football_model=args.football_model,
+        football_calibration=args.football_calibration,
+        shadow_eval=(str(args.shadow_eval).strip().lower() == "on"),
     )
 
     payload, rows = _build_payload(config)

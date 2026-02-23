@@ -27,6 +27,11 @@ def default_output_dir() -> str:
     return str(project_root / "data" / "f1")
 
 
+def default_cache_dir() -> str:
+    project_root = Path(__file__).resolve().parents[5]
+    return str(project_root / ".cache" / "f1")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="F1 data pipeline (OpenF1 + FastF1)",
@@ -34,7 +39,7 @@ def main() -> None:
     parser.add_argument("--sources", default="fastf1,openf1")
     parser.add_argument("--years", required=True, help="Ex: 2023,2024,2025")
     parser.add_argument("--output-dir", default=default_output_dir())
-    parser.add_argument("--cache-dir", default=".cache/f1")
+    parser.add_argument("--cache-dir", default=default_cache_dir())
     parser.add_argument("--max-rounds", type=int, default=None)
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)

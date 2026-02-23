@@ -51,6 +51,11 @@ def default_output_dir() -> str:
     return str(project_root / "data" / "f1" / "raw" / "weekends")
 
 
+def default_cache_dir() -> str:
+    project_root = Path(__file__).resolve().parents[5]
+    return str(project_root / ".cache" / "fastf1")
+
+
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "_", value.strip().lower()).strip("_")
     return slug or "unknown"
@@ -224,7 +229,7 @@ def main() -> None:
     parser.add_argument("--start-round", type=int, default=1)
     parser.add_argument("--weekends", type=int, default=5)
     parser.add_argument("--output-dir", default=default_output_dir())
-    parser.add_argument("--cache-dir", default=".cache/fastf1")
+    parser.add_argument("--cache-dir", default=default_cache_dir())
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
     parser.add_argument("--quiet", action="store_true")

@@ -9,29 +9,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 
 from rqp import PredictionConfig, run_prediction
-
-
-def parse_train_seasons(value: str, target_year: int, train_policy: str) -> list[int]:
-    if value.lower() not in {"auto", "default"}:
-        return sorted({int(x.strip()) for x in value.split(",") if x.strip()})
-
-    if train_policy == "strict_transfer":
-        seasons = [target_year - 4, target_year - 3, target_year - 2, target_year]
-    elif train_policy == "rolling":
-        seasons = [target_year - 3, target_year - 2, target_year - 1, target_year]
-    elif train_policy == "frozen_preseason":
-        seasons = [target_year - 4, target_year - 3, target_year - 2]
-    else:
-        seasons = [target_year - 2, target_year - 1, target_year]
-    return sorted({int(y) for y in seasons if int(y) > 0})
-
-
-def parse_compare_families(value: str) -> list[str]:
-    families = [part.strip().lower() for part in str(value).split(",") if part.strip()]
-    if not families:
-        return ["ml"]
-    allowed = {"ml", "dl", "baseline"}
-    return [f for f in families if f in allowed] or ["ml"]
+from rqp.runtime import parse_compare_families, parse_json_object, parse_train_seasons
 
 
 def main() -> None:
@@ -67,12 +45,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    try:
-        dl_hyperparams = json.loads(args.dl_hyperparams)
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"Invalid --dl-hyperparams JSON: {exc}") from exc
-    if not isinstance(dl_hyperparams, dict):
-        raise SystemExit("Invalid --dl-hyperparams: expected JSON object.")
+    dl_hyperparams = parse_json_object(args.dl_hyperparams, "--dl-hyperparams")
 
     config = PredictionConfig(
         source=args.source,

@@ -11,9 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-import pandas as pd
-
 from rqp import PredictionConfig, run_prediction
+from rqp.evaluation import evaluate_prediction_rows
 from rqp.providers import LocalWeekendProvider
 
 try:
@@ -98,83 +97,6 @@ def _resolve_profile_value(profile: dict[str, Any], section: str, key: str, defa
     if not isinstance(part, dict):
         return default
     return part.get(key, default)
-
-
-def _normalize_driver_key(value: object) -> str:
-    if value is None or pd.isna(value):
-        return ""
-    text = str(value).strip().lower()
-    if not text:
-        return ""
-    return " ".join(text.split())
-
-
-def _actual_name_column(frame: pd.DataFrame) -> Optional[str]:
-    for col in ["driver_name", "driver_id", "Abbreviation", "Driver"]:
-        if col in frame.columns:
-            return col
-    return None
-
-
-def _evaluate_prediction_rows(
-    predicted_rows: list[dict[str, Any]],
-    actual_results: pd.DataFrame,
-    actual_position_col: str,
-) -> dict[str, Any]:
-    if not predicted_rows:
-        return {"available": False, "reason": "prediction_rows_unavailable"}
-    if actual_results is None or actual_results.empty:
-        return {"available": False, "reason": "actual_results_unavailable"}
-
-    pred = pd.DataFrame(predicted_rows).copy()
-    if pred.empty or "driver_name" not in pred.columns:
-        return {"available": False, "reason": "prediction_driver_name_unavailable"}
-    pred["driver_key"] = pred["driver_name"].map(_normalize_driver_key)
-    pred = pred[pred["driver_key"] != ""]
-    if pred.empty:
-        return {"available": False, "reason": "prediction_driver_key_unavailable"}
-    if "rank" in pred.columns:
-        pred["pred_rank"] = pd.to_numeric(pred["rank"], errors="coerce")
-    else:
-        pred["pred_rank"] = pd.Series(range(1, len(pred) + 1), index=pred.index, dtype=float)
-    pred = pred.dropna(subset=["pred_rank"])
-    pred["pred_rank"] = pred["pred_rank"].astype(float)
-
-    actual = actual_results.copy()
-    if actual_position_col not in actual.columns:
-        return {"available": False, "reason": "actual_position_unavailable"}
-    name_col = _actual_name_column(actual)
-    if name_col is None:
-        return {"available": False, "reason": "actual_driver_name_unavailable"}
-    actual["driver_key"] = actual[name_col].map(_normalize_driver_key)
-    actual["actual_rank"] = pd.to_numeric(actual[actual_position_col], errors="coerce")
-    actual = actual[(actual["driver_key"] != "") & actual["actual_rank"].notna()]
-    if actual.empty:
-        return {"available": False, "reason": "actual_clean_unavailable"}
-
-    pred_unique = pred.sort_values("pred_rank", kind="mergesort").drop_duplicates(subset=["driver_key"], keep="first")
-    actual_unique = actual.sort_values("actual_rank", kind="mergesort").drop_duplicates(
-        subset=["driver_key"],
-        keep="first",
-    )
-    merged = pred_unique.merge(actual_unique[["driver_key", "actual_rank"]], on="driver_key", how="inner")
-    merged = merged.dropna(subset=["pred_rank", "actual_rank"])
-
-    mae = float((merged["pred_rank"] - merged["actual_rank"]).abs().mean()) if not merged.empty else None
-    predicted_top10 = set(pred_unique.sort_values("pred_rank").head(10)["driver_key"].tolist())
-    actual_top10 = set(actual_unique[actual_unique["actual_rank"] <= 10]["driver_key"].tolist())
-    top10_hit = None
-    if actual_top10:
-        top10_hit = float(len(predicted_top10.intersection(actual_top10)) / float(min(10, len(actual_top10))))
-
-    return {
-        "available": True,
-        "rows_predicted": int(len(pred_unique)),
-        "rows_actual": int(len(actual_unique)),
-        "rows_common": int(len(merged)),
-        "mae_on_common": mae,
-        "top10_hit": top10_hit,
-    }
 
 
 def _prediction_payload(config: PredictionConfig) -> tuple[dict[str, Any], list[dict[str, Any]]]:
@@ -570,7 +492,7 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
                     if mode_key == "qualifying"
                     else provider.get_race_results(base["year"], rnd)
                 )
-                evaluation_row = _evaluate_prediction_rows(
+                evaluation_row = evaluate_prediction_rows(
                     predicted_rows=rows,
                     actual_results=actual,
                     actual_position_col="position",

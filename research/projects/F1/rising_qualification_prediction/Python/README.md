@@ -51,11 +51,12 @@ python run_profile.py --profile profiles/live_2026_postrace.yaml --round 1 --yea
 ## Raw Data Download
 
 ```bash
-python run_weekend_data_download.py --year 2025 --start-round 1 --weekends 5 --cache-dir .cache/fastf1
+python run_weekend_data_download.py --year 2025 --start-round 1 --weekends 5
 ```
 
 Output folder:
 - `data/f1/raw/weekends/`
+- cache defaults are centralized at repo root: `.cache/fastf1` and `.cache/f1`
 
 ## Direct CLI (low-level)
 

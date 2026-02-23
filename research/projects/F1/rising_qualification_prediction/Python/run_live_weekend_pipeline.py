@@ -10,35 +10,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-import pandas as pd
-
 from rqp import PredictionConfig, run_prediction
+from rqp.evaluation import evaluate_prediction_rows
 from rqp.providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
-
-
-def parse_train_seasons(value: str, target_year: int, policy: str) -> list[int]:
-    if value.lower() not in {"auto", "default"}:
-        return sorted({int(x.strip()) for x in value.split(",") if x.strip()})
-
-    if policy == "strict_transfer":
-        # Example 2026 target: train on 2022-2024 + 2026 rounds already completed.
-        seasons = [target_year - 4, target_year - 3, target_year - 2, target_year]
-    elif policy == "rolling":
-        # Example 2026 target: train on 2023-2025 + 2026 rounds already completed.
-        seasons = [target_year - 3, target_year - 2, target_year - 1, target_year]
-    elif policy == "frozen_preseason":
-        # Static historical block only, no in-season adaptation.
-        seasons = [target_year - 4, target_year - 3, target_year - 2]
-    else:
-        # Backward-compatible fallback.
-        seasons = [target_year - 2, target_year - 1, target_year]
-
-    return sorted({int(y) for y in seasons if int(y) > 0})
+from rqp.runtime import parse_compare_families, parse_json_object, parse_train_seasons
 
 
 def default_output_dir() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "data" / "f1" / "live" / "2026" / "pipeline_runs")
+    return str(project_root / "data" / "f1" / "live" / "2026")
 
 
 def _build_provider(
@@ -101,96 +81,6 @@ def _load_json(path: Path) -> Optional[dict[str, Any]]:
     except Exception:
         return None
     return None
-
-
-def _normalize_name_key(value: object) -> str:
-    if value is None or pd.isna(value):
-        return ""
-    text = str(value).strip().lower()
-    if not text:
-        return ""
-    return " ".join(text.split())
-
-
-def _actual_name_column(frame: pd.DataFrame) -> Optional[str]:
-    for col in ["driver_name", "driver_id", "Abbreviation", "Driver"]:
-        if col in frame.columns:
-            return col
-    return None
-
-
-def _evaluate_prediction_rows(
-    predicted_rows: list[dict[str, Any]],
-    actual_results: pd.DataFrame,
-    actual_position_col: str,
-) -> dict[str, Any]:
-    if not predicted_rows:
-        return {"available": False, "reason": "prediction_rows_unavailable"}
-    if actual_results is None or actual_results.empty:
-        return {"available": False, "reason": "actual_results_unavailable"}
-
-    pred = pd.DataFrame(predicted_rows).copy()
-    if pred.empty or "driver_name" not in pred.columns:
-        return {"available": False, "reason": "prediction_driver_name_unavailable"}
-    pred["driver_key"] = pred["driver_name"].map(_normalize_name_key)
-    pred = pred[pred["driver_key"] != ""]
-    if pred.empty:
-        return {"available": False, "reason": "prediction_driver_key_unavailable"}
-    if "rank" in pred.columns:
-        pred["pred_rank"] = pd.to_numeric(pred["rank"], errors="coerce")
-    else:
-        pred["pred_rank"] = pd.Series(range(1, len(pred) + 1), index=pred.index, dtype=float)
-    pred = pred.dropna(subset=["pred_rank"])
-    pred["pred_rank"] = pred["pred_rank"].astype(float)
-
-    actual = actual_results.copy()
-    if actual_position_col not in actual.columns:
-        return {"available": False, "reason": "actual_position_unavailable"}
-    name_col = _actual_name_column(actual)
-    if name_col is None:
-        return {"available": False, "reason": "actual_driver_name_unavailable"}
-    actual["driver_key"] = actual[name_col].map(_normalize_name_key)
-    actual["actual_rank"] = pd.to_numeric(actual[actual_position_col], errors="coerce")
-    actual = actual[(actual["driver_key"] != "") & actual["actual_rank"].notna()]
-    if actual.empty:
-        return {"available": False, "reason": "actual_clean_unavailable"}
-
-    pred_unique = pred.sort_values("pred_rank", kind="mergesort").drop_duplicates(subset=["driver_key"], keep="first")
-    actual_unique = actual.sort_values("actual_rank", kind="mergesort").drop_duplicates(
-        subset=["driver_key"],
-        keep="first",
-    )
-    merged = pred_unique.merge(actual_unique[["driver_key", "actual_rank"]], on="driver_key", how="inner")
-    merged = merged.dropna(subset=["pred_rank", "actual_rank"])
-
-    mae = float((merged["pred_rank"] - merged["actual_rank"]).abs().mean()) if not merged.empty else None
-    predicted_top10 = set(pred_unique.sort_values("pred_rank").head(10)["driver_key"].tolist())
-    actual_top10 = set(actual_unique[actual_unique["actual_rank"] <= 10]["driver_key"].tolist())
-    top10_hit = None
-    if actual_top10:
-        top10_hit = float(len(predicted_top10.intersection(actual_top10)) / float(min(10, len(actual_top10))))
-
-    predicted_top3 = set(pred_unique.sort_values("pred_rank").head(3)["driver_key"].tolist())
-    actual_top3 = set(actual_unique[actual_unique["actual_rank"] <= 3]["driver_key"].tolist())
-    top3_hit = float(len(predicted_top3.intersection(actual_top3))) if actual_top3 else None
-
-    winner_pred_key = pred_unique.sort_values("pred_rank").head(1)["driver_key"].tolist()
-    winner_actual_key = actual_unique.sort_values("actual_rank").head(1)["driver_key"].tolist()
-    winner_hit = None
-    if winner_pred_key and winner_actual_key:
-        winner_hit = bool(winner_pred_key[0] == winner_actual_key[0])
-
-    return {
-        "available": True,
-        "rows_predicted": int(len(pred_unique)),
-        "rows_actual": int(len(actual_unique)),
-        "rows_common": int(len(merged)),
-        "mae_on_common": mae,
-        "top10_hit": top10_hit,
-        "podium_hit_count": top3_hit,
-        "winner_hit": winner_hit,
-    }
-
 
 def _round_dir(base_output_dir: str, year: int, round_number: int) -> Path:
     return Path(base_output_dir) / str(year) / f"round_{int(round_number):02d}"
@@ -387,10 +277,11 @@ def _run_post_qualifying(
 
     prequal_qualifying = _load_json(output_dir / "prequal_qualifying_prediction.json")
     actual_qualifying = provider.get_qualifying_results(year, round_number)
-    qual_eval = _evaluate_prediction_rows(
+    qual_eval = evaluate_prediction_rows(
         predicted_rows=prequal_qualifying.get("rows", []) if prequal_qualifying else [],
         actual_results=actual_qualifying,
         actual_position_col="position",
+        include_podium_and_winner=True,
     )
     eval_payload = {
         "phase": "post-qualifying",
@@ -421,20 +312,23 @@ def _run_post_race(
     actual_qualifying = provider.get_qualifying_results(year, round_number)
     actual_race = provider.get_race_results(year, round_number)
 
-    qualifying_eval = _evaluate_prediction_rows(
+    qualifying_eval = evaluate_prediction_rows(
         predicted_rows=prequal_qualifying.get("rows", []) if prequal_qualifying else [],
         actual_results=actual_qualifying,
         actual_position_col="position",
+        include_podium_and_winner=True,
     )
-    race_eval_prequal = _evaluate_prediction_rows(
+    race_eval_prequal = evaluate_prediction_rows(
         predicted_rows=prequal_race.get("rows", []) if prequal_race else [],
         actual_results=actual_race,
         actual_position_col="position",
+        include_podium_and_winner=True,
     )
-    race_eval_postqual = _evaluate_prediction_rows(
+    race_eval_postqual = evaluate_prediction_rows(
         predicted_rows=postqual_race.get("rows", []) if postqual_race else [],
         actual_results=actual_race,
         actual_position_col="position",
+        include_podium_and_winner=True,
     )
 
     delta_mae = None
@@ -504,15 +398,8 @@ def main() -> None:
     args = parser.parse_args()
 
     train_seasons = parse_train_seasons(args.train_seasons, args.year, args.train_policy)
-    compare_families = [part.strip().lower() for part in args.compare_families.split(",") if part.strip()]
-    if not compare_families:
-        compare_families = ["ml"]
-    try:
-        dl_hyperparams = json.loads(args.dl_hyperparams)
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"Invalid --dl-hyperparams JSON: {exc}") from exc
-    if not isinstance(dl_hyperparams, dict):
-        raise SystemExit("Invalid --dl-hyperparams: expected JSON object.")
+    compare_families = parse_compare_families(args.compare_families)
+    dl_hyperparams = parse_json_object(args.dl_hyperparams, "--dl-hyperparams")
     output_dir = _round_dir(args.output_dir, args.year, args.round_number)
     output_dir.mkdir(parents=True, exist_ok=True)
 

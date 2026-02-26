@@ -210,7 +210,10 @@ def _build_race_time_seconds(work: pd.DataFrame) -> pd.Series:
     out = pd.Series(index=work.index, dtype=float)
     for _, idx in work.groupby("driver_id", sort=False).groups.items():
         subset = work.loc[idx].sort_values(["lap_number", "timestamp"], kind="mergesort")
-        cumulative = pd.to_numeric(subset["lap_time_seconds"], errors="coerce").fillna(0.0).cumsum()
+        # Preserve unknown lap times as unknown: never coerce missing values to 0.
+        # Forward-fill keeps the last known cumulative race time without creating
+        # artificial progress for laps with missing timing.
+        cumulative = pd.to_numeric(subset["lap_time_seconds"], errors="coerce").cumsum().ffill()
         out.loc[subset.index] = cumulative
     return out
 

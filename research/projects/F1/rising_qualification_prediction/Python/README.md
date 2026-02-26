@@ -62,6 +62,28 @@ python run_experiment.py profile \
   --year 2026
 ```
 
+### Horizon A vs B crossover benchmark (distance % + chaos segmentation)
+
+```bash
+python run_horizon_a_vs_b_lap_snapshots.py \
+  --year 2025 \
+  --horizon-a-dir data/f1/compare_2025_afterfix_fullrace/horizon_a \
+  --horizon-b-dir data/f1/compare_2025_afterfix_fullrace/horizon_b \
+  --weekends-dir data/f1/raw/weekends \
+  --cutoff-mode distance_pct \
+  --distance-cutoffs 5,10,20,30,40,50,60,70,80,90,100 \
+  --clean-max-chaos-fraction 0.02 \
+  --chaotic-min-chaos-fraction 0.05 \
+  --epsilon-rank 0.10 \
+  --epsilon-score 0.02
+```
+
+Key artifacts include:
+- per-round cutoff metrics (`horizon_a_vs_b_lap_snapshots_per_round.csv`)
+- crossover timing per round/metric (`horizon_a_vs_b_crossover_per_round.csv`)
+- crossover distribution with `Never before finish` bucket (`horizon_a_vs_b_crossover_distribution.csv`)
+- cumulative crossover curve (`horizon_a_vs_b_crossover_survival.csv`)
+
 ## Raw Data Download
 
 ```bash

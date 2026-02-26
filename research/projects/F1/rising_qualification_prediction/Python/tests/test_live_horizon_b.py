@@ -14,7 +14,7 @@ from rqp.live_runner import (
     _write_trace,
     run_live_race_prediction,
 )
-from rqp.live_sources import LiveSourceResult, load_live_observations
+from rqp.live_sources import LiveSourceResult, _build_race_time_seconds, load_live_observations
 from rqp.live_state_space import (
     BaselineModel,
     FilterConfig,
@@ -218,6 +218,83 @@ def test_horizon_distribution_probabilities_sum_to_one() -> None:
     assert abs(float(summary["sum_p_win"]) - 1.0) < 0.02
     assert (out["p_win_H"] >= 0.0).all()
     assert (out["p_win_H"] <= 1.0).all()
+
+
+def test_position_ranking_uses_lap_count_before_total_time() -> None:
+    cfg = FilterConfig()
+    baseline = BaselineModel(by_lap={1: 90.0}, intercept=90.0, slope=0.0)
+    snapshot = pd.DataFrame(
+        {
+            "driver_id": ["lead", "lapped"],
+            "lap_last": [50, 49],
+            "race_time_seconds": [5000.0, 4900.0],
+            "next_lap_mean": [90.0, 90.0],
+        }
+    )
+    states = {driver_id: initialize_filter_state("MEDIUM", cfg) for driver_id in snapshot["driver_id"]}
+
+    out, summary = _mc_position_distribution(
+        snapshot=snapshot,
+        states=states,
+        baseline=baseline,
+        cfg=cfg,
+        horizon_laps=5,
+        seed=321,
+    )
+
+    assert bool(summary["position_dist_enabled"]) is True
+    win_map = out.set_index("driver_id")["p_win_H"].to_dict()
+    assert float(win_map["lead"]) == 1.0
+    assert float(win_map["lapped"]) == 0.0
+
+
+def test_position_distribution_penalizes_partial_missing_race_times() -> None:
+    cfg = FilterConfig()
+    baseline = BaselineModel(by_lap={1: 90.0}, intercept=90.0, slope=0.05)
+    snapshot = pd.DataFrame(
+        {
+            "driver_id": ["1", "2", "3"],
+            "lap_last": [8, 8, 8],
+            "race_time_seconds": [720.0, 721.0, float("nan")],
+            "next_lap_mean": [90.0, 90.2, 90.1],
+        }
+    )
+    states = {driver_id: initialize_filter_state("MEDIUM", cfg) for driver_id in snapshot["driver_id"]}
+
+    out, summary = _mc_position_distribution(
+        snapshot=snapshot,
+        states=states,
+        baseline=baseline,
+        cfg=cfg,
+        horizon_laps=6,
+        seed=123,
+    )
+
+    assert bool(summary["position_dist_enabled"]) is True
+    assert int(summary["invalid_race_time_count"]) == 1
+    assert float(out.loc[out["driver_id"] == "3", "p_win_H"].iloc[0]) == 0.0
+
+
+def test_build_race_time_seconds_preserves_unknowns_without_zero_fill() -> None:
+    work = pd.DataFrame(
+        {
+            "driver_id": ["1", "1", "2", "2", "2"],
+            "lap_number": [1, 2, 1, 2, 3],
+            "timestamp": [1.0, 2.0, 1.0, 2.0, 3.0],
+            "lap_time_seconds": [float("nan"), float("nan"), 90.0, float("nan"), 91.0],
+        }
+    )
+
+    out = _build_race_time_seconds(work)
+    ordered = work.assign(race_time_seconds=out).sort_values(
+        ["driver_id", "lap_number", "timestamp"], kind="mergesort"
+    )
+
+    driver_1 = ordered[ordered["driver_id"] == "1"]["race_time_seconds"].tolist()
+    driver_2 = ordered[ordered["driver_id"] == "2"]["race_time_seconds"].tolist()
+
+    assert all(pd.isna(value) for value in driver_1)
+    assert driver_2 == [90.0, 90.0, 181.0]
 
 
 def test_mc_cpu_guard_reduces_samples_and_logs_reason() -> None:

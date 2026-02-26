@@ -130,7 +130,14 @@ def _mc_position_distribution(
     out = snapshot.copy()
     out["position_dist_enabled"] = False
 
-    if out["race_time_seconds"].notna().sum() != len(out):
+    if "race_time_seconds" in out.columns:
+        race_time = pd.to_numeric(out["race_time_seconds"], errors="coerce")
+    else:
+        race_time = pd.Series(index=out.index, data=np.nan, dtype=float)
+    race_time_array = race_time.to_numpy(dtype=float)
+    valid_race_time_mask = np.isfinite(race_time_array)
+    valid_race_time_count = int(valid_race_time_mask.sum())
+    if valid_race_time_count == 0:
         return out, {
             "position_dist_enabled": False,
             "position_dist_disabled_reason": "missing_race_time_seconds",
@@ -139,6 +146,15 @@ def _mc_position_distribution(
             "mc_samples_reduction_reason": None,
             "max_mc_work": 250000,
         }
+    invalid_race_time_count = int(len(race_time_array) - valid_race_time_count)
+    race_time_start = race_time_array.astype(float, copy=True)
+    invalid_race_time_penalty_seconds: Optional[float] = None
+    if invalid_race_time_count > 0:
+        max_valid_time = float(np.max(race_time_array[valid_race_time_mask]))
+        invalid_race_time_penalty_seconds = max(600.0, float(max(1, int(horizon_laps))) * 30.0)
+        invalid_indices = np.flatnonzero(~valid_race_time_mask)
+        for offset, idx in enumerate(invalid_indices, start=1):
+            race_time_start[idx] = max_valid_time + invalid_race_time_penalty_seconds + float(offset)
 
     driver_ids = out["driver_id"].astype(str).tolist()
     if len(driver_ids) <= 1:
@@ -166,27 +182,30 @@ def _mc_position_distribution(
 
     rng = np.random.default_rng(int(seed))
     positions = np.zeros((effective_samples, len(driver_ids)), dtype=float)
+    if "lap_last" in out.columns:
+        lap_last = pd.to_numeric(out["lap_last"], errors="coerce")
+    else:
+        lap_last = pd.Series(index=out.index, data=0.0, dtype=float)
+    base_laps = lap_last.fillna(0).astype(int).to_numpy(dtype=int)
+    horizon = int(horizon_laps)
 
     A = np.asarray([[1.0, 1.0], [0.0, float(cfg.phi)]], dtype=float)
     Q = np.asarray([[float(cfg.q_pace) ** 2, 0.0], [0.0, float(cfg.q_deg) ** 2]], dtype=float)
 
     for sample_idx in range(effective_samples):
-        final_times: list[float] = []
-        for driver_id in driver_ids:
-            row = out.loc[out["driver_id"] == driver_id].iloc[0]
+        final_laps = base_laps + horizon
+        final_times = np.full(len(driver_ids), np.inf, dtype=float)
+        for driver_idx, driver_id in enumerate(driver_ids):
             state = states.get(driver_id)
             if state is None:
-                final_times.append(float("inf"))
                 continue
 
             mean = state.mean.astype(float).copy()
             cov = state.cov.astype(float).copy()
-            base_lap = int(as_float(row.get("lap_last"), 0.0))
-            total_time = float(as_float(row.get("race_time_seconds"), float("nan")))
-            if not np.isfinite(total_time):
-                total_time = 0.0
+            base_lap = int(base_laps[driver_idx])
+            total_time = float(race_time_start[driver_idx])
 
-            for step in range(1, int(horizon_laps) + 1):
+            for step in range(1, horizon + 1):
                 mean_pred = A @ mean
                 cov_pred = (A @ cov @ A.T) + Q
                 cov_pred = 0.5 * (cov_pred + cov_pred.T)
@@ -206,9 +225,10 @@ def _mc_position_distribution(
                 mean = sampled_state
                 cov = cov_pred
 
-            final_times.append(total_time)
+            final_times[driver_idx] = total_time
 
-        order = np.argsort(np.asarray(final_times, dtype=float))
+        # Race order is lap-count first, then cumulative time within the same lap.
+        order = np.lexsort((final_times, -final_laps))
         sampled_positions = np.empty(len(driver_ids), dtype=float)
         sampled_positions[order] = np.arange(1, len(driver_ids) + 1, dtype=float)
         positions[sample_idx, :] = sampled_positions
@@ -240,6 +260,8 @@ def _mc_position_distribution(
         "mc_samples_reduction_reason": reduction_reason,
         "max_mc_work": int(max_mc_work),
         "sum_p_win": sum_p_win,
+        "invalid_race_time_count": int(invalid_race_time_count),
+        "invalid_race_time_penalty_seconds": invalid_race_time_penalty_seconds,
     }
 
 
@@ -504,6 +526,8 @@ def run_live_race_prediction(
         "mc_samples_reduction_reason": dist_summary.get("mc_samples_reduction_reason"),
         "max_mc_work": int(dist_summary.get("max_mc_work", 250000)),
         "sum_p_win": dist_summary.get("sum_p_win"),
+        "invalid_race_time_count": int(dist_summary.get("invalid_race_time_count", 0)),
+        "invalid_race_time_penalty_seconds": dist_summary.get("invalid_race_time_penalty_seconds"),
         "seed_effective": int(seed),
         "trace_records": int(len(trace)),
         "replay_eval": replay_eval,

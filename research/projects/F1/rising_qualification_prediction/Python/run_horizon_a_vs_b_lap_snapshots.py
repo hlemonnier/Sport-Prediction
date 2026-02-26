@@ -986,12 +986,12 @@ def main() -> None:
     parser.add_argument("--year", type=int, default=2025)
     parser.add_argument(
         "--horizon-a-dir",
-        default="data/f1/compare_2025_afterfix/horizon_a",
+        default="outputs/f1/compare_2025_afterfix_fullrace/horizon_a",
         help="Folder containing Horizon A artifacts (rXX.json).",
     )
     parser.add_argument(
         "--horizon-b-dir",
-        default="data/f1/compare_2025_afterfix/horizon_b",
+        default="outputs/f1/compare_2025_afterfix_fullrace/horizon_b",
         help="Folder containing Horizon B artifacts (rXX.json) with trace_path.",
     )
     parser.add_argument(
@@ -1001,7 +1001,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="data/f1/compare_2025_afterfix_lap_snapshots",
+        default="outputs/f1/compare_2025_afterfix_lap_snapshots",
         help="Output directory for CSV/JSON/plot artifacts.",
     )
     parser.add_argument(

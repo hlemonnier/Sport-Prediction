@@ -18,7 +18,7 @@ from rqp.runtime import parse_compare_families, parse_json_object, parse_train_s
 
 def default_output_dir() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "data" / "f1" / "live" / "2026")
+    return str(project_root / "outputs" / "f1" / "live")
 
 
 def _build_provider(

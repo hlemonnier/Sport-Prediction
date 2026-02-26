@@ -5,8 +5,8 @@ This folder contains the F1 prediction runtime with separated lifecycle.
 The canonical experiment contract is declared in `../experiment.json` (context, snapshot root, model families, entrypoint).
 
 Lifecycle:
-- preseason proxy validation on 2025 (`data/f1/preseason/holdout_2025`)
-- live 2026 operations (`data/f1/live/2026`)
+- preseason proxy validation on 2025 (`outputs/f1/preseason/holdout_2025`)
+- live 2026 operations (`outputs/f1/live`)
 - shared raw weekends (`data/f1/raw/weekends`)
 
 ## Quick Start
@@ -67,8 +67,8 @@ python run_experiment.py profile \
 ```bash
 python run_horizon_a_vs_b_lap_snapshots.py \
   --year 2025 \
-  --horizon-a-dir data/f1/compare_2025_afterfix_fullrace/horizon_a \
-  --horizon-b-dir data/f1/compare_2025_afterfix_fullrace/horizon_b \
+  --horizon-a-dir outputs/f1/compare_2025_afterfix_fullrace/horizon_a \
+  --horizon-b-dir outputs/f1/compare_2025_afterfix_fullrace/horizon_b \
   --weekends-dir data/f1/raw/weekends \
   --cutoff-mode distance_pct \
   --distance-cutoffs 5,10,20,30,40,50,60,70,80,90,100 \

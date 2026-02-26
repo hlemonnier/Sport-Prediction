@@ -19,6 +19,7 @@ An experiment is the core unit of work. Each experiment has:
 - `platform/backend` API + orchestration for running experiments
 - `platform/web` local UI
 - `data/` local dataset snapshots used by experiments
+- `outputs/` generated predictions, reports, diagnostics, and logs
 
 ## Current experiments
 
@@ -38,6 +39,12 @@ An experiment is the core unit of work. Each experiment has:
 
 - Backend: `cd platform/backend && bun install && bun run dev`
 - Frontend: `cd platform/web && pnpm install && pnpm dev`
+
+## Data vs Outputs
+
+- Keep in `data/`: reusable source snapshots (`data/f1/raw/weekends`, `data/f1/f1_dataset.*`, `data/f1/f1_coverage.*`, `data/football/*`)
+- Keep in `outputs/`: generated run artifacts (live/preseason profile runs, comparison benchmarks, lap snapshot reports)
+- Safe cleanup rule: if a file is under `outputs/`, you can delete it and regenerate it by rerunning the related pipeline/profile
 
 ## Add a new experiment
 

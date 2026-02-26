@@ -528,7 +528,7 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
     phase = str(args.phase or defaults.get("phase", "pre-qualifying"))
     script = Path(__file__).resolve().parent / "run_live_weekend_pipeline.py"
     output_dir = _resolve_project_path(
-        args.output_dir or _resolve_profile_value(profile, "outputs", "base_dir", "data/f1/live/2026")
+        args.output_dir or _resolve_profile_value(profile, "outputs", "base_dir", "outputs/f1/live")
     )
     if output_dir is None:
         raise SystemExit("Invalid output_dir for weekend workflow.")
@@ -669,7 +669,7 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
     compare_families = _as_list_str(experiments.get("compare_families", base["compare_families"]), ["ml"])
     dl_requested = enable_dl and ("dl" in {f.lower() for f in compare_families})
 
-    output_root_value = _resolve_project_path(args.output_dir or outputs.get("base_dir") or "data/f1/preseason/holdout_2025")
+    output_root_value = _resolve_project_path(args.output_dir or outputs.get("base_dir") or "outputs/f1/preseason/holdout_2025")
     if output_root_value is None:
         raise SystemExit("Invalid output_dir for backtest workflow.")
 

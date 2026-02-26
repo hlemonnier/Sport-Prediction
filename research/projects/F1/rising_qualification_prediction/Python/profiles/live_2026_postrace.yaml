@@ -52,6 +52,6 @@
     }
   },
   "outputs": {
-    "base_dir": "data/f1/live/2026"
+    "base_dir": "outputs/f1/live"
   }
 }

@@ -8,6 +8,7 @@ platform/web/.next/
 platform/web/.turbo/
 platform/web/out/
 data/
+outputs/
 *.parquet
 platform/backend/node_modules/
 platform/backend/.bun/

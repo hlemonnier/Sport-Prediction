@@ -45,6 +45,15 @@ class LiveRunResult:
     notes: list[str]
 
 
+@dataclass(frozen=True)
+class StrategyTemplate:
+    name: str
+    first_pit_age_mean: Optional[float]
+    first_pit_age_std: float
+    second_stint_interval_mean: Optional[float] = None
+    second_stint_interval_std: float = 0.0
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -127,46 +136,151 @@ def _normalized_compound(compound: object) -> str:
     return "UNKNOWN"
 
 
-def _pit_hazard_probability(
+def _compound_service_life(compound: object) -> float:
+    key = _normalized_compound(compound)
+    if key == "SOFT":
+        return 16.0
+    if key == "MEDIUM":
+        return 22.0
+    if key == "HARD":
+        return 28.0
+    if key == "INTER":
+        return 14.0
+    if key == "WET":
+        return 12.0
+    return 20.0
+
+
+def _strategy_templates(compound: object) -> list[StrategyTemplate]:
+    service_life = _compound_service_life(compound)
+    return [
+        StrategyTemplate(
+            name="hold_track_position",
+            first_pit_age_mean=None,
+            first_pit_age_std=0.0,
+        ),
+        StrategyTemplate(
+            name="one_stop_conservative",
+            first_pit_age_mean=service_life + 4.0,
+            first_pit_age_std=2.4,
+        ),
+        StrategyTemplate(
+            name="two_stop_balanced",
+            first_pit_age_mean=max(8.0, service_life - 1.5),
+            first_pit_age_std=2.0,
+            second_stint_interval_mean=max(10.0, service_life - 4.0),
+            second_stint_interval_std=2.0,
+        ),
+        StrategyTemplate(
+            name="two_stop_aggressive",
+            first_pit_age_mean=max(6.0, service_life - 5.0),
+            first_pit_age_std=1.6,
+            second_stint_interval_mean=max(8.0, service_life - 6.5),
+            second_stint_interval_std=1.8,
+        ),
+    ]
+
+
+def _strategy_template_probabilities(
     *,
     compound: object,
     tyre_age: int,
     deg_rate: float,
-    step: int,
     horizon: int,
-    regime: str,
-) -> float:
-    age = max(0, int(tyre_age))
-    if age <= 2:
-        return 0.0
-
-    compound_key = _normalized_compound(compound)
-    intercept_map = {
-        "SOFT": -5.6,
-        "MEDIUM": -6.2,
-        "HARD": -6.8,
-        "INTER": -5.1,
-        "WET": -4.8,
-        "UNKNOWN": -6.1,
-    }
-    intercept = float(intercept_map.get(compound_key, intercept_map["UNKNOWN"]))
-
-    regime_bonus = 0.0
-    if regime == "yellow":
-        regime_bonus = 0.35
-    elif regime == "sc_vsc":
-        regime_bonus = 0.85
-
-    horizon_progress = float(step) / float(max(1, int(horizon)))
-    z = (
-        intercept
-        + (0.17 * float(age))
-        + (9.0 * max(0.0, float(deg_rate)))
-        + (1.2 * horizon_progress)
-        + regime_bonus
+) -> dict[str, float]:
+    templates = _strategy_templates(compound)
+    urgency_input = (
+        ((max(0, int(tyre_age)) + (0.35 * float(max(1, int(horizon))))) - _compound_service_life(compound)) / 2.8
+        + (10.0 * max(0.0, float(deg_rate) - 0.03))
     )
-    probability = _sigmoid(z)
-    return float(np.clip(probability, 0.0, 0.85))
+    urgency = _sigmoid(float(urgency_input))
+
+    raw = {
+        "hold_track_position": 0.58 * (1.0 - urgency) + 0.04,
+        "one_stop_conservative": 0.26 + (0.08 * urgency),
+        "two_stop_balanced": 0.10 + (0.30 * urgency),
+        "two_stop_aggressive": 0.02 + (0.18 * (urgency**1.3)),
+    }
+    template_names = {template.name for template in templates}
+    clipped = {
+        name: max(1e-6, float(value))
+        for name, value in raw.items()
+        if name in template_names
+    }
+    total = float(sum(clipped.values()))
+    if total <= 0.0:
+        uniform = 1.0 / float(max(1, len(templates)))
+        return {template.name: uniform for template in templates}
+    return {name: float(value / total) for name, value in clipped.items()}
+
+
+def _sample_strategy_template(
+    *,
+    compound: object,
+    tyre_age: int,
+    deg_rate: float,
+    horizon: int,
+    rng: np.random.Generator,
+) -> StrategyTemplate:
+    templates = _strategy_templates(compound)
+    probabilities = _strategy_template_probabilities(
+        compound=compound,
+        tyre_age=tyre_age,
+        deg_rate=deg_rate,
+        horizon=horizon,
+    )
+    names = [template.name for template in templates]
+    probs = np.asarray([probabilities.get(name, 0.0) for name in names], dtype=float)
+    probs_sum = float(np.sum(probs))
+    if probs_sum <= 0.0:
+        probs = np.full(len(names), 1.0 / float(max(1, len(names))), dtype=float)
+    else:
+        probs = probs / probs_sum
+    selected_name = str(rng.choice(names, p=probs))
+    for template in templates:
+        if template.name == selected_name:
+            return template
+    return templates[0]
+
+
+def _sample_planned_pit_steps(
+    *,
+    template: StrategyTemplate,
+    tyre_age: int,
+    horizon: int,
+    rng: np.random.Generator,
+) -> list[int]:
+    if template.first_pit_age_mean is None:
+        return []
+
+    current_age = max(0, int(tyre_age))
+    horizon_laps = max(1, int(horizon))
+
+    first_target_age = float(
+        rng.normal(
+            loc=float(template.first_pit_age_mean),
+            scale=max(0.1, float(template.first_pit_age_std)),
+        )
+    )
+    first_step = int(np.rint(first_target_age - float(current_age)))
+    if first_step < 1:
+        first_step = 1
+    if first_step > horizon_laps:
+        return []
+
+    steps = [first_step]
+    if template.second_stint_interval_mean is not None:
+        next_interval = float(
+            rng.normal(
+                loc=float(template.second_stint_interval_mean),
+                scale=max(0.1, float(template.second_stint_interval_std)),
+            )
+        )
+        second_step = first_step + max(6, int(np.rint(next_interval)))
+        if 1 <= second_step <= horizon_laps:
+            steps.append(second_step)
+
+    return sorted({int(step) for step in steps if 1 <= int(step) <= horizon_laps})
 
 
 def _sample_next_compound(current_compound: object, rng: np.random.Generator) -> str:
@@ -364,6 +478,8 @@ def _mc_position_distribution(
     pit_events_total = 0
     regime_sc_vsc_steps = 0
     regime_yellow_steps = 0
+    strategy_counts: dict[str, int] = {}
+    strategy_assignments_total = 0
 
     for sample_idx in range(effective_samples):
         final_laps = base_laps + horizon
@@ -372,6 +488,9 @@ def _mc_position_distribution(
         covs: list[Optional[np.ndarray]] = []
         compounds = list(compound_start)
         tyre_age = tyre_age_start.astype(int, copy=True)
+        strategy_templates: list[Optional[StrategyTemplate]] = []
+        planned_pit_steps: list[Optional[list[int]]] = []
+        planned_pit_index: list[Optional[int]] = []
         regime = str(regime_start)
 
         for driver_idx, driver_id in enumerate(driver_ids):
@@ -379,10 +498,34 @@ def _mc_position_distribution(
             if state is None:
                 means.append(None)
                 covs.append(None)
+                strategy_templates.append(None)
+                planned_pit_steps.append(None)
+                planned_pit_index.append(None)
                 final_times[driver_idx] = np.inf
                 continue
-            means.append(state.mean.astype(float).copy())
-            covs.append(state.cov.astype(float).copy())
+            mean_init = state.mean.astype(float).copy()
+            cov_init = state.cov.astype(float).copy()
+            means.append(mean_init)
+            covs.append(cov_init)
+
+            strategy = _sample_strategy_template(
+                compound=compounds[driver_idx],
+                tyre_age=int(tyre_age[driver_idx]),
+                deg_rate=float(mean_init[1]) if mean_init.size > 1 else 0.0,
+                horizon=horizon,
+                rng=rng,
+            )
+            strategy_templates.append(strategy)
+            planned_steps = _sample_planned_pit_steps(
+                template=strategy,
+                tyre_age=int(tyre_age[driver_idx]),
+                horizon=horizon,
+                rng=rng,
+            )
+            planned_pit_steps.append(planned_steps)
+            planned_pit_index.append(0)
+            strategy_counts[strategy.name] = int(strategy_counts.get(strategy.name, 0) + 1)
+            strategy_assignments_total += 1
 
         for step in range(1, horizon + 1):
             regime = _advance_rollout_regime(regime, rng)
@@ -398,15 +541,19 @@ def _mc_position_distribution(
                 if mean is None or cov is None:
                     continue
 
-                hazard = _pit_hazard_probability(
-                    compound=compounds[driver_idx],
-                    tyre_age=int(tyre_age[driver_idx]),
-                    deg_rate=float(mean[1]) if mean.size > 1 else 0.0,
-                    step=step,
-                    horizon=horizon,
-                    regime=regime,
-                )
-                if float(rng.random()) < hazard:
+                pit_now = False
+                target_steps = planned_pit_steps[driver_idx]
+                pointer = planned_pit_index[driver_idx]
+                if target_steps is not None and pointer is not None and pointer < len(target_steps):
+                    target_step = int(target_steps[pointer])
+                    if int(step) == target_step:
+                        pit_now = True
+                    elif regime == "sc_vsc" and int(step) < target_step and (target_step - int(step)) <= 2:
+                        pull_forward_probability = 0.55 if (target_step - int(step)) == 1 else 0.35
+                        if float(rng.random()) < pull_forward_probability:
+                            pit_now = True
+
+                if pit_now:
                     pit_events_total += 1
                     final_times[driver_idx] += _sample_pit_loss_seconds(regime, rng)
                     compounds[driver_idx] = _sample_next_compound(compounds[driver_idx], rng)
@@ -414,6 +561,8 @@ def _mc_position_distribution(
                     mean = pit_prior.mean.astype(float).copy()
                     cov = pit_prior.cov.astype(float).copy()
                     tyre_age[driver_idx] = 0
+                    if pointer is not None:
+                        planned_pit_index[driver_idx] = int(pointer) + 1
 
                 mean_pred = A @ mean
                 cov_pred = (A @ cov @ A.T) + Q
@@ -465,6 +614,10 @@ def _mc_position_distribution(
     out["position_dist_enabled"] = True
 
     sum_p_win = float(np.sum(out["p_win_H"].to_numpy(dtype=float)))
+    strategy_mix = {
+        name: float(count / max(1, strategy_assignments_total))
+        for name, count in sorted(strategy_counts.items(), key=lambda item: item[0])
+    }
 
     horizon_steps_total = max(1, int(effective_samples) * int(horizon))
 
@@ -484,6 +637,8 @@ def _mc_position_distribution(
         "rollout_yellow_share": float(regime_yellow_steps / horizon_steps_total),
         "rollout_pit_events_total": int(pit_events_total),
         "rollout_pit_events_mean": float(pit_events_total / max(1, int(effective_samples))),
+        "rollout_strategy_mix": strategy_mix,
+        "rollout_strategy_assignments": int(strategy_assignments_total),
     }
 
 
@@ -757,6 +912,8 @@ def run_live_race_prediction(
         "rollout_yellow_share": dist_summary.get("rollout_yellow_share"),
         "rollout_pit_events_total": int(dist_summary.get("rollout_pit_events_total", 0)),
         "rollout_pit_events_mean": dist_summary.get("rollout_pit_events_mean"),
+        "rollout_strategy_mix": dist_summary.get("rollout_strategy_mix"),
+        "rollout_strategy_assignments": int(dist_summary.get("rollout_strategy_assignments", 0)),
         "invalid_race_time_count": int(dist_summary.get("invalid_race_time_count", 0)),
         "invalid_race_time_penalty_seconds": dist_summary.get("invalid_race_time_penalty_seconds"),
         "seed_effective": int(seed),
@@ -777,6 +934,10 @@ def run_live_race_prediction(
         pit_events_mean = live_summary.get("rollout_pit_events_mean")
         if isinstance(pit_events_mean, (int, float)):
             notes.append(f"Rollout pit events/sample={float(pit_events_mean):.2f}.")
+        strategy_mix = live_summary.get("rollout_strategy_mix")
+        if isinstance(strategy_mix, dict) and strategy_mix:
+            lead_name, lead_share = max(strategy_mix.items(), key=lambda item: float(item[1]))
+            notes.append(f"Rollout dominant strategy={lead_name} ({100.0 * float(lead_share):.1f}%).")
 
     if replay_eval.get("available"):
         model_metrics = replay_eval.get("model", {})

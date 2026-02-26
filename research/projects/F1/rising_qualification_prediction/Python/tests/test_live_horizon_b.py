@@ -11,7 +11,7 @@ from rqp.config import PredictionConfig
 from rqp.live_runner import (
     _finalize_output_mapping,
     _mc_position_distribution,
-    _pit_hazard_probability,
+    _strategy_template_probabilities,
     _write_trace,
     run_live_race_prediction,
 )
@@ -194,26 +194,25 @@ def test_pit_reset_reanchors_state_and_deg_prior() -> None:
     assert reset.tyre_age == 0
 
 
-def test_pit_hazard_increases_with_age_and_regime() -> None:
-    low = _pit_hazard_probability(
+def test_strategy_template_probabilities_shift_with_urgency() -> None:
+    early = _strategy_template_probabilities(
         compound="HARD",
         tyre_age=3,
-        deg_rate=0.02,
-        step=1,
+        deg_rate=0.01,
         horizon=12,
-        regime="green",
     )
-    high = _pit_hazard_probability(
+    urgent = _strategy_template_probabilities(
         compound="SOFT",
         tyre_age=18,
         deg_rate=0.06,
-        step=10,
         horizon=12,
-        regime="sc_vsc",
     )
-    assert 0.0 <= float(low) <= 0.85
-    assert 0.0 <= float(high) <= 0.85
-    assert float(high) > float(low)
+    assert abs(sum(early.values()) - 1.0) < 1e-9
+    assert abs(sum(urgent.values()) - 1.0) < 1e-9
+    assert float(early["hold_track_position"]) > float(urgent["hold_track_position"])
+    assert float(urgent["two_stop_balanced"] + urgent["two_stop_aggressive"]) > float(
+        early["two_stop_balanced"] + early["two_stop_aggressive"]
+    )
 
 
 def test_horizon_distribution_probabilities_sum_to_one() -> None:
@@ -276,6 +275,9 @@ def test_horizon_distribution_emits_rollout_strategy_summary() -> None:
     assert 0.0 <= float(summary["rollout_yellow_share"]) <= 1.0
     assert int(summary["rollout_pit_events_total"]) > 0
     assert float(summary["rollout_pit_events_mean"]) > 0.0
+    strategy_mix = summary.get("rollout_strategy_mix")
+    assert isinstance(strategy_mix, dict)
+    assert abs(sum(float(value) for value in strategy_mix.values()) - 1.0) < 1e-9
 
 
 def test_position_ranking_uses_lap_count_before_total_time() -> None:

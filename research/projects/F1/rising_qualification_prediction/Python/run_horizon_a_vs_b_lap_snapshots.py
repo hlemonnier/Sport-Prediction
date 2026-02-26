@@ -905,8 +905,8 @@ def main() -> None:
     parser.add_argument(
         "--mc-samples",
         type=int,
-        default=250,
-        help="Requested Monte Carlo samples per snapshot (default: 250).",
+        default=1000,
+        help="Requested Monte Carlo samples per snapshot (default: 1000).",
     )
     parser.add_argument(
         "--clean-max-chaos-fraction",
@@ -1165,6 +1165,7 @@ def main() -> None:
         "lap_cutoffs": [int(value) for value in lap_cutoffs],
         "horizon_laps": int(args.horizon_laps),
         "mc_samples": int(args.mc_samples),
+        "common_random_numbers": True,
         "chaos_thresholds": {
             "clean_max_fraction": float(args.clean_max_chaos_fraction),
             "chaotic_min_fraction": float(args.chaotic_min_chaos_fraction),

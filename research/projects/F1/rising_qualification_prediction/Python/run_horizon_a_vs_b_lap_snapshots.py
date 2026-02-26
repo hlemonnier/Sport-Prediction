@@ -22,6 +22,7 @@ from rqp.live_runner import (
     _build_snapshot,
     _event_seed,
     _finalize_output_mapping,
+    _mc_position_distribution,
 )
 from rqp.live_state_space import FilterConfig, FilterState, build_event_lap_baseline, parse_track_status
 from rqp.providers import LocalWeekendProvider
@@ -341,146 +342,16 @@ def _mc_position_distribution_with_samples(
     seed: int,
     requested_samples: int,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
-    if snapshot.empty:
-        out = snapshot.copy()
-        out["position_dist_enabled"] = False
-        return out, {
-            "position_dist_enabled": False,
-            "position_dist_disabled_reason": "empty_snapshot",
-            "mc_samples_requested": int(requested_samples),
-            "mc_samples_effective": 0,
-            "mc_samples_reduction_reason": None,
-            "max_mc_work": 250000,
-        }
-
-    out = snapshot.copy()
-    out["position_dist_enabled"] = False
-
-    race_time = pd.to_numeric(out.get("race_time_seconds"), errors="coerce")
-    race_time_array = race_time.to_numpy(dtype=float)
-    valid_race_time_mask = np.isfinite(race_time_array)
-    valid_race_time_count = int(valid_race_time_mask.sum())
-    if valid_race_time_count == 0:
-        return out, {
-            "position_dist_enabled": False,
-            "position_dist_disabled_reason": "missing_race_time_seconds",
-            "mc_samples_requested": int(requested_samples),
-            "mc_samples_effective": 0,
-            "mc_samples_reduction_reason": None,
-            "max_mc_work": 250000,
-        }
-
-    invalid_race_time_count = int(len(race_time_array) - valid_race_time_count)
-    race_time_start = race_time_array.astype(float, copy=True)
-    invalid_race_time_penalty_seconds: Optional[float] = None
-    if invalid_race_time_count > 0:
-        max_valid_time = float(np.max(race_time_array[valid_race_time_mask]))
-        invalid_race_time_penalty_seconds = max(600.0, float(max(1, int(horizon_laps))) * 30.0)
-        invalid_indices = np.flatnonzero(~valid_race_time_mask)
-        for offset, idx in enumerate(invalid_indices, start=1):
-            race_time_start[idx] = max_valid_time + invalid_race_time_penalty_seconds + float(offset)
-
-    driver_ids = out["driver_id"].astype(str).tolist()
-    if len(driver_ids) <= 1:
-        return out, {
-            "position_dist_enabled": False,
-            "position_dist_disabled_reason": "insufficient_driver_count",
-            "mc_samples_requested": int(requested_samples),
-            "mc_samples_effective": 0,
-            "mc_samples_reduction_reason": None,
-            "max_mc_work": 250000,
-        }
-
-    max_mc_work = 250000
-    horizon = max(1, int(horizon_laps))
-    requested = max(50, int(requested_samples))
-    work = len(driver_ids) * horizon * requested
-    reduction_reason: Optional[str] = None
-    if work > max_mc_work:
-        effective_samples = max(100, int(max_mc_work // max(1, len(driver_ids) * horizon)))
-        reduction_reason = (
-            f"work={work} exceeded max_mc_work={max_mc_work}; "
-            f"mc_samples reduced from {requested} to {effective_samples}"
-        )
-    else:
-        effective_samples = requested
-
-    rng = np.random.default_rng(int(seed))
-    positions = np.zeros((effective_samples, len(driver_ids)), dtype=float)
-    lap_last = pd.to_numeric(out.get("lap_last"), errors="coerce").fillna(0).astype(int)
-    base_laps = lap_last.to_numpy(dtype=int)
-
-    A = np.asarray([[1.0, 1.0], [0.0, float(cfg.phi)]], dtype=float)
-    Q = np.asarray([[float(cfg.q_pace) ** 2, 0.0], [0.0, float(cfg.q_deg) ** 2]], dtype=float)
-
-    for sample_idx in range(effective_samples):
-        final_laps = base_laps + horizon
-        final_times = np.full(len(driver_ids), np.inf, dtype=float)
-        for driver_idx, driver_id in enumerate(driver_ids):
-            state = states.get(driver_id)
-            if state is None:
-                continue
-
-            mean = state.mean.astype(float).copy()
-            cov = state.cov.astype(float).copy()
-            base_lap = int(base_laps[driver_idx])
-            total_time = float(race_time_start[driver_idx])
-
-            for step in range(1, horizon + 1):
-                mean_pred = A @ mean
-                cov_pred = (A @ cov @ A.T) + Q
-                cov_pred = 0.5 * (cov_pred + cov_pred.T)
-                cov_pred += np.eye(2, dtype=float) * 1e-9
-
-                try:
-                    sampled_state = rng.multivariate_normal(mean=mean_pred, cov=cov_pred)
-                except Exception:
-                    sampled_state = mean_pred
-
-                lap_number = base_lap + step
-                lap_baseline = baseline.value_at(lap_number)
-                lap_noise = rng.normal(0.0, np.sqrt(max(float(cfg.r_obs), 1e-6)))
-                lap_time = float(lap_baseline + sampled_state[0] + lap_noise)
-                total_time += max(0.1, lap_time)
-
-                mean = sampled_state
-                cov = cov_pred
-
-            final_times[driver_idx] = total_time
-
-        order = np.lexsort((final_times, -final_laps))
-        sampled_positions = np.empty(len(driver_ids), dtype=float)
-        sampled_positions[order] = np.arange(1, len(driver_ids) + 1, dtype=float)
-        positions[sample_idx, :] = sampled_positions
-
-    p_win = (positions == 1).mean(axis=0)
-    p_top3 = (positions <= 3).mean(axis=0)
-    p_top10 = (positions <= 10).mean(axis=0)
-    exp_pos = positions.mean(axis=0)
-    pos_p10 = np.percentile(positions, 10, axis=0)
-    pos_p50 = np.percentile(positions, 50, axis=0)
-    pos_p90 = np.percentile(positions, 90, axis=0)
-
-    out["exp_pos_H"] = exp_pos
-    out["p_win_H"] = np.clip(p_win, 0.0, 1.0)
-    out["p_top3_H"] = np.clip(p_top3, 0.0, 1.0)
-    out["p_top10_H"] = np.clip(p_top10, 0.0, 1.0)
-    out["pos_p10_H"] = pos_p10
-    out["pos_p50_H"] = pos_p50
-    out["pos_p90_H"] = pos_p90
-    out["position_dist_enabled"] = True
-
-    return out, {
-        "position_dist_enabled": True,
-        "position_dist_disabled_reason": None,
-        "mc_samples_requested": int(requested),
-        "mc_samples_effective": int(effective_samples),
-        "mc_samples_reduction_reason": reduction_reason,
-        "max_mc_work": int(max_mc_work),
-        "sum_p_win": float(np.sum(out["p_win_H"].to_numpy(dtype=float))),
-        "invalid_race_time_count": int(invalid_race_time_count),
-        "invalid_race_time_penalty_seconds": invalid_race_time_penalty_seconds,
-    }
+    return _mc_position_distribution(
+        snapshot=snapshot,
+        states=states,
+        baseline=baseline,
+        cfg=cfg,
+        horizon_laps=horizon_laps,
+        seed=seed,
+        requested_samples=requested_samples,
+        max_mc_work=250000,
+    )
 
 
 def _predict_snapshot_from_trace(

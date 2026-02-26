@@ -11,6 +11,7 @@ from rqp.config import PredictionConfig
 from rqp.live_runner import (
     _finalize_output_mapping,
     _mc_position_distribution,
+    _pit_hazard_probability,
     _write_trace,
     run_live_race_prediction,
 )
@@ -193,6 +194,28 @@ def test_pit_reset_reanchors_state_and_deg_prior() -> None:
     assert reset.tyre_age == 0
 
 
+def test_pit_hazard_increases_with_age_and_regime() -> None:
+    low = _pit_hazard_probability(
+        compound="HARD",
+        tyre_age=3,
+        deg_rate=0.02,
+        step=1,
+        horizon=12,
+        regime="green",
+    )
+    high = _pit_hazard_probability(
+        compound="SOFT",
+        tyre_age=18,
+        deg_rate=0.06,
+        step=10,
+        horizon=12,
+        regime="sc_vsc",
+    )
+    assert 0.0 <= float(low) <= 0.85
+    assert 0.0 <= float(high) <= 0.85
+    assert float(high) > float(low)
+
+
 def test_horizon_distribution_probabilities_sum_to_one() -> None:
     cfg = FilterConfig()
     baseline = BaselineModel(by_lap={1: 90.0, 2: 90.2}, intercept=90.0, slope=0.05)
@@ -218,6 +241,41 @@ def test_horizon_distribution_probabilities_sum_to_one() -> None:
     assert abs(float(summary["sum_p_win"]) - 1.0) < 0.02
     assert (out["p_win_H"] >= 0.0).all()
     assert (out["p_win_H"] <= 1.0).all()
+
+
+def test_horizon_distribution_emits_rollout_strategy_summary() -> None:
+    cfg = FilterConfig()
+    baseline = BaselineModel(by_lap={1: 90.0}, intercept=90.0, slope=0.0)
+    snapshot = pd.DataFrame(
+        {
+            "driver_id": ["1", "2", "3"],
+            "lap_last": [15, 15, 15],
+            "race_time_seconds": [1350.0, 1352.0, 1354.0],
+            "next_lap_mean": [90.0, 90.2, 90.4],
+            "tyre_age": [18, 19, 20],
+            "compound": ["SOFT", "SOFT", "SOFT"],
+            "track_status": ["1", "1", "1"],
+        }
+    )
+    states = {driver_id: initialize_filter_state("SOFT", cfg) for driver_id in snapshot["driver_id"]}
+    for state in states.values():
+        state.mean[1] = 0.06
+
+    _, summary = _mc_position_distribution(
+        snapshot=snapshot,
+        states=states,
+        baseline=baseline,
+        cfg=cfg,
+        horizon_laps=12,
+        seed=123,
+    )
+
+    assert bool(summary["rollout_strategy_enabled"]) is True
+    assert summary["rollout_regime_initial"] == "green"
+    assert 0.0 <= float(summary["rollout_sc_vsc_share"]) <= 1.0
+    assert 0.0 <= float(summary["rollout_yellow_share"]) <= 1.0
+    assert int(summary["rollout_pit_events_total"]) > 0
+    assert float(summary["rollout_pit_events_mean"]) > 0.0
 
 
 def test_position_ranking_uses_lap_count_before_total_time() -> None:

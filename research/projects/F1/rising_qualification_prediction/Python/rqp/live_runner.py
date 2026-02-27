@@ -374,6 +374,78 @@ def _sample_pit_loss_seconds(regime: str, rng: np.random.Generator) -> float:
     return max(5.0, sampled)
 
 
+def _mc_observability_payload(
+    *,
+    positions: np.ndarray,
+    driver_ids: list[str],
+    race_time_start: np.ndarray,
+    top_drivers: Optional[int],
+    max_position: Optional[int],
+) -> dict[str, Any]:
+    if positions.size == 0 or not driver_ids:
+        return {
+            "position_probabilities": [],
+            "pairwise_ahead_probabilities": [],
+            "observability_top_drivers": 0,
+            "observability_max_position": 0,
+        }
+
+    total_drivers = len(driver_ids)
+    if top_drivers is None:
+        selected_count = int(total_drivers)
+    else:
+        selected_count = max(2, min(total_drivers, int(top_drivers)))
+    if max_position is None:
+        max_position_effective = int(total_drivers)
+    else:
+        max_position_effective = max(1, min(total_drivers, int(max_position)))
+
+    # Use current race-time ordering to focus on front-running drivers.
+    order = np.argsort(race_time_start, kind="mergesort")
+    selected = order[:selected_count]
+    selected_ids = [str(driver_ids[idx]) for idx in selected]
+    effective_samples = int(positions.shape[0])
+
+    position_probabilities: list[dict[str, Any]] = []
+    for idx in selected:
+        driver_id = str(driver_ids[idx])
+        sampled = np.clip(np.rint(positions[:, idx]).astype(int), 1, total_drivers)
+        counts = np.bincount(sampled, minlength=total_drivers + 1)
+        probabilities = counts[1 : max_position_effective + 1].astype(float) / float(max(1, effective_samples))
+        for position, probability in enumerate(probabilities, start=1):
+            position_probabilities.append(
+                {
+                    "driver_id": driver_id,
+                    "position": int(position),
+                    "probability": float(probability),
+                }
+            )
+
+    pairwise_ahead_probabilities: list[dict[str, Any]] = []
+    for left_idx in selected:
+        for right_idx in selected:
+            if int(left_idx) == int(right_idx):
+                continue
+            left_driver = str(driver_ids[left_idx])
+            right_driver = str(driver_ids[right_idx])
+            prob = float(np.mean(positions[:, left_idx] < positions[:, right_idx]))
+            pairwise_ahead_probabilities.append(
+                {
+                    "driver_a": left_driver,
+                    "driver_b": right_driver,
+                    "probability_a_ahead_b": prob,
+                }
+            )
+
+    return {
+        "position_probabilities": position_probabilities,
+        "pairwise_ahead_probabilities": pairwise_ahead_probabilities,
+        "observability_top_drivers": int(selected_count),
+        "observability_max_position": int(max_position_effective),
+        "observability_driver_ids": selected_ids,
+    }
+
+
 def _mc_position_distribution(
     snapshot: pd.DataFrame,
     states: dict[str, FilterState],
@@ -383,14 +455,24 @@ def _mc_position_distribution(
     seed: int,
     requested_samples: int = 1000,
     max_mc_work: int = 250000,
+    emit_observability: bool = False,
+    observability_top_drivers: Optional[int] = None,
+    observability_max_position: Optional[int] = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     requested = max(50, int(requested_samples))
     max_work_limit = max(1000, int(max_mc_work))
+    observability_stub = {
+        "position_probabilities": [],
+        "pairwise_ahead_probabilities": [],
+        "observability_top_drivers": 0,
+        "observability_max_position": 0,
+        "observability_driver_ids": [],
+    }
 
     if snapshot.empty:
         out = snapshot.copy()
         out["position_dist_enabled"] = False
-        return out, {
+        summary = {
             "position_dist_enabled": False,
             "position_dist_disabled_reason": "empty_snapshot",
             "mc_samples_requested": int(requested),
@@ -398,6 +480,9 @@ def _mc_position_distribution(
             "mc_samples_reduction_reason": None,
             "max_mc_work": int(max_work_limit),
         }
+        if emit_observability:
+            summary.update(observability_stub)
+        return out, summary
 
     out = snapshot.copy()
     out["position_dist_enabled"] = False
@@ -410,7 +495,7 @@ def _mc_position_distribution(
     valid_race_time_mask = np.isfinite(race_time_array)
     valid_race_time_count = int(valid_race_time_mask.sum())
     if valid_race_time_count == 0:
-        return out, {
+        summary = {
             "position_dist_enabled": False,
             "position_dist_disabled_reason": "missing_race_time_seconds",
             "mc_samples_requested": int(requested),
@@ -418,6 +503,9 @@ def _mc_position_distribution(
             "mc_samples_reduction_reason": None,
             "max_mc_work": int(max_work_limit),
         }
+        if emit_observability:
+            summary.update(observability_stub)
+        return out, summary
     invalid_race_time_count = int(len(race_time_array) - valid_race_time_count)
     race_time_start = race_time_array.astype(float, copy=True)
     invalid_race_time_penalty_seconds: Optional[float] = None
@@ -430,7 +518,7 @@ def _mc_position_distribution(
 
     driver_ids = out["driver_id"].astype(str).tolist()
     if len(driver_ids) <= 1:
-        return out, {
+        summary = {
             "position_dist_enabled": False,
             "position_dist_disabled_reason": "insufficient_driver_count",
             "mc_samples_requested": int(requested),
@@ -438,6 +526,9 @@ def _mc_position_distribution(
             "mc_samples_reduction_reason": None,
             "max_mc_work": int(max_work_limit),
         }
+        if emit_observability:
+            summary.update(observability_stub)
+        return out, summary
 
     work = len(driver_ids) * int(horizon_laps) * requested
     reduction_reason: Optional[str] = None
@@ -621,7 +712,7 @@ def _mc_position_distribution(
 
     horizon_steps_total = max(1, int(effective_samples) * int(horizon))
 
-    return out, {
+    summary: dict[str, Any] = {
         "position_dist_enabled": True,
         "position_dist_disabled_reason": None,
         "mc_samples_requested": int(requested),
@@ -640,6 +731,17 @@ def _mc_position_distribution(
         "rollout_strategy_mix": strategy_mix,
         "rollout_strategy_assignments": int(strategy_assignments_total),
     }
+    if emit_observability:
+        summary.update(
+            _mc_observability_payload(
+                positions=positions,
+                driver_ids=driver_ids,
+                race_time_start=race_time_start,
+                top_drivers=observability_top_drivers,
+                max_position=observability_max_position,
+            )
+        )
+    return out, summary
 
 
 def _build_snapshot(trace: pd.DataFrame) -> pd.DataFrame:

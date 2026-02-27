@@ -72,6 +72,7 @@ python run_horizon_a_vs_b_lap_snapshots.py \
   --weekends-dir data/f1/raw/weekends \
   --cutoff-mode distance_pct \
   --distance-cutoffs 5,10,20,30,40,50,60,70,80,90,100 \
+  --pit-window-laps 3 \
   --clean-max-chaos-fraction 0.02 \
   --chaotic-min-chaos-fraction 0.05 \
   --epsilon-rank 0.10 \
@@ -83,6 +84,11 @@ Key artifacts include:
 - crossover timing per round/metric (`horizon_a_vs_b_crossover_per_round.csv`)
 - crossover distribution with `Never before finish` bucket (`horizon_a_vs_b_crossover_distribution.csv`)
 - cumulative crossover curve (`horizon_a_vs_b_crossover_survival.csv`)
+- full observability bundle in `observability/`:
+  - data/filter/forecast diagnostics (A/B/C blocks)
+  - horizon distribution + MC health diagnostics (D block)
+  - pit/strategy and chaos diagnostics (E/F blocks)
+  - comparative delta + crossover heatmaps (G block)
 
 ## Raw Data Download
 

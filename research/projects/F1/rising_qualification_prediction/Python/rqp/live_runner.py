@@ -830,7 +830,16 @@ def run_live_race_prediction(
     observations = observations.copy()
     observations = observations.sort_values(["driver_id", "lap_number", "timestamp"], kind="mergesort")
 
-    baseline = build_event_lap_baseline(observations, min_clean_obs_per_lap=8)
+    lap_number_numeric = pd.to_numeric(observations.get("lap_number"), errors="coerce")
+    baseline_cache: dict[int, BaselineModel] = {}
+
+    def _baseline_before_lap(lap_number: int) -> BaselineModel:
+        lap_key = int(lap_number)
+        if lap_key not in baseline_cache:
+            prior_observations = observations.loc[lap_number_numeric < float(lap_key)]
+            baseline_cache[lap_key] = build_event_lap_baseline(prior_observations, min_clean_obs_per_lap=8)
+        return baseline_cache[lap_key]
+
     filter_cfg = FilterConfig()
 
     _ = telemetry.build_lap_features(observations)
@@ -866,7 +875,8 @@ def run_live_race_prediction(
                 state = reset_filter_state(state, compound=compound, cfg=filter_cfg)
                 reset_applied = True
 
-            baseline_current = baseline.value_at(lap_number)
+            lap_baseline_model = _baseline_before_lap(lap_number)
+            baseline_current = lap_baseline_model.value_at(lap_number)
             mean_pred, cov_pred, one_step_pred_mean, one_step_pred_std = lap_one_step_prediction(
                 state=state,
                 baseline_current=baseline_current,
@@ -912,7 +922,7 @@ def run_live_race_prediction(
                     state.tyre_age = 0
                 state.assimilated_laps += 1
 
-            baseline_next = baseline.value_at(lap_number + 1)
+            baseline_next = lap_baseline_model.value_at(lap_number + 1)
             next_lap_mean, next_lap_std = next_lap_distribution(
                 state=state,
                 baseline_next=baseline_next,
@@ -972,6 +982,7 @@ def run_live_race_prediction(
 
     trace = pd.DataFrame(trace_rows)
     snapshot = _build_snapshot(trace)
+    baseline = build_event_lap_baseline(observations, min_clean_obs_per_lap=8)
 
     horizon = max(1, int(config.f1_live_horizon_laps))
     snapshot_with_dist, dist_summary = _mc_position_distribution(

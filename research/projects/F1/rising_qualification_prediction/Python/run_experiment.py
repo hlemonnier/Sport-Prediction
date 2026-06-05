@@ -271,7 +271,7 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
         "f1_listwise": str(
             args.f1_listwise
             if getattr(args, "f1_listwise", None) is not None
-            else f1_listwise.get("method", "off"),
+            else f1_listwise.get("method", "pl_gumbel"),
         ).strip().lower(),
         "f1_pl_samples": _as_int(
             getattr(args, "f1_pl_samples", None)
@@ -290,6 +290,12 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
             if getattr(args, "f1_listwise_seed", None) is not None
             else f1_listwise.get("seed", 42),
             42,
+        ),
+        "disable_circuit_features": _as_bool(
+            getattr(args, "disable_circuit_features", None)
+            if getattr(args, "disable_circuit_features", None) is not None
+            else experiments.get("disable_circuit_features", False),
+            False,
         ),
         "shadow_eval": _as_on_off(shadow_eval_raw, True),
         "f1_mode": str(
@@ -340,6 +346,7 @@ def _build_prediction_config(
     disable_runsim_features: bool,
     enable_dl_candidates: bool,
     compare_families: list[str],
+    disable_circuit_features: bool = False,
 ) -> PredictionConfig:
     return PredictionConfig(
         source=str(base["source"]),
@@ -359,8 +366,9 @@ def _build_prediction_config(
         dl_hyperparams=dict(base.get("dl_hyperparams", {})),
         dl_seed=int(base.get("dl_seed", 42)),
         disable_runsim_features=bool(disable_runsim_features),
+        disable_circuit_features=bool(disable_circuit_features),
         f1_model=str(base.get("f1_model", "auto")),
-        f1_listwise=str(base.get("f1_listwise", "off")),
+        f1_listwise=str(base.get("f1_listwise", "pl_gumbel")),
         f1_pl_samples=int(base.get("f1_pl_samples", 2000)),
         f1_pl_temperature=float(base.get("f1_pl_temperature", 1.0)),
         f1_listwise_seed=int(base.get("f1_listwise_seed", 42)),
@@ -512,6 +520,7 @@ def _run_single_prediction(profile: dict[str, Any], args: argparse.Namespace) ->
         disable_runsim_features=False,
         enable_dl_candidates=bool(base["enable_dl_candidates"]),
         compare_families=list(base["compare_families"]),
+        disable_circuit_features=bool(base.get("disable_circuit_features", False)),
     )
     payload, _ = _prediction_payload(config, workflow="single_prediction")
     payload["profile_name"] = profile.get("name", "unknown")
@@ -705,6 +714,7 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
                     disable_runsim_features=bool(spec["disable_runsim"]),
                     enable_dl_candidates=bool(spec["enable_dl"]),
                     compare_families=list(spec["families"]),
+                    disable_circuit_features=bool(spec.get("disable_circuit", False)),
                 )
                 prediction, rows = _prediction_payload(config, workflow="backtest_ablation_compare")
                 version_value = prediction.get("version")
@@ -716,8 +726,9 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
                     if mode_key == "qualifying"
                     else provider.get_race_results(base["year"], rnd)
                 )
+                eval_rows = prediction.get("all_prediction_rows") or rows
                 evaluation_row = evaluate_prediction_rows(
-                    predicted_rows=rows,
+                    predicted_rows=eval_rows,
                     actual_results=actual,
                     actual_position_col="position",
                 )
@@ -732,6 +743,7 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
                     "device_used": prediction["device_used"],
                     "dl_available": prediction["dl_available"],
                     "rows_common": evaluation_row.get("rows_common"),
+                    "rows_evaluated": len(eval_rows),
                 }
                 round_metrics.append(row_payload)
 
@@ -867,8 +879,9 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--dl-hyperparams", default="{}")
         parser.add_argument("--dl-seed", type=int, default=42)
         parser.add_argument("--disable-runsim-features", action="store_true")
+        parser.add_argument("--disable-circuit-features", action="store_true")
         parser.add_argument("--f1_model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
-        parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default="off")
+        parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default="pl_gumbel")
         parser.add_argument("--f1_pl_samples", type=int, default=2000)
         parser.add_argument("--f1_pl_temperature", type=float, default=1.0)
         parser.add_argument("--f1_listwise_seed", type=int, default=42)
@@ -957,6 +970,7 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         dl_hyperparams=dl_hyperparams,
         dl_seed=args.dl_seed,
         disable_runsim_features=args.disable_runsim_features,
+        disable_circuit_features=args.disable_circuit_features,
         f1_model=args.f1_model,
         f1_listwise=args.f1_listwise,
         f1_pl_samples=args.f1_pl_samples,

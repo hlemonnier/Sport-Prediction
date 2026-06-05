@@ -215,12 +215,14 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
     return merged
 
 
-def format_prediction_table(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
+def format_prediction_table(df: pd.DataFrame, top_n: Optional[int] = 10) -> pd.DataFrame:
     if df.empty:
         return df
-    df = df.copy().sort_values("pred", ascending=True).head(top_n)
+    df = df.copy().sort_values("pred", ascending=True)
+    if top_n is not None:
+        df = df.head(max(0, int(top_n)))
     df["rank"] = range(1, len(df) + 1)
-    cols = ["rank", "driver_name", "pred", "proba_top10", "proba_top3"]
+    cols = ["rank", "driver_name", "driver_id", "pred", "proba_win", "proba_top3", "proba_top10"]
     ordered = [col for col in cols if col in df.columns]
 
     listwise_cols = [
@@ -236,6 +238,7 @@ def format_prediction_table(df: pd.DataFrame, top_n: int = 10) -> pd.DataFrame:
         "listwise_samples",
         "temperature",
         "listwise_enabled",
+        "old_rank_based_win",
         "old_rank_based_top10",
         "old_rank_based_top3",
     ]

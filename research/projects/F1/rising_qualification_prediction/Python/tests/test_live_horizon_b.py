@@ -440,6 +440,42 @@ def test_live_summary_includes_disable_reason_when_no_position_dist(monkeypatch)
     assert result.snapshot["proba_top3"].isna().all()
 
 
+def test_live_replay_predictions_are_truncation_invariant_through_lap(monkeypatch) -> None:
+    full_frame = _sample_live_observations(include_race_time=True)
+    truncated_frame = full_frame[pd.to_numeric(full_frame["lap_number"], errors="coerce") <= 2].copy()
+    frames = [full_frame, truncated_frame]
+
+    def _fake_loader(config: PredictionConfig) -> LiveSourceResult:
+        _ = config
+        return LiveSourceResult(frame=frames.pop(0).copy(), source_used="local", notes=[])
+
+    monkeypatch.setattr("rqp.live_runner.load_live_observations", _fake_loader)
+    monkeypatch.setattr(
+        "rqp.live_runner._write_trace",
+        lambda trace, config, event_key: {
+            "trace_path": "/tmp/fake_trace.parquet",
+            "trace_path_jsonl": "/tmp/fake_trace.jsonl",
+            "trace_format_effective": "parquet",
+        },
+    )
+
+    full = run_live_race_prediction(_base_config())
+    truncated = run_live_race_prediction(_base_config())
+
+    full_prefix = full.trace[pd.to_numeric(full.trace["lap_number"], errors="coerce") <= 2]
+    full_prefix = full_prefix.sort_values(["driver_id", "lap_number"]).reset_index(drop=True)
+    truncated_trace = truncated.trace.sort_values(["driver_id", "lap_number"]).reset_index(drop=True)
+    cols = ["driver_id", "lap_number", "baseline_lap", "one_step_pred_mean", "next_lap_mean"]
+
+    pd.testing.assert_frame_equal(
+        full_prefix[cols],
+        truncated_trace[cols],
+        check_exact=False,
+        rtol=1e-12,
+        atol=1e-12,
+    )
+
+
 def test_trace_writer_falls_back_to_jsonl_when_parquet_unavailable(monkeypatch, tmp_path: Path) -> None:
     trace = pd.DataFrame(
         [

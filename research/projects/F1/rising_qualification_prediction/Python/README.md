@@ -127,6 +127,34 @@ Compatibility wrappers remain available:
 Additional ablation flag:
 - `--disable-runsim-features`
 
+Prediction JSON now includes:
+- `rows`: top-10 table for UI/review.
+- `all_prediction_rows`: full-field sorted table for betting/research consumers.
+- `circuit_card`: the target event circuit profile used by the model, including
+  downforce demand, power sensitivity, corner-speed demands, tyre degradation,
+  overtaking difficulty, qualifying importance, safety-car risk, strategy
+  variance, and reliability.
+- `circuit_feature_columns`: circuit-card and circuit-interaction feature names
+  consumed by the qualifying/race models.
+- `proba_win`, `proba_top3`, `proba_top10`: calibrated model probabilities. When walk-forward folds are available, calibration uses out-of-fold predictions; otherwise it falls back to in-sample calibration.
+- When no historical training seasons are available, fallback ranking uses the empirically stronger local formulas validated on the 2025 holdout: qualifying = `2*event_pace_index + 2*fp_mean_rank + fp_quali_sim_rank`; race = `qualy_position`.
+
+## Circuit Cards
+
+Every known F1 event name is mapped to a numeric circuit card in `rqp/circuit_cards.py`.
+Cards are static priors for the circuit archetype, then local historical track
+stats refine them when available. The feature builder attaches the card to both
+training rows and current-event rows, so predictions can account for circuit fit:
+
+- low-overtaking/high-grid-stability tracks increase qualifying/grid importance
+- high-downforce, power-sensitive, traction/braking, tyre-degradation, and
+  street-circuit dimensions become model features
+- driver/team history on the same circuit archetype and exact circuit becomes
+  additional form signal
+
+This is the layer that lets Monaco, Monza, Singapore, Spa, Bahrain, etc. behave
+as different prediction contexts instead of just different event names.
+
 Horizon B live flags:
 - `--f1_mode` (`offline` by default, `live` opt-in)
 - `--f1_live_source` (`auto|local|fastf1`)
@@ -145,3 +173,52 @@ pip install -r requirements-dl.txt
 ```
 
 Without torch, the pipeline still works and DL candidates are skipped with explicit notes.
+
+## Betting Recommendation Engine
+
+The betting layer consumes model prediction JSON plus market odds and outputs stake recommendations using expected ROI, fractional Kelly, and event exposure caps.
+
+Example odds CSV:
+
+```csv
+market,driver_name,decimal_odds,bookmaker
+winner,Max Verstappen,3.40,book
+podium,Lando Norris,1.85,book
+top10,Alex Albon,2.20,book
+```
+
+Run:
+
+```bash
+python run_betting.py \
+  --predictions outputs/f1/live/2026/profile_weekend_pre_qualifying.json \
+  --odds odds.csv \
+  --bankroll 1000 \
+  --fractional-kelly 0.25 \
+  --min-edge-pct 3 \
+  --max-bet-pct 1 \
+  --max-market-pct 3 \
+  --max-total-pct 5 \
+  --output-format json
+```
+
+Supported markets:
+- `winner` / `win` / `race_winner` -> `proba_win`
+- `podium` / `top3` -> `proba_top3`
+- `top10` / `points` -> `proba_top10`
+
+The engine does not place bets with a bookmaker. It emits a deterministic bet slip (`status=bet`) and skipped candidates with reasons, which is the right boundary before adding broker/API execution.
+
+For partner-facing forward tests, log the full recommendation record before market close:
+
+```bash
+python run_forward_bet_logger.py \
+  --event-id 2026_round_06_spanish_gp \
+  --information-cutoff post-qualifying \
+  --market-close-utc 2026-06-07T12:00:00Z \
+  --predictions outputs/f1/rolling_2026/2026/round_06/postqual_race_prediction.json \
+  --odds odds_round_06_postqual.csv \
+  --log-path outputs/f1/forward_test/f1_forward_bet_log.jsonl
+```
+
+The forward logger appends a hash-chained JSONL record containing prediction artifact hash, odds file hash, model probabilities, odds, Kelly/cap stake outputs, skipped rows, and the previous record hash. It refuses to create evidence records after market close unless `--allow-after-close` is explicitly provided for a dry-run/backfill.

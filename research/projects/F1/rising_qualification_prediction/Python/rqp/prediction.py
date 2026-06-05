@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from typing import List, Optional
 
 import numpy as np
 import pandas as pd
 
+from .circuit_cards import (
+    CIRCUIT_INTERACTION_FEATURES,
+    CIRCUIT_NUMERIC_FEATURES,
+    circuit_card_payload_from_frame,
+)
 from .config import PredictionConfig, PredictionResult
 from .data import build_current_features, build_training_data
 from .live_runner import run_live_race_prediction
@@ -43,6 +49,66 @@ def _drop_runsim_columns(frame: pd.DataFrame) -> pd.DataFrame:
     return frame.drop(columns=cols, errors="ignore")
 
 
+def _is_circuit_column(column: str) -> bool:
+    return (
+        column in CIRCUIT_NUMERIC_FEATURES
+        or column in CIRCUIT_INTERACTION_FEATURES
+        or column.startswith("circuit_")
+        or column in {"driver_archetype_form_3_fp_weighted_delta", "team_archetype_form_3_fp_weighted_delta"}
+        or column in {"driver_circuit_hist_fp_weighted_delta", "team_circuit_hist_fp_weighted_delta"}
+        or column in {
+            "track_qualy_importance",
+            "track_safety_car_prior",
+            "track_strategy_variance_prior",
+            "track_weather_uncertainty_prior",
+            "race_generation_variance_prior",
+        }
+    )
+
+
+def _apply_circuit_ablation(feature_cols: List[str], fallback_cols: List[str], disable: bool) -> tuple[List[str], List[str]]:
+    if not disable:
+        return feature_cols, fallback_cols
+    filtered_features = [col for col in feature_cols if not _is_circuit_column(col)]
+    filtered_fallback = [col for col in fallback_cols if not _is_circuit_column(col)]
+    return filtered_features, filtered_fallback
+
+
+def _drop_circuit_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    cols = [col for col in frame.columns if _is_circuit_column(col)]
+    if not cols:
+        return frame
+    return frame.drop(columns=cols, errors="ignore")
+
+
+def _apply_season_sample_weighting(train: pd.DataFrame, config: PredictionConfig, notes: List[str]) -> pd.DataFrame:
+    if train.empty:
+        return train
+    multiplier = float(config.season_weight_multiplier or 1.0)
+    if multiplier <= 1.0:
+        return train
+    weight_year = int(config.season_weight_year or config.year)
+    if "event_year" not in train.columns:
+        notes.append("Season sample weighting skipped: event_year column unavailable.")
+        return train
+    out = train.copy()
+    event_year = pd.to_numeric(out["event_year"], errors="coerce")
+    mask = event_year == weight_year
+    out["_sample_weight"] = 1.0
+    out.loc[mask, "_sample_weight"] = multiplier
+    weighted_events = 0
+    if "event_key" in out.columns:
+        weighted_events = int(pd.to_numeric(out.loc[mask, "event_key"], errors="coerce").dropna().nunique())
+    notes.append(
+        "Season sample weighting active: "
+        f"event_year={weight_year}, multiplier={multiplier:.2f}, "
+        f"weighted_rows={int(mask.sum())}, weighted_events={weighted_events}.",
+    )
+    return out
+
+
 def compute_version(round_number: int, include_standings: bool) -> str:
     suffix = "S" if include_standings else "B"
     if round_number <= 1:
@@ -71,12 +137,156 @@ def _average_rank_component(features: pd.DataFrame, columns: List[str]) -> Optio
     return pd.concat(parts, axis=1).mean(axis=1, skipna=True)
 
 
+def _weighted_rank_score(
+    features: pd.DataFrame,
+    components: list[tuple[str, float, bool]],
+) -> Optional[pd.Series]:
+    weighted_sum = pd.Series(0.0, index=features.index, dtype=float)
+    weight_total = pd.Series(0.0, index=features.index, dtype=float)
+    used = False
+    for col, weight, ascending in components:
+        if col not in features.columns or weight <= 0.0:
+            continue
+        values = pd.to_numeric(features[col], errors="coerce")
+        if values.notna().sum() == 0:
+            continue
+        ranked = _rank_percentile(values)
+        if not ascending:
+            ranked = 1.0 - ranked
+        valid = ranked.notna()
+        if not valid.any():
+            continue
+        weighted_sum.loc[valid] = weighted_sum.loc[valid] + (float(weight) * ranked.loc[valid])
+        weight_total.loc[valid] = weight_total.loc[valid] + float(weight)
+        used = True
+    if not used:
+        return None
+    score = weighted_sum.divide(weight_total.where(weight_total > 0.0))
+    if score.notna().sum() == 0:
+        return None
+    return score.fillna(float(score.median(skipna=True)))
+
+
+def _first_numeric_series(features: pd.DataFrame, columns: list[str]) -> Optional[pd.Series]:
+    for column in columns:
+        if column not in features.columns:
+            continue
+        values = pd.to_numeric(features[column], errors="coerce")
+        if values.notna().any():
+            return values
+    return None
+
+
+def _race_grid_delta_fallback(features: pd.DataFrame) -> Optional[pd.Series]:
+    start = _first_numeric_series(features, ["grid_position", "qualy_context_position", "qualy_position"])
+    if start is None or start.notna().sum() == 0:
+        return None
+
+    n = max(1, len(features))
+    start = start.fillna(start.median(skipna=True))
+    pace_parts: list[pd.Series] = []
+    for col in [
+        "fp_race_sim_rank",
+        "event_pace_index",
+        "fp_weighted_delta",
+        "fp_race_sim_delta",
+        "fp_quali_sim_delta",
+        "team_archetype_form_3_fp_weighted_delta",
+        "driver_archetype_form_3_fp_weighted_delta",
+        "team_circuit_hist_fp_weighted_delta",
+        "driver_circuit_hist_fp_weighted_delta",
+        "circuit_fit_index",
+    ]:
+        if col in features.columns:
+            pace_parts.append(_rank_percentile(features[col]))
+    if pace_parts:
+        pace_pct = pd.concat(pace_parts, axis=1).mean(axis=1, skipna=True).fillna(0.5)
+    else:
+        pace_pct = _rank_percentile(start)
+    pace_rank = 1.0 + ((float(n) - 1.0) * pace_pct.clip(0.0, 1.0))
+
+    overtake = pd.to_numeric(
+        features.get("track_overtake_propensity", pd.Series(0.35, index=features.index)),
+        errors="coerce",
+    ).fillna(0.35).clip(0.0, 1.0)
+    drs = pd.to_numeric(
+        features.get("circuit_drs_effectiveness", pd.Series(0.45, index=features.index)),
+        errors="coerce",
+    ).fillna(0.45).clip(0.0, 1.0)
+    difficulty = pd.to_numeric(
+        features.get("circuit_overtaking_difficulty", pd.Series(0.50, index=features.index)),
+        errors="coerce",
+    ).fillna(0.50).clip(0.0, 1.0)
+    chaos = pd.to_numeric(
+        features.get("track_chaos_index", pd.Series(0.20, index=features.index)),
+        errors="coerce",
+    ).fillna(0.20).clip(0.0, 1.0)
+    safety_prior = pd.to_numeric(
+        features.get("track_safety_car_prior", pd.Series(0.25, index=features.index)),
+        errors="coerce",
+    ).fillna(0.25).clip(0.0, 1.0)
+    dnf_prior = pd.to_numeric(
+        features.get("track_dnf_prior", pd.Series(0.10, index=features.index)),
+        errors="coerce",
+    ).fillna(0.10).clip(0.0, 1.0)
+    strategy_prior = pd.to_numeric(
+        features.get("track_strategy_variance_prior", pd.Series(0.35, index=features.index)),
+        errors="coerce",
+    ).fillna(0.35).clip(0.0, 1.0)
+    weather_prior = pd.to_numeric(
+        features.get("track_weather_uncertainty_prior", pd.Series(0.15, index=features.index)),
+        errors="coerce",
+    ).fillna(0.15).clip(0.0, 1.0)
+
+    kappa = (0.04 + (0.62 * overtake) + (0.18 * drs) - (0.48 * difficulty)).clip(0.03, 0.78)
+    residual = pace_rank - start
+    score = start + (kappa * residual)
+
+    # Keep clean low-overtake races tightly grid-constrained, while allowing
+    # chaos/reliability to soften the grid prior without treating overtaking as chaos.
+    race_variance = (
+        (0.30 * chaos)
+        + (0.25 * safety_prior)
+        + (0.20 * dnf_prior)
+        + (0.15 * strategy_prior)
+        + (0.10 * weather_prior)
+    ).clip(0.0, 1.0)
+    chaos_weight = (0.05 + (0.12 * race_variance)).clip(0.05, 0.17)
+    score = ((1.0 - chaos_weight) * score) + (chaos_weight * pace_rank)
+    return pd.Series(score, index=features.index, dtype=float)
+
+
 def _hierarchical_fallback(
     features: pd.DataFrame,
     fallback_cols: List[str],
 ) -> pd.Series:
     if features.empty:
         return pd.Series(dtype=float)
+
+    # Empirically strongest no-training fallbacks on the local 2025 holdout:
+    # qualifying: FP mean rank + event pace + qualifying-sim rank;
+    # race: actual qualifying position. These avoid overfitting a model when no
+    # historical seasons are available while still preserving event-local signal.
+    race_score = _race_grid_delta_fallback(features)
+    if race_score is not None:
+        return race_score
+
+    qualifying_score = _weighted_rank_score(
+        features,
+        [
+            ("event_pace_index", 2.0, True),
+            ("fp_mean_rank", 2.0, True),
+            ("fp_quali_sim_rank", 1.0, True),
+            ("fp_quali_sim_delta_downforce_adj", 0.75, True),
+            ("fp_weighted_delta_downforce_adj", 0.55, True),
+            ("fp_weighted_delta_power_adj", 0.45, True),
+            ("circuit_fit_index", 0.85, True),
+            ("team_archetype_form_3_fp_weighted_delta", 0.50, True),
+            ("driver_archetype_form_3_fp_weighted_delta", 0.35, True),
+        ],
+    )
+    if qualifying_score is not None:
+        return qualifying_score
 
     components: list[tuple[float, pd.Series]] = []
     if "qualy_position" in features.columns:
@@ -122,15 +332,30 @@ def _hierarchical_fallback(
             "driver_form_5_fp_mean_delta",
             "driver_ewma_fp_mean_delta",
             "event_driver_hist_idx",
+            "driver_archetype_form_3_fp_weighted_delta",
+            "team_archetype_form_3_fp_weighted_delta",
+            "driver_circuit_hist_fp_weighted_delta",
+            "team_circuit_hist_fp_weighted_delta",
+            "fp_weighted_delta_downforce_adj",
+            "fp_weighted_delta_power_adj",
+            "fp_quali_sim_delta_downforce_adj",
+            "fp_race_sim_delta_tyre_adj",
+            "fp_race_sim_delta_power_adj",
             "fp_mean_delta",
             "fp_mean_rank",
             "qualy_context_position",
             "qualy_context_position_track_adj",
             "qualy_position_track_adj",
+            "qualy_position_circuit_importance_adj",
             "qualy_pred_position",
             "qualy_pred_position_track_adj",
+            "qualy_pred_position_circuit_importance_adj",
             "qualy_pred_vs_actual_gap",
             "track_chaos_index",
+            "circuit_overtaking_difficulty",
+            "circuit_qualifying_importance",
+            "circuit_downforce_demand",
+            "circuit_power_sensitivity",
         ],
     )
     if driver_form is not None:
@@ -193,6 +418,44 @@ def predict_with_model(
     return _hierarchical_fallback(features, fallback_cols)
 
 
+def _capped_probability_allocation(weights: np.ndarray, expected_hits: float) -> np.ndarray:
+    n = int(len(weights))
+    if n == 0:
+        return weights
+    total = float(max(0.0, min(expected_hits, float(n))))
+    if total <= 0.0:
+        return np.zeros(n, dtype=float)
+    if total >= float(n):
+        return np.ones(n, dtype=float)
+
+    clean = np.asarray(weights, dtype=float)
+    clean = np.where(np.isfinite(clean) & (clean > 0.0), clean, 0.0)
+    if float(clean.sum()) <= 0.0:
+        clean = np.ones(n, dtype=float)
+
+    values = np.zeros(n, dtype=float)
+    remaining = np.ones(n, dtype=bool)
+    remaining_total = total
+    while remaining.any() and remaining_total > 1e-12:
+        w = clean[remaining]
+        if float(w.sum()) <= 0.0:
+            allocation = np.full(int(remaining.sum()), remaining_total / float(remaining.sum()))
+        else:
+            allocation = remaining_total * (w / float(w.sum()))
+        capped = allocation >= 1.0
+        remaining_idx = np.flatnonzero(remaining)
+        if not capped.any():
+            values[remaining_idx] = allocation
+            break
+        cap_idx = remaining_idx[capped]
+        values[cap_idx] = 1.0
+        remaining_total -= float(len(cap_idx))
+        remaining[cap_idx] = False
+        if remaining_total <= 0.0:
+            break
+    return np.clip(values, 0.0, 1.0)
+
+
 def _rank_based_probability(scores: pd.Series, k: int) -> pd.Series:
     numeric = pd.to_numeric(scores, errors="coerce")
     valid = numeric.notna()
@@ -206,42 +469,65 @@ def _rank_based_probability(scores: pd.Series, k: int) -> pd.Series:
     weights = np.exp(-((ranked.to_numpy(dtype=float) - 1.0) / decay))
     weight_sum = float(weights.sum())
     if weight_sum <= 0.0:
-        proba.loc[valid] = expected_hits / n
+        proba.loc[valid] = _capped_probability_allocation(np.ones(len(ranked), dtype=float), expected_hits)
         return proba.clip(0.0, 1.0)
-    values = np.clip((expected_hits * weights) / weight_sum, 0.0, 1.0)
+    values = _capped_probability_allocation(weights, expected_hits)
     proba.loc[valid] = values
     return proba
+
+
+def _event_total_probability(scores: pd.Series, probabilities: pd.Series, k: int) -> pd.Series:
+    numeric = pd.to_numeric(scores, errors="coerce")
+    raw = pd.to_numeric(probabilities, errors="coerce").reindex(numeric.index)
+    valid = numeric.notna() & raw.notna()
+    output = pd.Series(0.0, index=numeric.index, dtype=float)
+    if valid.sum() == 0:
+        return output
+    weights = raw.loc[valid].clip(lower=0.0, upper=1.0).to_numpy(dtype=float)
+    if float(weights.sum()) <= 0.0:
+        ranked = numeric.loc[valid].rank(method="average", ascending=True)
+        weights = np.exp(-((ranked.to_numpy(dtype=float) - 1.0) / max(1.0, float(len(ranked)) / 6.0)))
+    output.loc[valid] = _capped_probability_allocation(weights, min(float(k), float(valid.sum())))
+    return output.clip(0.0, 1.0)
+
+
+def _predict_probability(model: Optional[object], preds: pd.Series, *, label: str, k: int) -> pd.Series:
+    if preds.empty:
+        return pd.Series(dtype=float)
+
+    calibrated_probability = pd.Series(dtype=float)
+    if model is not None and hasattr(model, "predict_probabilities"):
+        try:
+            calibrated = model.predict_probabilities(preds)
+            if isinstance(calibrated, dict):
+                if label in calibrated:
+                    calibrated_probability = pd.Series(calibrated[label], index=preds.index, dtype=float)
+        except Exception:
+            calibrated_probability = pd.Series(dtype=float)
+
+    fallback = _rank_based_probability(preds, k=k)
+    if calibrated_probability.empty:
+        return fallback
+    combined = calibrated_probability.reindex(preds.index).fillna(fallback).clip(0.0, 1.0)
+    return _event_total_probability(preds, combined, k=k)
 
 
 def _predict_probabilities(model: Optional[object], preds: pd.Series) -> tuple[pd.Series, pd.Series]:
     if preds.empty:
         return pd.Series(dtype=float), pd.Series(dtype=float)
 
-    top10 = pd.Series(dtype=float)
-    top3 = pd.Series(dtype=float)
-    if model is not None and hasattr(model, "predict_probabilities"):
-        try:
-            calibrated = model.predict_probabilities(preds)
-            if isinstance(calibrated, dict):
-                if "top10" in calibrated:
-                    top10 = pd.Series(calibrated["top10"], index=preds.index, dtype=float)
-                if "top3" in calibrated:
-                    top3 = pd.Series(calibrated["top3"], index=preds.index, dtype=float)
-        except Exception:
-            top10 = pd.Series(dtype=float)
-            top3 = pd.Series(dtype=float)
-
-    if top10.empty:
-        top10 = _rank_based_probability(preds, k=10)
-    if top3.empty:
-        top3 = _rank_based_probability(preds, k=3)
-
-    top10 = top10.reindex(preds.index).fillna(_rank_based_probability(preds, k=10))
-    top3 = top3.reindex(preds.index).fillna(_rank_based_probability(preds, k=3))
+    top10 = _predict_probability(model, preds, label="top10", k=10)
+    top3 = _predict_probability(model, preds, label="top3", k=3)
     top10 = top10.clip(0.0, 1.0)
     top3 = top3.clip(0.0, 1.0)
     top3 = np.minimum(top3, top10)
     return top10, pd.Series(top3, index=preds.index, dtype=float)
+
+
+def _prediction_records(frame: pd.DataFrame) -> list[dict[str, object]]:
+    if frame.empty:
+        return []
+    return json.loads(frame.to_json(orient="records"))
 
 
 def _normalize_event_name_for_key(value: object) -> str:
@@ -409,7 +695,10 @@ def _pl_gumbel_listwise(
     return output
 
 
-def _qualifying_feature_sets(disable_runsim: bool = False) -> tuple[List[str], List[str]]:
+def _qualifying_feature_sets(
+    disable_runsim: bool = False,
+    disable_circuit: bool = False,
+) -> tuple[List[str], List[str]]:
     feature_cols = [
         "fp1_delta",
         "fp2_delta",
@@ -458,6 +747,8 @@ def _qualifying_feature_sets(disable_runsim: bool = False) -> tuple[List[str], L
         "event_pace_index",
         "driver_vs_team_fp_weighted_delta",
     ]
+    feature_cols.extend(CIRCUIT_NUMERIC_FEATURES)
+    feature_cols.extend(CIRCUIT_INTERACTION_FEATURES)
     fallback_cols = [
         "fp_mean_delta",
         "fp_weighted_delta",
@@ -490,10 +781,17 @@ def _qualifying_feature_sets(disable_runsim: bool = False) -> tuple[List[str], L
         "driver_vs_team_fp_weighted_delta",
         "event_driver_hist_idx",
     ]
-    return _apply_runsim_ablation(feature_cols, fallback_cols, disable_runsim)
+    fallback_cols.extend(CIRCUIT_NUMERIC_FEATURES)
+    fallback_cols.extend(CIRCUIT_INTERACTION_FEATURES)
+    feature_cols, fallback_cols = _apply_runsim_ablation(feature_cols, fallback_cols, disable_runsim)
+    return _apply_circuit_ablation(feature_cols, fallback_cols, disable_circuit)
 
 
-def _race_feature_sets(include_standings: bool, disable_runsim: bool = False) -> tuple[List[str], List[str]]:
+def _race_feature_sets(
+    include_standings: bool,
+    disable_runsim: bool = False,
+    disable_circuit: bool = False,
+) -> tuple[List[str], List[str]]:
     feature_cols = [
         "fp1_delta",
         "fp2_delta",
@@ -525,6 +823,8 @@ def _race_feature_sets(include_standings: bool, disable_runsim: bool = False) ->
         "sq_rank",
         "sprint_rank",
         "fp_mean_rank",
+        "grid_position",
+        "grid_position_track_adj",
         "qualy_position",
         "qualy_context_position",
         "qualy_context_position_track_adj",
@@ -562,17 +862,27 @@ def _race_feature_sets(include_standings: bool, disable_runsim: bool = False) ->
         "track_vsc_lap_ratio",
         "track_dnf_rate",
         "track_pit_stop_intensity",
+        "track_weather_uncertainty",
+        "track_safety_car_prior",
+        "track_dnf_prior",
+        "track_strategy_variance_prior",
+        "track_weather_uncertainty_prior",
+        "race_generation_variance_prior",
         "track_same_event_count",
         "track_history_count",
         "track_stats_reliability",
         "track_chaos_index",
         "track_qualy_importance",
     ]
+    feature_cols.extend(CIRCUIT_NUMERIC_FEATURES)
+    feature_cols.extend(CIRCUIT_INTERACTION_FEATURES)
     if include_standings:
         feature_cols.append("position_start")
 
     fallback_cols = [
         "qualy_position",
+        "grid_position",
+        "grid_position_track_adj",
         "qualy_context_position",
         "qualy_context_position_track_adj",
         "qualy_position_track_adj",
@@ -617,8 +927,16 @@ def _race_feature_sets(include_standings: bool, disable_runsim: bool = False) ->
         "track_safety_car_propensity",
         "track_chaos_index",
         "track_qualy_importance",
+        "track_safety_car_prior",
+        "track_dnf_prior",
+        "track_strategy_variance_prior",
+        "track_weather_uncertainty_prior",
+        "race_generation_variance_prior",
     ]
-    return _apply_runsim_ablation(feature_cols, fallback_cols, disable_runsim)
+    fallback_cols.extend(CIRCUIT_NUMERIC_FEATURES)
+    fallback_cols.extend(CIRCUIT_INTERACTION_FEATURES)
+    feature_cols, fallback_cols = _apply_runsim_ablation(feature_cols, fallback_cols, disable_runsim)
+    return _apply_circuit_ablation(feature_cols, fallback_cols, disable_circuit)
 
 
 def _build_qualifying_signal_frame(
@@ -626,6 +944,9 @@ def _build_qualifying_signal_frame(
     preds: pd.Series,
     top10: pd.Series,
     top3: pd.Series,
+    *,
+    source: str = "",
+    training_event_max: Optional[float] = None,
 ) -> pd.DataFrame:
     if frame.empty:
         return pd.DataFrame()
@@ -638,6 +959,10 @@ def _build_qualifying_signal_frame(
     out["qualy_pred_position"] = pd.to_numeric(preds, errors="coerce")
     out["qualy_pred_top10_proba"] = pd.to_numeric(top10, errors="coerce")
     out["qualy_pred_top3_proba"] = pd.to_numeric(top3, errors="coerce")
+    if source:
+        out["qualy_pred_source"] = source
+    if training_event_max is not None:
+        out["qualy_pred_training_event_max"] = float(training_event_max)
     if "event_key" in out.columns:
         valid = out["event_key"].notna()
         out["qualy_pred_rank_pct"] = float("nan")
@@ -656,17 +981,84 @@ def _build_qualifying_signal_frame(
     return out.reset_index(drop=True)
 
 
+def _build_oof_qualifying_signal_frame(
+    *,
+    qual_train: pd.DataFrame,
+    qual_feature_cols: List[str],
+    qual_fallback_cols: List[str],
+    config: PredictionConfig,
+    notes: List[str],
+    min_prior_events: int = 3,
+) -> pd.DataFrame:
+    if qual_train.empty or "event_key" not in qual_train.columns:
+        return pd.DataFrame()
+    event_key = pd.to_numeric(qual_train["event_key"], errors="coerce")
+    valid_events = sorted(event_key.dropna().unique().tolist())
+    signals: list[pd.DataFrame] = []
+    for event in valid_events:
+        val_mask = event_key == event
+        train_mask = event_key < event
+        val_q = qual_train.loc[val_mask].copy()
+        train_q = qual_train.loc[train_mask].copy()
+        if val_q.empty:
+            continue
+        prior_event_count = int(pd.to_numeric(train_q.get("event_key"), errors="coerce").dropna().nunique()) if not train_q.empty else 0
+        model_obj: Optional[object] = None
+        source = "oof_fallback"
+        train_max: Optional[float] = None
+        if prior_event_count > 0:
+            train_max = float(pd.to_numeric(train_q["event_key"], errors="coerce").max())
+        if prior_event_count >= int(min_prior_events):
+            qual_model = train_model(
+                train_q,
+                qual_feature_cols,
+                enable_dl_candidates=config.enable_dl_candidates,
+                compare_families=config.compare_families,
+                dl_device=config.dl_device,
+                dl_arch=config.dl_arch,
+                dl_hyperparams=config.dl_hyperparams,
+                dl_seed=config.dl_seed,
+                f1_model=config.f1_model,
+            )
+            model_obj = qual_model.model
+            source = f"oof_{qual_model.model_name}"
+        preds = predict_with_model(model_obj, val_q, qual_feature_cols, qual_fallback_cols)
+        top10, top3 = _predict_probabilities(model_obj, preds)
+        signal = _build_qualifying_signal_frame(
+            val_q,
+            preds,
+            top10,
+            top3,
+            source=source,
+            training_event_max=train_max,
+        )
+        signals.append(signal)
+    if not signals:
+        return pd.DataFrame()
+    notes.append(
+        "[Race<-Quali] Signal qualif historique genere out-of-fold par event "
+        f"({len(signals)} events, min_prior_events={int(min_prior_events)}).",
+    )
+    return pd.concat(signals, ignore_index=True)
+
+
 def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return frame
     out = frame.copy()
     numeric_cols = [
         "qualy_position",
+        "grid_position",
         "qualy_pred_position",
         "track_qualy_importance",
         "track_overtake_propensity",
         "track_safety_car_propensity",
         "track_chaos_index",
+        "track_safety_car_prior",
+        "track_dnf_prior",
+        "track_strategy_variance_prior",
+        "track_weather_uncertainty_prior",
+        "race_generation_variance_prior",
     ]
     for col in numeric_cols:
         if col in out.columns:
@@ -699,19 +1091,38 @@ def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         out["qualy_pred_position_track_adj"] = out["qualy_pred_position"] * (0.35 + qualy_importance)
     else:
         out["qualy_pred_position_track_adj"] = float("nan")
+    circuit_qualy_importance = (
+        pd.to_numeric(out["circuit_qualifying_importance"], errors="coerce")
+        if "circuit_qualifying_importance" in out.columns
+        else qualy_importance
+    )
+    circuit_qualy_importance = circuit_qualy_importance.reindex(out.index).fillna(qualy_importance).clip(
+        lower=0.0,
+        upper=1.0,
+    )
 
     qualy_actual = pd.to_numeric(out.get("qualy_position"), errors="coerce")
+    grid_position = pd.to_numeric(out.get("grid_position"), errors="coerce")
+    if isinstance(grid_position, pd.Series):
+        out["grid_position"] = grid_position.where(grid_position.notna(), qualy_actual)
+        out["grid_position_track_adj"] = out["grid_position"] * (0.35 + qualy_importance)
+    else:
+        out["grid_position"] = qualy_actual if isinstance(qualy_actual, pd.Series) else float("nan")
+        out["grid_position_track_adj"] = float("nan")
+    race_start = pd.to_numeric(out.get("grid_position"), errors="coerce")
     qualy_pred = pd.to_numeric(out.get("qualy_pred_position"), errors="coerce")
-    if isinstance(qualy_actual, pd.Series) and isinstance(qualy_pred, pd.Series):
-        out["qualy_context_position"] = (qualy_importance * qualy_actual) + ((1.0 - qualy_importance) * qualy_pred)
+    if isinstance(race_start, pd.Series) and isinstance(qualy_pred, pd.Series):
+        out["qualy_context_position"] = (qualy_importance * race_start) + ((1.0 - qualy_importance) * qualy_pred)
         out["qualy_context_position"] = out["qualy_context_position"].where(
             out["qualy_context_position"].notna(),
-            qualy_actual,
+            race_start,
         )
         out["qualy_context_position"] = out["qualy_context_position"].where(
             out["qualy_context_position"].notna(),
             qualy_pred,
         )
+    elif isinstance(race_start, pd.Series):
+        out["qualy_context_position"] = race_start
     elif isinstance(qualy_actual, pd.Series):
         out["qualy_context_position"] = qualy_actual
     elif isinstance(qualy_pred, pd.Series):
@@ -721,6 +1132,12 @@ def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
 
     out["qualy_context_position_track_adj"] = (
         pd.to_numeric(out["qualy_context_position"], errors="coerce") * (0.35 + qualy_importance)
+    )
+    out["qualy_position_circuit_importance_adj"] = (
+        pd.to_numeric(out.get("qualy_position"), errors="coerce") * (0.35 + circuit_qualy_importance)
+    )
+    out["qualy_pred_position_circuit_importance_adj"] = (
+        pd.to_numeric(out.get("qualy_pred_position"), errors="coerce") * (0.35 + circuit_qualy_importance)
     )
 
     return out
@@ -744,6 +1161,7 @@ def _merge_predicted_qualifying_context(
         target_round=config.round_number,
         include_standings=False,
     )
+    qual_train = _apply_season_sample_weighting(qual_train, config, notes)
     qual_features, qual_feature_notes = build_current_features(
         provider=provider,
         mode="qualifying",
@@ -764,8 +1182,14 @@ def _merge_predicted_qualifying_context(
     if config.disable_runsim_features:
         qual_train = _drop_runsim_columns(qual_train)
         qual_features = _drop_runsim_columns(qual_features)
+    if config.disable_circuit_features:
+        qual_train = _drop_circuit_columns(qual_train)
+        qual_features = _drop_circuit_columns(qual_features)
 
-    qual_feature_cols, qual_fallback_cols = _qualifying_feature_sets(disable_runsim=config.disable_runsim_features)
+    qual_feature_cols, qual_fallback_cols = _qualifying_feature_sets(
+        disable_runsim=config.disable_runsim_features,
+        disable_circuit=config.disable_circuit_features,
+    )
     qual_model = train_model(
         qual_train,
         qual_feature_cols,
@@ -784,13 +1208,12 @@ def _merge_predicted_qualifying_context(
 
     train_signal = pd.DataFrame()
     if not qual_train.empty:
-        qual_train_pred = predict_with_model(qual_model.model, qual_train, qual_feature_cols, qual_fallback_cols)
-        qual_train_top10, qual_train_top3 = _predict_probabilities(qual_model.model, qual_train_pred)
-        train_signal = _build_qualifying_signal_frame(
-            qual_train,
-            qual_train_pred,
-            qual_train_top10,
-            qual_train_top3,
+        train_signal = _build_oof_qualifying_signal_frame(
+            qual_train=qual_train,
+            qual_feature_cols=qual_feature_cols,
+            qual_fallback_cols=qual_fallback_cols,
+            config=config,
+            notes=notes,
         )
 
     current_signal = pd.DataFrame()
@@ -802,6 +1225,7 @@ def _merge_predicted_qualifying_context(
             qual_current_pred,
             qual_current_top10,
             qual_current_top3,
+            source=f"current_{qual_model.model_name}",
         )
 
     if not race_train.empty and not train_signal.empty:
@@ -898,6 +1322,7 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         target_round=config.round_number,
         include_standings=config.include_standings,
     )
+    train = _apply_season_sample_weighting(train, config, notes)
 
     features, feature_notes = build_current_features(
         provider=provider,
@@ -922,13 +1347,21 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         train = _drop_runsim_columns(train)
         features = _drop_runsim_columns(features)
         notes.append("Ablation active: run-sim features supprimees (fp_quali_sim_*, fp_race_sim_*, fp_slow_lap_ratio, fp_quali_vs_race_gap).")
+    if config.disable_circuit_features:
+        train = _drop_circuit_columns(train)
+        features = _drop_circuit_columns(features)
+        notes.append("Ablation active: circuit-card features and interactions supprimes.")
 
     if config.mode == "qualifying":
-        feature_cols, fallback_cols = _qualifying_feature_sets(disable_runsim=config.disable_runsim_features)
+        feature_cols, fallback_cols = _qualifying_feature_sets(
+            disable_runsim=config.disable_runsim_features,
+            disable_circuit=config.disable_circuit_features,
+        )
     else:
         feature_cols, fallback_cols = _race_feature_sets(
             include_standings=config.include_standings,
             disable_runsim=config.disable_runsim_features,
+            disable_circuit=config.disable_circuit_features,
         )
 
     training_result = train_model(
@@ -945,31 +1378,42 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
     notes.extend(training_result.notes)
     if training_result.model is None:
         notes.append(
-            "Fallback heuristique hierarchique actif: qualy_position + forme pilote + forme ecurie (quand dispo).",
+            "Fallback heuristique actif: qualif=blend FP pace empirique; race=position qualif si disponible.",
         )
     preds = predict_with_model(training_result.model, features, feature_cols, fallback_cols)
     output = features.copy()
     output["pred"] = preds
+    proba_win = _predict_probability(training_result.model, preds, label="win", k=1)
     proba_top10, proba_top3 = _predict_probabilities(training_result.model, preds)
+    proba_win = pd.Series(np.minimum(proba_win.clip(0.0, 1.0), proba_top3), index=preds.index, dtype=float)
+    output["proba_win"] = proba_win
     output["proba_top10"] = proba_top10
     output["proba_top3"] = proba_top3
 
     if str(config.f1_listwise).strip().lower() == "pl_gumbel":
+        effective_temperature = (
+            float(training_result.listwise_temperature)
+            if training_result.listwise_temperature is not None
+            else float(config.f1_pl_temperature)
+        )
         listwise = _pl_gumbel_listwise(
             frame=output,
             preds=preds,
             mode=config.mode,
             samples=int(config.f1_pl_samples),
-            temperature=float(config.f1_pl_temperature),
+            temperature=effective_temperature,
             seed=int(config.f1_listwise_seed),
         )
         output = output.join(listwise)
         output["old_rank_based_top10"] = proba_top10
         output["old_rank_based_top3"] = proba_top3
+        output["old_rank_based_win"] = proba_win
+        output["proba_win"] = output["p_win"]
         output["proba_top10"] = output["p_top10"]
         output["proba_top3"] = output["p_top3"]
         notes.append(
-            "Listwise PL active: proba_top10/proba_top3 remplaces par p_top10/p_top3 (seed stable par event).",
+            "Listwise PL active: proba_win/proba_top10/proba_top3 remplaces par p_win/p_top10/p_top3 "
+            f"(seed stable par event, temperature={effective_temperature:.3f}).",
         )
     else:
         output["listwise_enabled"] = False
@@ -983,7 +1427,9 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         output["driver_name"] = output["driver_name"].fillna(output["driver_id"])
 
     version = compute_version(config.round_number, config.include_standings)
+    all_rows = format_prediction_table(output, top_n=None)
     table = format_prediction_table(output, top_n=10)
+    circuit_card = circuit_card_payload_from_frame(output)
     return PredictionResult(
         version=version,
         table=table,
@@ -993,4 +1439,11 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         device_used=training_result.device_used,
         dl_available=training_result.dl_available,
         candidate_leaderboard=training_result.candidate_leaderboard,
+        extras={
+            "all_prediction_rows": _prediction_records(all_rows),
+            "circuit_card": circuit_card,
+            "circuit_feature_columns": list(CIRCUIT_NUMERIC_FEATURES + CIRCUIT_INTERACTION_FEATURES),
+            "listwise_temperature": training_result.listwise_temperature,
+            "probability_audit": training_result.probability_audit,
+        },
     )

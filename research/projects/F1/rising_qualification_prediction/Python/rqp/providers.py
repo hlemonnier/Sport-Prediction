@@ -118,12 +118,15 @@ class FastF1Provider(BaseProvider):
             return pd.DataFrame()
         driver_col = first_available(results, ["Abbreviation", "Driver", "DriverNumber", "FullName"])
         pos_col = first_available(results, ["Position", "ClassifiedPosition"])
+        grid_col = first_available(results, ["GridPosition", "Grid", "StartingGridPosition"])
         if driver_col is None or pos_col is None:
             return pd.DataFrame()
         df = results[[driver_col, pos_col]].copy()
         df = df.rename(columns={driver_col: "driver_id", pos_col: "position"})
         df["driver_name"] = df["driver_id"].astype(str)
         df["position"] = pd.to_numeric(df["position"], errors="coerce")
+        if grid_col:
+            df["grid_position"] = pd.to_numeric(results[grid_col], errors="coerce")
         return df
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:
@@ -348,9 +351,11 @@ class OpenF1Provider(BaseProvider):
                 "driver_id": str(r.get("driver_number")),
                 "driver_name": driver_map.get(str(r.get("driver_number")), str(r.get("driver_number"))),
                 "position": r.get("position"),
+                "grid_position": r.get("grid_position") or r.get("starting_grid_position"),
             })
         df = pd.DataFrame(rows)
         df["position"] = pd.to_numeric(df["position"], errors="coerce")
+        df["grid_position"] = pd.to_numeric(df["grid_position"], errors="coerce")
         return df
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:
@@ -832,20 +837,21 @@ class LocalWeekendProvider(BaseProvider):
             {
                 "driver_id": race["driver_id"].astype(str),
                 "race_position": pd.to_numeric(race.get("position"), errors="coerce"),
+                "grid_position": pd.to_numeric(race.get("grid_position"), errors="coerce"),
             },
         )
         merged = qualy_pos.merge(race_pos, on="driver_id", how="inner")
-        merged = merged.dropna(subset=["qualy_position", "race_position"])
+        merged["start_position"] = merged["grid_position"].where(
+            merged["grid_position"].notna(),
+            merged["qualy_position"],
+        )
+        merged = merged.dropna(subset=["start_position", "race_position"])
         if merged.empty:
             self._event_summary_cache[cache_key] = None
             return None
 
-        field_size = float(len(merged))
-        pos_delta = merged["qualy_position"] - merged["race_position"]
-        overtake_propensity = float(pos_delta.abs().mean() / max(1.0, field_size - 1.0))
-        overtake_propensity = float(min(1.0, max(0.0, overtake_propensity)))
-        grid_corr = merged["qualy_position"].corr(merged["race_position"], method="spearman")
-        grid_stability = 0.5 if pd.isna(grid_corr) else float(min(1.0, max(0.0, abs(grid_corr))))
+        grid_corr = merged["start_position"].corr(merged["race_position"], method="spearman")
+        grid_stability = 0.5 if pd.isna(grid_corr) else float(min(1.0, max(0.0, grid_corr)))
 
         weekend_dir, sessions = self._session_entries(year, round_number)
         race_entry = self._find_session_entry(sessions, "race")
@@ -858,6 +864,7 @@ class LocalWeekendProvider(BaseProvider):
         sc_lap_ratio = 0.0
         vsc_lap_ratio = 0.0
         pit_stop_intensity = 0.0
+        weather_uncertainty = 0.0
         if not laps.empty:
             status_col = first_available(laps, ["TrackStatus", "track_status"])
             lap_number_col = first_available(laps, ["LapNumber", "lap_number"])
@@ -891,9 +898,24 @@ class LocalWeekendProvider(BaseProvider):
                 if not work.empty:
                     pit_count = work.groupby("driver_id", sort=False)["pit_in"].size()
                     pit_stop_intensity = float(pit_count.mean())
+            compound_col = first_available(laps, ["Compound", "compound"])
+            if compound_col:
+                compound = laps[compound_col].astype(str).str.strip().str.lower()
+                wet_tyre_ratio = float(compound.str.contains("wet|intermediate", regex=True).mean())
+                weather_uncertainty = max(weather_uncertainty, wet_tyre_ratio)
+            rain_col = first_available(laps, ["Rainfall", "rainfall", "rain"])
+            if rain_col:
+                rain = pd.to_numeric(laps[rain_col], errors="coerce")
+                if rain.notna().sum() > 0:
+                    weather_uncertainty = max(weather_uncertainty, float((rain.fillna(0.0) > 0.0).mean()))
 
         dnf_rate = 0.0
+        dnf_driver_ids: set[str] = set()
         if not race_results_raw.empty:
+            driver_col_raw = first_available(
+                race_results_raw,
+                ["DriverNumber", "driver_number", "Abbreviation", "Driver", "DriverId", "FullName"],
+            )
             status_col = first_available(race_results_raw, ["Status", "status"])
             class_col = first_available(race_results_raw, ["ClassifiedPosition", "Classified", "Position"])
             dnf_mask = pd.Series(False, index=race_results_raw.index, dtype=bool)
@@ -907,6 +929,20 @@ class LocalWeekendProvider(BaseProvider):
                 classified = pd.to_numeric(race_results_raw[class_col], errors="coerce")
                 dnf_mask = dnf_mask | classified.isna()
             dnf_rate = float(dnf_mask.mean())
+            if driver_col_raw:
+                dnf_driver_ids = set(
+                    race_results_raw.loc[dnf_mask, driver_col_raw].map(self._normalize_driver_id).astype(str).tolist()
+                )
+
+        overtake_frame = merged.copy()
+        if dnf_driver_ids:
+            overtake_frame = overtake_frame[~overtake_frame["driver_id"].astype(str).isin(dnf_driver_ids)]
+        if overtake_frame.empty:
+            overtake_frame = merged
+        field_size = float(len(overtake_frame))
+        pos_delta = overtake_frame["start_position"] - overtake_frame["race_position"]
+        overtake_propensity = float(pos_delta.abs().mean() / max(1.0, field_size - 1.0))
+        overtake_propensity = float(min(1.0, max(0.0, overtake_propensity)))
 
         summary: dict[str, object] = {
             "event_name_norm": event_name_norm,
@@ -919,6 +955,7 @@ class LocalWeekendProvider(BaseProvider):
             "vsc_lap_ratio": float(vsc_lap_ratio),
             "dnf_rate": float(max(0.0, min(1.0, dnf_rate))),
             "pit_stop_intensity": float(max(0.0, pit_stop_intensity)),
+            "weather_uncertainty": float(max(0.0, min(1.0, weather_uncertainty))),
         }
         self._event_summary_cache[cache_key] = summary
         return summary
@@ -971,6 +1008,7 @@ class LocalWeekendProvider(BaseProvider):
         vsc_lap_ratio = pd.to_numeric(source_frame.get("vsc_lap_ratio"), errors="coerce")
         dnf_rate = pd.to_numeric(source_frame.get("dnf_rate"), errors="coerce")
         pit_stop = pd.to_numeric(source_frame.get("pit_stop_intensity"), errors="coerce")
+        weather = pd.to_numeric(source_frame.get("weather_uncertainty"), errors="coerce")
 
         same_track_count = float(len(same_track))
         history_count = float(len(source))
@@ -979,10 +1017,12 @@ class LocalWeekendProvider(BaseProvider):
         else:
             reliability = min(0.4, history_count / 10.0)
 
+        pit_variance = (pit_stop.fillna(pit_stop.mean(skipna=True)) / 3.0).clip(lower=0.0, upper=1.0)
         chaos = (
-            (0.45 * overtake.fillna(overtake.mean(skipna=True)))
-            + (0.35 * sc_presence.fillna(sc_presence.mean(skipna=True)))
+            (0.45 * sc_presence.fillna(sc_presence.mean(skipna=True)))
+            + (0.20 * sc_lap_ratio.fillna(sc_lap_ratio.mean(skipna=True)))
             + (0.20 * dnf_rate.fillna(dnf_rate.mean(skipna=True)))
+            + (0.15 * pit_variance)
         )
         chaos_value = float(chaos.mean(skipna=True)) if chaos.notna().sum() > 0 else 0.5
 
@@ -994,6 +1034,7 @@ class LocalWeekendProvider(BaseProvider):
             "track_vsc_lap_ratio": float(vsc_lap_ratio.mean(skipna=True)),
             "track_dnf_rate": float(dnf_rate.mean(skipna=True)),
             "track_pit_stop_intensity": float(pit_stop.mean(skipna=True)),
+            "track_weather_uncertainty": float(weather.mean(skipna=True)),
             "track_same_event_count": same_track_count,
             "track_history_count": history_count,
             "track_stats_reliability": float(reliability),
@@ -1093,6 +1134,7 @@ class LocalWeekendProvider(BaseProvider):
 
         name_col = first_available(results, ["Abbreviation", "BroadcastName", "FullName", "Driver"])
         team_col = first_available(results, ["TeamName", "Team", "team_name"])
+        grid_col = first_available(results, ["GridPosition", "Grid", "StartingGridPosition", "grid_position"])
         frame = pd.DataFrame()
         frame["driver_id"] = results[driver_col].map(self._normalize_driver_id)
         if name_col:
@@ -1100,6 +1142,8 @@ class LocalWeekendProvider(BaseProvider):
         else:
             frame["driver_name"] = frame["driver_id"]
         frame["position"] = pd.to_numeric(results[pos_col], errors="coerce")
+        if grid_col:
+            frame["grid_position"] = pd.to_numeric(results[grid_col], errors="coerce")
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
         frame = frame[frame["driver_id"] != ""]

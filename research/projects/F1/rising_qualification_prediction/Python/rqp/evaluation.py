@@ -16,8 +16,8 @@ def _normalize_name_key(value: object) -> str:
     return " ".join(text.split())
 
 
-def _actual_name_column(frame: pd.DataFrame) -> Optional[str]:
-    for col in ["driver_name", "driver_id", "Abbreviation", "Driver"]:
+def _driver_key_column(frame: pd.DataFrame) -> Optional[str]:
+    for col in ["driver_id", "driver_name", "Abbreviation", "Driver"]:
         if col in frame.columns:
             return col
     return None
@@ -36,9 +36,10 @@ def evaluate_prediction_rows(
         return {"available": False, "reason": "actual_results_unavailable"}
 
     pred = pd.DataFrame(predicted_rows).copy()
-    if pred.empty or "driver_name" not in pred.columns:
-        return {"available": False, "reason": "prediction_driver_name_unavailable"}
-    pred["driver_key"] = pred["driver_name"].map(_normalize_name_key)
+    pred_key_col = _driver_key_column(pred)
+    if pred.empty or pred_key_col is None:
+        return {"available": False, "reason": "prediction_driver_key_unavailable"}
+    pred["driver_key"] = pred[pred_key_col].map(_normalize_name_key)
     pred = pred[pred["driver_key"] != ""]
     if pred.empty:
         return {"available": False, "reason": "prediction_driver_key_unavailable"}
@@ -52,10 +53,10 @@ def evaluate_prediction_rows(
     actual = actual_results.copy()
     if actual_position_col not in actual.columns:
         return {"available": False, "reason": "actual_position_unavailable"}
-    name_col = _actual_name_column(actual)
-    if name_col is None:
-        return {"available": False, "reason": "actual_driver_name_unavailable"}
-    actual["driver_key"] = actual[name_col].map(_normalize_name_key)
+    actual_key_col = _driver_key_column(actual)
+    if actual_key_col is None:
+        return {"available": False, "reason": "actual_driver_key_unavailable"}
+    actual["driver_key"] = actual[actual_key_col].map(_normalize_name_key)
     actual["actual_rank"] = pd.to_numeric(actual[actual_position_col], errors="coerce")
     actual = actual[(actual["driver_key"] != "") & actual["actual_rank"].notna()]
     if actual.empty:

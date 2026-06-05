@@ -42,6 +42,8 @@ from .dl_models import (
 )
 from .utils import team_column
 
+SAMPLE_WEIGHT_COL = "_sample_weight"
+
 
 @dataclass
 class TrainingResult:
@@ -52,6 +54,8 @@ class TrainingResult:
     dl_available: bool
     candidate_leaderboard: List[dict[str, Any]]
     notes: List[str]
+    listwise_temperature: Optional[float] = None
+    probability_audit: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -74,6 +78,19 @@ class CandidateScore:
     hit10: float
     composite: float
     device_used: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class TargetSpec:
+    train_col: str = "target"
+    actual_col: str = "target"
+    base_col: Optional[str] = None
+    base_fill: float = 0.0
+    label: str = "finish_position"
+
+    @property
+    def uses_offset(self) -> bool:
+        return bool(self.base_col)
 
 
 class FeaturePipeline:
@@ -369,6 +386,9 @@ class EBRankModel:
             weights = np.exp(-self.decay * (float(n - 1) - age))
         else:
             weights = np.ones(n, dtype=float)
+        sample_weights = _sample_weight_array(rows)
+        if sample_weights is not None:
+            weights = weights * sample_weights
         weights = np.clip(weights, 1e-6, None)
 
         y_np = y.to_numpy(dtype=float)
@@ -463,6 +483,83 @@ class WeightedBlendModel:
         weight = float(np.clip(self.model_weight, 0.0, 1.0))
         pred = (weight * primary) + ((1.0 - weight) * baseline)
         return pd.Series(pred, index=frame.index, dtype=float)
+
+    def predict_probabilities(self, scores: pd.Series) -> dict[str, pd.Series]:
+        output: dict[str, pd.Series] = {}
+        for label, calibrator in self.calibrators.items():
+            output[label] = calibrator.predict(scores)
+        return output
+
+
+@dataclass
+class TargetOffsetModel:
+    """Model wrapper for race deltas: final score = start/grid base + predicted delta."""
+
+    base_model: object
+    base_column: str
+    base_fill: float = 0.0
+    calibrators: dict[str, ProbabilityCalibrator] = field(default_factory=dict)
+
+    def _base(self, frame: pd.DataFrame) -> pd.Series:
+        if self.base_column not in frame.columns:
+            return pd.Series(float(self.base_fill), index=frame.index, dtype=float)
+        values = pd.to_numeric(frame[self.base_column], errors="coerce")
+        fill = float(self.base_fill)
+        if values.notna().sum() > 0:
+            candidate = float(values.median(skipna=True))
+            if np.isfinite(candidate):
+                fill = candidate
+        return pd.Series(values.fillna(fill), index=frame.index, dtype=float)
+
+    @staticmethod
+    def _series(frame: pd.DataFrame, column: str, default: float) -> pd.Series:
+        if column not in frame.columns:
+            return pd.Series(float(default), index=frame.index, dtype=float)
+        return pd.to_numeric(frame[column], errors="coerce").fillna(float(default))
+
+    def _circuit_mobility(self, frame: pd.DataFrame) -> pd.Series:
+        circuit_cols = {
+            "track_overtake_propensity",
+            "circuit_drs_effectiveness",
+            "circuit_overtaking_difficulty",
+            "track_chaos_index",
+            "race_generation_variance_prior",
+            "track_strategy_variance_prior",
+        }
+        if not any(col in frame.columns for col in circuit_cols):
+            return pd.Series(1.0, index=frame.index, dtype=float)
+        overtake = self._series(frame, "track_overtake_propensity", 0.35).clip(0.0, 1.0)
+        drs = self._series(frame, "circuit_drs_effectiveness", 0.45).clip(0.0, 1.0)
+        difficulty = self._series(frame, "circuit_overtaking_difficulty", 0.50).clip(0.0, 1.0)
+        variance = self._series(frame, "race_generation_variance_prior", 0.20).clip(0.0, 1.0)
+        strategy = self._series(frame, "track_strategy_variance_prior", 0.35).clip(0.0, 1.0)
+        mobility = (
+            0.08
+            + (0.58 * overtake)
+            + (0.18 * drs)
+            - (0.40 * difficulty)
+            + (0.20 * variance)
+            + (0.10 * strategy)
+        )
+        return mobility.clip(lower=0.04, upper=0.85)
+
+    def _constrain_delta(self, frame: pd.DataFrame, delta: pd.Series) -> pd.Series:
+        mobility = self._circuit_mobility(frame).reindex(delta.index).fillna(1.0)
+        if (mobility >= 0.999).all():
+            return delta
+        field_size = max(1.0, float(len(frame)))
+        max_delta = np.maximum(1.0, mobility.to_numpy(dtype=float) * max(1.0, field_size - 1.0))
+        shrink = (0.20 + (0.80 * mobility)).clip(lower=0.20, upper=1.0)
+        values = delta.to_numpy(dtype=float) * shrink.to_numpy(dtype=float)
+        values = np.clip(values, -max_delta, max_delta)
+        return pd.Series(values, index=delta.index, dtype=float)
+
+    def predict(self, frame: pd.DataFrame) -> pd.Series:
+        if frame.empty:
+            return pd.Series(dtype=float)
+        raw_delta = self.base_model.predict(frame)
+        delta = pd.Series(raw_delta, index=frame.index, dtype=float)
+        return self._base(frame) + self._constrain_delta(frame, delta)
 
     def predict_probabilities(self, scores: pd.Series) -> dict[str, pd.Series]:
         output: dict[str, pd.Series] = {}
@@ -632,10 +729,14 @@ def _candidate_models(
     return candidates, dl_available
 
 
-def _prepare_training_rows(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
-    if frame.empty or "target" not in frame.columns:
+def _prepare_training_rows(
+    frame: pd.DataFrame,
+    *,
+    target_col: str = "target",
+) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
+    if frame.empty or target_col not in frame.columns:
         return pd.DataFrame(), pd.Series(dtype=float), pd.Series(dtype=float)
-    y = pd.to_numeric(frame["target"], errors="coerce")
+    y = pd.to_numeric(frame[target_col], errors="coerce")
     mask = y.notna()
     filtered = frame.loc[mask].copy()
     y = y.loc[mask]
@@ -646,6 +747,79 @@ def _prepare_training_rows(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series
     else:
         event_key = pd.Series(0, index=filtered.index, dtype=float)
     return filtered, y, event_key
+
+
+def _target_base_fill(frame: pd.DataFrame, base_col: Optional[str], default: float = 0.0) -> float:
+    if not base_col or frame.empty or base_col not in frame.columns:
+        return float(default)
+    values = pd.to_numeric(frame[base_col], errors="coerce")
+    if values.notna().sum() == 0:
+        return float(default)
+    fill = float(values.median(skipna=True))
+    return fill if np.isfinite(fill) else float(default)
+
+
+def _infer_target_spec(train: pd.DataFrame) -> TargetSpec:
+    if train.empty:
+        return TargetSpec()
+    if {"target", "race_delta_target", "grid_position"}.issubset(train.columns):
+        delta = pd.to_numeric(train["race_delta_target"], errors="coerce")
+        actual = pd.to_numeric(train["target"], errors="coerce")
+        grid = pd.to_numeric(train["grid_position"], errors="coerce")
+        valid = delta.notna() & actual.notna() & grid.notna()
+        if valid.sum() > 0:
+            return TargetSpec(
+                train_col="race_delta_target",
+                actual_col="target",
+                base_col="grid_position",
+                base_fill=_target_base_fill(train.loc[valid], "grid_position", default=10.0),
+                label="race_grid_delta",
+            )
+    return TargetSpec()
+
+
+def _wrap_target_offset(model: object, target_spec: TargetSpec, frame: pd.DataFrame) -> object:
+    if not target_spec.uses_offset or not target_spec.base_col:
+        return model
+    return TargetOffsetModel(
+        base_model=model,
+        base_column=target_spec.base_col,
+        base_fill=_target_base_fill(frame, target_spec.base_col, target_spec.base_fill),
+    )
+
+
+def _sample_weight_array(frame: pd.DataFrame) -> Optional[np.ndarray]:
+    if frame.empty or SAMPLE_WEIGHT_COL not in frame.columns:
+        return None
+    weights = pd.to_numeric(frame[SAMPLE_WEIGHT_COL], errors="coerce")
+    weights = weights.replace([np.inf, -np.inf], np.nan).fillna(1.0).clip(lower=1e-6)
+    arr = weights.to_numpy(dtype=float)
+    if arr.size == 0 or np.allclose(arr, 1.0):
+        return None
+    return arr
+
+
+def _event_group_weights(event_sorted: pd.Series, row_weights: np.ndarray) -> list[float]:
+    output: list[float] = []
+    start = 0
+    for size in _group_sizes_from_sorted_event(event_sorted):
+        stop = start + size
+        group_weight = float(np.nanmean(row_weights[start:stop])) if stop > start else 1.0
+        output.append(group_weight if np.isfinite(group_weight) and group_weight > 0.0 else 1.0)
+        start = stop
+    return output
+
+
+def _fit_with_optional_weights(model: object, *args: object, sample_weight: Optional[np.ndarray] = None, **kwargs: object) -> None:
+    if sample_weight is None:
+        model.fit(*args, **kwargs)
+        return
+    try:
+        model.fit(*args, sample_weight=sample_weight, **kwargs)
+    except TypeError:
+        model.fit(*args, **kwargs)
+    except ValueError:
+        model.fit(*args, **kwargs)
 
 
 def _sanitize_event_key(event_key: pd.Series) -> Optional[pd.Series]:
@@ -690,15 +864,21 @@ def _fit_candidate(
     train_df: pd.DataFrame,
     feature_cols: List[str],
     candidate: CandidateSpec,
+    target_spec: Optional[TargetSpec] = None,
 ) -> Optional[object]:
-    rows, y, event_key = _prepare_training_rows(train_df)
+    spec = target_spec or TargetSpec()
+    if spec.uses_offset and candidate.task == "ranking":
+        return None
+    rows, y, event_key = _prepare_training_rows(train_df, target_col=spec.train_col)
     if rows.empty:
         return None
     model = candidate.build_model()
     try:
         if candidate.task == "eb":
-            model.fit(rows)
-            return model
+            eb_rows = rows.copy()
+            eb_rows["target"] = y
+            model.fit(eb_rows)
+            return _wrap_target_offset(model, spec, rows)
 
         preprocessor = FeaturePipeline(feature_cols=feature_cols, scale=candidate.scale_features)
         if candidate.task == "ranking":
@@ -712,13 +892,26 @@ def _fit_candidate(
             X_train = preprocessor.fit_transform(rows_sorted)
             y_rank = _ranking_relevance_labels(y_sorted, event_sorted)
             group = _group_sizes_from_sorted_event(event_sorted)
-            model.fit(X_train, y_rank.to_numpy(dtype=float), group=group)
+            row_weights = _sample_weight_array(rows_sorted)
+            group_weights = _event_group_weights(event_sorted, row_weights) if row_weights is not None else None
+            _fit_with_optional_weights(
+                model,
+                X_train,
+                y_rank.to_numpy(dtype=float),
+                sample_weight=np.asarray(group_weights, dtype=float) if group_weights is not None else None,
+                group=group,
+            )
         else:
             X_train = preprocessor.fit_transform(rows)
-            model.fit(X_train, y.to_numpy(dtype=float))
+            _fit_with_optional_weights(
+                model,
+                X_train,
+                y.to_numpy(dtype=float),
+                sample_weight=_sample_weight_array(rows),
+            )
     except Exception:
         return None
-    return FittedModel(
+    fitted = FittedModel(
         estimator=model,
         preprocessor=preprocessor,
         model_name=candidate.name,
@@ -726,6 +919,7 @@ def _fit_candidate(
         task=candidate.task,
         device_used=getattr(model, "device_used", None),
     )
+    return _wrap_target_offset(fitted, spec, rows)
 
 
 def _mean_absolute_error(y_true: pd.Series, y_pred: pd.Series) -> float:
@@ -809,6 +1003,28 @@ def _fold_metrics(y_true: pd.Series, pred: pd.Series, event_key: pd.Series) -> d
     }
 
 
+def _frame_mean_weight(frame: pd.DataFrame) -> float:
+    weights = _sample_weight_array(frame)
+    if weights is None:
+        return 1.0
+    value = float(np.nanmean(weights))
+    return value if np.isfinite(value) and value > 0.0 else 1.0
+
+
+def _weighted_metric_mean(items: list[tuple[dict[str, float], float]], key: str, default: float) -> float:
+    values: list[float] = []
+    weights: list[float] = []
+    for metrics, weight in items:
+        value = float(metrics.get(key, default))
+        if not np.isfinite(value):
+            continue
+        values.append(value)
+        weights.append(float(weight) if np.isfinite(weight) and weight > 0.0 else 1.0)
+    if not values:
+        return float(default)
+    return float(np.average(np.asarray(values, dtype=float), weights=np.asarray(weights, dtype=float)))
+
+
 def _composite_score(mae: float, spearman: float, ndcg10: float, hit10: float) -> float:
     mae_score = 1.0 / (1.0 + max(mae, 0.0))
     spearman_norm = (max(-1.0, min(1.0, spearman)) + 1.0) / 2.0
@@ -834,9 +1050,11 @@ def _evaluate_candidate(
     feature_cols: List[str],
     candidate: CandidateSpec,
     folds: list[tuple[set[int], int]],
+    target_spec: Optional[TargetSpec] = None,
 ) -> Optional[CandidateScore]:
+    spec = target_spec or TargetSpec()
     event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
-    fold_metrics: list[dict[str, float]] = []
+    fold_metrics: list[tuple[dict[str, float], float]] = []
     for train_keys, val_key in folds:
         if event_key is None:
             break
@@ -844,20 +1062,20 @@ def _evaluate_candidate(
         val_df = train.loc[event_key == val_key]
         if train_df.empty or val_df.empty:
             continue
-        fitted = _fit_candidate(train_df, feature_cols, candidate)
+        fitted = _fit_candidate(train_df, feature_cols, candidate, target_spec=spec)
         if fitted is None:
             return None
-        val_rows, y_val, event_val = _prepare_training_rows(val_df)
+        val_rows, y_val, event_val = _prepare_training_rows(val_df, target_col=spec.actual_col)
         if val_rows.empty:
             continue
-        preds = fitted.predict(val_rows)
-        fold_metrics.append(_fold_metrics(y_val, preds, event_val))
+        preds = pd.Series(fitted.predict(val_rows), index=val_rows.index, dtype=float)
+        fold_metrics.append((_fold_metrics(y_val, preds, event_val), _frame_mean_weight(val_df)))
     if not fold_metrics:
         return None
-    mae = float(sum(m["mae"] for m in fold_metrics) / len(fold_metrics))
-    spearman = float(sum(m["spearman"] for m in fold_metrics) / len(fold_metrics))
-    ndcg10 = float(sum(m["ndcg10"] for m in fold_metrics) / len(fold_metrics))
-    hit10 = float(sum(m["hit10"] for m in fold_metrics) / len(fold_metrics))
+    mae = _weighted_metric_mean(fold_metrics, "mae", float("inf"))
+    spearman = _weighted_metric_mean(fold_metrics, "spearman", 0.0)
+    ndcg10 = _weighted_metric_mean(fold_metrics, "ndcg10", 0.0)
+    hit10 = _weighted_metric_mean(fold_metrics, "hit10", 0.0)
     composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
     return CandidateScore(
         name=candidate.name,
@@ -877,13 +1095,15 @@ def _evaluate_column_baseline(
     column: str,
     name: str,
     default_fill: float = 0.0,
+    target_spec: Optional[TargetSpec] = None,
 ) -> Optional[CandidateScore]:
+    spec = target_spec or TargetSpec()
     if column not in train.columns:
         return None
     event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
     if event_key is None:
         return None
-    fold_metrics: list[dict[str, float]] = []
+    fold_metrics: list[tuple[dict[str, float], float]] = []
     for train_keys, val_key in folds:
         train_df = train.loc[event_key.isin(train_keys)]
         val_df = train.loc[event_key == val_key]
@@ -895,19 +1115,19 @@ def _evaluate_column_baseline(
             if train_col.notna().sum() > 0
             else float(default_fill)
         )
-        val_rows, y_val, event_val = _prepare_training_rows(val_df)
+        val_rows, y_val, event_val = _prepare_training_rows(val_df, target_col=spec.actual_col)
         if val_rows.empty:
             continue
         pred = pd.to_numeric(val_rows.get(column), errors="coerce")
         pred = pred.fillna(fill_value)
         pred = pd.Series(pred.to_numpy(dtype=float), index=val_rows.index, dtype=float)
-        fold_metrics.append(_fold_metrics(y_val, pred, event_val))
+        fold_metrics.append((_fold_metrics(y_val, pred, event_val), _frame_mean_weight(val_df)))
     if not fold_metrics:
         return None
-    mae = float(sum(m["mae"] for m in fold_metrics) / len(fold_metrics))
-    spearman = float(sum(m["spearman"] for m in fold_metrics) / len(fold_metrics))
-    ndcg10 = float(sum(m["ndcg10"] for m in fold_metrics) / len(fold_metrics))
-    hit10 = float(sum(m["hit10"] for m in fold_metrics) / len(fold_metrics))
+    mae = _weighted_metric_mean(fold_metrics, "mae", float("inf"))
+    spearman = _weighted_metric_mean(fold_metrics, "spearman", 0.0)
+    ndcg10 = _weighted_metric_mean(fold_metrics, "ndcg10", 0.0)
+    hit10 = _weighted_metric_mean(fold_metrics, "hit10", 0.0)
     composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
     return CandidateScore(
         name=name,
@@ -928,7 +1148,9 @@ def _evaluate_blend_candidates(
     baseline_col: str,
     model_weights: list[float],
     default_baseline_fill: float = 0.0,
+    target_spec: Optional[TargetSpec] = None,
 ) -> list[CandidateScore]:
+    spec = target_spec or TargetSpec()
     if baseline_col not in train.columns:
         return []
     event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
@@ -937,16 +1159,16 @@ def _evaluate_blend_candidates(
     weights = sorted({float(np.clip(w, 0.0, 1.0)) for w in model_weights})
     if not weights:
         return []
-    fold_metrics_by_weight: dict[float, list[dict[str, float]]] = {w: [] for w in weights}
+    fold_metrics_by_weight: dict[float, list[tuple[dict[str, float], float]]] = {w: [] for w in weights}
     for train_keys, val_key in folds:
         train_df = train.loc[event_key.isin(train_keys)]
         val_df = train.loc[event_key == val_key]
         if train_df.empty or val_df.empty:
             continue
-        fitted = _fit_candidate(train_df, feature_cols, candidate)
+        fitted = _fit_candidate(train_df, feature_cols, candidate, target_spec=spec)
         if fitted is None:
             return []
-        val_rows, y_val, event_val = _prepare_training_rows(val_df)
+        val_rows, y_val, event_val = _prepare_training_rows(val_df, target_col=spec.actual_col)
         if val_rows.empty:
             continue
         model_pred = pd.Series(fitted.predict(val_rows), index=val_rows.index, dtype=float)
@@ -963,17 +1185,19 @@ def _evaluate_blend_candidates(
         )
         for model_weight in weights:
             blend = (model_weight * model_pred) + ((1.0 - model_weight) * base_pred)
-            fold_metrics_by_weight[model_weight].append(_fold_metrics(y_val, blend, event_val))
+            fold_metrics_by_weight[model_weight].append(
+                (_fold_metrics(y_val, blend, event_val), _frame_mean_weight(val_df)),
+            )
 
     output: list[CandidateScore] = []
     for model_weight in weights:
         fold_metrics = fold_metrics_by_weight[model_weight]
         if not fold_metrics:
             continue
-        mae = float(sum(m["mae"] for m in fold_metrics) / len(fold_metrics))
-        spearman = float(sum(m["spearman"] for m in fold_metrics) / len(fold_metrics))
-        ndcg10 = float(sum(m["ndcg10"] for m in fold_metrics) / len(fold_metrics))
-        hit10 = float(sum(m["hit10"] for m in fold_metrics) / len(fold_metrics))
+        mae = _weighted_metric_mean(fold_metrics, "mae", float("inf"))
+        spearman = _weighted_metric_mean(fold_metrics, "spearman", 0.0)
+        ndcg10 = _weighted_metric_mean(fold_metrics, "ndcg10", 0.0)
+        hit10 = _weighted_metric_mean(fold_metrics, "hit10", 0.0)
         composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
         output.append(
             CandidateScore(
@@ -1028,6 +1252,366 @@ def _fit_probability_calibrator(scores: pd.Series, labels: pd.Series) -> Probabi
     return ProbabilityCalibrator.heuristic(x, y)
 
 
+def _logsumexp(values: np.ndarray) -> float:
+    if values.size == 0:
+        return 0.0
+    max_value = float(np.max(values))
+    if not np.isfinite(max_value):
+        return 0.0
+    return max_value + float(np.log(np.exp(values - max_value).sum()))
+
+
+def _pl_event_nll(scores: pd.Series, actual: pd.Series, temperature: float) -> float:
+    valid = scores.notna() & actual.notna()
+    if valid.sum() <= 1:
+        return 0.0
+    score_values = pd.to_numeric(scores.loc[valid], errors="coerce")
+    actual_values = pd.to_numeric(actual.loc[valid], errors="coerce")
+    valid = score_values.notna() & actual_values.notna()
+    if valid.sum() <= 1:
+        return 0.0
+    score_values = score_values.loc[valid]
+    actual_values = actual_values.loc[valid]
+    order = actual_values.sort_values(ascending=True, kind="mergesort").index
+    utility = (-score_values.loc[order].to_numpy(dtype=float)) / float(max(temperature, 1e-6))
+    remaining = list(range(len(utility)))
+    nll = 0.0
+    for pos in range(len(utility)):
+        chosen = remaining[0]
+        rem_values = utility[remaining]
+        nll += _logsumexp(rem_values) - float(utility[chosen])
+        remaining.pop(0)
+        if not remaining:
+            break
+    return float(nll / max(1, len(utility)))
+
+
+def _pl_oof_nll(
+    scores: pd.Series,
+    actual: pd.Series,
+    event_key: pd.Series,
+    temperature: float,
+) -> float:
+    values: list[float] = []
+    for idx in _event_groups(event_key, scores.index):
+        event_nll = _pl_event_nll(scores.loc[idx], actual.loc[idx], temperature)
+        if np.isfinite(event_nll):
+            values.append(float(event_nll))
+    return float(np.mean(values)) if values else float("inf")
+
+
+def _fit_pl_temperature_from_oof(
+    scores: pd.Series,
+    actual: pd.Series,
+    event_key: pd.Series,
+) -> tuple[Optional[float], dict[str, Any]]:
+    valid = scores.notna() & actual.notna() & event_key.notna()
+    scores = pd.to_numeric(scores.loc[valid], errors="coerce")
+    actual = pd.to_numeric(actual.loc[valid], errors="coerce")
+    event_key = pd.to_numeric(event_key.loc[valid], errors="coerce")
+    valid = scores.notna() & actual.notna() & event_key.notna()
+    scores = scores.loc[valid]
+    actual = actual.loc[valid]
+    event_key = event_key.loc[valid]
+    event_count = int(event_key.nunique(dropna=True))
+    if len(scores) < 8 or event_count < 2:
+        return None, {
+            "available": False,
+            "reason": "insufficient_oof_events",
+            "row_count": int(len(scores)),
+            "event_count": event_count,
+        }
+
+    coarse = np.asarray([0.20, 0.30, 0.45, 0.65, 0.90, 1.20, 1.60, 2.20, 3.20, 4.80, 7.20], dtype=float)
+    scored = [(float(temp), _pl_oof_nll(scores, actual, event_key, float(temp))) for temp in coarse]
+    scored = [(temp, nll) for temp, nll in scored if np.isfinite(nll)]
+    if not scored:
+        return None, {
+            "available": False,
+            "reason": "nll_unavailable",
+            "row_count": int(len(scores)),
+            "event_count": event_count,
+        }
+    best_temp, _ = min(scored, key=lambda item: item[1])
+    low = max(0.10, best_temp / 1.8)
+    high = min(10.0, best_temp * 1.8)
+    fine = np.linspace(low, high, num=25)
+    fine_scored = [(float(temp), _pl_oof_nll(scores, actual, event_key, float(temp))) for temp in fine]
+    fine_scored = [(temp, nll) for temp, nll in fine_scored if np.isfinite(nll)]
+    if fine_scored:
+        best_temp, best_nll = min(fine_scored, key=lambda item: item[1])
+    else:
+        best_temp, best_nll = min(scored, key=lambda item: item[1])
+    return float(best_temp), {
+        "available": True,
+        "source": "walk_forward_oof",
+        "objective": "plackett_luce_negative_log_likelihood",
+        "temperature": float(best_temp),
+        "nll": float(best_nll),
+        "row_count": int(len(scores)),
+        "event_count": event_count,
+    }
+
+
+def _pl_probabilities_deterministic(
+    scores: pd.Series,
+    event_key: pd.Series,
+    temperature: float,
+) -> pd.DataFrame:
+    output = pd.DataFrame(index=scores.index)
+    output["win"] = 0.0
+    output["top3"] = 0.0
+    output["top10"] = 0.0
+    temp = float(max(temperature, 1e-6))
+    for idx in _event_groups(event_key, scores.index):
+        event_scores = pd.to_numeric(scores.loc[idx], errors="coerce")
+        valid = event_scores.notna()
+        if valid.sum() == 0:
+            continue
+        valid_idx = event_scores.loc[valid].index
+        utilities = (-event_scores.loc[valid_idx].to_numpy(dtype=float)) / temp
+        utilities = utilities - float(np.max(utilities))
+        weights = np.exp(utilities)
+        if not np.isfinite(weights).all() or float(weights.sum()) <= 0.0:
+            weights = np.ones(len(valid_idx), dtype=float)
+        win = weights / float(weights.sum())
+        order = pd.Series(event_scores.loc[valid_idx], index=valid_idx).rank(method="average", ascending=True)
+        n = len(valid_idx)
+        top3_expected = min(3.0, float(n))
+        top10_expected = min(10.0, float(n))
+        decay = max(1.0, float(n) / 6.0)
+        top_weights = np.exp(-((order.to_numpy(dtype=float) - 1.0) / decay)) * weights
+        if float(top_weights.sum()) <= 0.0:
+            top_weights = np.ones(len(valid_idx), dtype=float)
+        top3 = top3_expected * (top_weights / float(top_weights.sum()))
+        top10 = top10_expected * (top_weights / float(top_weights.sum()))
+        output.loc[valid_idx, "win"] = np.clip(win, 0.0, 1.0)
+        output.loc[valid_idx, "top3"] = np.clip(top3, 0.0, 1.0)
+        output.loc[valid_idx, "top10"] = np.clip(top10, 0.0, 1.0)
+    output["top3"] = np.minimum(output["top3"], output["top10"])
+    output["win"] = np.minimum(output["win"], output["top3"])
+    return output
+
+
+def _binary_log_loss(labels: pd.Series, probabilities: pd.Series) -> float:
+    valid = labels.notna() & probabilities.notna()
+    if valid.sum() == 0:
+        return float("nan")
+    y = labels.loc[valid].to_numpy(dtype=float)
+    p = np.clip(probabilities.loc[valid].to_numpy(dtype=float), 1e-6, 1.0 - 1e-6)
+    return float(-(y * np.log(p) + (1.0 - y) * np.log(1.0 - p)).mean())
+
+
+def _calibration_slope(labels: pd.Series, probabilities: pd.Series) -> Optional[float]:
+    valid = labels.notna() & probabilities.notna()
+    if valid.sum() < 8:
+        return None
+    y = labels.loc[valid].astype(float)
+    if y.nunique(dropna=True) < 2:
+        return None
+    p = probabilities.loc[valid].astype(float).clip(1e-6, 1.0 - 1e-6)
+    x = _safe_logit(p.to_numpy(dtype=float))
+    if np.nanstd(x) < 1e-9:
+        return None
+    if LogisticRegression is not None:
+        try:
+            model = LogisticRegression(solver="lbfgs", max_iter=400)
+            model.fit(x.reshape(-1, 1), y.astype(int).to_numpy())
+            return float(model.coef_[0][0])
+        except Exception:
+            pass
+    return float(np.cov(x, y.to_numpy(dtype=float), ddof=0)[0, 1] / np.var(x))
+
+
+def _probability_audit_from_oof(
+    scores: pd.Series,
+    actual: pd.Series,
+    event_key: pd.Series,
+    temperature: Optional[float],
+    temperature_audit: dict[str, Any],
+) -> dict[str, Any]:
+    if temperature is None:
+        return {
+            "available": False,
+            "passed": False,
+            "reason": temperature_audit.get("reason", "temperature_unavailable"),
+            "temperature_fit": dict(temperature_audit),
+        }
+    valid = scores.notna() & actual.notna() & event_key.notna()
+    scores = scores.loc[valid]
+    actual = actual.loc[valid]
+    event_key = event_key.loc[valid]
+    if scores.empty:
+        return {
+            "available": False,
+            "passed": False,
+            "reason": "oof_scores_empty",
+            "temperature_fit": dict(temperature_audit),
+        }
+    probabilities = _pl_probabilities_deterministic(scores, event_key, float(temperature))
+    thresholds = {
+        "max_brier": 0.30,
+        "max_log_loss": 1.25,
+        "baseline_tolerance": 0.005,
+        "min_calibration_slope": 0.35,
+        "max_calibration_slope": 2.75,
+    }
+    metrics: dict[str, dict[str, Any]] = {}
+    passed = True
+    reasons: list[str] = []
+    for label, k in [("win", 1), ("top3", 3), ("top10", 10)]:
+        y = _topk_labels_from_target(actual, event_key, k=k)
+        p = probabilities[label].reindex(y.index)
+        valid_label = y.notna() & p.notna()
+        if valid_label.sum() == 0:
+            metrics[label] = {"available": False, "reason": "empty_label"}
+            passed = False
+            reasons.append(f"{label}_empty")
+            continue
+        brier = float(((p.loc[valid_label] - y.loc[valid_label]) ** 2).mean())
+        log_loss = _binary_log_loss(y.loc[valid_label], p.loc[valid_label])
+        slope = _calibration_slope(y.loc[valid_label], p.loc[valid_label])
+        baseline_p = pd.Series(index=y.index, dtype=float)
+        for idx in _event_groups(event_key.reindex(y.index), y.index):
+            n_event = max(1, len(idx))
+            baseline_p.loc[idx] = min(float(k), float(n_event)) / float(n_event)
+        baseline_p = baseline_p.reindex(y.index).fillna(float(y.loc[valid_label].mean()))
+        baseline_brier = float(((baseline_p.loc[valid_label] - y.loc[valid_label]) ** 2).mean())
+        baseline_log_loss = _binary_log_loss(y.loc[valid_label], baseline_p.loc[valid_label])
+        metric = {
+            "available": True,
+            "brier": brier,
+            "log_loss": log_loss,
+            "baseline_brier": baseline_brier,
+            "baseline_log_loss": baseline_log_loss,
+            "calibration_slope": slope,
+            "base_rate": float(y.loc[valid_label].mean()),
+            "row_count": int(valid_label.sum()),
+        }
+        metric_passed = (
+            brier <= thresholds["max_brier"]
+            and log_loss <= thresholds["max_log_loss"]
+            and brier <= baseline_brier + thresholds["baseline_tolerance"]
+            and log_loss <= baseline_log_loss + thresholds["baseline_tolerance"]
+            and slope is not None
+            and thresholds["min_calibration_slope"] <= slope <= thresholds["max_calibration_slope"]
+        )
+        metric["passed"] = bool(metric_passed)
+        if not metric_passed:
+            passed = False
+            reasons.append(f"{label}_calibration_failed")
+        metrics[label] = metric
+
+    return {
+        "available": True,
+        "passed": bool(passed),
+        "reason": "passed" if passed else ",".join(reasons),
+        "source": "walk_forward_oof",
+        "temperature": float(temperature),
+        "temperature_fit": dict(temperature_audit),
+        "thresholds": thresholds,
+        "metrics": metrics,
+        "row_count": int(len(scores)),
+        "event_count": int(pd.to_numeric(event_key, errors="coerce").nunique(dropna=True)),
+    }
+
+
+def _oof_scores_for_selection(
+    *,
+    train: pd.DataFrame,
+    feature_cols: List[str],
+    selected_name: str,
+    candidate_lookup: dict[str, CandidateSpec],
+    folds: list[tuple[set[int], int]],
+    race_baseline_col: str,
+    target_spec: Optional[TargetSpec] = None,
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    spec = target_spec or TargetSpec()
+    event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
+    if event_key is None or not folds:
+        return pd.Series(dtype=float), pd.Series(dtype=float), pd.Series(dtype=float)
+
+    score_parts: list[pd.Series] = []
+    target_parts: list[pd.Series] = []
+    event_parts: list[pd.Series] = []
+
+    def _median_fill(frame: pd.DataFrame, column: str, default_fill: float) -> float:
+        values = pd.to_numeric(frame.get(column), errors="coerce")
+        if values.notna().sum() == 0:
+            return float(default_fill)
+        fill = float(values.median(skipna=True))
+        if not np.isfinite(fill):
+            return float(default_fill)
+        return fill
+
+    for train_keys, val_key in folds:
+        train_df = train.loc[event_key.isin(train_keys)]
+        val_df = train.loc[event_key == val_key]
+        if train_df.empty or val_df.empty:
+            continue
+
+        val_rows, y_val, event_val = _prepare_training_rows(val_df, target_col=spec.actual_col)
+        if val_rows.empty:
+            continue
+
+        model: Optional[object] = None
+        if selected_name == "qualifying_baseline":
+            model = QualifyingPositionBaseline(
+                fill_value=_median_fill(train_df, race_baseline_col, 10.0),
+                primary_column=race_baseline_col,
+                fallback_column="qualy_position",
+            )
+        elif selected_name.startswith("pace_baseline::"):
+            _, _, baseline_col = selected_name.partition("::")
+            baseline_col = baseline_col.strip()
+            if baseline_col:
+                model = ColumnBaselineModel(
+                    column=baseline_col,
+                    fill_value=_median_fill(train_df, baseline_col, 0.0),
+                )
+        elif selected_name.startswith("pace_blend::"):
+            parts = selected_name.split("::")
+            if len(parts) == 4:
+                _, candidate_name, baseline_col, weight_text = parts
+                candidate = candidate_lookup.get(candidate_name)
+                try:
+                    model_weight = float(weight_text)
+                except ValueError:
+                    model_weight = 0.30
+                if candidate is not None:
+                    fitted = _fit_candidate(train_df, feature_cols, candidate, target_spec=spec)
+                    if fitted is not None:
+                        model = WeightedBlendModel(
+                            primary_model=fitted,
+                            baseline_column=baseline_col,
+                            model_weight=model_weight,
+                            baseline_fill=_median_fill(train_df, baseline_col, 0.0),
+                        )
+        else:
+            candidate = candidate_lookup.get(selected_name)
+            if candidate is not None:
+                model = _fit_candidate(train_df, feature_cols, candidate, target_spec=spec)
+
+        if model is None:
+            continue
+
+        try:
+            scores = pd.Series(model.predict(val_rows), index=val_rows.index, dtype=float)
+        except Exception:
+            continue
+        score_parts.append(scores)
+        target_parts.append(pd.Series(y_val, index=val_rows.index, dtype=float))
+        event_parts.append(pd.Series(event_val, index=val_rows.index, dtype=float))
+
+    if not score_parts:
+        return pd.Series(dtype=float), pd.Series(dtype=float), pd.Series(dtype=float)
+    return (
+        pd.concat(score_parts).sort_index(),
+        pd.concat(target_parts).sort_index(),
+        pd.concat(event_parts).sort_index(),
+    )
+
+
 def _normalize_requested_model(value: str) -> str:
     normalized = str(value or "auto").strip().lower()
     allowed = {"auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"}
@@ -1055,6 +1639,8 @@ def train_model(
     requested_model = _normalize_requested_model(f1_model)
     dl_available = torch_available()
     dl_requested = enable_dl_candidates and ("dl" in {str(f).strip().lower() for f in compare})
+    if dl_requested:
+        notes.append("DL candidates are shadow-only for F1 model selection; they are evaluated but cannot be selected by default.")
 
     if requested_model == "lgbm_rank" and LGBMRanker is None:
         raise SystemExit(
@@ -1092,7 +1678,21 @@ def train_model(
         requested_model=requested_model,
         notes=notes,
     )
-    race_baseline_col = "qualy_context_position" if "qualy_context_position" in feature_cols else "qualy_position"
+    target_spec = _infer_target_spec(train)
+    if target_spec.uses_offset:
+        notes.append(
+            "Race target transform active: models train on race_delta_target and "
+            "validation/calibration score reconstructed finish_position=grid_position+predicted_delta.",
+        )
+        if any(candidate.task == "ranking" for candidate in candidates):
+            notes.append(
+                "Ranking candidates skipped for race_delta_target: pairwise relevance on raw deltas would optimize movers, not finish order.",
+            )
+    race_baseline_col = (
+        "grid_position"
+        if target_spec.uses_offset and "grid_position" in feature_cols
+        else ("qualy_context_position" if "qualy_context_position" in feature_cols else "qualy_position")
+    )
     race_baseline_supported = race_baseline_col in feature_cols
     race_pace_baseline_cols = [
         col for col in ["fp_race_sim_rank", "fp_race_sim_delta", "event_pace_index"] if col in feature_cols
@@ -1154,7 +1754,7 @@ def train_model(
     if folds:
         if not small_history_qualifying:
             for candidate in candidates:
-                score = _evaluate_candidate(train, feature_cols, candidate, folds)
+                score = _evaluate_candidate(train, feature_cols, candidate, folds, target_spec=target_spec)
                 if score is None:
                     continue
                 score_lookup[candidate.name] = score
@@ -1165,6 +1765,7 @@ def train_model(
                 column=race_baseline_col,
                 name="qualifying_baseline",
                 default_fill=10.0,
+                target_spec=target_spec,
             )
             if baseline_score is not None:
                 score_lookup[baseline_score.name] = baseline_score
@@ -1175,6 +1776,7 @@ def train_model(
                     column=col,
                     name=f"pace_baseline::{col}",
                     default_fill=0.0,
+                    target_spec=target_spec,
                 )
                 if pace_score is not None:
                     score_lookup[pace_score.name] = pace_score
@@ -1186,6 +1788,7 @@ def train_model(
                     column=col,
                     name=f"pace_baseline::{col}",
                     default_fill=0.0,
+                    target_spec=target_spec,
                 )
                 if baseline_score is not None:
                     score_lookup[baseline_score.name] = baseline_score
@@ -1202,6 +1805,7 @@ def train_model(
                             baseline_col=blend_col,
                             model_weights=blend_weights,
                             default_baseline_fill=0.0,
+                            target_spec=target_spec,
                         )
                         for blend_score in blend_scores:
                             score_lookup[blend_score.name] = blend_score
@@ -1232,9 +1836,18 @@ def train_model(
                 for s in ranking
             )
             notes.append(f"Model selection walk-forward: {leaderboard}.")
-            selected_from_cv = ranking[0].name
+            eligible_ranking = [score for score in ranking if score.family != "dl"]
+            if eligible_ranking:
+                selected_from_cv = eligible_ranking[0].name
+                if ranking[0].family == "dl":
+                    notes.append(
+                        "Best composite candidate is DL, but DL is shadow-only; selecting best non-DL candidate instead.",
+                    )
+            else:
+                selected_from_cv = ranking[0].name
             notes.append(
-                f"Modele retenu: {selected_from_cv} (score composite={ranking[0].composite:.3f}).",
+                f"Modele retenu: {selected_from_cv} "
+                f"(score composite={score_lookup[selected_from_cv].composite:.3f}).",
             )
         else:
             notes.append("Aucun score walk-forward exploitable; selection par priorite.")
@@ -1315,7 +1928,7 @@ def train_model(
             except ValueError:
                 model_weight = 0.30
             if candidate is not None:
-                fitted = _fit_candidate(train, feature_cols, candidate)
+                fitted = _fit_candidate(train, feature_cols, candidate, target_spec=target_spec)
                 if fitted is not None:
                     selected_model = WeightedBlendModel(
                         primary_model=fitted,
@@ -1332,8 +1945,11 @@ def train_model(
         if selected_from_cv and selected_from_cv in candidate_lookup:
             candidate_order.append(candidate_lookup[selected_from_cv])
         candidate_order.extend([c for c in candidates if c.name != (selected_from_cv or "")])
+        candidate_order = [candidate for candidate in candidate_order if candidate.family != "dl"]
+        if not candidate_order and dl_requested:
+            notes.append("Only DL candidates were available; DL shadow-only policy forces heuristic/baseline fallback.")
         for candidate in candidate_order:
-            fitted = _fit_candidate(train, feature_cols, candidate)
+            fitted = _fit_candidate(train, feature_cols, candidate, target_spec=target_spec)
             if fitted is None:
                 continue
             selected_model = fitted
@@ -1381,22 +1997,89 @@ def train_model(
     if selected_from_cv is None and selected_name is not None:
         notes.append(f"Modele retenu par defaut: {selected_name}.")
 
-    rows, y_train, event_train = _prepare_training_rows(train)
+    rows, y_train, event_train = _prepare_training_rows(train, target_col=target_spec.actual_col)
+    calibration_scores = pd.Series(dtype=float)
+    calibration_y = pd.Series(dtype=float)
+    calibration_event = pd.Series(dtype=float)
+    calibration_source = "unavailable"
+    if selected_name is not None:
+        calibration_scores, calibration_y, calibration_event = _oof_scores_for_selection(
+            train=train,
+            feature_cols=feature_cols,
+            selected_name=selected_name or "",
+            candidate_lookup=candidate_lookup,
+            folds=folds,
+            race_baseline_col=race_baseline_col,
+            target_spec=target_spec,
+        )
+        calibration_source = "walk-forward_oof"
+    if calibration_scores.empty or calibration_event.nunique(dropna=True) < 2:
+        if not rows.empty:
+            try:
+                calibration_scores = pd.Series(selected_model.predict(rows), index=rows.index, dtype=float)
+                calibration_y = y_train
+                calibration_event = event_train
+                calibration_source = "in_sample"
+            except Exception:
+                calibration_scores = pd.Series(dtype=float)
+                calibration_y = pd.Series(dtype=float)
+                calibration_event = pd.Series(dtype=float)
+                calibration_source = "unavailable"
+
+    listwise_temperature: Optional[float] = None
+    probability_audit: dict[str, Any] = {}
+    if calibration_source == "walk-forward_oof":
+        listwise_temperature, temperature_audit = _fit_pl_temperature_from_oof(
+            calibration_scores,
+            calibration_y,
+            calibration_event,
+        )
+        probability_audit = _probability_audit_from_oof(
+            calibration_scores,
+            calibration_y,
+            calibration_event,
+            listwise_temperature,
+            temperature_audit,
+        )
+        if listwise_temperature is not None:
+            nll_value = temperature_audit.get("nll")
+            nll_text = f"{float(nll_value):.4f}" if isinstance(nll_value, (int, float)) else "nan"
+            notes.append(
+                "Listwise PL temperature fitted on walk-forward OOF likelihood: "
+                f"temperature={listwise_temperature:.3f}, nll={nll_text}.",
+            )
+        else:
+            notes.append(
+                "Listwise PL temperature fitting skipped: "
+                f"{temperature_audit.get('reason', 'unavailable')}.",
+            )
+    else:
+        probability_audit = {
+            "available": False,
+            "passed": False,
+            "reason": f"{calibration_source}_probability_audit_not_oof",
+            "source": calibration_source,
+        }
+
     if (
         not rows.empty
         and hasattr(selected_model, "calibrators")
         and isinstance(getattr(selected_model, "calibrators"), dict)
     ):
         try:
-            in_sample_scores = pd.Series(selected_model.predict(rows), index=rows.index, dtype=float)
-            top10_labels = _topk_labels_from_target(y_train, event_train, k=10)
-            top3_labels = _topk_labels_from_target(y_train, event_train, k=3)
-            calibrator_top10 = _fit_probability_calibrator(in_sample_scores, top10_labels)
-            calibrator_top3 = _fit_probability_calibrator(in_sample_scores, top3_labels)
+            win_labels = _topk_labels_from_target(calibration_y, calibration_event, k=1)
+            top3_labels = _topk_labels_from_target(calibration_y, calibration_event, k=3)
+            top10_labels = _topk_labels_from_target(calibration_y, calibration_event, k=10)
+            calibrator_win = _fit_probability_calibrator(calibration_scores, win_labels)
+            calibrator_top3 = _fit_probability_calibrator(calibration_scores, top3_labels)
+            calibrator_top10 = _fit_probability_calibrator(calibration_scores, top10_labels)
+            selected_model.calibrators["win"] = calibrator_win
             selected_model.calibrators["top10"] = calibrator_top10
             selected_model.calibrators["top3"] = calibrator_top3
             notes.append(
-                f"Calibration probabiliste: top10={calibrator_top10.method}, top3={calibrator_top3.method}.",
+                "Calibration probabiliste "
+                f"({calibration_source}): win={calibrator_win.method}, "
+                f"top3={calibrator_top3.method}, top10={calibrator_top10.method}.",
             )
         except Exception:
             pass
@@ -1423,4 +2106,6 @@ def train_model(
         dl_available=dl_available,
         candidate_leaderboard=leaderboard_data,
         notes=notes,
+        listwise_temperature=listwise_temperature,
+        probability_audit=probability_audit,
     )

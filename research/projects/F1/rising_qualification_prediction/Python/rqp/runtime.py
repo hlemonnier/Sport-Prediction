@@ -9,7 +9,9 @@ def parse_train_seasons(value: str, target_year: int, train_policy: str) -> list
     if value.lower() not in {"auto", "default"}:
         return sorted({int(x.strip()) for x in value.split(",") if x.strip()})
 
-    if train_policy == "strict_transfer":
+    if train_policy in {"same_season", "same_season_walk_forward"}:
+        seasons = [target_year]
+    elif train_policy == "strict_transfer":
         seasons = [target_year - 4, target_year - 3, target_year - 2, target_year]
     elif train_policy == "rolling":
         seasons = [target_year - 3, target_year - 2, target_year - 1, target_year]

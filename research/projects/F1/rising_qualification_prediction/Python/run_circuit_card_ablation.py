@@ -156,7 +156,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--modes", default="qualifying,race")
     parser.add_argument("--source", choices=["local"], default="local")
     parser.add_argument("--train-seasons", default="auto")
-    parser.add_argument("--train-policy", choices=["strict_transfer", "rolling", "frozen_preseason", "legacy_auto"], default="legacy_auto")
+    parser.add_argument(
+        "--train-policy",
+        choices=["same_season", "same_season_walk_forward", "strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
+        default="legacy_auto",
+    )
     parser.add_argument("--weekends-dir", default="data/f1/raw/weekends")
     parser.add_argument("--f1-model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
     parser.add_argument("--f1-pl-samples", type=int, default=300)

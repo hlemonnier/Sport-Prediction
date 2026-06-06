@@ -489,7 +489,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--train-seasons", default="auto")
     parser.add_argument(
         "--train-policy",
-        choices=["strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
+            choices=["same_season", "same_season_walk_forward", "strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
         default="strict_transfer",
         help=(
             "auto train-season policy. "

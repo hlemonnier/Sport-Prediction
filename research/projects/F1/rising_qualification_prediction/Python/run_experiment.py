@@ -906,7 +906,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--train-seasons", default="auto")
         parser.add_argument(
             "--train-policy",
-            choices=["strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
+            choices=["same_season", "same_season_walk_forward", "strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
             default="legacy_auto",
             help="Policy used only when --train-seasons=auto.",
         )

@@ -80,6 +80,10 @@ def _attach_track_stats(
             if pd.isna(numeric):
                 continue
             out[key] = float(numeric)
+    if "track_finish_order_mobility" not in out.columns and "track_overtake_propensity" in out.columns:
+        out["track_finish_order_mobility"] = out["track_overtake_propensity"]
+    if "track_overtake_propensity" not in out.columns and "track_finish_order_mobility" in out.columns:
+        out["track_overtake_propensity"] = out["track_finish_order_mobility"]
     out = _add_track_interactions(out)
     return out
 
@@ -99,6 +103,7 @@ def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         return frame
     out = frame.copy()
     track_cols = [
+        "track_finish_order_mobility",
         "track_overtake_propensity",
         "track_grid_stability",
         "track_safety_car_propensity",
@@ -114,9 +119,13 @@ def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         if col in out.columns:
             out[col] = pd.to_numeric(out[col], errors="coerce")
 
-    overtake = (
-        out["track_overtake_propensity"]
-        if "track_overtake_propensity" in out.columns
+    if "track_finish_order_mobility" not in out.columns and "track_overtake_propensity" in out.columns:
+        out["track_finish_order_mobility"] = out["track_overtake_propensity"]
+    if "track_overtake_propensity" not in out.columns and "track_finish_order_mobility" in out.columns:
+        out["track_overtake_propensity"] = out["track_finish_order_mobility"]
+    mobility = (
+        out["track_finish_order_mobility"]
+        if "track_finish_order_mobility" in out.columns
         else pd.Series(0.5, index=out.index, dtype=float)
     )
     safety = (
@@ -182,7 +191,7 @@ def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         + (0.15 * out["track_weather_uncertainty_prior"])
     ).clip(lower=0.0, upper=1.0)
 
-    out["track_qualy_importance"] = (1.0 - (0.65 * overtake.fillna(0.5)) - (0.35 * safety.fillna(0.2))).clip(
+    out["track_qualy_importance"] = (1.0 - (0.65 * mobility.fillna(0.5)) - (0.35 * safety.fillna(0.2))).clip(
         lower=0.0,
         upper=1.0,
     )
@@ -215,7 +224,7 @@ def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
     if "fp_race_sim_delta" in out.columns:
         fp_race = pd.to_numeric(out["fp_race_sim_delta"], errors="coerce")
         out["fp_race_sim_delta_track_adj"] = fp_race * (
-            1.0 + (0.75 * overtake.fillna(0.5)) + (0.35 * safety.fillna(0.2))
+            1.0 + (0.75 * mobility.fillna(0.5)) + (0.35 * safety.fillna(0.2))
         )
     else:
         out["fp_race_sim_delta_track_adj"] = float("nan")
@@ -223,7 +232,7 @@ def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
     if "fp_weighted_delta" in out.columns:
         fp_weighted = pd.to_numeric(out["fp_weighted_delta"], errors="coerce")
         out["fp_weighted_delta_track_adj"] = fp_weighted * (
-            1.0 + (0.45 * overtake.fillna(0.5)) + (0.20 * safety.fillna(0.2))
+            1.0 + (0.45 * mobility.fillna(0.5)) + (0.20 * safety.fillna(0.2))
         )
     else:
         out["fp_weighted_delta_track_adj"] = float("nan")
@@ -1164,14 +1173,18 @@ def build_training_data(
                 if "grid_position" in race.columns:
                     race["grid_position"] = pd.to_numeric(race["grid_position"], errors="coerce")
                     race_merge_cols.append("grid_position")
+                if "grid_status" in race.columns:
+                    race_merge_cols.append("grid_status")
                 merged = merged.merge(race[race_merge_cols], on="driver_id", how="inner")
                 merged = merged.rename(columns={"position": "target"})
                 if "grid_position" not in merged.columns:
                     merged["grid_position"] = float("nan")
+                if "grid_status" not in merged.columns:
+                    merged["grid_status"] = "unknown"
                 grid_raw = pd.to_numeric(merged["grid_position"], errors="coerce")
                 qualy_grid_fallback = pd.to_numeric(merged["qualy_position"], errors="coerce")
                 merged["grid_source"] = pd.Series("qualifying_fallback", index=merged.index, dtype=object)
-                merged.loc[grid_raw.notna(), "grid_source"] = "official_grid"
+                merged.loc[grid_raw.notna(), "grid_source"] = "retrospective_results_grid"
                 merged["grid_position"] = grid_raw.fillna(qualy_grid_fallback)
                 merged["race_delta_target"] = pd.to_numeric(merged["target"], errors="coerce") - merged["grid_position"]
                 if include_standings:
@@ -1274,21 +1287,41 @@ def build_current_features(
         merged["grid_position"] = pd.to_numeric(merged["qualy_position"], errors="coerce")
         merged["grid_source"] = "qualifying_fallback"
     try:
-        race_results = provider.get_race_results(year, round_number)
+        starting_grid = provider.get_starting_grid(year, round_number)
     except (Exception, SystemExit) as exc:
         notes.append(f"Echec recuperation grille: {exc}")
-        race_results = pd.DataFrame()
-    if not race_results.empty and "grid_position" in race_results.columns:
-        grid = race_results[["driver_id", "grid_position"]].copy()
+        starting_grid = pd.DataFrame()
+    if not starting_grid.empty and "grid_position" in starting_grid.columns:
+        grid_cols = ["driver_id", "grid_position"]
+        if "grid_source" in starting_grid.columns:
+            grid_cols.append("grid_source")
+        if "grid_status" in starting_grid.columns:
+            grid_cols.append("grid_status")
+        grid = starting_grid[grid_cols].copy()
         grid["driver_id"] = grid["driver_id"].astype(str)
         grid["grid_position"] = pd.to_numeric(grid["grid_position"], errors="coerce")
-        merged = merged.drop(columns=["grid_position"], errors="ignore").merge(grid, on="driver_id", how="left")
+        merged = merged.drop(columns=["grid_position", "grid_source", "grid_status"], errors="ignore").merge(
+            grid,
+            on="driver_id",
+            how="left",
+        )
         grid_raw = pd.to_numeric(merged["grid_position"], errors="coerce")
         qualy_grid_fallback = pd.to_numeric(merged.get("qualy_position"), errors="coerce")
-        merged["grid_source"] = pd.Series("qualifying_fallback", index=merged.index, dtype=object)
-        merged.loc[grid_raw.notna(), "grid_source"] = "official_grid"
+        if "grid_source" not in merged.columns:
+            merged["grid_source"] = "pre_race_official_grid"
+        merged["grid_source"] = merged["grid_source"].fillna("qualifying_fallback")
+        merged.loc[grid_raw.notna() & merged["grid_source"].eq("qualifying_fallback"), "grid_source"] = (
+            "pre_race_official_grid"
+        )
+        status = merged.get("grid_status", pd.Series("unknown", index=merged.index, dtype=object)).fillna("unknown")
+        missing_grid = grid_raw.isna() & status.isin(["missing", "unknown", "non_numeric"])
+        merged.loc[missing_grid, "grid_source"] = "qualifying_fallback"
         merged["grid_position"] = grid_raw.fillna(qualy_grid_fallback)
         merged.loc[merged["grid_position"].isna(), "grid_source"] = "missing"
+    if "grid_status" not in merged.columns:
+        merged["grid_status"] = "unknown"
+    else:
+        merged["grid_status"] = merged["grid_status"].fillna("unknown")
     if include_standings:
         try:
             standings = provider.get_standings(year, round_number)

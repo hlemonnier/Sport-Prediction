@@ -222,7 +222,23 @@ def format_prediction_table(df: pd.DataFrame, top_n: Optional[int] = 10) -> pd.D
     if top_n is not None:
         df = df.head(max(0, int(top_n)))
     df["rank"] = range(1, len(df) + 1)
-    cols = ["rank", "driver_name", "driver_id", "pred", "proba_win", "proba_top3", "proba_top10"]
+    cols = [
+        "rank",
+        "driver_name",
+        "driver_id",
+        "pred",
+        "proba_win",
+        "proba_top3",
+        "proba_top10",
+        "grid_position",
+        "grid_source",
+        "grid_status",
+        "race_stochastic_score",
+        "race_stochastic_pl_score",
+        "race_stochastic_sigma",
+        "race_stochastic_dnf_probability",
+        "race_stochastic_layer",
+    ]
     ordered = [col for col in cols if col in df.columns]
 
     listwise_cols = [

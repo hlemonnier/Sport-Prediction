@@ -10,7 +10,9 @@ import pandas as pd
 from rqp.betting import (
     BettingConfig,
     build_betting_recommendations,
+    forward_record_hash,
     load_prediction_frame,
+    settle_forward_bet_log,
 )
 
 
@@ -55,6 +57,7 @@ def test_betting_recommendations_use_edge_kelly_and_exposure_caps() -> None:
         max_total_fraction=0.04,
         require_probability_gate=False,
         require_oof_probability_audit=False,
+        require_odds_timestamp=False,
     )
 
     recommendations = build_betting_recommendations(_prediction_rows(), odds, config)
@@ -78,7 +81,7 @@ def test_betting_recommendations_skip_unsupported_or_negative_edges() -> None:
     recommendations = build_betting_recommendations(
         _prediction_rows(),
         odds,
-        BettingConfig(require_probability_gate=False, require_oof_probability_audit=False),
+        BettingConfig(require_probability_gate=False, require_oof_probability_audit=False, require_odds_timestamp=False),
     )
 
     assert set(recommendations["status"]) == {"skip"}
@@ -102,6 +105,42 @@ def test_prediction_loader_prefers_full_field_rows(tmp_path: Path) -> None:
     assert loaded["driver_name"].tolist() == ["Driver A", "Driver B"]
 
 
+def test_betting_requires_timestamped_pre_close_odds_by_default() -> None:
+    predictions = _prediction_rows()
+    missing_timestamp = pd.DataFrame(
+        [{"market": "winner", "driver_name": "Driver A", "decimal_odds": 3.40, "bookmaker": "book"}],
+    )
+    after_close = pd.DataFrame(
+        [
+            {
+                "market": "winner",
+                "driver_name": "Driver A",
+                "decimal_odds": 3.40,
+                "bookmaker": "book",
+                "odds_timestamp_utc": "2026-05-24T14:01:00Z",
+                "market_close_utc": "2026-05-24T14:00:00Z",
+            }
+        ],
+    )
+    before_close = after_close.copy()
+    before_close["odds_timestamp_utc"] = "2026-05-24T13:55:00Z"
+
+    config = BettingConfig(
+        require_probability_gate=False,
+        require_oof_probability_audit=False,
+        min_edge=0.01,
+        min_expected_roi=0.01,
+    )
+
+    missing = build_betting_recommendations(predictions, missing_timestamp, config).iloc[0]
+    late = build_betting_recommendations(predictions, after_close, config).iloc[0]
+    timely = build_betting_recommendations(predictions, before_close, config).iloc[0]
+
+    assert missing["reject_reason"] == "odds_timestamp_missing"
+    assert late["reject_reason"] == "odds_after_market_close"
+    assert timely["status"] == "bet"
+
+
 def test_betting_cli_help() -> None:
     project_python_dir = Path(__file__).resolve().parents[1]
     cmd = [sys.executable, str(project_python_dir / "run_betting.py"), "--help"]
@@ -111,3 +150,95 @@ def test_betting_cli_help() -> None:
     assert "--odds" in stdout
     assert "--fractional-kelly" in stdout
     assert "--max-total-pct" in stdout
+
+
+def _forward_record(event_id: str, *, pre_market: bool, previous_hash: str = "") -> dict[str, object]:
+    record: dict[str, object] = {
+        "schema_version": "f1_forward_bet_log_v1",
+        "event_id": event_id,
+        "information_cutoff": "post-qualifying",
+        "selection_logged_at_utc": "2026-05-24T13:55:00Z",
+        "market_close_utc": "2026-05-24T14:00:00Z",
+        "pre_market_logged": bool(pre_market),
+        "predictions_sha256": "prediction-hash",
+        "odds_sha256": "odds-hash",
+        "previous_record_hash": previous_hash,
+        "betting_report": {
+            "workflow": "f1_betting_recommendations",
+            "summary": {"bets": 1, "stake_total": 20.0},
+            "recommendations": [
+                {
+                    "status": "bet",
+                    "market": "top10",
+                    "driver_name": "Driver A",
+                    "decimal_odds": 1.50,
+                    "stake": 20.0,
+                }
+            ],
+        },
+    }
+    record["record_hash"] = forward_record_hash(record)
+    return record
+
+
+def test_forward_bet_settlement_uses_only_hash_valid_pre_market_records(tmp_path: Path) -> None:
+    log_path = tmp_path / "forward.jsonl"
+    first = _forward_record("2026-monaco", pre_market=True)
+    second = _forward_record("2026-spain", pre_market=False, previous_hash=str(first["record_hash"]))
+    log_path.write_text(
+        "\n".join(json.dumps(record, sort_keys=True) for record in [first, second]) + "\n",
+        encoding="utf-8",
+    )
+    settlements = pd.DataFrame(
+        [
+            {"event_id": "2026-monaco", "market": "top10", "selection": "Driver A", "won": True},
+            {"event_id": "2026-spain", "market": "top10", "selection": "Driver A", "won": True},
+        ],
+    )
+
+    report = settle_forward_bet_log(
+        log_path=log_path,
+        settlements=settlements,
+        settlement_source_path=None,
+        settled_at_utc="2026-05-24T17:00:00Z",
+    )
+
+    assert report["pnl_policy"] == "settlement_only_from_hash_valid_pre_market_forward_logs"
+    assert report["summary"]["records"] == 2
+    assert report["summary"]["records_skipped"] == 1
+    assert report["summary"]["bets_logged"] == 1
+    assert report["summary"]["bets_settled"] == 1
+    assert report["summary"]["pnl_settled"] == 10.0
+    assert report["skipped_records"][0]["reason"] == "record_not_pre_market"
+
+
+def test_forward_bet_settlement_refuses_tampered_hash_chain(tmp_path: Path) -> None:
+    log_path = tmp_path / "forward.jsonl"
+    record = _forward_record("2026-monaco", pre_market=True)
+    report = record["betting_report"]
+    assert isinstance(report, dict)
+    recommendations = report["recommendations"]
+    assert isinstance(recommendations, list)
+    recommendations[0]["stake"] = 25.0
+    log_path.write_text(json.dumps(record, sort_keys=True) + "\n", encoding="utf-8")
+
+    settlements = pd.DataFrame(
+        [{"event_id": "2026-monaco", "market": "top10", "selection": "Driver A", "won": True}],
+    )
+
+    try:
+        settle_forward_bet_log(log_path=log_path, settlements=settlements)
+    except ValueError as exc:
+        assert "record hash" in str(exc)
+    else:
+        raise AssertionError("tampered forward log should not settle")
+
+
+def test_forward_bet_settlement_cli_help() -> None:
+    project_python_dir = Path(__file__).resolve().parents[1]
+    cmd = [sys.executable, str(project_python_dir / "run_forward_bet_settlement.py"), "--help"]
+    completed = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    stdout = completed.stdout
+    assert "--log-path" in stdout
+    assert "--settlements" in stdout
+    assert "--allow-after-close-records" in stdout

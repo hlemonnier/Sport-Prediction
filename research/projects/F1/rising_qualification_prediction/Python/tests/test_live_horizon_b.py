@@ -459,11 +459,10 @@ def test_live_replay_predictions_are_truncation_invariant_through_lap(monkeypatc
         },
     )
 
-    full = run_live_race_prediction(_base_config())
+    full = run_live_race_prediction(_base_config(f1_live_replay_cutoff_lap=2))
     truncated = run_live_race_prediction(_base_config())
 
-    full_prefix = full.trace[pd.to_numeric(full.trace["lap_number"], errors="coerce") <= 2]
-    full_prefix = full_prefix.sort_values(["driver_id", "lap_number"]).reset_index(drop=True)
+    full_prefix = full.trace.sort_values(["driver_id", "lap_number"]).reset_index(drop=True)
     truncated_trace = truncated.trace.sort_values(["driver_id", "lap_number"]).reset_index(drop=True)
     cols = ["driver_id", "lap_number", "baseline_lap", "one_step_pred_mean", "next_lap_mean"]
 
@@ -474,6 +473,17 @@ def test_live_replay_predictions_are_truncation_invariant_through_lap(monkeypatc
         rtol=1e-12,
         atol=1e-12,
     )
+    full_snapshot = full.snapshot.sort_values("driver_id").reset_index(drop=True)
+    truncated_snapshot = truncated.snapshot.sort_values("driver_id").reset_index(drop=True)
+    snapshot_cols = ["driver_id", "rank", "pred", "p_win_H", "p_top3_H", "p_top10_H", "exp_pos_H"]
+    pd.testing.assert_frame_equal(
+        full_snapshot[snapshot_cols],
+        truncated_snapshot[snapshot_cols],
+        check_exact=False,
+        rtol=1e-12,
+        atol=1e-12,
+    )
+    assert full.summary["replay_cutoff_lap"] == 2
 
 
 def test_trace_writer_falls_back_to_jsonl_when_parquet_unavailable(monkeypatch, tmp_path: Path) -> None:
@@ -521,6 +531,7 @@ def test_cli_help_exposes_horizon_b_flags_and_live_race_phase() -> None:
     assert "--f1_live_seed" in prediction_help
     assert "--f1_live_cache_dir" in prediction_help
     assert "--f1_live_replay_path" in prediction_help
+    assert "--f1_live_replay_cutoff_lap" in prediction_help
 
     weekend_help = subprocess.run(
         [sys.executable, str(project_python_dir / "run_live_weekend_pipeline.py"), "--help"],
@@ -531,3 +542,4 @@ def test_cli_help_exposes_horizon_b_flags_and_live_race_phase() -> None:
     assert "live-race" in weekend_help
     assert "--f1-mode" in weekend_help
     assert "--f1-live-source" in weekend_help
+    assert "--f1-live-replay-cutoff-lap" in weekend_help

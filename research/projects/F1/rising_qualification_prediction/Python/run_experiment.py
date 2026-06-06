@@ -294,8 +294,8 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
         "disable_circuit_features": _as_bool(
             getattr(args, "disable_circuit_features", None)
             if getattr(args, "disable_circuit_features", None) is not None
-            else experiments.get("disable_circuit_features", False),
-            False,
+            else experiments.get("disable_circuit_features", True),
+            True,
         ),
         "shadow_eval": _as_on_off(shadow_eval_raw, True),
         "f1_mode": str(
@@ -335,6 +335,15 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
             if getattr(args, "f1_live_replay_path", None) is not None
             else f1_live.get("replay_path")
         ),
+        "f1_live_replay_cutoff_lap": (
+            _as_int(getattr(args, "f1_live_replay_cutoff_lap", None), 0)
+            if getattr(args, "f1_live_replay_cutoff_lap", None) is not None
+            else (
+                _as_int(f1_live.get("replay_cutoff_lap"), 0)
+                if f1_live.get("replay_cutoff_lap") is not None
+                else None
+            )
+        ),
     }
 
 
@@ -346,7 +355,7 @@ def _build_prediction_config(
     disable_runsim_features: bool,
     enable_dl_candidates: bool,
     compare_families: list[str],
-    disable_circuit_features: bool = False,
+    disable_circuit_features: bool = True,
 ) -> PredictionConfig:
     return PredictionConfig(
         source=str(base["source"]),
@@ -380,6 +389,7 @@ def _build_prediction_config(
         f1_live_seed=int(base.get("f1_live_seed", 42)),
         f1_live_cache_dir=base.get("f1_live_cache_dir"),
         f1_live_replay_path=base.get("f1_live_replay_path"),
+        f1_live_replay_cutoff_lap=base.get("f1_live_replay_cutoff_lap"),
     )
 
 
@@ -520,7 +530,7 @@ def _run_single_prediction(profile: dict[str, Any], args: argparse.Namespace) ->
         disable_runsim_features=False,
         enable_dl_candidates=bool(base["enable_dl_candidates"]),
         compare_families=list(base["compare_families"]),
-        disable_circuit_features=bool(base.get("disable_circuit_features", False)),
+        disable_circuit_features=bool(base.get("disable_circuit_features", True)),
     )
     payload, _ = _prediction_payload(config, workflow="single_prediction")
     payload["profile_name"] = profile.get("name", "unknown")
@@ -587,6 +597,8 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
         cmd.extend(["--f1-live-cache-dir", str(base["f1_live_cache_dir"])])
     if base.get("f1_live_replay_path"):
         cmd.extend(["--f1-live-replay-path", str(base["f1_live_replay_path"])])
+    if base.get("f1_live_replay_cutoff_lap") is not None:
+        cmd.extend(["--f1-live-replay-cutoff-lap", str(base["f1_live_replay_cutoff_lap"])])
 
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -621,6 +633,7 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
             "f1_live_seed": int(base["f1_live_seed"]),
             "f1_live_cache_dir": base.get("f1_live_cache_dir"),
             "f1_live_replay_path": base.get("f1_live_replay_path"),
+            "f1_live_replay_cutoff_lap": base.get("f1_live_replay_cutoff_lap"),
             "output_dir": str(output_dir),
         },
         rows=rows,
@@ -714,7 +727,7 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
                     disable_runsim_features=bool(spec["disable_runsim"]),
                     enable_dl_candidates=bool(spec["enable_dl"]),
                     compare_families=list(spec["families"]),
-                    disable_circuit_features=bool(spec.get("disable_circuit", False)),
+                    disable_circuit_features=bool(spec.get("disable_circuit", True)),
                 )
                 prediction, rows = _prediction_payload(config, workflow="backtest_ablation_compare")
                 version_value = prediction.get("version")
@@ -732,17 +745,23 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
                     actual_results=actual,
                     actual_position_col="position",
                 )
-                mae = evaluation_row["mae_on_common"] if evaluation_row.get("available") else None
+                mae = evaluation_row.get("field_mae") if evaluation_row.get("available") else None
                 top10_hit = evaluation_row["top10_hit"] if evaluation_row.get("available") else None
                 row_payload = {
                     "round": int(rnd),
                     "mae": mae,
+                    "mae_valid": evaluation_row.get("mae_valid"),
+                    "mae_on_common": evaluation_row.get("mae_on_common"),
+                    "field_mae_penalized": evaluation_row.get("field_mae_penalized"),
+                    "field_coverage": evaluation_row.get("field_coverage"),
+                    "evaluation_reason": evaluation_row.get("evaluation_reason"),
                     "top10_hit": top10_hit,
                     "model_name": prediction["model_name"],
                     "model_family": prediction["model_family"],
                     "device_used": prediction["device_used"],
                     "dl_available": prediction["dl_available"],
                     "rows_common": evaluation_row.get("rows_common"),
+                    "rows_actual": evaluation_row.get("rows_actual"),
                     "rows_evaluated": len(eval_rows),
                 }
                 round_metrics.append(row_payload)
@@ -846,6 +865,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_seed", type=int, default=None)
         parser.add_argument("--f1_live_cache_dir", default=None)
         parser.add_argument("--f1_live_replay_path", default=None)
+        parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default=None)
         parser.add_argument("--output-format", choices=["text", "json"], default="json")
         parser.add_argument("--output-path", default=None)
@@ -879,7 +899,8 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--dl-hyperparams", default="{}")
         parser.add_argument("--dl-seed", type=int, default=42)
         parser.add_argument("--disable-runsim-features", action="store_true")
-        parser.add_argument("--disable-circuit-features", action="store_true")
+        parser.add_argument("--disable-circuit-features", dest="disable_circuit_features", action="store_true", default=None)
+        parser.add_argument("--enable-circuit-features", dest="disable_circuit_features", action="store_false")
         parser.add_argument("--f1_model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
         parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default="pl_gumbel")
         parser.add_argument("--f1_pl_samples", type=int, default=2000)
@@ -892,6 +913,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_seed", type=int, default=42)
         parser.add_argument("--f1_live_cache_dir", default=None)
         parser.add_argument("--f1_live_replay_path", default=None)
+        parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
         parser.add_argument("--output-format", choices=["text", "json"], default="text")
         parser.add_argument("--output-path", default=None)
@@ -970,7 +992,7 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         dl_hyperparams=dl_hyperparams,
         dl_seed=args.dl_seed,
         disable_runsim_features=args.disable_runsim_features,
-        disable_circuit_features=args.disable_circuit_features,
+        disable_circuit_features=True if args.disable_circuit_features is None else bool(args.disable_circuit_features),
         f1_model=args.f1_model,
         f1_listwise=args.f1_listwise,
         f1_pl_samples=args.f1_pl_samples,
@@ -984,6 +1006,7 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         f1_live_seed=args.f1_live_seed,
         f1_live_cache_dir=args.f1_live_cache_dir,
         f1_live_replay_path=args.f1_live_replay_path,
+        f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
     )
 
     result = run_prediction(config)

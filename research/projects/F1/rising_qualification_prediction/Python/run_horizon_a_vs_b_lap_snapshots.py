@@ -27,6 +27,7 @@ from rqp.live_runner import (
     _sample_pit_loss_seconds,
     _strategy_template_probabilities,
 )
+from rqp.evaluation import evaluate_prediction_rows
 from rqp.live_state_space import FilterConfig, FilterState, build_event_lap_baseline, parse_track_status
 from rqp.providers import LocalWeekendProvider
 
@@ -413,117 +414,45 @@ def _predict_snapshot_from_trace(
 
 
 def _evaluate_prediction(pred_rows: list[dict[str, Any]], actual_results: pd.DataFrame) -> dict[str, Any]:
-    if not pred_rows:
-        return {"available": False, "reason": "prediction_rows_unavailable"}
-    if actual_results is None or actual_results.empty:
-        return {"available": False, "reason": "actual_results_unavailable"}
-
-    pred = pd.DataFrame(pred_rows).copy()
-    if pred.empty or "driver_name" not in pred.columns:
-        return {"available": False, "reason": "prediction_driver_name_unavailable"}
-    pred["driver_key"] = pred["driver_name"].map(_normalize_name_key)
-    pred = pred[pred["driver_key"] != ""].copy()
-    if pred.empty:
-        return {"available": False, "reason": "prediction_driver_key_unavailable"}
-
-    if "rank" in pred.columns:
-        pred["pred_rank"] = pd.to_numeric(pred["rank"], errors="coerce")
-    else:
-        pred["pred_rank"] = pd.Series(range(1, len(pred) + 1), index=pred.index, dtype=float)
-    pred = pred[pred["pred_rank"].notna()].copy()
-    pred["pred_rank"] = pred["pred_rank"].astype(float)
-    pred_unique = pred.sort_values("pred_rank", kind="mergesort").drop_duplicates(subset=["driver_key"], keep="first")
-
-    actual = actual_results.copy()
-    if "position" not in actual.columns:
-        return {"available": False, "reason": "actual_position_unavailable"}
-    if "driver_name" not in actual.columns:
-        return {"available": False, "reason": "actual_driver_name_unavailable"}
-    actual["driver_key"] = actual["driver_name"].map(_normalize_name_key)
-    actual["actual_rank"] = pd.to_numeric(actual["position"], errors="coerce")
-    actual = actual[(actual["driver_key"] != "") & actual["actual_rank"].notna()].copy()
-    actual_unique = actual.sort_values("actual_rank", kind="mergesort").drop_duplicates(
-        subset=["driver_key"],
-        keep="first",
-    )
-    if actual_unique.empty:
-        return {"available": False, "reason": "actual_clean_unavailable"}
-
-    merged = pred_unique.merge(actual_unique[["driver_key", "actual_rank"]], on="driver_key", how="inner")
-    merged = merged.dropna(subset=["pred_rank", "actual_rank"]).copy()
-
-    mae = float((merged["pred_rank"] - merged["actual_rank"]).abs().mean()) if not merged.empty else None
-    rmse = float(np.sqrt(((merged["pred_rank"] - merged["actual_rank"]) ** 2).mean())) if not merged.empty else None
-    spearman = None
-    if len(merged) >= 2:
-        value = merged[["pred_rank", "actual_rank"]].corr(method="spearman").iloc[0, 1]
-        if pd.notna(value):
-            spearman = float(value)
-
-    predicted_top3 = set(pred_unique.head(3)["driver_key"].tolist())
-    predicted_top10 = set(pred_unique.head(10)["driver_key"].tolist())
-    actual_top3 = set(actual_unique[actual_unique["actual_rank"] <= 3]["driver_key"].tolist())
-    actual_top10 = set(actual_unique[actual_unique["actual_rank"] <= 10]["driver_key"].tolist())
-
-    top3_hit = None
-    if actual_top3:
-        top3_hit = float(len(predicted_top3.intersection(actual_top3)) / float(min(3, len(actual_top3))))
-    top10_hit = None
-    if actual_top10:
-        top10_hit = float(len(predicted_top10.intersection(actual_top10)) / float(min(10, len(actual_top10))))
-
-    pred_top10 = pred_unique.head(10).merge(actual_unique[["driver_key", "actual_rank"]], on="driver_key", how="inner")
-    pred_top10_mae = (
-        float((pred_top10["pred_rank"] - pred_top10["actual_rank"]).abs().mean()) if not pred_top10.empty else None
-    )
-
-    return {
-        "available": True,
-        "rows_predicted": int(len(pred_unique)),
-        "rows_actual": int(len(actual_unique)),
-        "rows_common": int(len(merged)),
-        "mae": mae,
-        "rmse": rmse,
-        "spearman": spearman,
-        "top3_hit": top3_hit,
-        "top10_hit": top10_hit,
-        "pred_top10_mae": pred_top10_mae,
-    }
+    result = evaluate_prediction_rows(pred_rows, actual_results, "position")
+    if not result.get("available"):
+        return result
+    if not bool(result.get("metric_available", False)):
+        result = dict(result)
+        result["available"] = False
+        result["reason"] = str(result.get("evaluation_reason") or "field_coverage_failed")
+    return result
 
 
 def _b_on_a_top10_mae(a_rows: list[dict[str, Any]], b_rows: list[dict[str, Any]], actual_results: pd.DataFrame) -> Optional[float]:
-    a = pd.DataFrame(a_rows).copy()
-    b = pd.DataFrame(b_rows).copy()
-    if a.empty or b.empty or actual_results is None or actual_results.empty:
+    if not a_rows or not b_rows or actual_results is None or actual_results.empty:
         return None
-    if "driver_name" not in a.columns or "driver_name" not in b.columns:
+    a_eval = evaluate_prediction_rows(
+        a_rows,
+        actual_results,
+        "position",
+        min_field_coverage=0.0,
+        require_complete_field=False,
+        include_match_rows=True,
+    )
+    match_rows = a_eval.get("match_rows")
+    if not isinstance(match_rows, list) or not match_rows:
         return None
-
-    a["driver_key"] = a["driver_name"].map(_normalize_name_key)
-    b["driver_key"] = b["driver_name"].map(_normalize_name_key)
-    a["rank"] = pd.to_numeric(a.get("rank"), errors="coerce")
-    b["rank"] = pd.to_numeric(b.get("rank"), errors="coerce")
-    a = a[(a["driver_key"] != "") & a["rank"].notna()].copy()
-    b = b[(b["driver_key"] != "") & b["rank"].notna()].copy()
-    if a.empty or b.empty:
+    actual_indices = [
+        row.get("actual_index")
+        for row in match_rows
+        if isinstance(row, dict) and pd.notna(row.get("pred_rank")) and float(row.get("pred_rank")) <= 10.0
+    ]
+    if not actual_indices:
         return None
-
-    a_top10 = set(a.sort_values("rank", kind="mergesort").head(10)["driver_key"].tolist())
-    if not a_top10:
+    actual_subset = actual_results.loc[[idx for idx in actual_indices if idx in actual_results.index]].copy()
+    if actual_subset.empty:
         return None
-
-    actual = actual_results.copy()
-    actual["driver_key"] = actual["driver_name"].map(_normalize_name_key)
-    actual["actual_rank"] = pd.to_numeric(actual.get("position"), errors="coerce")
-    actual = actual[(actual["driver_key"] != "") & actual["actual_rank"].notna()].copy()
-    if actual.empty:
+    b_eval = evaluate_prediction_rows(b_rows, actual_subset, "position")
+    if not bool(b_eval.get("metric_available", False)):
         return None
-
-    b_subset = b[b["driver_key"].isin(a_top10)][["driver_key", "rank"]].rename(columns={"rank": "pred_rank"})
-    merged = b_subset.merge(actual[["driver_key", "actual_rank"]], on="driver_key", how="inner")
-    if merged.empty:
-        return None
-    return float((merged["pred_rank"] - merged["actual_rank"]).abs().mean())
+    value = b_eval.get("field_mae")
+    return float(value) if value is not None and pd.notna(value) else None
 
 
 def _safe_bool_series(frame: pd.DataFrame, column: str, default: bool = False) -> pd.Series:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import math
 from typing import Any, Callable, List, Optional
 
@@ -40,9 +40,14 @@ from .dl_models import (
     resolve_device as resolve_dl_device,
     torch_available,
 )
+from .probability import pl_gumbel_probabilities
 from .utils import team_column
 
 SAMPLE_WEIGHT_COL = "_sample_weight"
+DEFAULT_PL_SAMPLES = 2000
+DEFAULT_PL_SEED = 42
+DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS = 5
+DEFAULT_PROBABILITY_AUDIT_BOOTSTRAP_SAMPLES = 200
 
 
 @dataclass
@@ -87,6 +92,7 @@ class TargetSpec:
     base_col: Optional[str] = None
     base_fill: float = 0.0
     label: str = "finish_position"
+    constraint_mode: str = "constrained"
 
     @property
     def uses_offset(self) -> bool:
@@ -498,6 +504,7 @@ class TargetOffsetModel:
     base_model: object
     base_column: str
     base_fill: float = 0.0
+    constraint_mode: str = "constrained"
     calibrators: dict[str, ProbabilityCalibrator] = field(default_factory=dict)
 
     def _base(self, frame: pd.DataFrame) -> pd.Series:
@@ -519,6 +526,7 @@ class TargetOffsetModel:
 
     def _circuit_mobility(self, frame: pd.DataFrame) -> pd.Series:
         circuit_cols = {
+            "track_finish_order_mobility",
             "track_overtake_propensity",
             "circuit_drs_effectiveness",
             "circuit_overtaking_difficulty",
@@ -528,14 +536,18 @@ class TargetOffsetModel:
         }
         if not any(col in frame.columns for col in circuit_cols):
             return pd.Series(1.0, index=frame.index, dtype=float)
-        overtake = self._series(frame, "track_overtake_propensity", 0.35).clip(0.0, 1.0)
+        mobility = (
+            self._series(frame, "track_finish_order_mobility", 0.35)
+            if "track_finish_order_mobility" in frame.columns
+            else self._series(frame, "track_overtake_propensity", 0.35)
+        ).clip(0.0, 1.0)
         drs = self._series(frame, "circuit_drs_effectiveness", 0.45).clip(0.0, 1.0)
         difficulty = self._series(frame, "circuit_overtaking_difficulty", 0.50).clip(0.0, 1.0)
         variance = self._series(frame, "race_generation_variance_prior", 0.20).clip(0.0, 1.0)
         strategy = self._series(frame, "track_strategy_variance_prior", 0.35).clip(0.0, 1.0)
         mobility = (
             0.08
-            + (0.58 * overtake)
+            + (0.58 * mobility)
             + (0.18 * drs)
             - (0.40 * difficulty)
             + (0.20 * variance)
@@ -544,6 +556,8 @@ class TargetOffsetModel:
         return mobility.clip(lower=0.04, upper=0.85)
 
     def _constrain_delta(self, frame: pd.DataFrame, delta: pd.Series) -> pd.Series:
+        if str(self.constraint_mode).strip().lower() == "unconstrained":
+            return delta
         mobility = self._circuit_mobility(frame).reindex(delta.index).fillna(1.0)
         if (mobility >= 0.999).all():
             return delta
@@ -785,6 +799,7 @@ def _wrap_target_offset(model: object, target_spec: TargetSpec, frame: pd.DataFr
         base_model=model,
         base_column=target_spec.base_col,
         base_fill=_target_base_fill(frame, target_spec.base_col, target_spec.base_fill),
+        constraint_mode=target_spec.constraint_mode,
     )
 
 
@@ -1353,44 +1368,54 @@ def _fit_pl_temperature_from_oof(
     }
 
 
-def _pl_probabilities_deterministic(
+def _pl_probabilities_for_oof_audit(
     scores: pd.Series,
     event_key: pd.Series,
     temperature: float,
+    *,
+    samples: int = DEFAULT_PL_SAMPLES,
+    seed: int = DEFAULT_PL_SEED,
 ) -> pd.DataFrame:
-    output = pd.DataFrame(index=scores.index)
-    output["win"] = 0.0
-    output["top3"] = 0.0
-    output["top10"] = 0.0
-    temp = float(max(temperature, 1e-6))
-    for idx in _event_groups(event_key, scores.index):
-        event_scores = pd.to_numeric(scores.loc[idx], errors="coerce")
-        valid = event_scores.notna()
-        if valid.sum() == 0:
-            continue
-        valid_idx = event_scores.loc[valid].index
-        utilities = (-event_scores.loc[valid_idx].to_numpy(dtype=float)) / temp
-        utilities = utilities - float(np.max(utilities))
-        weights = np.exp(utilities)
-        if not np.isfinite(weights).all() or float(weights.sum()) <= 0.0:
-            weights = np.ones(len(valid_idx), dtype=float)
-        win = weights / float(weights.sum())
-        order = pd.Series(event_scores.loc[valid_idx], index=valid_idx).rank(method="average", ascending=True)
-        n = len(valid_idx)
-        top3_expected = min(3.0, float(n))
-        top10_expected = min(10.0, float(n))
-        decay = max(1.0, float(n) / 6.0)
-        top_weights = np.exp(-((order.to_numpy(dtype=float) - 1.0) / decay)) * weights
-        if float(top_weights.sum()) <= 0.0:
-            top_weights = np.ones(len(valid_idx), dtype=float)
-        top3 = top3_expected * (top_weights / float(top_weights.sum()))
-        top10 = top10_expected * (top_weights / float(top_weights.sum()))
-        output.loc[valid_idx, "win"] = np.clip(win, 0.0, 1.0)
-        output.loc[valid_idx, "top3"] = np.clip(top3, 0.0, 1.0)
-        output.loc[valid_idx, "top10"] = np.clip(top10, 0.0, 1.0)
-    output["top3"] = np.minimum(output["top3"], output["top10"])
-    output["win"] = np.minimum(output["win"], output["top3"])
-    return output
+    sampled = pl_gumbel_probabilities(
+        scores=scores,
+        event_key=event_key,
+        samples=int(max(1, samples)),
+        temperature=float(temperature),
+        seed=int(seed),
+    )
+    return pd.DataFrame(
+        {
+            "win": sampled["p_win"].reindex(scores.index).fillna(0.0),
+            "top3": sampled["p_top3"].reindex(scores.index).fillna(0.0),
+            "top10": sampled["p_top10"].reindex(scores.index).fillna(0.0),
+        },
+        index=scores.index,
+    ).clip(lower=0.0, upper=1.0)
+
+
+def _probability_event_total_audit(probabilities: pd.DataFrame, event_key: pd.Series) -> dict[str, Any]:
+    checks: dict[str, dict[str, Any]] = {}
+    passed = True
+    for label, expected_k in [("win", 1), ("top3", 3), ("top10", 10)]:
+        deviations: list[float] = []
+        event_count = 0
+        for idx in _event_groups(event_key, probabilities.index):
+            p = pd.to_numeric(probabilities[label].reindex(idx), errors="coerce").dropna()
+            if p.empty:
+                continue
+            event_count += 1
+            expected = min(float(expected_k), float(len(p)))
+            deviations.append(abs(float(p.sum()) - expected))
+        max_abs_error = float(max(deviations)) if deviations else float("inf")
+        label_passed = bool(np.isfinite(max_abs_error) and max_abs_error <= 0.08)
+        passed = passed and label_passed
+        checks[label] = {
+            "passed": label_passed,
+            "event_count": int(event_count),
+            "max_abs_error": max_abs_error,
+            "expected_total": float(expected_k),
+        }
+    return {"passed": bool(passed), "markets": checks}
 
 
 def _binary_log_loss(labels: pd.Series, probabilities: pd.Series) -> float:
@@ -1423,12 +1448,67 @@ def _calibration_slope(labels: pd.Series, probabilities: pd.Series) -> Optional[
     return float(np.cov(x, y.to_numpy(dtype=float), ddof=0)[0, 1] / np.var(x))
 
 
+def _bootstrap_probability_delta_ci(
+    labels: pd.Series,
+    probabilities: pd.Series,
+    baseline_probabilities: pd.Series,
+    event_key: pd.Series,
+    *,
+    samples: int = DEFAULT_PROBABILITY_AUDIT_BOOTSTRAP_SAMPLES,
+    seed: int = DEFAULT_PL_SEED,
+) -> dict[str, Any]:
+    valid = labels.notna() & probabilities.notna() & baseline_probabilities.notna() & event_key.notna()
+    if valid.sum() == 0:
+        return {"available": False, "reason": "empty"}
+    y = labels.loc[valid].astype(float)
+    p = probabilities.loc[valid].astype(float).clip(1e-6, 1.0 - 1e-6)
+    base = baseline_probabilities.loc[valid].astype(float).clip(1e-6, 1.0 - 1e-6)
+    events = event_key.loc[valid]
+    unique_events = pd.unique(events)
+    if len(unique_events) < 2:
+        return {"available": False, "reason": "insufficient_events", "event_count": int(len(unique_events))}
+
+    rng = np.random.default_rng(int(seed))
+    brier_deltas: list[float] = []
+    log_loss_deltas: list[float] = []
+    for _ in range(int(max(1, samples))):
+        sampled_events = rng.choice(unique_events, size=len(unique_events), replace=True)
+        sampled_index_parts = [events[events == event].index for event in sampled_events]
+        if not sampled_index_parts:
+            continue
+        sampled_index = sampled_index_parts[0].append(sampled_index_parts[1:]) if len(sampled_index_parts) > 1 else sampled_index_parts[0]
+        y_s = y.loc[sampled_index]
+        p_s = p.loc[sampled_index]
+        base_s = base.loc[sampled_index]
+        brier_deltas.append(float(((p_s - y_s) ** 2).mean() - ((base_s - y_s) ** 2).mean()))
+        model_loss = -(y_s * np.log(p_s) + (1.0 - y_s) * np.log(1.0 - p_s)).mean()
+        baseline_loss = -(y_s * np.log(base_s) + (1.0 - y_s) * np.log(1.0 - base_s)).mean()
+        log_loss_deltas.append(float(model_loss - baseline_loss))
+    if not brier_deltas or not log_loss_deltas:
+        return {"available": False, "reason": "bootstrap_empty", "event_count": int(len(unique_events))}
+    brier_arr = np.asarray(brier_deltas, dtype=float)
+    log_loss_arr = np.asarray(log_loss_deltas, dtype=float)
+    return {
+        "available": True,
+        "event_count": int(len(unique_events)),
+        "samples": int(max(1, samples)),
+        "brier_delta_ci95": [float(np.nanpercentile(brier_arr, 2.5)), float(np.nanpercentile(brier_arr, 97.5))],
+        "log_loss_delta_ci95": [
+            float(np.nanpercentile(log_loss_arr, 2.5)),
+            float(np.nanpercentile(log_loss_arr, 97.5)),
+        ],
+    }
+
+
 def _probability_audit_from_oof(
     scores: pd.Series,
     actual: pd.Series,
     event_key: pd.Series,
     temperature: Optional[float],
     temperature_audit: dict[str, Any],
+    *,
+    samples: int = DEFAULT_PL_SAMPLES,
+    seed: int = DEFAULT_PL_SEED,
 ) -> dict[str, Any]:
     if temperature is None:
         return {
@@ -1448,17 +1528,30 @@ def _probability_audit_from_oof(
             "reason": "oof_scores_empty",
             "temperature_fit": dict(temperature_audit),
         }
-    probabilities = _pl_probabilities_deterministic(scores, event_key, float(temperature))
+    probabilities = _pl_probabilities_for_oof_audit(
+        scores,
+        event_key,
+        float(temperature),
+        samples=int(samples),
+        seed=int(seed),
+    )
+    total_audit = _probability_event_total_audit(probabilities, event_key)
     thresholds = {
         "max_brier": 0.30,
         "max_log_loss": 1.25,
         "baseline_tolerance": 0.005,
         "min_calibration_slope": 0.35,
         "max_calibration_slope": 2.75,
+        "min_oof_events": DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS,
+        "bootstrap_samples": DEFAULT_PROBABILITY_AUDIT_BOOTSTRAP_SAMPLES,
     }
     metrics: dict[str, dict[str, Any]] = {}
-    passed = True
-    reasons: list[str] = []
+    passed = bool(total_audit.get("passed", False))
+    reasons: list[str] = [] if passed else ["event_total_failed"]
+    audit_event_count = int(pd.to_numeric(event_key, errors="coerce").nunique(dropna=True))
+    if audit_event_count < int(thresholds["min_oof_events"]):
+        passed = False
+        reasons.append("insufficient_probability_audit_events")
     for label, k in [("win", 1), ("top3", 3), ("top10", 10)]:
         y = _topk_labels_from_target(actual, event_key, k=k)
         p = probabilities[label].reindex(y.index)
@@ -1478,12 +1571,25 @@ def _probability_audit_from_oof(
         baseline_p = baseline_p.reindex(y.index).fillna(float(y.loc[valid_label].mean()))
         baseline_brier = float(((baseline_p.loc[valid_label] - y.loc[valid_label]) ** 2).mean())
         baseline_log_loss = _binary_log_loss(y.loc[valid_label], baseline_p.loc[valid_label])
+        brier_delta = float(brier - baseline_brier)
+        log_loss_delta = float(log_loss - baseline_log_loss)
+        bootstrap = _bootstrap_probability_delta_ci(
+            y.loc[valid_label],
+            p.loc[valid_label],
+            baseline_p.loc[valid_label],
+            event_key.reindex(valid_label[valid_label].index),
+            samples=int(thresholds["bootstrap_samples"]),
+            seed=int(seed) + int(k),
+        )
         metric = {
             "available": True,
             "brier": brier,
             "log_loss": log_loss,
             "baseline_brier": baseline_brier,
             "baseline_log_loss": baseline_log_loss,
+            "brier_delta_vs_baseline": brier_delta,
+            "log_loss_delta_vs_baseline": log_loss_delta,
+            "bootstrap": bootstrap,
             "calibration_slope": slope,
             "base_rate": float(y.loc[valid_label].mean()),
             "row_count": int(valid_label.sum()),
@@ -1495,6 +1601,7 @@ def _probability_audit_from_oof(
             and log_loss <= baseline_log_loss + thresholds["baseline_tolerance"]
             and slope is not None
             and thresholds["min_calibration_slope"] <= slope <= thresholds["max_calibration_slope"]
+            and bool(bootstrap.get("available", False))
         )
         metric["passed"] = bool(metric_passed)
         if not metric_passed:
@@ -1507,8 +1614,13 @@ def _probability_audit_from_oof(
         "passed": bool(passed),
         "reason": "passed" if passed else ",".join(reasons),
         "source": "walk_forward_oof",
+        "probability_layer": "pl_gumbel",
+        "same_probability_layer_as_production": True,
+        "samples": int(max(1, samples)),
+        "seed": int(seed),
         "temperature": float(temperature),
         "temperature_fit": dict(temperature_audit),
+        "event_total_audit": total_audit,
         "thresholds": thresholds,
         "metrics": metrics,
         "row_count": int(len(scores)),
@@ -1578,7 +1690,7 @@ def _oof_scores_for_selection(
                     model_weight = float(weight_text)
                 except ValueError:
                     model_weight = 0.30
-                if candidate is not None:
+                if candidate is not None and candidate.family != "dl":
                     fitted = _fit_candidate(train_df, feature_cols, candidate, target_spec=spec)
                     if fitted is not None:
                         model = WeightedBlendModel(
@@ -1620,6 +1732,13 @@ def _normalize_requested_model(value: str) -> str:
     return "auto"
 
 
+def _normalize_constraint_mode(value: object) -> str:
+    normalized = str(value or "").strip().lower()
+    if normalized in {"unconstrained", "none", "off"}:
+        return "unconstrained"
+    return "constrained"
+
+
 def train_model(
     train: pd.DataFrame,
     feature_cols: List[str],
@@ -1631,6 +1750,9 @@ def train_model(
     dl_hyperparams: Optional[dict[str, Any]] = None,
     dl_seed: int = 42,
     f1_model: str = "auto",
+    f1_pl_samples: int = DEFAULT_PL_SAMPLES,
+    f1_listwise_seed: int = DEFAULT_PL_SEED,
+    race_delta_constraint_mode: str = "constrained",
 ) -> TrainingResult:
     notes: List[str] = []
     leaderboard_data: List[dict[str, Any]] = []
@@ -1679,6 +1801,7 @@ def train_model(
         notes=notes,
     )
     target_spec = _infer_target_spec(train)
+    target_spec = replace(target_spec, constraint_mode=_normalize_constraint_mode(race_delta_constraint_mode))
     if target_spec.uses_offset:
         notes.append(
             "Race target transform active: models train on race_delta_target and "
@@ -1796,6 +1919,8 @@ def train_model(
             if not small_history_qualifying:
                 blend_weights = [0.20, 0.35, 0.50, 0.65, 0.80]
                 for candidate in candidates:
+                    if candidate.family == "dl":
+                        continue
                     for blend_col in qualifying_baseline_cols:
                         blend_scores = _evaluate_blend_candidates(
                             train=train,
@@ -1844,11 +1969,25 @@ def train_model(
                         "Best composite candidate is DL, but DL is shadow-only; selecting best non-DL candidate instead.",
                     )
             else:
-                selected_from_cv = ranking[0].name
-            notes.append(
-                f"Modele retenu: {selected_from_cv} "
-                f"(score composite={score_lookup[selected_from_cv].composite:.3f}).",
-            )
+                notes.append("Only DL candidates were ranked; DL shadow-only policy blocks selection.")
+                if race_baseline_supported:
+                    selected_from_cv = "qualifying_baseline"
+                elif qualifying_baseline_supported:
+                    default_col = (
+                        "event_pace_index"
+                        if "event_pace_index" in qualifying_baseline_cols
+                        else qualifying_baseline_cols[0]
+                    )
+                    selected_from_cv = f"pace_baseline::{default_col}"
+                else:
+                    selected_from_cv = None
+            if selected_from_cv and selected_from_cv in score_lookup:
+                notes.append(
+                    f"Modele retenu: {selected_from_cv} "
+                    f"(score composite={score_lookup[selected_from_cv].composite:.3f}).",
+                )
+            elif selected_from_cv:
+                notes.append(f"Modele retenu par politique conservatrice: {selected_from_cv}.")
         else:
             notes.append("Aucun score walk-forward exploitable; selection par priorite.")
     else:
@@ -1927,7 +2066,7 @@ def train_model(
                 model_weight = float(weight_text)
             except ValueError:
                 model_weight = 0.30
-            if candidate is not None:
+            if candidate is not None and candidate.family != "dl":
                 fitted = _fit_candidate(train, feature_cols, candidate, target_spec=target_spec)
                 if fitted is not None:
                     selected_model = WeightedBlendModel(
@@ -2040,6 +2179,8 @@ def train_model(
             calibration_event,
             listwise_temperature,
             temperature_audit,
+            samples=int(f1_pl_samples),
+            seed=int(f1_listwise_seed),
         )
         if listwise_temperature is not None:
             nll_value = temperature_audit.get("nll")

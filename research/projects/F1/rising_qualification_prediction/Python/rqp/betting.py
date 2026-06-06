@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -47,6 +48,7 @@ class BettingConfig:
     min_stake: float = 0.0
     require_probability_gate: bool = True
     require_oof_probability_audit: bool = True
+    require_odds_timestamp: bool = True
     probability_sum_tolerance: float = 0.10
     fair_market_min_selection_count: int = 10
     fair_market_overround_min: float = 0.90
@@ -81,11 +83,55 @@ def _records_from_json_payload(payload: object) -> list[dict[str, Any]]:
         return [row for row in payload if isinstance(row, dict)]
     if not isinstance(payload, dict):
         return []
-    for key in ("all_prediction_rows", "rows", "recommendations", "odds"):
+    for key in ("all_prediction_rows", "rows", "recommendations", "odds", "settlements", "results"):
         rows = payload.get(key)
         if isinstance(rows, list):
             return [row for row in rows if isinstance(row, dict)]
     return []
+
+
+def _sha256_file(path: str | Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def forward_record_hash(record: dict[str, Any]) -> str:
+    """Canonical hash for immutable forward-test betting records."""
+
+    payload = {k: v for k, v in record.items() if k != "record_hash"}
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def load_forward_bet_log(path: str | Path, *, verify_hash_chain: bool = True) -> list[dict[str, Any]]:
+    log_path = Path(path)
+    records: list[dict[str, Any]] = []
+    previous_hash = ""
+    with open(log_path, "r", encoding="utf-8") as f:
+        for line_number, line in enumerate(f, start=1):
+            text = line.strip()
+            if not text:
+                continue
+            try:
+                record = json.loads(text)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Invalid forward log JSON at line {line_number}: {exc}") from exc
+            if not isinstance(record, dict):
+                raise ValueError(f"Invalid forward log record at line {line_number}: expected object")
+            if verify_hash_chain:
+                stored_hash = str(record.get("record_hash") or "")
+                computed_hash = forward_record_hash(record)
+                if not stored_hash or stored_hash != computed_hash:
+                    raise ValueError(f"Invalid forward log record hash at line {line_number}")
+                stored_previous = str(record.get("previous_record_hash") or "")
+                if stored_previous != previous_hash:
+                    raise ValueError(f"Invalid forward log hash chain at line {line_number}")
+                previous_hash = stored_hash
+            records.append(record)
+    return records
 
 
 def load_prediction_frame(path: str | Path) -> pd.DataFrame:
@@ -103,6 +149,14 @@ def load_odds_frame(path: str | Path) -> pd.DataFrame:
     if odds_path.suffix.lower() == ".csv":
         return pd.read_csv(odds_path)
     payload = json.loads(odds_path.read_text(encoding="utf-8"))
+    return pd.DataFrame(_records_from_json_payload(payload))
+
+
+def load_settlement_frame(path: str | Path) -> pd.DataFrame:
+    settlement_path = Path(path)
+    if settlement_path.suffix.lower() == ".csv":
+        return pd.read_csv(settlement_path)
+    payload = json.loads(settlement_path.read_text(encoding="utf-8"))
     return pd.DataFrame(_records_from_json_payload(payload))
 
 
@@ -139,6 +193,20 @@ def _standardize_odds_frame(odds: pd.DataFrame) -> pd.DataFrame:
         out = out.rename(columns={"selection": "driver_name"})
     if "market" not in out.columns:
         out["market"] = "winner"
+    timestamp_aliases = ["odds_timestamp_utc", "odds_timestamp", "timestamp_utc", "timestamp", "captured_at"]
+    close_aliases = ["market_close_utc", "market_close", "close_time_utc", "event_start_utc"]
+    for alias in timestamp_aliases:
+        if alias in out.columns and alias != "odds_timestamp_utc":
+            out = out.rename(columns={alias: "odds_timestamp_utc"})
+            break
+    for alias in close_aliases:
+        if alias in out.columns and alias != "market_close_utc":
+            out = out.rename(columns={alias: "market_close_utc"})
+            break
+    if "odds_timestamp_utc" in out.columns:
+        out["odds_timestamp_utc"] = pd.to_datetime(out["odds_timestamp_utc"], errors="coerce", utc=True)
+    if "market_close_utc" in out.columns:
+        out["market_close_utc"] = pd.to_datetime(out["market_close_utc"], errors="coerce", utc=True)
     return out
 
 
@@ -228,6 +296,13 @@ def _reject_reason(row: pd.Series, config: BettingConfig) -> str:
         return "probability_gate_failed"
     if bool(config.require_oof_probability_audit) and not bool(row.get("probability_audit_passed", False)):
         return "probability_audit_failed"
+    if bool(config.require_odds_timestamp):
+        odds_ts = row.get("odds_timestamp_utc")
+        if pd.isna(odds_ts):
+            return "odds_timestamp_missing"
+        close_ts = row.get("market_close_utc")
+        if pd.notna(close_ts) and odds_ts > close_ts:
+            return "odds_after_market_close"
     if _to_float(row.get("model_probability")) < config.min_probability:
         return "probability_below_min"
     if _to_float(row.get("edge_used")) < config.min_edge:
@@ -353,6 +428,8 @@ def build_betting_recommendations(
         "driver_name",
         "bookmaker",
         "decimal_odds",
+        "odds_timestamp_utc",
+        "market_close_utc",
         "model_probability",
         "implied_probability_raw",
         "fair_market_probability",
@@ -383,7 +460,7 @@ def build_betting_recommendations(
 def recommendations_to_records(frame: pd.DataFrame) -> list[dict[str, Any]]:
     if frame.empty:
         return []
-    return json.loads(frame.to_json(orient="records"))
+    return json.loads(frame.to_json(orient="records", date_format="iso"))
 
 
 def build_betting_report(recommendations: pd.DataFrame, config: BettingConfig) -> dict[str, Any]:
@@ -402,4 +479,175 @@ def build_betting_report(recommendations: pd.DataFrame, config: BettingConfig) -
             "max_loss": stake_total,
         },
         "recommendations": recommendations_to_records(recommendations),
+    }
+
+
+def _boolean_outcome(value: object) -> Optional[bool]:
+    if value is None or pd.isna(value):
+        return None
+    if isinstance(value, bool):
+        return bool(value)
+    numeric = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
+    if pd.notna(numeric):
+        return bool(float(numeric) > 0.0)
+    text = str(value).strip().lower()
+    if text in {"win", "won", "winner", "hit", "true", "yes", "y", "settled_win"}:
+        return True
+    if text in {"loss", "lost", "lose", "miss", "false", "no", "n", "settled_loss"}:
+        return False
+    return None
+
+
+def _standardize_settlement_frame(settlements: pd.DataFrame) -> pd.DataFrame:
+    out = settlements.copy()
+    if out.empty:
+        return out
+    if "driver_name" not in out.columns and "participant" in out.columns:
+        out = out.rename(columns={"participant": "driver_name"})
+    if "driver_name" not in out.columns and "selection" in out.columns:
+        out = out.rename(columns={"selection": "driver_name"})
+    if "market" not in out.columns:
+        out["market"] = "winner"
+    out["market"] = out["market"].map(normalize_market)
+    out["driver_key"] = _driver_key_frame(out)
+    if "event_id" in out.columns:
+        out["event_id"] = out["event_id"].astype(str)
+    else:
+        out["event_id"] = ""
+
+    outcome: pd.Series = pd.Series([None] * len(out), index=out.index, dtype=object)
+    for col in ("won", "settled_won", "hit", "settled_binary_result", "result", "settlement_result"):
+        if col in out.columns:
+            parsed = out[col].map(_boolean_outcome)
+            outcome = outcome.where(parsed.isna(), parsed)
+    if outcome.isna().any() and "finish_position" in out.columns:
+        finish = pd.to_numeric(out["finish_position"], errors="coerce")
+        inferred = pd.Series([None] * len(out), index=out.index, dtype=object)
+        inferred.loc[(out["market"] == "winner") & finish.notna()] = finish.loc[
+            (out["market"] == "winner") & finish.notna()
+        ].le(1.0)
+        inferred.loc[(out["market"] == "podium") & finish.notna()] = finish.loc[
+            (out["market"] == "podium") & finish.notna()
+        ].le(3.0)
+        inferred.loc[(out["market"] == "top10") & finish.notna()] = finish.loc[
+            (out["market"] == "top10") & finish.notna()
+        ].le(10.0)
+        outcome = outcome.where(inferred.isna(), inferred)
+    out["settled_won"] = outcome
+    return out
+
+
+def settle_forward_bet_log(
+    *,
+    log_path: str | Path,
+    settlements: pd.DataFrame,
+    settlement_source_path: Optional[str | Path] = None,
+    settled_at_utc: Optional[str] = None,
+    require_pre_market: bool = True,
+    verify_hash_chain: bool = True,
+) -> dict[str, Any]:
+    """Evaluate realized P&L only from predeclared forward logs plus settlement data."""
+
+    records = load_forward_bet_log(log_path, verify_hash_chain=verify_hash_chain)
+    settlement_frame = _standardize_settlement_frame(settlements)
+    settlement_source_sha256 = _sha256_file(settlement_source_path) if settlement_source_path is not None else None
+
+    settled_rows: list[dict[str, Any]] = []
+    skipped_records: list[dict[str, Any]] = []
+    total_bets = 0
+    for record_index, record in enumerate(records):
+        pre_market = bool(record.get("pre_market_logged", False))
+        if require_pre_market and not pre_market:
+            skipped_records.append(
+                {
+                    "record_index": int(record_index),
+                    "record_hash": record.get("record_hash"),
+                    "reason": "record_not_pre_market",
+                },
+            )
+            continue
+        report = record.get("betting_report")
+        recommendations = report.get("recommendations") if isinstance(report, dict) else None
+        if not isinstance(recommendations, list):
+            continue
+        event_id = str(record.get("event_id") or "")
+        for recommendation in recommendations:
+            if not isinstance(recommendation, dict):
+                continue
+            if str(recommendation.get("status") or "") != "bet":
+                continue
+            total_bets += 1
+            market = normalize_market(recommendation.get("market"))
+            driver_key = normalize_participant(
+                recommendation.get("driver_name") or recommendation.get("selection") or recommendation.get("participant")
+            )
+            candidates = settlement_frame[
+                (settlement_frame["market"] == market)
+                & (settlement_frame["driver_key"] == driver_key)
+                & ((settlement_frame["event_id"] == event_id) | (settlement_frame["event_id"] == ""))
+            ].copy()
+            candidates = candidates[candidates["settled_won"].notna()]
+            if candidates.empty:
+                settled_rows.append(
+                    {
+                        "event_id": event_id,
+                        "market": market,
+                        "driver_name": recommendation.get("driver_name"),
+                        "status": "unsettled",
+                        "stake": float(_to_float(recommendation.get("stake"), default=0.0)),
+                        "pnl": None,
+                        "record_hash": record.get("record_hash"),
+                        "selection_logged_at_utc": record.get("selection_logged_at_utc"),
+                        "market_close_utc": record.get("market_close_utc"),
+                    },
+                )
+                continue
+            settlement = candidates.iloc[0]
+            won = bool(settlement["settled_won"])
+            stake = float(max(0.0, _to_float(recommendation.get("stake"), default=0.0)))
+            odds = float(_to_float(recommendation.get("decimal_odds"), default=float("nan")))
+            pnl = (stake * (odds - 1.0)) if won and math.isfinite(odds) else -stake
+            settled_rows.append(
+                {
+                    "event_id": event_id,
+                    "market": market,
+                    "driver_name": recommendation.get("driver_name"),
+                    "status": "settled",
+                    "settled_won": won,
+                    "stake": stake,
+                    "decimal_odds": odds if math.isfinite(odds) else None,
+                    "pnl": float(pnl),
+                    "record_hash": record.get("record_hash"),
+                    "selection_logged_at_utc": record.get("selection_logged_at_utc"),
+                    "market_close_utc": record.get("market_close_utc"),
+                    "settled_at_utc": settled_at_utc,
+                    "settlement_source_sha256": settlement_source_sha256,
+                },
+            )
+
+    settled = [row for row in settled_rows if row.get("status") == "settled"]
+    unsettled = [row for row in settled_rows if row.get("status") == "unsettled"]
+    stake_settled = float(sum(float(row.get("stake") or 0.0) for row in settled))
+    pnl_settled = float(sum(float(row.get("pnl") or 0.0) for row in settled))
+    return {
+        "workflow": "f1_forward_bet_settlement",
+        "pnl_policy": "settlement_only_from_hash_valid_pre_market_forward_logs",
+        "log_path": str(log_path),
+        "settlement_source_path": str(settlement_source_path) if settlement_source_path is not None else None,
+        "settlement_source_sha256": settlement_source_sha256,
+        "settled_at_utc": settled_at_utc,
+        "hash_chain_verified": bool(verify_hash_chain),
+        "require_pre_market": bool(require_pre_market),
+        "summary": {
+            "records": int(len(records)),
+            "records_skipped": int(len(skipped_records)),
+            "bets_logged": int(total_bets),
+            "bets_settled": int(len(settled)),
+            "bets_unsettled": int(len(unsettled)),
+            "stake_settled": stake_settled,
+            "pnl_settled": pnl_settled,
+            "roi_on_settled": (pnl_settled / stake_settled) if stake_settled > 0.0 else None,
+        },
+        "skipped_records": skipped_records,
+        "settlements": settled_rows,
     }

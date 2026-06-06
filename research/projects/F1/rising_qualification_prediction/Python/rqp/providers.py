@@ -22,6 +22,62 @@ except Exception:  # pragma: no cover - optional dependency
     fastf1 = None
 
 
+def _parse_grid_position_status(value: object) -> tuple[float, str]:
+    if value is None:
+        return float("nan"), "missing"
+    try:
+        if pd.isna(value):
+            return float("nan"), "missing"
+    except Exception:
+        pass
+    text = str(value).strip()
+    if not text:
+        return float("nan"), "missing"
+    lowered = text.lower().replace("-", " ").replace("_", " ")
+    compact = re.sub(r"\s+", "", lowered)
+    if compact in {"pl", "pitlane", "pit"} or "pit lane" in lowered:
+        return float("nan"), "pit_lane"
+    if compact in {"dns", "dnq", "wd", "withdrawn"} or "didnotstart" in compact:
+        return float("nan"), "dns"
+    numeric = pd.to_numeric(pd.Series([text]), errors="coerce").iloc[0]
+    if pd.isna(numeric):
+        return float("nan"), "non_numeric"
+    position = float(numeric)
+    if position <= 0.0:
+        return float("nan"), "pit_lane"
+    return position, "grid"
+
+
+def _standardize_grid_columns(frame: pd.DataFrame, *, source: str) -> pd.DataFrame:
+    if frame.empty:
+        return pd.DataFrame()
+    driver_col = first_available(
+        frame,
+        ["driver_id", "DriverNumber", "driver_number", "Abbreviation", "Driver", "DriverId", "FullName"],
+    )
+    grid_col = first_available(
+        frame,
+        ["grid_position", "GridPosition", "Grid", "StartingGridPosition", "starting_grid_position", "grid"],
+    )
+    if driver_col is None or grid_col is None:
+        return pd.DataFrame()
+    out = pd.DataFrame()
+    out["driver_id"] = frame[driver_col].astype(str).str.strip()
+    parsed = frame[grid_col].apply(_parse_grid_position_status)
+    out["grid_position"] = parsed.map(lambda item: item[0])
+    out["grid_status"] = parsed.map(lambda item: item[1])
+    valid_grid = pd.to_numeric(out["grid_position"], errors="coerce")
+    pit_lane = out["grid_status"].eq("pit_lane")
+    if pit_lane.any():
+        max_grid = valid_grid.max(skipna=True)
+        if pd.notna(max_grid):
+            pit_positions = range(int(max_grid) + 1, int(max_grid) + 1 + int(pit_lane.sum()))
+            out.loc[pit_lane, "grid_position"] = list(pit_positions)
+    out["grid_source"] = str(source)
+    out = out[out["driver_id"] != ""]
+    return out
+
+
 class BaseProvider:
     def list_rounds(self, year: int) -> List[Dict[str, object]]:
         raise NotImplementedError
@@ -34,6 +90,9 @@ class BaseProvider:
 
     def get_race_results(self, year: int, round_number: int) -> pd.DataFrame:
         raise NotImplementedError
+
+    def get_starting_grid(self, year: int, round_number: int) -> pd.DataFrame:
+        return pd.DataFrame()
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:
         return None
@@ -934,21 +993,21 @@ class LocalWeekendProvider(BaseProvider):
                     race_results_raw.loc[dnf_mask, driver_col_raw].map(self._normalize_driver_id).astype(str).tolist()
                 )
 
-        overtake_frame = merged.copy()
+        mobility_frame = merged.copy()
         if dnf_driver_ids:
-            overtake_frame = overtake_frame[~overtake_frame["driver_id"].astype(str).isin(dnf_driver_ids)]
-        if overtake_frame.empty:
-            overtake_frame = merged
-        field_size = float(len(overtake_frame))
-        pos_delta = overtake_frame["start_position"] - overtake_frame["race_position"]
-        overtake_propensity = float(pos_delta.abs().mean() / max(1.0, field_size - 1.0))
-        overtake_propensity = float(min(1.0, max(0.0, overtake_propensity)))
+            mobility_frame = mobility_frame[~mobility_frame["driver_id"].astype(str).isin(dnf_driver_ids)]
+        if mobility_frame.empty:
+            mobility_frame = merged
+        field_size = float(len(mobility_frame))
+        pos_delta = mobility_frame["start_position"] - mobility_frame["race_position"]
+        finish_order_mobility = float(pos_delta.abs().mean() / max(1.0, field_size - 1.0))
+        finish_order_mobility = float(min(1.0, max(0.0, finish_order_mobility)))
 
         summary: dict[str, object] = {
             "event_name_norm": event_name_norm,
             "event_year": int(year),
             "event_round": int(round_number),
-            "overtake_propensity": overtake_propensity,
+            "finish_order_mobility": finish_order_mobility,
             "grid_stability": grid_stability,
             "safety_car_presence": float(safety_car_presence),
             "sc_lap_ratio": float(sc_lap_ratio),
@@ -1001,7 +1060,12 @@ class LocalWeekendProvider(BaseProvider):
         if source_frame.empty:
             return None
 
-        overtake = pd.to_numeric(source_frame.get("overtake_propensity"), errors="coerce")
+        mobility_source = (
+            source_frame.get("finish_order_mobility")
+            if "finish_order_mobility" in source_frame.columns
+            else source_frame.get("overtake_propensity")
+        )
+        finish_order_mobility = pd.to_numeric(mobility_source, errors="coerce")
         grid_stability = pd.to_numeric(source_frame.get("grid_stability"), errors="coerce")
         sc_presence = pd.to_numeric(source_frame.get("safety_car_presence"), errors="coerce")
         sc_lap_ratio = pd.to_numeric(source_frame.get("sc_lap_ratio"), errors="coerce")
@@ -1027,7 +1091,8 @@ class LocalWeekendProvider(BaseProvider):
         chaos_value = float(chaos.mean(skipna=True)) if chaos.notna().sum() > 0 else 0.5
 
         return {
-            "track_overtake_propensity": float(overtake.mean(skipna=True)),
+            "track_finish_order_mobility": float(finish_order_mobility.mean(skipna=True)),
+            "track_overtake_propensity": float(finish_order_mobility.mean(skipna=True)),
             "track_grid_stability": float(grid_stability.mean(skipna=True)),
             "track_safety_car_propensity": float(sc_presence.mean(skipna=True)),
             "track_sc_lap_ratio": float(sc_lap_ratio.mean(skipna=True)),
@@ -1143,11 +1208,61 @@ class LocalWeekendProvider(BaseProvider):
             frame["driver_name"] = frame["driver_id"]
         frame["position"] = pd.to_numeric(results[pos_col], errors="coerce")
         if grid_col:
-            frame["grid_position"] = pd.to_numeric(results[grid_col], errors="coerce")
+            grid_parsed = results[grid_col].apply(_parse_grid_position_status)
+            frame["grid_position"] = grid_parsed.map(lambda item: item[0])
+            frame["grid_status"] = grid_parsed.map(lambda item: item[1])
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
         frame = frame[frame["driver_id"] != ""]
         return frame
+
+    def get_starting_grid(self, year: int, round_number: int) -> pd.DataFrame:
+        weekend = self._weekend_for_round(year, round_number)
+        if weekend is None:
+            return pd.DataFrame()
+        weekend_dir = weekend.get("event_dir")
+        if not isinstance(weekend_dir, Path):
+            weekend_dir = Path(str(weekend_dir))
+        meta = self._read_weekend_meta(weekend_dir)
+        sessions_raw = meta.get("sessions") if meta else weekend.get("sessions")
+        entries = [dict(entry) for entry in sessions_raw if isinstance(entry, dict)] if isinstance(sessions_raw, list) else []
+        grid_refs: list[tuple[object, object, bool]] = [
+            (meta.get("grid_path"), meta.get("grid_availability_phase"), False),
+            (meta.get("starting_grid_path"), meta.get("grid_availability_phase"), False),
+            (meta.get("pre_race_grid_path"), "pre_race", True),
+        ]
+        for entry in entries:
+            grid_refs.extend(
+                [
+                    (entry.get("grid_path"), entry.get("grid_availability_phase") or entry.get("availability_phase"), False),
+                    (entry.get("starting_grid_path"), entry.get("grid_availability_phase") or entry.get("availability_phase"), False),
+                    (entry.get("pre_race_grid_path"), "pre_race", True),
+                ],
+            )
+        for raw_path, phase, trusted_by_key in grid_refs:
+            if raw_path is None:
+                continue
+            if phase is None and not trusted_by_key:
+                continue
+            phase_text = str(phase or "pre_race").strip().lower()
+            if phase_text in {"post_race", "race_results", "retrospective", "actuals"}:
+                continue
+            if phase_text not in {"pre_race", "official_pre_race", "starting_grid", "published_pre_race"}:
+                continue
+            path = self._resolve_session_path(weekend_dir, raw_path)
+            if path is None:
+                continue
+            try:
+                grid_raw = pd.read_csv(path)
+            except Exception:
+                continue
+            grid = _standardize_grid_columns(grid_raw, source="pre_race_official_grid")
+            if grid.empty:
+                continue
+            grid["driver_id"] = grid["driver_id"].map(self._normalize_driver_id)
+            grid = grid[grid["driver_id"] != ""]
+            return grid
+        return pd.DataFrame()
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:
         if round_number <= 1:

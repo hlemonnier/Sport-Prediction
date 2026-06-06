@@ -829,6 +829,21 @@ def run_live_race_prediction(
 
     observations = observations.copy()
     observations = observations.sort_values(["driver_id", "lap_number", "timestamp"], kind="mergesort")
+    cutoff_lap = getattr(config, "f1_live_replay_cutoff_lap", None)
+    if cutoff_lap is not None:
+        cutoff_value = int(cutoff_lap)
+        lap_filter = pd.to_numeric(observations.get("lap_number"), errors="coerce") <= float(cutoff_value)
+        observations = observations.loc[lap_filter].copy()
+        notes.append(f"Live replay cutoff active: using observations through lap {cutoff_value}.")
+        if observations.empty:
+            summary = {
+                "available": False,
+                "reason": "live_observations_empty_after_cutoff",
+                "source_used": source_result.source_used,
+                "cutoff_lap": cutoff_value,
+                "generated_at": _utc_now(),
+            }
+            return LiveRunResult(snapshot=pd.DataFrame(), trace=pd.DataFrame(), summary=summary, notes=notes)
 
     lap_number_numeric = pd.to_numeric(observations.get("lap_number"), errors="coerce")
     baseline_cache: dict[int, BaselineModel] = {}
@@ -1008,6 +1023,7 @@ def run_live_race_prediction(
         "f1_live_model": str(config.f1_live_model),
         "f1_live_source": str(config.f1_live_source),
         "horizon_laps": int(horizon),
+        "replay_cutoff_lap": int(cutoff_lap) if cutoff_lap is not None else None,
         "drivers_processed": int(snapshot_final["driver_id"].nunique()) if not snapshot_final.empty else 0,
         "laps_processed": int(pd.to_numeric(trace.get("lap_number"), errors="coerce").max())
         if not trace.empty

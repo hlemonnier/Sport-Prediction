@@ -205,7 +205,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             actual = _actual(provider, mode, int(args.year), int(rnd))
             with_eval = evaluate_prediction_rows(_records(with_result), actual, "position")
             without_eval = evaluate_prediction_rows(_records(without_result), actual, "position")
-            if not bool(with_eval.get("available")) or not bool(without_eval.get("available")):
+            if (
+                not bool(with_eval.get("available"))
+                or not bool(without_eval.get("available"))
+                or not bool(with_eval.get("metric_available", False))
+                or not bool(without_eval.get("metric_available", False))
+            ):
                 skipped.append(
                     {
                         "mode": mode,
@@ -221,9 +226,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     "round": int(rnd),
                     "rows_common_with_cards": int(with_eval.get("rows_common", 0)),
                     "rows_common_without_cards": int(without_eval.get("rows_common", 0)),
-                    "mae_with_cards": with_eval.get("mae_on_common"),
-                    "mae_without_cards": without_eval.get("mae_on_common"),
-                    "mae_delta_with_minus_without": _metric_delta(with_eval, without_eval, "mae_on_common"),
+                    "field_coverage_with_cards": with_eval.get("field_coverage"),
+                    "field_coverage_without_cards": without_eval.get("field_coverage"),
+                    "mae_on_common_with_cards": with_eval.get("mae_on_common"),
+                    "mae_on_common_without_cards": without_eval.get("mae_on_common"),
+                    "mae_with_cards": with_eval.get("field_mae"),
+                    "mae_without_cards": without_eval.get("field_mae"),
+                    "mae_delta_with_minus_without": _metric_delta(with_eval, without_eval, "field_mae"),
                     "top10_with_cards": with_eval.get("top10_hit"),
                     "top10_without_cards": without_eval.get("top10_hit"),
                     "top10_delta_with_minus_without": _metric_delta(with_eval, without_eval, "top10_hit"),

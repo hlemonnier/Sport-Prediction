@@ -11,14 +11,16 @@ if "requests" not in sys.modules:
     sys.modules["requests"] = requests_stub
 
 from rqp.circuit_cards import circuit_card_from_event
+from rqp.config import PredictionConfig
 from rqp.data import _attach_temporal_features_current, _attach_track_stats
 from rqp.prediction import _qualifying_feature_sets, _race_feature_sets
+from run_circuit_card_ablation import _decision_from_summary
 
 
 class StubTrackProvider:
     def get_track_stats(self, year: int, round_number: int) -> dict[str, float]:
         return {
-            "track_overtake_propensity": 0.08,
+            "track_finish_order_mobility": 0.08,
             "track_grid_stability": 0.92,
             "track_safety_car_propensity": 0.70,
             "track_dnf_rate": 0.20,
@@ -55,7 +57,7 @@ def test_track_stats_refine_circuit_card_without_losing_static_identity() -> Non
     card = circuit_card_from_event(
         "Monaco Grand Prix",
         {
-            "track_overtake_propensity": 0.20,
+            "track_finish_order_mobility": 0.20,
             "track_grid_stability": 0.80,
             "track_safety_car_propensity": 0.90,
             "track_stats_reliability": 1.00,
@@ -86,6 +88,9 @@ def test_attach_track_stats_adds_card_features_and_interactions() -> None:
     assert float(out["circuit_downforce_demand"].iloc[0]) > 0.95
     assert float(out["track_qualy_importance"].iloc[0]) > 0.75
     assert "track_safety_car_prior" in out.columns
+    assert "track_finish_order_mobility" in out.columns
+    assert "track_overtake_propensity" in out.columns
+    assert float(out["track_finish_order_mobility"].iloc[0]) == float(out["track_overtake_propensity"].iloc[0])
     assert "track_dnf_prior" in out.columns
     assert "track_strategy_variance_prior" in out.columns
     assert "track_weather_uncertainty_prior" in out.columns
@@ -93,6 +98,23 @@ def test_attach_track_stats_adds_card_features_and_interactions() -> None:
     assert "fp_weighted_delta_downforce_adj" in out.columns
     assert "qualy_position_circuit_importance_adj" in out.columns
     assert "circuit_fit_index" in out.columns
+
+
+def test_prediction_config_quarantines_circuit_features_by_default() -> None:
+    config = PredictionConfig(
+        source="local",
+        mode="race",
+        year=2026,
+        round_number=1,
+        train_seasons=[2024, 2025],
+        include_standings=False,
+        cache_dir=None,
+        meeting_name=None,
+        country_name=None,
+        weekends_dir=None,
+    )
+
+    assert config.disable_circuit_features is True
 
 
 def test_feature_sets_consume_circuit_card_columns() -> None:
@@ -114,7 +136,8 @@ def test_feature_sets_consume_circuit_card_columns() -> None:
         assert "race_generation_variance_prior" in columns
     assert "circuit_downforce_demand" not in qualifying_no_cards
     assert "circuit_downforce_demand" not in race_no_cards
-    assert "track_qualy_importance" not in race_no_cards
+    assert "driver_circuit_hist_fp_weighted_delta" not in race_no_cards
+    assert "track_qualy_importance" in race_no_cards
 
 
 def test_circuit_fit_index_changes_relative_order_across_circuit_traits() -> None:
@@ -172,3 +195,21 @@ def test_current_features_map_team_and_driver_archetype_history() -> None:
     assert float(out["team_archetype_form_3_fp_weighted_delta"].iloc[0]) == 0.12
     assert float(out["driver_circuit_hist_fp_weighted_delta"].iloc[0]) == 0.12
     assert float(out["team_circuit_hist_fp_weighted_delta"].iloc[0]) == 0.12
+
+
+def test_zero_effect_circuit_card_ablation_decision_is_quarantine() -> None:
+    decision = _decision_from_summary(
+        {
+            "available": True,
+            "paired_deltas": {
+                "mae_with_minus_without": {
+                    "mean": 0.0,
+                    "ci95_low": 0.0,
+                    "ci95_high": 0.0,
+                },
+                "top10_with_minus_without": {"mean": 0.0},
+            },
+        }
+    )
+
+    assert decision["state"] == "quarantine"

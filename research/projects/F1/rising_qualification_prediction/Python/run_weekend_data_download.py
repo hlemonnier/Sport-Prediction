@@ -193,6 +193,7 @@ def download_weekend(
                 "session_order": i,
                 "session_name": session_name,
                 "session_type": kind,
+                "availability_phase": "post_race" if kind == "race" else "post_session",
                 "laps_rows": int(len(laps)),
                 "results_rows": int(len(results)),
                 "laps_path": laps_path,

@@ -14,6 +14,7 @@ from rqp.betting import (
     BettingConfig,
     build_betting_recommendations,
     build_betting_report,
+    forward_record_hash,
     load_odds_frame,
     load_prediction_frame,
 )
@@ -39,12 +40,6 @@ def _sha256_file(path: str | Path) -> str:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
-
-
-def _record_hash(record: dict[str, Any]) -> str:
-    payload = {k: v for k, v in record.items() if k != "record_hash"}
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _previous_hash(log_path: Path) -> str:
@@ -138,7 +133,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "previous_record_hash": previous_hash,
         "betting_report": report,
     }
-    record["record_hash"] = _record_hash(record)
+    record["record_hash"] = forward_record_hash(record)
 
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "a", encoding="utf-8") as f:

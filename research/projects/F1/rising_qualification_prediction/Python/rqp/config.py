@@ -25,7 +25,7 @@ class PredictionConfig:
     dl_hyperparams: dict[str, Any] = field(default_factory=dict)
     dl_seed: int = 42
     disable_runsim_features: bool = False
-    disable_circuit_features: bool = False
+    disable_circuit_features: bool = True
     f1_model: str = "auto"
     f1_listwise: str = "pl_gumbel"
     f1_pl_samples: int = 2000
@@ -39,8 +39,10 @@ class PredictionConfig:
     f1_live_seed: int = 42
     f1_live_cache_dir: Optional[str] = None
     f1_live_replay_path: Optional[str] = None
+    f1_live_replay_cutoff_lap: Optional[int] = None
     season_weight_year: Optional[int] = None
     season_weight_multiplier: float = 1.0
+    race_delta_constraint_mode: str = "constrained"
 
 
 @dataclass

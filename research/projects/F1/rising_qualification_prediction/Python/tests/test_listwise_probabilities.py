@@ -46,6 +46,8 @@ def test_pl_listwise_probabilities_are_valid_and_normalized_per_event() -> None:
     for event_key, event_rows in out.groupby(frame["event_key"], sort=False):
         _ = event_key
         assert abs(float(event_rows["p_win"].sum()) - 1.0) < 0.02
+        assert abs(float(event_rows["p_top3"].sum()) - 3.0) < 0.02
+        assert abs(float(event_rows["p_top10"].sum()) - float(len(event_rows))) < 0.02
 
 
 def test_pl_listwise_is_deterministic_with_fixed_seed() -> None:

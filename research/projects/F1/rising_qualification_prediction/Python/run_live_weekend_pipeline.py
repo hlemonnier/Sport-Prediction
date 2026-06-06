@@ -85,6 +85,19 @@ def _load_json(path: Path) -> Optional[dict[str, Any]]:
         return None
     return None
 
+
+def _payload_prediction_rows(payload: Optional[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not isinstance(payload, dict):
+        return []
+    all_rows = payload.get("all_prediction_rows")
+    if isinstance(all_rows, list):
+        return [row for row in all_rows if isinstance(row, dict)]
+    rows = payload.get("rows")
+    if isinstance(rows, list):
+        return [row for row in rows if isinstance(row, dict)]
+    return []
+
+
 def _round_dir(base_output_dir: str, year: int, round_number: int) -> Path:
     return Path(base_output_dir) / str(year) / f"round_{int(round_number):02d}"
 
@@ -154,6 +167,7 @@ def _run_race_prediction(
     f1_live_seed: int = 42,
     f1_live_cache_dir: Optional[str] = None,
     f1_live_replay_path: Optional[str] = None,
+    f1_live_replay_cutoff_lap: Optional[int] = None,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -180,6 +194,7 @@ def _run_race_prediction(
         f1_live_seed=f1_live_seed,
         f1_live_cache_dir=f1_live_cache_dir,
         f1_live_replay_path=f1_live_replay_path,
+        f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
     )
     return _prediction_payload(config)
 
@@ -297,7 +312,7 @@ def _run_post_qualifying(
     prequal_qualifying = _load_json(output_dir / "prequal_qualifying_prediction.json")
     actual_qualifying = provider.get_qualifying_results(year, round_number)
     qual_eval = evaluate_prediction_rows(
-        predicted_rows=prequal_qualifying.get("rows", []) if prequal_qualifying else [],
+        predicted_rows=_payload_prediction_rows(prequal_qualifying),
         actual_results=actual_qualifying,
         actual_position_col="position",
         include_podium_and_winner=True,
@@ -332,19 +347,19 @@ def _run_post_race(
     actual_race = provider.get_race_results(year, round_number)
 
     qualifying_eval = evaluate_prediction_rows(
-        predicted_rows=prequal_qualifying.get("rows", []) if prequal_qualifying else [],
+        predicted_rows=_payload_prediction_rows(prequal_qualifying),
         actual_results=actual_qualifying,
         actual_position_col="position",
         include_podium_and_winner=True,
     )
     race_eval_prequal = evaluate_prediction_rows(
-        predicted_rows=prequal_race.get("rows", []) if prequal_race else [],
+        predicted_rows=_payload_prediction_rows(prequal_race),
         actual_results=actual_race,
         actual_position_col="position",
         include_podium_and_winner=True,
     )
     race_eval_postqual = evaluate_prediction_rows(
-        predicted_rows=postqual_race.get("rows", []) if postqual_race else [],
+        predicted_rows=_payload_prediction_rows(postqual_race),
         actual_results=actual_race,
         actual_position_col="position",
         include_podium_and_winner=True,
@@ -353,8 +368,8 @@ def _run_post_race(
     delta_mae = None
     delta_top10 = None
     if race_eval_prequal.get("available") and race_eval_postqual.get("available"):
-        pre_mae = race_eval_prequal.get("mae_on_common")
-        post_mae = race_eval_postqual.get("mae_on_common")
+        pre_mae = race_eval_prequal.get("field_mae")
+        post_mae = race_eval_postqual.get("field_mae")
         pre_top10 = race_eval_prequal.get("top10_hit")
         post_top10 = race_eval_postqual.get("top10_hit")
         if pre_mae is not None and post_mae is not None:
@@ -370,7 +385,7 @@ def _run_post_race(
         "race_eval_prequal_vs_actual": race_eval_prequal,
         "race_eval_postqual_vs_actual": race_eval_postqual,
         "race_eval_delta_postqual_minus_prequal": {
-            "mae_on_common": delta_mae,
+            "field_mae": delta_mae,
             "top10_hit": delta_top10,
         },
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -405,6 +420,7 @@ def _run_live_race(
     f1_live_seed: int,
     f1_live_cache_dir: Optional[str],
     f1_live_replay_path: Optional[str],
+    f1_live_replay_cutoff_lap: Optional[int],
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
         source=source,
@@ -430,6 +446,7 @@ def _run_live_race(
         f1_live_seed=f1_live_seed,
         f1_live_cache_dir=f1_live_cache_dir,
         f1_live_replay_path=f1_live_replay_path,
+        f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
     )
     snapshot_path = output_dir / "live_race_snapshot.json"
     _write_json(snapshot_path, race_payload)
@@ -498,6 +515,7 @@ def main() -> None:
     parser.add_argument("--f1-live-seed", type=int, default=42)
     parser.add_argument("--f1-live-cache-dir", default=None)
     parser.add_argument("--f1-live-replay-path", default=None)
+    parser.add_argument("--f1-live-replay-cutoff-lap", type=int, default=None)
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
@@ -601,6 +619,7 @@ def main() -> None:
             f1_live_seed=args.f1_live_seed,
             f1_live_cache_dir=args.f1_live_cache_dir,
             f1_live_replay_path=args.f1_live_replay_path,
+            f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
         )
         executed.append("live-race")
 
@@ -638,6 +657,7 @@ def main() -> None:
         "f1_live_seed": int(args.f1_live_seed),
         "f1_live_cache_dir": args.f1_live_cache_dir,
         "f1_live_replay_path": args.f1_live_replay_path,
+        "f1_live_replay_cutoff_lap": args.f1_live_replay_cutoff_lap,
         "output_dir": str(output_dir),
         "artifacts": artifacts,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),

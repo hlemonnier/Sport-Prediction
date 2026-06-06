@@ -125,7 +125,28 @@ def _selection_rows(
 ) -> list[dict[str, Any]]:
     rows = _prediction_rows(result)
     rows = sorted(rows, key=lambda r: float(r.get("rank", 9999)))
-    lookup = _actual_position_lookup(actual)
+    match_eval = evaluate_prediction_rows(
+        rows,
+        actual,
+        "position",
+        min_field_coverage=0.0,
+        require_complete_field=False,
+        include_match_rows=True,
+    )
+    match_rows = match_eval.get("match_rows") if isinstance(match_eval, dict) else None
+    actual_position_by_pred_index: dict[int, float] = {}
+    if isinstance(match_rows, list):
+        for match in match_rows:
+            if not isinstance(match, dict):
+                continue
+            pred_index = match.get("pred_index")
+            actual_rank = match.get("actual_rank")
+            if pred_index is None or actual_rank is None or pd.isna(actual_rank):
+                continue
+            try:
+                actual_position_by_pred_index[int(pred_index)] = float(actual_rank)
+            except (TypeError, ValueError):
+                continue
     output: list[dict[str, Any]] = []
     markets = [
         ("winner", 1, "proba_win"),
@@ -133,8 +154,8 @@ def _selection_rows(
         ("top10", 10, "proba_top10"),
     ]
     for market, cutoff_rank, probability_col in markets:
-        for row in rows[:cutoff_rank]:
-            actual_position = _actual_position_for_row(row, lookup)
+        for row_index, row in enumerate(rows[:cutoff_rank]):
+            actual_position = actual_position_by_pred_index.get(int(row_index))
             hit = None
             if actual_position is not None:
                 hit = actual_position <= cutoff_rank
@@ -197,7 +218,11 @@ def _summary_row(
         "rows_predicted": evaluation.get("rows_predicted"),
         "rows_actual": evaluation.get("rows_actual"),
         "rows_common": evaluation.get("rows_common"),
+        "field_coverage": evaluation.get("field_coverage"),
+        "mae_valid": evaluation.get("mae_valid"),
+        "field_mae": evaluation.get("field_mae"),
         "mae_on_common": evaluation.get("mae_on_common"),
+        "field_mae_penalized": evaluation.get("field_mae_penalized"),
         "top10_hit_pct": round(float(evaluation["top10_hit"]) * 100.0, 2) if evaluation.get("top10_hit") is not None else None,
         "podium_hit_count": evaluation.get("podium_hit_count"),
         "winner_hit": evaluation.get("winner_hit"),

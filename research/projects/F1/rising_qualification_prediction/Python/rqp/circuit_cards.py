@@ -235,18 +235,20 @@ def circuit_card_from_event(event_name: object, track_stats: Optional[dict[str, 
     if reliability is None:
         reliability = 0.0
 
-    overtake = _stat(track_stats, "track_overtake_propensity")
+    mobility = _stat(track_stats, "track_finish_order_mobility")
+    if mobility is None:
+        mobility = _stat(track_stats, "track_overtake_propensity")
     grid_stability = _stat(track_stats, "track_grid_stability")
     safety = _stat(track_stats, "track_safety_car_propensity")
     chaos = _stat(track_stats, "track_chaos_index")
     pit_intensity = _stat(track_stats, "track_pit_stop_intensity")
 
-    observed_overtaking_difficulty = None if overtake is None else 1.0 - overtake
+    observed_overtaking_difficulty = None if mobility is None else 1.0 - mobility
     observed_qualifying_importance = None
-    if overtake is not None or grid_stability is not None:
-        overtake_part = 1.0 - overtake if overtake is not None else base.overtaking_difficulty
+    if mobility is not None or grid_stability is not None:
+        mobility_part = 1.0 - mobility if mobility is not None else base.overtaking_difficulty
         grid_part = grid_stability if grid_stability is not None else base.qualifying_importance
-        observed_qualifying_importance = (0.55 * overtake_part) + (0.45 * grid_part)
+        observed_qualifying_importance = (0.55 * mobility_part) + (0.45 * grid_part)
 
     observed_tyre = None
     if pit_intensity is not None:

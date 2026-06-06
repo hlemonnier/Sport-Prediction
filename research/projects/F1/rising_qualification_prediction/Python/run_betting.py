@@ -50,8 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
 def _print_text(report: dict[str, object]) -> None:
     summary = report.get("summary", {})
     print("=" * 72)
-    print("F1 betting recommendations")
+    print("F1 paper betting candidates")
     print("=" * 72)
+    readiness = report.get("readiness_status")
+    if readiness:
+        print(f"Readiness: {readiness}")
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     rows = report.get("recommendations", [])
     if not isinstance(rows, list) or not rows:
@@ -61,7 +64,7 @@ def _print_text(report: dict[str, object]) -> None:
     if not bets:
         print("\nNo bets passed the edge, Kelly, and exposure filters.")
         return
-    print("\nBets:")
+    print("\nPaper candidates:")
     for row in bets:
         print(
             "- "

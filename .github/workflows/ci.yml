@@ -78,8 +78,30 @@ jobs:
           python -m compileall "research/projects/Football/Match Result Prediction/Python"
 
   f1_tests:
-    name: F1 pytest suite
+    name: F1 pytest suite (${{ matrix.shard.name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - name: review-core
+            tests: >-
+              tests/test_gpt_pro_review_fixes.py
+              tests/test_listwise_probabilities.py
+              tests/test_baseline_ladder.py
+          - name: betting-circuit
+            tests: >-
+              tests/test_betting_system.py
+              tests/test_circuit_cards.py
+          - name: live-horizon
+            tests: >-
+              tests/test_live_horizon_b.py
+              tests/test_horizon_a_vs_b_lap_snapshots.py
+          - name: fallback-weights
+            tests: >-
+              tests/test_heuristic_fallback.py
+              tests/test_rolling_weights.py
     defaults:
       run:
         working-directory: research/projects/F1/rising_qualification_prediction/Python
@@ -101,5 +123,6 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pytest pandas numpy scikit-learn
 
-      - name: Run tests
-        run: python -m pytest -q
+      - name: Run test shard
+        timeout-minutes: 10
+        run: python -m pytest -q --durations=20 ${{ matrix.shard.tests }}

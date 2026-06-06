@@ -48,6 +48,20 @@ def _parse_grid_position_status(value: object) -> tuple[float, str]:
     return position, "grid"
 
 
+def _assign_pit_lane_grid_positions(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or "grid_position" not in frame.columns or "grid_status" not in frame.columns:
+        return frame
+    out = frame.copy()
+    valid_grid = pd.to_numeric(out["grid_position"], errors="coerce")
+    pit_lane = out["grid_status"].astype(str).str.lower().eq("pit_lane")
+    if pit_lane.any():
+        max_grid = valid_grid.max(skipna=True)
+        if pd.notna(max_grid):
+            pit_positions = range(int(max_grid) + 1, int(max_grid) + 1 + int(pit_lane.sum()))
+            out.loc[pit_lane, "grid_position"] = list(pit_positions)
+    return out
+
+
 def _standardize_grid_columns(frame: pd.DataFrame, *, source: str) -> pd.DataFrame:
     if frame.empty:
         return pd.DataFrame()
@@ -66,13 +80,7 @@ def _standardize_grid_columns(frame: pd.DataFrame, *, source: str) -> pd.DataFra
     parsed = frame[grid_col].apply(_parse_grid_position_status)
     out["grid_position"] = parsed.map(lambda item: item[0])
     out["grid_status"] = parsed.map(lambda item: item[1])
-    valid_grid = pd.to_numeric(out["grid_position"], errors="coerce")
-    pit_lane = out["grid_status"].eq("pit_lane")
-    if pit_lane.any():
-        max_grid = valid_grid.max(skipna=True)
-        if pd.notna(max_grid):
-            pit_positions = range(int(max_grid) + 1, int(max_grid) + 1 + int(pit_lane.sum()))
-            out.loc[pit_lane, "grid_position"] = list(pit_positions)
+    out = _assign_pit_lane_grid_positions(out)
     out["grid_source"] = str(source)
     out = out[out["driver_id"] != ""]
     return out
@@ -1211,6 +1219,7 @@ class LocalWeekendProvider(BaseProvider):
             grid_parsed = results[grid_col].apply(_parse_grid_position_status)
             frame["grid_position"] = grid_parsed.map(lambda item: item[0])
             frame["grid_status"] = grid_parsed.map(lambda item: item[1])
+            frame = _assign_pit_lane_grid_positions(frame)
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
         frame = frame[frame["driver_id"] != ""]

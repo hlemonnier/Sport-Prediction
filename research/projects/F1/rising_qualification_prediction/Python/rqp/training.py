@@ -48,6 +48,7 @@ DEFAULT_PL_SAMPLES = 2000
 DEFAULT_PL_SEED = 42
 DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS = 5
 DEFAULT_PROBABILITY_AUDIT_BOOTSTRAP_SAMPLES = 200
+PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v2"
 
 
 @dataclass
@@ -1540,6 +1541,8 @@ def _probability_audit_from_oof(
         "max_brier": 0.30,
         "max_log_loss": 1.25,
         "baseline_tolerance": 0.005,
+        "max_brier_delta_ci95_upper": 0.005,
+        "max_log_loss_delta_ci95_upper": 0.005,
         "min_calibration_slope": 0.35,
         "max_calibration_slope": 2.75,
         "min_oof_events": DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS,
@@ -1594,6 +1597,20 @@ def _probability_audit_from_oof(
             "base_rate": float(y.loc[valid_label].mean()),
             "row_count": int(valid_label.sum()),
         }
+        ci_gate_passed = False
+        if bool(bootstrap.get("available", False)):
+            brier_ci = bootstrap.get("brier_delta_ci95")
+            log_loss_ci = bootstrap.get("log_loss_delta_ci95")
+            if isinstance(brier_ci, list) and len(brier_ci) == 2 and isinstance(log_loss_ci, list) and len(log_loss_ci) == 2:
+                brier_upper = pd.to_numeric(pd.Series([brier_ci[1]]), errors="coerce").iloc[0]
+                log_loss_upper = pd.to_numeric(pd.Series([log_loss_ci[1]]), errors="coerce").iloc[0]
+                ci_gate_passed = bool(
+                    pd.notna(brier_upper)
+                    and pd.notna(log_loss_upper)
+                    and float(brier_upper) <= float(thresholds["max_brier_delta_ci95_upper"])
+                    and float(log_loss_upper) <= float(thresholds["max_log_loss_delta_ci95_upper"])
+                )
+        metric["ci_gate_passed"] = bool(ci_gate_passed)
         metric_passed = (
             brier <= thresholds["max_brier"]
             and log_loss <= thresholds["max_log_loss"]
@@ -1602,6 +1619,7 @@ def _probability_audit_from_oof(
             and slope is not None
             and thresholds["min_calibration_slope"] <= slope <= thresholds["max_calibration_slope"]
             and bool(bootstrap.get("available", False))
+            and ci_gate_passed
         )
         metric["passed"] = bool(metric_passed)
         if not metric_passed:
@@ -1613,6 +1631,7 @@ def _probability_audit_from_oof(
         "available": True,
         "passed": bool(passed),
         "reason": "passed" if passed else ",".join(reasons),
+        "schema_version": PROBABILITY_AUDIT_SCHEMA_VERSION,
         "source": "walk_forward_oof",
         "probability_layer": "pl_gumbel",
         "same_probability_layer_as_production": True,

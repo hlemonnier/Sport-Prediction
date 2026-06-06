@@ -474,7 +474,7 @@ def _run_live_race(
     }
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Live weekend pipeline: pre-qualifying, post-qualifying, post-race, live-race.",
     )
@@ -493,7 +493,8 @@ def main() -> None:
         default="strict_transfer",
         help=(
             "auto train-season policy. "
-            "strict_transfer excludes target_year-1 (ex: excludes 2025 for 2026)."
+            "strict_transfer uses distant prior seasons plus target-year prior rounds, "
+            "and excludes target_year-1 (ex: excludes 2025 for 2026)."
         ),
     )
     parser.add_argument("--include-standings", action="store_true")
@@ -520,6 +521,11 @@ def main() -> None:
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
     parser.add_argument("--quiet", action="store_true")
+    return parser
+
+
+def main() -> None:
+    parser = build_parser()
     args = parser.parse_args()
 
     train_seasons = parse_train_seasons(args.train_seasons, args.year, args.train_policy)

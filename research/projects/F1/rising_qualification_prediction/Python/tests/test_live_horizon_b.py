@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import subprocess
-import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
+from run_experiment import build_parser as build_prediction_parser
+from run_live_weekend_pipeline import build_parser as build_weekend_parser
 from rqp.config import PredictionConfig
 from rqp.live_runner import (
     _finalize_output_mapping,
@@ -360,7 +360,7 @@ def test_build_race_time_seconds_preserves_unknowns_without_zero_fill() -> None:
 def test_mc_cpu_guard_reduces_samples_and_logs_reason() -> None:
     cfg = FilterConfig()
     baseline = BaselineModel(by_lap={1: 90.0}, intercept=90.0, slope=0.05)
-    driver_ids = [str(i) for i in range(300)]
+    driver_ids = [str(i) for i in range(80)]
     snapshot = pd.DataFrame(
         {
             "driver_id": driver_ids,
@@ -378,6 +378,7 @@ def test_mc_cpu_guard_reduces_samples_and_logs_reason() -> None:
         cfg=cfg,
         horizon_laps=4,
         seed=123,
+        max_mc_work=10_000,
     )
 
     assert summary["mc_samples_requested"] == 1000
@@ -516,14 +517,7 @@ def test_openf1_live_source_is_explicitly_rejected() -> None:
 
 
 def test_cli_help_exposes_horizon_b_flags_and_live_race_phase() -> None:
-    project_python_dir = Path(__file__).resolve().parents[1]
-
-    prediction_help = subprocess.run(
-        [sys.executable, str(project_python_dir / "run_prediction.py"), "--help"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
+    prediction_help = build_prediction_parser("prediction").format_help()
     assert "--f1_mode" in prediction_help
     assert "--f1_live_source" in prediction_help
     assert "--f1_live_model" in prediction_help
@@ -533,12 +527,7 @@ def test_cli_help_exposes_horizon_b_flags_and_live_race_phase() -> None:
     assert "--f1_live_replay_path" in prediction_help
     assert "--f1_live_replay_cutoff_lap" in prediction_help
 
-    weekend_help = subprocess.run(
-        [sys.executable, str(project_python_dir / "run_live_weekend_pipeline.py"), "--help"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
+    weekend_help = build_weekend_parser().format_help()
     assert "live-race" in weekend_help
     assert "--f1-mode" in weekend_help
     assert "--f1-live-source" in weekend_help

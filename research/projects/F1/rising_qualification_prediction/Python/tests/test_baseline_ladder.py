@@ -11,7 +11,8 @@ from run_f1_baseline_ladder import (
 
 
 def test_baseline_ladder_declares_required_race_variants() -> None:
-    names = [spec["name"] for spec in _race_ladder_specs()]
+    specs = _race_ladder_specs()
+    names = [spec["name"] for spec in specs]
 
     assert names == [
         "grid_only",
@@ -21,6 +22,10 @@ def test_baseline_ladder_declares_required_race_variants() -> None:
         "current_full_model",
         "current_full_model_plus_circuit_cards",
     ]
+    constrained = next(spec for spec in specs if spec["name"] == "grid_delta_constrained")
+    current = next(spec for spec in specs if spec["name"] == "current_full_model")
+    assert constrained.get("f1_model") == "baseline"
+    assert "f1_model" not in current
 
 
 def test_baseline_ladder_declares_required_qualifying_variants() -> None:
@@ -47,6 +52,52 @@ def test_baseline_ladder_summary_uses_identical_event_sets() -> None:
     assert summary["common_event_count"] == 1
     assert summary["variant_metrics"]["grid_only"]["field_mae_avg"] == 2.0
     assert summary["variant_metrics"]["current_full_model"]["field_mae_avg"] == 1.0
+    paired = summary["paired_comparisons"]["current_full_model_vs_grid_only_field_mae"]
+    assert paired["available"] is True
+    assert paired["event_count"] == 1
+    assert paired["mean_improvement"] == 1.0
+    assert paired["improved_events"] == 1
+    assert paired["worse_events"] == 0
+    assert paired["sign_test_p_value_two_sided"] == 1.0
+    assert paired["event_deltas"][0]["raw_delta_challenger_minus_baseline"] == -1.0
+
+
+def test_baseline_ladder_summary_labels_duplicate_config_aliases() -> None:
+    signature = {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": True,
+        "race_delta_constraint_mode": "constrained",
+    }
+    rows = [
+        {
+            "mode": "race",
+            "round": 1,
+            "variant": "grid_delta_constrained",
+            "metric_available": True,
+            "field_mae": 2.0,
+            "top10_hit": 0.8,
+            "config_signature": signature,
+        },
+        {
+            "mode": "race",
+            "round": 1,
+            "variant": "current_full_model",
+            "metric_available": True,
+            "field_mae": 2.0,
+            "top10_hit": 0.8,
+            "config_signature": signature,
+        },
+    ]
+
+    summary = _summarize_paired_ladder(rows)
+
+    assert summary["configuration_aliases"] == [
+        {
+            "variants": ["current_full_model", "grid_delta_constrained"],
+            "config_signature": signature,
+        }
+    ]
 
 
 def test_baseline_ladder_summary_pairs_events_separately_by_mode() -> None:
@@ -93,3 +144,25 @@ def test_grid_only_ladder_uses_pre_race_grid_or_qualifying_fallback_not_post_rac
 
     assert [row["driver_id"] for row in rows] == ["a", "b", "c"]
     assert [row["pred"] for row in rows] == [1.0, 2.0, 3.0]
+    assert {row["grid_source"] for row in rows} == {"qualifying_fallback"}
+
+
+class PreRaceGridProvider(PostRaceGridProvider):
+    def get_starting_grid(self, year: int, round_number: int) -> pd.DataFrame:
+        return pd.DataFrame(
+            {
+                "driver_id": ["a", "b", "c"],
+                "driver_name": ["A", "B", "C"],
+                "grid_position": [3.0, 1.0, 2.0],
+                "grid_source": ["pre_race_official_grid"] * 3,
+                "grid_status": ["grid", "grid", "grid"],
+            },
+        )
+
+
+def test_grid_ladder_rows_preserve_grid_source_labels() -> None:
+    rows = _score_grid_only(PreRaceGridProvider(), 2026, 1)  # type: ignore[arg-type]
+
+    assert [row["driver_id"] for row in rows] == ["b", "c", "a"]
+    assert {row["grid_source"] for row in rows} == {"pre_race_official_grid"}
+    assert {row["grid_status"] for row in rows} == {"grid"}

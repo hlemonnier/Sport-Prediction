@@ -12,6 +12,8 @@ from typing import Any, Optional
 
 import pandas as pd
 
+from .identity import driver_identity_signature, resolve_driver_matches
+
 
 MARKET_ALIASES = {
     "win": "winner",
@@ -32,6 +34,16 @@ MARKET_PROBABILITY_COLUMNS = {
     "winner": ["proba_win", "p_win"],
     "podium": ["proba_top3", "p_top3"],
     "top10": ["proba_top10", "p_top10"],
+}
+
+PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v2"
+REQUIRED_PROBABILITY_AUDIT_FIELDS = {
+    "schema_version",
+    "probability_layer",
+    "same_probability_layer_as_production",
+    "samples",
+    "event_total_audit",
+    "metrics",
 }
 
 
@@ -168,6 +180,19 @@ def _driver_key_frame(frame: pd.DataFrame) -> pd.Series:
     return pd.Series("", index=frame.index, dtype=str)
 
 
+def _ranked_prediction_frame(predictions: pd.DataFrame) -> pd.DataFrame:
+    pred = predictions.copy()
+    if "pred_rank" not in pred.columns:
+        if "rank" in pred.columns:
+            pred["pred_rank"] = pd.to_numeric(pred["rank"], errors="coerce")
+        else:
+            pred["pred_rank"] = pd.Series(range(1, len(pred) + 1), index=pred.index, dtype=float)
+    pred["pred_rank"] = pd.to_numeric(pred["pred_rank"], errors="coerce")
+    pred = pred[pred["pred_rank"].notna()].copy()
+    pred["_identity_signature"] = pred.apply(driver_identity_signature, axis=1)
+    return pred
+
+
 def _prediction_lookup_frame(predictions: pd.DataFrame) -> pd.DataFrame:
     parts: list[pd.DataFrame] = []
     for column in ("driver_name", "driver_id"):
@@ -181,6 +206,62 @@ def _prediction_lookup_frame(predictions: pd.DataFrame) -> pd.DataFrame:
     if not parts:
         return pd.DataFrame(columns=list(predictions.columns) + ["driver_key"])
     return pd.concat(parts, ignore_index=True).drop_duplicates(subset=["driver_key"], keep="first")
+
+
+def _attach_prediction_matches(prices: pd.DataFrame, predictions: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
+    pred = _ranked_prediction_frame(predictions)
+    out = prices.copy()
+    out["_identity_signature"] = out.apply(driver_identity_signature, axis=1)
+    matchable_prices = out[out["_identity_signature"] != ""].drop_duplicates(subset=["_identity_signature"]).copy()
+    if pred.empty or matchable_prices.empty:
+        out["matched_prediction"] = False
+        out["_prediction_index"] = pd.NA
+        return out, {
+            "available": False,
+            "reason": "identity_frames_empty",
+            "matched_count": 0,
+            "prices": int(len(prices)),
+            "predictions": int(len(predictions)),
+        }
+
+    matches, diagnostics = resolve_driver_matches(pred, matchable_prices)
+    signature_to_prediction: dict[str, Any] = {}
+    matched_alias_by_signature: dict[str, str] = {}
+    for _, row in matches.iterrows():
+        actual_index = row.get("actual_index")
+        pred_index = row.get("pred_index")
+        if actual_index not in matchable_prices.index:
+            continue
+        signature = str(matchable_prices.loc[actual_index, "_identity_signature"])
+        signature_to_prediction[signature] = pred_index
+        matched_alias_by_signature[signature] = str(row.get("matched_alias") or "")
+
+    out["_prediction_index"] = out["_identity_signature"].map(signature_to_prediction)
+    out["matched_alias"] = out["_identity_signature"].map(matched_alias_by_signature).fillna("")
+    out["matched_prediction"] = out["_prediction_index"].notna()
+
+    for column in pred.columns:
+        if column in {"_identity_signature"}:
+            continue
+        target = f"{column}_prediction" if column in out.columns else column
+        values: list[Any] = []
+        for pred_index in out["_prediction_index"].tolist():
+            if pred_index in pred.index:
+                values.append(pred.loc[pred_index, column])
+            else:
+                values.append(pd.NA)
+        out[target] = values
+
+    diagnostics = dict(diagnostics)
+    diagnostics.update(
+        {
+            "available": True,
+            "matched_count": int(out["matched_prediction"].sum()),
+            "prices": int(len(prices)),
+            "predictions": int(len(pred)),
+        }
+    )
+    return out, diagnostics
 
 
 def _standardize_odds_frame(odds: pd.DataFrame) -> pd.DataFrame:
@@ -256,6 +337,18 @@ def _probability_audit_gate(predictions: pd.DataFrame, config: BettingConfig) ->
     audit = predictions.attrs.get("probability_audit") if hasattr(predictions, "attrs") else None
     if not isinstance(audit, dict) or not audit:
         return False, "probability_audit_missing"
+    missing = sorted(REQUIRED_PROBABILITY_AUDIT_FIELDS - set(audit))
+    if missing:
+        return False, f"probability_audit_stale_schema_missing_{','.join(missing)}"
+    if str(audit.get("schema_version") or "") != PROBABILITY_AUDIT_SCHEMA_VERSION:
+        return False, f"probability_audit_schema_{audit.get('schema_version', 'missing')}"
+    if str(audit.get("probability_layer") or "") != "pl_gumbel":
+        return False, f"probability_audit_layer_{audit.get('probability_layer', 'missing')}"
+    if not bool(audit.get("same_probability_layer_as_production", False)):
+        return False, "probability_audit_not_production_layer"
+    total_audit = audit.get("event_total_audit")
+    if not isinstance(total_audit, dict) or not bool(total_audit.get("passed", False)):
+        return False, "probability_audit_event_totals_failed"
     if str(audit.get("source", "")).strip().lower() != "walk_forward_oof":
         return False, f"probability_audit_source_{audit.get('source', 'missing')}"
     if not bool(audit.get("available", False)):
@@ -323,7 +416,6 @@ def build_betting_recommendations(
     if odds.empty:
         return pd.DataFrame()
 
-    pred = _prediction_lookup_frame(predictions)
     probability_gate_passed, probability_gate_reason = _probability_gate(predictions, cfg)
     probability_audit_passed, probability_audit_reason = _probability_audit_gate(predictions, cfg)
 
@@ -334,20 +426,10 @@ def build_betting_recommendations(
         prices["decimal_odds"] = pd.to_numeric(prices["decimal_odds"], errors="coerce")
     else:
         prices["decimal_odds"] = pd.Series(float("nan"), index=prices.index, dtype=float)
-    prices = prices[prices["driver_key"] != ""].copy()
+    prices = prices[prices.apply(driver_identity_signature, axis=1) != ""].copy()
 
-    merged = prices.merge(
-        pred,
-        on="driver_key",
-        how="left",
-        suffixes=("", "_prediction"),
-    )
-    if "rank" in merged.columns:
-        merged["matched_prediction"] = merged["rank"].notna()
-    elif "driver_name_prediction" in merged.columns:
-        merged["matched_prediction"] = merged["driver_name_prediction"].notna()
-    else:
-        merged["matched_prediction"] = False
+    merged, identity_diagnostics = _attach_prediction_matches(prices, predictions)
+    merged["identity_match_diagnostics"] = json.dumps(identity_diagnostics, sort_keys=True)
     if "driver_name_prediction" in merged.columns:
         merged["driver_name"] = merged["driver_name"].where(
             merged["driver_name"].notna(),
@@ -467,14 +549,20 @@ def build_betting_report(recommendations: pd.DataFrame, config: BettingConfig) -
     bets = recommendations[recommendations["status"] == "bet"] if not recommendations.empty else pd.DataFrame()
     stake_total = float(bets["stake"].sum()) if not bets.empty else 0.0
     expected_profit = float((bets["stake"] * bets["expected_roi"]).sum()) if not bets.empty else 0.0
+    readiness_status = "research_only_blocked"
     return {
         "workflow": "f1_betting_recommendations",
+        "readiness_status": readiness_status,
+        "readiness_reason": "model probabilities require market-calibrated proof and settled forward evidence before live betting",
+        "stake_label": "paper_candidate",
         "config": asdict(config),
         "summary": {
             "bets": int(len(bets)),
+            "paper_candidates": int(len(bets)),
             "stake_total": stake_total,
             "stake_fraction_total": stake_total / float(config.bankroll) if config.bankroll > 0.0 else 0.0,
             "expected_profit": expected_profit,
+            "model_implied_expected_profit": expected_profit,
             "expected_roi_on_staked": expected_profit / stake_total if stake_total > 0.0 else None,
             "max_loss": stake_total,
         },
@@ -510,6 +598,7 @@ def _standardize_settlement_frame(settlements: pd.DataFrame) -> pd.DataFrame:
         out["market"] = "winner"
     out["market"] = out["market"].map(normalize_market)
     out["driver_key"] = _driver_key_frame(out)
+    out["_identity_signature"] = out.apply(driver_identity_signature, axis=1)
     if "event_id" in out.columns:
         out["event_id"] = out["event_id"].astype(str)
     else:
@@ -535,6 +624,33 @@ def _standardize_settlement_frame(settlements: pd.DataFrame) -> pd.DataFrame:
         outcome = outcome.where(inferred.isna(), inferred)
     out["settled_won"] = outcome
     return out
+
+
+def _settlement_candidates_for_recommendation(
+    settlement_frame: pd.DataFrame,
+    recommendation: dict[str, Any],
+    *,
+    market: str,
+    event_id: str,
+) -> pd.DataFrame:
+    pool = settlement_frame[
+        (settlement_frame["market"] == market)
+        & ((settlement_frame["event_id"] == event_id) | (settlement_frame["event_id"] == ""))
+    ].copy()
+    if pool.empty:
+        return pool
+    recommendation_frame = pd.DataFrame([{**recommendation, "pred_rank": 1.0}])
+    matches, _ = resolve_driver_matches(recommendation_frame, pool)
+    if not matches.empty:
+        actual_indices = [idx for idx in matches["actual_index"].tolist() if idx in pool.index]
+        if actual_indices:
+            return pool.loc[actual_indices].copy()
+    driver_key = normalize_participant(
+        recommendation.get("driver_name") or recommendation.get("selection") or recommendation.get("participant")
+    )
+    if not driver_key:
+        return pool.iloc[0:0].copy()
+    return pool[pool["driver_key"] == driver_key].copy()
 
 
 def settle_forward_bet_log(
@@ -578,14 +694,12 @@ def settle_forward_bet_log(
                 continue
             total_bets += 1
             market = normalize_market(recommendation.get("market"))
-            driver_key = normalize_participant(
-                recommendation.get("driver_name") or recommendation.get("selection") or recommendation.get("participant")
+            candidates = _settlement_candidates_for_recommendation(
+                settlement_frame,
+                recommendation,
+                market=market,
+                event_id=event_id,
             )
-            candidates = settlement_frame[
-                (settlement_frame["market"] == market)
-                & (settlement_frame["driver_key"] == driver_key)
-                & ((settlement_frame["event_id"] == event_id) | (settlement_frame["event_id"] == ""))
-            ].copy()
             candidates = candidates[candidates["settled_won"].notna()]
             if candidates.empty:
                 settled_rows.append(

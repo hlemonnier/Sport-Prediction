@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import subprocess
-import sys
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
+from run_experiment import build_parser
 from rqp.prediction import _pl_gumbel_listwise
 
 
@@ -73,10 +70,7 @@ def test_pl_listwise_is_deterministic_with_fixed_seed() -> None:
 
 
 def test_cli_help_exposes_horizon_a_flags() -> None:
-    project_python_dir = Path(__file__).resolve().parents[1]
-    cmd = [sys.executable, str(project_python_dir / "run_prediction.py"), "--help"]
-    completed = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    stdout = completed.stdout
+    stdout = build_parser("prediction").format_help()
     assert "--f1_model" in stdout
     assert "--f1_listwise" in stdout
     assert "--f1_pl_samples" in stdout

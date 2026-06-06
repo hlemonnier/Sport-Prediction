@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 from pathlib import Path
 
 import pandas as pd
 
+from run_betting import build_parser as build_betting_parser
+from run_forward_bet_settlement import build_parser as build_settlement_parser
 from rqp.betting import (
     BettingConfig,
+    build_betting_report,
     build_betting_recommendations,
     forward_record_hash,
     load_prediction_frame,
@@ -141,11 +142,96 @@ def test_betting_requires_timestamped_pre_close_odds_by_default() -> None:
     assert timely["status"] == "bet"
 
 
+def test_betting_matches_full_name_odds_to_prediction_code_identity() -> None:
+    predictions = pd.DataFrame(
+        [
+            {
+                "rank": 1,
+                "driver_id": "HAM",
+                "proba_win": 0.62,
+                "proba_top3": 0.90,
+                "proba_top10": 0.99,
+            }
+        ],
+    )
+    odds = pd.DataFrame(
+        [
+            {
+                "market": "winner",
+                "selection": "Lewis Hamilton",
+                "decimal_odds": 2.10,
+                "bookmaker": "book",
+            }
+        ],
+    )
+
+    recommendations = build_betting_recommendations(
+        predictions,
+        odds,
+        BettingConfig(
+            require_probability_gate=False,
+            require_oof_probability_audit=False,
+            require_odds_timestamp=False,
+            min_edge=0.01,
+            min_expected_roi=0.01,
+        ),
+    )
+    row = recommendations.iloc[0]
+
+    assert bool(row["matched_prediction"]) is True
+    assert row["matched_alias"] == "known:lewis_hamilton"
+    assert float(row["model_probability"]) == 0.62
+    assert row["status"] == "bet"
+
+
+def test_betting_gate_blocks_stale_probability_audit_schema() -> None:
+    predictions = _prediction_rows()
+    predictions.attrs["probability_audit"] = {
+        "available": True,
+        "passed": True,
+        "source": "walk_forward_oof",
+        "metrics": {"win": {"available": True}, "top3": {"available": True}, "top10": {"available": True}},
+    }
+    odds = pd.DataFrame(
+        [{"market": "winner", "driver_name": "Driver A", "decimal_odds": 3.40, "bookmaker": "book"}],
+    )
+
+    recommendations = build_betting_recommendations(
+        predictions,
+        odds,
+        BettingConfig(
+            require_probability_gate=False,
+            require_oof_probability_audit=True,
+            require_odds_timestamp=False,
+            min_edge=0.01,
+            min_expected_roi=0.01,
+        ),
+    )
+    row = recommendations.iloc[0]
+
+    assert bool(row["probability_audit_passed"]) is False
+    assert "stale_schema" in row["probability_audit_reason"]
+    assert row["reject_reason"] == "probability_audit_failed"
+
+
+def test_betting_report_labels_research_only_without_market_calibration() -> None:
+    odds = pd.DataFrame(
+        [{"market": "winner", "driver_name": "Driver A", "decimal_odds": 3.40, "bookmaker": "book"}],
+    )
+    recommendations = build_betting_recommendations(
+        _prediction_rows(),
+        odds,
+        BettingConfig(require_probability_gate=False, require_oof_probability_audit=False, require_odds_timestamp=False),
+    )
+    report = build_betting_report(recommendations, BettingConfig())
+
+    assert report["readiness_status"] == "research_only_blocked"
+    assert report["stake_label"] == "paper_candidate"
+    assert "model_implied_expected_profit" in report["summary"]
+
+
 def test_betting_cli_help() -> None:
-    project_python_dir = Path(__file__).resolve().parents[1]
-    cmd = [sys.executable, str(project_python_dir / "run_betting.py"), "--help"]
-    completed = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    stdout = completed.stdout
+    stdout = build_betting_parser().format_help()
     assert "--predictions" in stdout
     assert "--odds" in stdout
     assert "--fractional-kelly" in stdout
@@ -212,6 +298,44 @@ def test_forward_bet_settlement_uses_only_hash_valid_pre_market_records(tmp_path
     assert report["skipped_records"][0]["reason"] == "record_not_pre_market"
 
 
+def test_forward_bet_settlement_matches_code_to_full_name_settlement(tmp_path: Path) -> None:
+    log_path = tmp_path / "forward.jsonl"
+    record = {
+        "schema_version": "f1_forward_bet_log_v1",
+        "event_id": "2026-monaco",
+        "information_cutoff": "post-qualifying",
+        "selection_logged_at_utc": "2026-05-24T13:55:00Z",
+        "market_close_utc": "2026-05-24T14:00:00Z",
+        "pre_market_logged": True,
+        "predictions_sha256": "prediction-hash",
+        "odds_sha256": "odds-hash",
+        "previous_record_hash": "",
+        "betting_report": {
+            "workflow": "f1_betting_recommendations",
+            "summary": {"bets": 1, "stake_total": 20.0},
+            "recommendations": [
+                {
+                    "status": "bet",
+                    "market": "winner",
+                    "driver_id": "HAM",
+                    "decimal_odds": 2.00,
+                    "stake": 20.0,
+                }
+            ],
+        },
+    }
+    record["record_hash"] = forward_record_hash(record)
+    log_path.write_text(json.dumps(record, sort_keys=True) + "\n", encoding="utf-8")
+    settlements = pd.DataFrame(
+        [{"event_id": "2026-monaco", "market": "winner", "selection": "Lewis Hamilton", "won": True}],
+    )
+
+    report = settle_forward_bet_log(log_path=log_path, settlements=settlements)
+
+    assert report["summary"]["bets_settled"] == 1
+    assert report["summary"]["pnl_settled"] == 20.0
+
+
 def test_forward_bet_settlement_refuses_tampered_hash_chain(tmp_path: Path) -> None:
     log_path = tmp_path / "forward.jsonl"
     record = _forward_record("2026-monaco", pre_market=True)
@@ -235,10 +359,7 @@ def test_forward_bet_settlement_refuses_tampered_hash_chain(tmp_path: Path) -> N
 
 
 def test_forward_bet_settlement_cli_help() -> None:
-    project_python_dir = Path(__file__).resolve().parents[1]
-    cmd = [sys.executable, str(project_python_dir / "run_forward_bet_settlement.py"), "--help"]
-    completed = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    stdout = completed.stdout
+    stdout = build_settlement_parser().format_help()
     assert "--log-path" in stdout
     assert "--settlements" in stdout
     assert "--allow-after-close-records" in stdout

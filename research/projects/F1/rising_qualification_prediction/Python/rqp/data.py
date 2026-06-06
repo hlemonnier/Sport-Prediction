@@ -1181,6 +1181,16 @@ def build_training_data(
                     merged["grid_position"] = float("nan")
                 if "grid_status" not in merged.columns:
                     merged["grid_status"] = "unknown"
+                else:
+                    merged["grid_status"] = merged["grid_status"].fillna("unknown")
+                nonstarters = merged["grid_status"].astype(str).str.lower().isin(["dns"])
+                if nonstarters.any():
+                    notes.append(
+                        f"{int(nonstarters.sum())} ligne(s) DNS exclues du target race pour eviter un fallback grille qualif."
+                    )
+                    merged = merged.loc[~nonstarters].copy()
+                    if merged.empty:
+                        continue
                 grid_raw = pd.to_numeric(merged["grid_position"], errors="coerce")
                 qualy_grid_fallback = pd.to_numeric(merged["qualy_position"], errors="coerce")
                 merged["grid_source"] = pd.Series("qualifying_fallback", index=merged.index, dtype=object)
@@ -1314,6 +1324,13 @@ def build_current_features(
             "pre_race_official_grid"
         )
         status = merged.get("grid_status", pd.Series("unknown", index=merged.index, dtype=object)).fillna("unknown")
+        nonstarters = status.astype(str).str.lower().isin(["dns"])
+        if nonstarters.any():
+            notes.append(f"{int(nonstarters.sum())} pilote(s) DNS exclus des features race courantes.")
+            merged = merged.loc[~nonstarters].copy()
+            status = status.loc[merged.index]
+            grid_raw = pd.to_numeric(merged["grid_position"], errors="coerce")
+            qualy_grid_fallback = pd.to_numeric(merged.get("qualy_position"), errors="coerce")
         missing_grid = grid_raw.isna() & status.isin(["missing", "unknown", "non_numeric"])
         merged.loc[missing_grid, "grid_source"] = "qualifying_fallback"
         merged["grid_position"] = grid_raw.fillna(qualy_grid_fallback)

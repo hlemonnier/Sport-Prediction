@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 from typing import Any, Optional, Sequence
 
+import numpy as np
 import pandas as pd
 
 from rqp import PredictionConfig, run_prediction
@@ -23,12 +25,14 @@ def _race_ladder_specs() -> list[dict[str, Any]]:
         {
             "name": "grid_delta_unconstrained",
             "kind": "model",
+            "f1_model": "baseline",
             "disable_circuit_features": True,
             "race_delta_constraint_mode": "unconstrained",
         },
         {
             "name": "grid_delta_constrained",
             "kind": "model",
+            "f1_model": "baseline",
             "disable_circuit_features": True,
             "race_delta_constraint_mode": "constrained",
         },
@@ -107,7 +111,11 @@ def _rank_rows(frame: pd.DataFrame, *, score_col: str) -> list[dict[str, Any]]:
     work["rank"] = range(1, len(work) + 1)
     if "driver_name" not in work.columns:
         work["driver_name"] = work.get("driver_id", pd.Series(index=work.index, dtype=object)).astype(str)
-    return json.loads(work[["rank", "driver_name", "driver_id", "pred"]].to_json(orient="records"))
+    output_cols = ["rank", "driver_name", "driver_id", "pred"]
+    for optional_col in ["grid_source", "grid_status"]:
+        if optional_col in work.columns:
+            output_cols.append(optional_col)
+    return json.loads(work[output_cols].to_json(orient="records"))
 
 
 def _grid_baseline_frame(provider: LocalWeekendProvider, year: int, round_number: int) -> pd.DataFrame:
@@ -194,6 +202,9 @@ def _evaluate_variant(
     f1_pl_samples: int,
 ) -> dict[str, Any]:
     actual = provider.get_race_results(year, round_number) if mode == "race" else provider.get_qualifying_results(year, round_number)
+    effective_model = str(spec.get("f1_model", f1_model))
+    race_delta_constraint_mode = str(spec.get("race_delta_constraint_mode", "constrained"))
+    disable_circuit_features = bool(spec.get("disable_circuit_features", False))
     if spec["kind"] == "baseline":
         rows = _baseline_rows(provider, mode, str(spec["name"]), year, round_number)
         model_name = str(spec["name"])
@@ -204,21 +215,29 @@ def _evaluate_variant(
             round_number=round_number,
             train_seasons=train_seasons,
             weekends_dir=weekends_dir,
-            f1_model=str(spec.get("f1_model", f1_model)),
+            f1_model=effective_model,
             f1_pl_samples=int(f1_pl_samples),
-            disable_circuit_features=bool(spec.get("disable_circuit_features", False)),
-            race_delta_constraint_mode=str(spec.get("race_delta_constraint_mode", "constrained")),
+            disable_circuit_features=disable_circuit_features,
+            race_delta_constraint_mode=race_delta_constraint_mode,
         )
         result = run_prediction(config)
         rows = _records(result)
         model_name = getattr(result, "model_name", str(spec["name"]))
     evaluation = evaluate_prediction_rows(rows, actual, "position", include_podium_and_winner=True)
+    config_signature = {
+        "kind": str(spec["kind"]),
+        "f1_model": effective_model if spec["kind"] != "baseline" else str(spec["name"]),
+        "disable_circuit_features": disable_circuit_features if spec["kind"] != "baseline" else None,
+        "race_delta_constraint_mode": race_delta_constraint_mode if mode == "race" and spec["kind"] != "baseline" else None,
+    }
     return {
         "mode": mode,
         "round": int(round_number),
+        "event_key": f"{mode}:{int(round_number)}",
         "variant": str(spec["name"]),
         "kind": str(spec["kind"]),
         "model_name": model_name,
+        "config_signature": config_signature,
         "rows": int(len(rows)),
         "metric_available": bool(evaluation.get("metric_available", False)),
         "field_mae": evaluation.get("field_mae"),
@@ -231,9 +250,147 @@ def _evaluate_variant(
     }
 
 
+def _exact_sign_test_p_value(improved: int, worse: int) -> float:
+    n = int(improved) + int(worse)
+    if n <= 0:
+        return 1.0
+    k = min(int(improved), int(worse))
+    tail = sum(math.comb(n, i) for i in range(k + 1)) / float(2**n)
+    return float(min(1.0, 2.0 * tail))
+
+
+def _paired_delta_summary(
+    frame: pd.DataFrame,
+    *,
+    baseline: str,
+    challenger: str,
+    metric: str,
+    lower_is_better: bool,
+    seed: int = 42,
+    samples: int = 10000,
+) -> dict[str, Any]:
+    if frame.empty:
+        return {"available": False, "reason": "empty_frame"}
+    if metric not in frame.columns:
+        return {"available": False, "reason": f"metric_missing_{metric}"}
+    pivot = frame.pivot_table(
+        index="event_key",
+        columns="variant",
+        values=metric,
+        aggfunc="first",
+    )
+    if baseline not in pivot.columns or challenger not in pivot.columns:
+        return {"available": False, "reason": "missing_variant"}
+    pair = pivot[[baseline, challenger]].dropna()
+    if pair.empty:
+        return {"available": False, "reason": "empty_pair"}
+
+    raw_delta = pd.to_numeric(pair[challenger], errors="coerce") - pd.to_numeric(pair[baseline], errors="coerce")
+    raw_delta = raw_delta.dropna()
+    if raw_delta.empty:
+        return {"available": False, "reason": "empty_delta"}
+    improvement_delta = -raw_delta if lower_is_better else raw_delta
+    values = improvement_delta.to_numpy(dtype=float)
+    rng = np.random.default_rng(int(seed))
+    bootstrap_means: list[float] = []
+    for _ in range(int(max(1, samples))):
+        idx = rng.integers(0, len(values), len(values))
+        bootstrap_means.append(float(values[idx].mean()))
+
+    improved_events = int((improvement_delta > 1e-12).sum())
+    worse_events = int((improvement_delta < -1e-12).sum())
+    tied_events = int(np.isclose(improvement_delta.to_numpy(dtype=float), 0.0, atol=1e-12).sum())
+    event_deltas = [
+        {
+            "event_key": str(event_key),
+            "baseline_value": float(pair.loc[event_key, baseline]),
+            "challenger_value": float(pair.loc[event_key, challenger]),
+            "raw_delta_challenger_minus_baseline": float(raw_delta.loc[event_key]),
+            "improvement_delta": float(improvement_delta.loc[event_key]),
+        }
+        for event_key in raw_delta.sort_index().index
+    ]
+    return {
+        "available": True,
+        "baseline": baseline,
+        "challenger": challenger,
+        "metric": metric,
+        "lower_is_better": bool(lower_is_better),
+        "event_count": int(len(values)),
+        "mean_raw_delta_challenger_minus_baseline": float(raw_delta.mean()),
+        "mean_improvement": float(improvement_delta.mean()),
+        "median_improvement": float(improvement_delta.median()),
+        "improvement_ci95": [
+            float(np.nanpercentile(np.asarray(bootstrap_means, dtype=float), 2.5)),
+            float(np.nanpercentile(np.asarray(bootstrap_means, dtype=float), 97.5)),
+        ],
+        "improved_events": improved_events,
+        "worse_events": worse_events,
+        "tied_events": tied_events,
+        "sign_test_p_value_two_sided": _exact_sign_test_p_value(improved_events, worse_events),
+        "event_deltas": event_deltas,
+    }
+
+
+def _paired_comparison_specs(mode: str) -> list[dict[str, Any]]:
+    if mode == "race":
+        return [
+            {"baseline": "grid_only", "challenger": "current_full_model", "metric": "field_mae", "lower_is_better": True},
+            {"baseline": "grid_only", "challenger": "grid_delta_constrained", "metric": "field_mae", "lower_is_better": True},
+            {
+                "baseline": "grid_only",
+                "challenger": "grid_plus_fp_race_pace_residual",
+                "metric": "field_mae",
+                "lower_is_better": True,
+            },
+            {
+                "baseline": "current_full_model",
+                "challenger": "current_full_model_plus_circuit_cards",
+                "metric": "field_mae",
+                "lower_is_better": True,
+            },
+            {"baseline": "grid_only", "challenger": "current_full_model", "metric": "top10_hit", "lower_is_better": False},
+            {
+                "baseline": "current_full_model",
+                "challenger": "current_full_model_plus_circuit_cards",
+                "metric": "top10_hit",
+                "lower_is_better": False,
+            },
+        ]
+    if mode == "qualifying":
+        return [
+            {
+                "baseline": "fp_weighted_rank_baseline",
+                "challenger": "current_full_model",
+                "metric": "field_mae",
+                "lower_is_better": True,
+            },
+            {
+                "baseline": "current_full_model",
+                "challenger": "current_full_model_plus_circuit_cards",
+                "metric": "field_mae",
+                "lower_is_better": True,
+            },
+            {
+                "baseline": "fp_weighted_rank_baseline",
+                "challenger": "current_full_model",
+                "metric": "top10_hit",
+                "lower_is_better": False,
+            },
+            {
+                "baseline": "current_full_model",
+                "challenger": "current_full_model_plus_circuit_cards",
+                "metric": "top10_hit",
+                "lower_is_better": False,
+            },
+        ]
+    return []
+
+
 def _summarize_variant_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
     frame = pd.DataFrame(rows)
-    frame["event_key"] = frame["mode"].astype(str) + ":" + frame["round"].astype(str)
+    if "event_key" not in frame.columns:
+        frame["event_key"] = frame["mode"].astype(str) + ":" + frame["round"].astype(str)
     variants = sorted(frame["variant"].dropna().astype(str).unique().tolist())
     event_sets = {
         variant: set(frame[(frame["variant"] == variant) & (frame["metric_available"] == True)]["event_key"].tolist())
@@ -247,6 +404,23 @@ def _summarize_variant_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "variant_event_counts": {variant: int(len(events)) for variant, events in event_sets.items()},
         "variant_metrics": {},
     }
+    if "config_signature" in frame.columns:
+        signature_groups: dict[str, set[str]] = {}
+        for _, row in frame.iterrows():
+            signature = row.get("config_signature")
+            if not isinstance(signature, dict):
+                continue
+            key = json.dumps(signature, sort_keys=True, separators=(",", ":"))
+            signature_groups.setdefault(key, set()).add(str(row.get("variant")))
+        aliases = [
+            {
+                "variants": sorted(group),
+                "config_signature": json.loads(signature),
+            }
+            for signature, group in sorted(signature_groups.items())
+            if len(group) > 1
+        ]
+        summary["configuration_aliases"] = aliases
     common_frame = frame[frame["event_key"].isin(common_events)].copy()
     for variant in variants:
         part = common_frame[common_frame["variant"] == variant]
@@ -257,6 +431,21 @@ def _summarize_variant_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "field_mae_avg": float(mae.mean()) if mae.notna().any() else None,
             "top10_hit_avg": float(top10.mean()) if top10.notna().any() else None,
         }
+    mode_values = sorted(frame["mode"].dropna().astype(str).unique().tolist()) if "mode" in frame.columns else []
+    mode = mode_values[0] if len(mode_values) == 1 else ""
+    paired: dict[str, Any] = {}
+    for idx, spec in enumerate(_paired_comparison_specs(mode), start=1):
+        key = f"{spec['challenger']}_vs_{spec['baseline']}_{spec['metric']}"
+        paired[key] = _paired_delta_summary(
+            common_frame,
+            baseline=str(spec["baseline"]),
+            challenger=str(spec["challenger"]),
+            metric=str(spec["metric"]),
+            lower_is_better=bool(spec["lower_is_better"]),
+            seed=42 + idx,
+        )
+    if paired:
+        summary["paired_comparisons"] = paired
     return summary
 
 

@@ -27,6 +27,15 @@ SPORT = "F1"
 PROJECT_NAME = "Rising Qualification Prediction"
 ENTRYPOINT = "run_experiment.py"
 SCHEMA_VERSION = "1.0"
+PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v2"
+REQUIRED_PROBABILITY_AUDIT_FIELDS = {
+    "schema_version",
+    "probability_layer",
+    "same_probability_layer_as_production",
+    "samples",
+    "event_total_audit",
+    "metrics",
+}
 
 
 def _utc_now() -> str:
@@ -185,6 +194,19 @@ def _build_shadow_section(
     return shadow
 
 
+def _assert_probability_audit_schema(payload: dict[str, Any]) -> None:
+    audit = payload.get("probability_audit")
+    if not isinstance(audit, dict) or not audit:
+        return
+    if str(audit.get("source") or "").strip().lower() != "walk_forward_oof" and not bool(audit.get("available", False)):
+        return
+    missing = sorted(REQUIRED_PROBABILITY_AUDIT_FIELDS - set(audit))
+    if missing:
+        raise RuntimeError(f"stale_probability_audit_schema: {missing}")
+    if str(audit.get("schema_version") or "") != PROBABILITY_AUDIT_SCHEMA_VERSION:
+        raise RuntimeError(f"stale_probability_audit_schema_version: {audit.get('schema_version', 'missing')}")
+
+
 def _prediction_payload(config: PredictionConfig, *, workflow: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     result = run_prediction(config)
     rows: list[dict[str, Any]]
@@ -212,6 +234,7 @@ def _prediction_payload(config: PredictionConfig, *, workflow: str) -> tuple[dic
         )
     if isinstance(result.extras, dict) and result.extras:
         payload.update(result.extras)
+    _assert_probability_audit_schema(payload)
     return payload, rows
 
 

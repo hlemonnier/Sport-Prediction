@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from run_experiment import _assert_probability_audit_schema
 from rqp.betting import BettingConfig, build_betting_recommendations
 from rqp.data import _add_temporal_features_train, build_current_features, build_training_data
 from rqp.evaluation import evaluate_prediction_rows
@@ -324,6 +325,99 @@ def test_local_provider_starting_grid_uses_pre_race_grid_path_and_encodes_status
     assert grid.loc["3", "grid_status"] == "dns"
     assert pd.isna(grid.loc["3", "grid_position"])
     assert grid.loc["4", "grid_status"] == "pit_lane"
+
+
+def test_local_provider_race_results_encode_pit_lane_after_grid(tmp_path) -> None:
+    weekend = tmp_path / "2025" / "round_01_test_grand_prix"
+    weekend.mkdir(parents=True)
+    (weekend / "weekend_metadata.json").write_text(
+        json.dumps(
+            {
+                "round_number": 1,
+                "event_name": "Test Grand Prix",
+                "sessions": [
+                    {
+                        "session_type": "Race",
+                        "results_path": "race_results.csv",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    pd.DataFrame(
+        {
+            "DriverNumber": [1, 2, 3, 4],
+            "Abbreviation": ["A", "B", "C", "D"],
+            "GridPosition": [1, "PL", "DNS", 0],
+            "Position": [1, 2, np.nan, 3],
+        }
+    ).to_csv(weekend / "race_results.csv", index=False)
+    provider = LocalWeekendProvider(weekends_dir=str(tmp_path))
+
+    race = provider.get_race_results(2025, 1).set_index("driver_id")
+
+    assert float(race.loc["1", "grid_position"]) == 1.0
+    assert race.loc["2", "grid_status"] == "pit_lane"
+    assert float(race.loc["2", "grid_position"]) == 2.0
+    assert race.loc["3", "grid_status"] == "dns"
+    assert pd.isna(race.loc["3", "grid_position"])
+    assert race.loc["4", "grid_status"] == "pit_lane"
+    assert float(race.loc["4", "grid_position"]) == 3.0
+
+
+class DnsTrainingProvider:
+    def list_rounds(self, year):
+        return [{"round_number": 1, "event_name": "Test Grand Prix"}]
+
+    def get_fp_features(self, year, round_number):
+        return pd.DataFrame(
+            {
+                "driver_id": ["1", "2", "3"],
+                "driver_name": ["A", "B", "C"],
+                "event_pace_index": [0.1, 0.2, 0.3],
+                "fp_weighted_delta": [0.1, 0.2, 0.3],
+            }
+        )
+
+    def get_qualifying_results(self, year, round_number):
+        return pd.DataFrame(
+            {
+                "driver_id": ["1", "2", "3"],
+                "driver_name": ["A", "B", "C"],
+                "position": [1.0, 2.0, 3.0],
+            }
+        )
+
+    def get_race_results(self, year, round_number):
+        return pd.DataFrame(
+            {
+                "driver_id": ["1", "2", "3"],
+                "driver_name": ["A", "B", "C"],
+                "position": [1.0, 2.0, np.nan],
+                "grid_position": [1.0, 4.0, np.nan],
+                "grid_status": ["grid", "pit_lane", "dns"],
+            }
+        )
+
+    def get_track_stats(self, year, round_number):
+        return {}
+
+
+def test_training_race_data_excludes_dns_instead_of_qualifying_grid_fallback() -> None:
+    frame, notes = build_training_data(
+        DnsTrainingProvider(),  # type: ignore[arg-type]
+        mode="race",
+        train_seasons=[2025],
+        target_year=2026,
+        target_round=1,
+        include_standings=False,
+    )
+
+    assert set(frame["driver_id"]) == {"1", "2"}
+    assert "3" not in set(frame["driver_id"])
+    assert float(frame.loc[frame["driver_id"] == "2", "grid_position"].iloc[0]) == 4.0
+    assert any("DNS" in note for note in notes)
 
 
 def test_local_provider_ignores_unphased_generic_grid_path(tmp_path) -> None:
@@ -647,6 +741,7 @@ def test_oof_probability_audit_uses_deployed_pl_gumbel_layer() -> None:
         seed=17,
     )
 
+    assert audit["schema_version"] == "pl_gumbel_probability_audit_v2"
     assert audit["probability_layer"] == "pl_gumbel"
     assert audit["same_probability_layer_as_production"] is True
     assert audit["samples"] == 1600
@@ -657,11 +752,27 @@ def test_oof_probability_audit_uses_deployed_pl_gumbel_layer() -> None:
     assert audit["thresholds"]["min_oof_events"] >= 5
     assert audit["metrics"]["win"]["bootstrap"]["available"] is True
     assert "brier_delta_ci95" in audit["metrics"]["win"]["bootstrap"]
+    assert "ci_gate_passed" in audit["metrics"]["win"]
     for _, idx in event_key.groupby(event_key, sort=False).groups.items():
         event_prob = probabilities.loc[idx]
         assert abs(float(event_prob["win"].sum()) - 1.0) < 1e-9
         assert abs(float(event_prob["top3"].sum()) - 3.0) < 1e-9
         assert abs(float(event_prob["top10"].sum()) - 10.0) < 1e-9
+
+
+def test_experiment_writer_rejects_stale_probability_audit_schema() -> None:
+    payload = {
+        "probability_audit": {
+            "available": True,
+            "passed": False,
+            "source": "walk_forward_oof",
+            "reason": "top10_calibration_failed",
+            "metrics": {},
+        }
+    }
+
+    with pytest.raises(RuntimeError, match="stale_probability_audit_schema"):
+        _assert_probability_audit_schema(payload)
 
 
 def test_oof_score_reconstruction_blocks_dl_backed_pace_blends() -> None:

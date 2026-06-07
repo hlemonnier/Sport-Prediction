@@ -145,6 +145,7 @@ def download_weekend(
     round_number: int,
     event_name: str,
     output_root: Path,
+    max_session_order: Optional[int] = None,
 ) -> Dict[str, Any]:
     event_dir = output_root / str(year) / f"round_{round_number:02d}_{slugify(event_name)}"
     event_dir.mkdir(parents=True, exist_ok=True)
@@ -154,6 +155,8 @@ def download_weekend(
     notes: List[str] = []
 
     for i in range(1, 6):
+        if max_session_order is not None and i > int(max_session_order):
+            continue
         session_field = f"Session{i}"
         if session_field not in event.index:
             continue
@@ -205,6 +208,7 @@ def download_weekend(
         "year": year,
         "round_number": round_number,
         "event_name": event_name,
+        "max_session_order": max_session_order,
         "sessions": downloaded_sessions,
         "notes": notes,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -231,6 +235,7 @@ def main() -> None:
     parser.add_argument("--weekends", type=int, default=5)
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--cache-dir", default=default_cache_dir())
+    parser.add_argument("--max-session-order", type=int, default=None)
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
     parser.add_argument("--quiet", action="store_true")
@@ -262,6 +267,7 @@ def main() -> None:
                 round_number=round_meta["round_number"],
                 event_name=round_meta["event_name"],
                 output_root=output_root,
+                max_session_order=args.max_session_order,
             )
         )
 
@@ -272,6 +278,7 @@ def main() -> None:
         "start_round": args.start_round,
         "weekends_requested": args.weekends,
         "weekends_downloaded": len(downloads),
+        "max_session_order": args.max_session_order,
         "output_dir": str(output_root),
         "cache_dir": str(cache_dir),
         "downloads": downloads,
@@ -296,6 +303,7 @@ def main() -> None:
     print(f"Start round: {args.start_round}")
     print(f"Weekends requested: {args.weekends}")
     print(f"Weekends downloaded: {len(downloads)}")
+    print(f"Max session order: {args.max_session_order}")
     print(f"Output directory: {output_root}")
     print(f"Cache directory: {cache_dir}")
     print("\nDownloaded weekends:")

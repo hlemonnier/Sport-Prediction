@@ -1,0 +1,21 @@
+{
+  "sport": "F1",
+  "source": "fastf1",
+  "year": 2026,
+  "start_round": 6,
+  "weekends_requested": 1,
+  "weekends_downloaded": 1,
+  "max_session_order": 4,
+  "output_dir": "/Users/lemonnierhugo/Desktop/Coding Project/Sport Prediction/data/f1/raw/weekends",
+  "cache_dir": "/Users/lemonnierhugo/Desktop/Coding Project/Sport Prediction/.cache/fastf1",
+  "downloads": [
+    {
+      "round_number": 6,
+      "event_name": "Monaco Grand Prix",
+      "event_dir": "/Users/lemonnierhugo/Desktop/Coding Project/Sport Prediction/data/f1/raw/weekends/2026/round_06_monaco_grand_prix",
+      "session_count": 4,
+      "notes": []
+    }
+  ],
+  "generated_at": "2026-06-07T10:21:01.935456Z"
+}

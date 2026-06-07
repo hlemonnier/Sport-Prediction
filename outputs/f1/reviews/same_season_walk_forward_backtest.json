@@ -1,6 +1,6 @@
 {
   "workflow": "f1_same_season_walk_forward_backtest",
-  "generated_at": "2026-06-06T22:26:52.913964Z",
+  "generated_at": "2026-06-07T10:25:20.398982Z",
   "training_protocol": {
     "name": "same_season_walk_forward",
     "rule": "For target season Y and round R, model variants receive train_seasons=[Y]; rqp.data.build_training_data excludes rounds >= R in the same season.",
@@ -85,14 +85,16 @@
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "target_rounds": [
         1,
         2,
         3,
         4,
-        5
+        5,
+        6
       ]
     }
   },
@@ -111,33 +113,33 @@
           "fp_plus_driver_team_rolling_priors",
           "fp_weighted_rank_baseline"
         ],
-        "common_event_count": 27,
+        "common_event_count": 28,
         "variant_event_counts": {
-          "current_full_model": 27,
-          "current_full_model_plus_circuit_cards": 27,
-          "fp_plus_driver_team_rolling_priors": 27,
-          "fp_weighted_rank_baseline": 29
+          "current_full_model": 28,
+          "current_full_model_plus_circuit_cards": 28,
+          "fp_plus_driver_team_rolling_priors": 28,
+          "fp_weighted_rank_baseline": 30
         },
         "variant_metrics": {
           "current_full_model": {
-            "events": 27,
-            "field_mae_avg": 3.5514354066985647,
-            "top10_hit_avg": 0.7518518518518518
+            "events": 28,
+            "field_mae_avg": 3.531741285030759,
+            "top10_hit_avg": 0.7499999999999999
           },
           "current_full_model_plus_circuit_cards": {
-            "events": 27,
-            "field_mae_avg": 3.5514354066985647,
-            "top10_hit_avg": 0.7518518518518518
+            "events": 28,
+            "field_mae_avg": 3.531741285030759,
+            "top10_hit_avg": 0.7499999999999999
           },
           "fp_plus_driver_team_rolling_priors": {
-            "events": 27,
-            "field_mae_avg": 3.5514354066985647,
-            "top10_hit_avg": 0.7518518518518518
+            "events": 28,
+            "field_mae_avg": 3.531741285030759,
+            "top10_hit_avg": 0.7499999999999999
           },
           "fp_weighted_rank_baseline": {
-            "events": 27,
-            "field_mae_avg": 3.5052897395002653,
-            "top10_hit_avg": 0.7666666666666666
+            "events": 28,
+            "field_mae_avg": 3.474256664388243,
+            "top10_hit_avg": 0.7678571428571429
           }
         },
         "configuration_aliases": [
@@ -161,18 +163,18 @@
             "challenger": "current_full_model",
             "metric": "field_mae",
             "lower_is_better": true,
-            "event_count": 27,
-            "mean_raw_delta_challenger_minus_baseline": 0.046145667198298775,
-            "mean_improvement": -0.046145667198298775,
-            "median_improvement": 0.0,
+            "event_count": 28,
+            "mean_raw_delta_challenger_minus_baseline": 0.05748462064251538,
+            "mean_improvement": -0.05748462064251538,
+            "median_improvement": -0.045454545454545414,
             "improvement_ci95": [
-              -0.2650008860535176,
-              0.18063463583200412
+              -0.2641652426520848,
+              0.1627913533834586
             ],
             "improved_events": 10,
-            "worse_events": 13,
+            "worse_events": 14,
             "tied_events": 4,
-            "sign_test_p_value_two_sided": 0.6776394844055176,
+            "sign_test_p_value_two_sided": 0.5412561893463135,
             "event_deltas": [
               {
                 "event_key": "2025:qualifying:10",
@@ -362,6 +364,13 @@
                 "challenger_value": 2.6363636363636362,
                 "raw_delta_challenger_minus_baseline": 0.7272727272727271,
                 "improvement_delta": -0.7272727272727271
+              },
+              {
+                "event_key": "2026:qualifying:6",
+                "baseline_value": 2.6363636363636362,
+                "challenger_value": 3.0,
+                "raw_delta_challenger_minus_baseline": 0.36363636363636376,
+                "improvement_delta": -0.36363636363636376
               }
             ]
           },
@@ -371,7 +380,7 @@
             "challenger": "current_full_model_plus_circuit_cards",
             "metric": "field_mae",
             "lower_is_better": true,
-            "event_count": 27,
+            "event_count": 28,
             "mean_raw_delta_challenger_minus_baseline": 0.0,
             "mean_improvement": 0.0,
             "median_improvement": 0.0,
@@ -381,7 +390,7 @@
             ],
             "improved_events": 0,
             "worse_events": 0,
-            "tied_events": 27,
+            "tied_events": 28,
             "sign_test_p_value_two_sided": 1.0,
             "event_deltas": [
               {
@@ -572,6 +581,13 @@
                 "challenger_value": 2.6363636363636362,
                 "raw_delta_challenger_minus_baseline": 0.0,
                 "improvement_delta": -0.0
+              },
+              {
+                "event_key": "2026:qualifying:6",
+                "baseline_value": 3.0,
+                "challenger_value": 3.0,
+                "raw_delta_challenger_minus_baseline": 0.0,
+                "improvement_delta": -0.0
               }
             ]
           },
@@ -581,18 +597,18 @@
             "challenger": "current_full_model",
             "metric": "top10_hit",
             "lower_is_better": false,
-            "event_count": 27,
-            "mean_raw_delta_challenger_minus_baseline": -0.014814814814814807,
-            "mean_improvement": -0.014814814814814807,
+            "event_count": 28,
+            "mean_raw_delta_challenger_minus_baseline": -0.017857142857142853,
+            "mean_improvement": -0.017857142857142853,
             "median_improvement": 0.0,
             "improvement_ci95": [
-              -0.04814814814814814,
-              0.018518518518518535
+              -0.049999999999999996,
+              0.014285714285714303
             ],
             "improved_events": 5,
-            "worse_events": 9,
+            "worse_events": 10,
             "tied_events": 13,
-            "sign_test_p_value_two_sided": 0.4239501953125,
+            "sign_test_p_value_two_sided": 0.3017578125,
             "event_deltas": [
               {
                 "event_key": "2025:qualifying:10",
@@ -782,6 +798,13 @@
                 "challenger_value": 0.9,
                 "raw_delta_challenger_minus_baseline": -0.09999999999999998,
                 "improvement_delta": -0.09999999999999998
+              },
+              {
+                "event_key": "2026:qualifying:6",
+                "baseline_value": 0.8,
+                "challenger_value": 0.7,
+                "raw_delta_challenger_minus_baseline": -0.10000000000000009,
+                "improvement_delta": -0.10000000000000009
               }
             ]
           },
@@ -791,7 +814,7 @@
             "challenger": "current_full_model_plus_circuit_cards",
             "metric": "top10_hit",
             "lower_is_better": false,
-            "event_count": 27,
+            "event_count": 28,
             "mean_raw_delta_challenger_minus_baseline": 0.0,
             "mean_improvement": 0.0,
             "median_improvement": 0.0,
@@ -801,7 +824,7 @@
             ],
             "improved_events": 0,
             "worse_events": 0,
-            "tied_events": 27,
+            "tied_events": 28,
             "sign_test_p_value_two_sided": 1.0,
             "event_deltas": [
               {
@@ -990,6 +1013,13 @@
                 "event_key": "2026:qualifying:5",
                 "baseline_value": 0.9,
                 "challenger_value": 0.9,
+                "raw_delta_challenger_minus_baseline": 0.0,
+                "improvement_delta": 0.0
+              },
+              {
+                "event_key": "2026:qualifying:6",
+                "baseline_value": 0.7,
+                "challenger_value": 0.7,
                 "raw_delta_challenger_minus_baseline": 0.0,
                 "improvement_delta": 0.0
               }
@@ -2285,7 +2315,7 @@
       }
     },
     "common_event_count_by_mode": {
-      "qualifying": 27,
+      "qualifying": 28,
       "race": 26
     }
   },
@@ -4240,10 +4270,11 @@
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
-      "rows": 50,
-      "metric_available_rows": 41,
+      "rows": 60,
+      "metric_available_rows": 45,
       "skipped_rows": 7,
       "summary": {
         "available": true,
@@ -4260,33 +4291,33 @@
               "fp_plus_driver_team_rolling_priors",
               "fp_weighted_rank_baseline"
             ],
-            "common_event_count": 4,
+            "common_event_count": 5,
             "variant_event_counts": {
-              "current_full_model": 4,
-              "current_full_model_plus_circuit_cards": 4,
-              "fp_plus_driver_team_rolling_priors": 4,
-              "fp_weighted_rank_baseline": 5
+              "current_full_model": 5,
+              "current_full_model_plus_circuit_cards": 5,
+              "fp_plus_driver_team_rolling_priors": 5,
+              "fp_weighted_rank_baseline": 6
             },
             "variant_metrics": {
               "current_full_model": {
-                "events": 4,
-                "field_mae_avg": 2.6136363636363638,
-                "top10_hit_avg": 0.825
+                "events": 5,
+                "field_mae_avg": 2.690909090909091,
+                "top10_hit_avg": 0.8
               },
               "current_full_model_plus_circuit_cards": {
-                "events": 4,
-                "field_mae_avg": 2.6136363636363638,
-                "top10_hit_avg": 0.825
+                "events": 5,
+                "field_mae_avg": 2.690909090909091,
+                "top10_hit_avg": 0.8
               },
               "fp_plus_driver_team_rolling_priors": {
-                "events": 4,
-                "field_mae_avg": 2.6136363636363638,
-                "top10_hit_avg": 0.825
+                "events": 5,
+                "field_mae_avg": 2.690909090909091,
+                "top10_hit_avg": 0.8
               },
               "fp_weighted_rank_baseline": {
-                "events": 4,
-                "field_mae_avg": 2.1363636363636367,
-                "top10_hit_avg": 0.875
+                "events": 5,
+                "field_mae_avg": 2.2363636363636368,
+                "top10_hit_avg": 0.86
               }
             },
             "configuration_aliases": [
@@ -4310,18 +4341,18 @@
                 "challenger": "current_full_model",
                 "metric": "field_mae",
                 "lower_is_better": true,
-                "event_count": 4,
-                "mean_raw_delta_challenger_minus_baseline": 0.4772727272727272,
-                "mean_improvement": -0.4772727272727272,
-                "median_improvement": -0.5454545454545454,
+                "event_count": 5,
+                "mean_raw_delta_challenger_minus_baseline": 0.4545454545454545,
+                "mean_improvement": -0.4545454545454545,
+                "median_improvement": -0.4545454545454546,
                 "improvement_ci95": [
-                  -0.6818181818181817,
-                  -0.22727272727272718
+                  -0.6363636363636362,
+                  -0.2545454545454545
                 ],
                 "improved_events": 0,
-                "worse_events": 4,
+                "worse_events": 5,
                 "tied_events": 0,
-                "sign_test_p_value_two_sided": 0.125,
+                "sign_test_p_value_two_sided": 0.0625,
                 "event_deltas": [
                   {
                     "event_key": "2026:qualifying:2",
@@ -4350,6 +4381,13 @@
                     "challenger_value": 2.6363636363636362,
                     "raw_delta_challenger_minus_baseline": 0.7272727272727271,
                     "improvement_delta": -0.7272727272727271
+                  },
+                  {
+                    "event_key": "2026:qualifying:6",
+                    "baseline_value": 2.6363636363636362,
+                    "challenger_value": 3.0,
+                    "raw_delta_challenger_minus_baseline": 0.36363636363636376,
+                    "improvement_delta": -0.36363636363636376
                   }
                 ]
               },
@@ -4359,7 +4397,7 @@
                 "challenger": "current_full_model_plus_circuit_cards",
                 "metric": "field_mae",
                 "lower_is_better": true,
-                "event_count": 4,
+                "event_count": 5,
                 "mean_raw_delta_challenger_minus_baseline": 0.0,
                 "mean_improvement": 0.0,
                 "median_improvement": 0.0,
@@ -4369,7 +4407,7 @@
                 ],
                 "improved_events": 0,
                 "worse_events": 0,
-                "tied_events": 4,
+                "tied_events": 5,
                 "sign_test_p_value_two_sided": 1.0,
                 "event_deltas": [
                   {
@@ -4399,6 +4437,13 @@
                     "challenger_value": 2.6363636363636362,
                     "raw_delta_challenger_minus_baseline": 0.0,
                     "improvement_delta": -0.0
+                  },
+                  {
+                    "event_key": "2026:qualifying:6",
+                    "baseline_value": 3.0,
+                    "challenger_value": 3.0,
+                    "raw_delta_challenger_minus_baseline": 0.0,
+                    "improvement_delta": -0.0
                   }
                 ]
               },
@@ -4408,18 +4453,18 @@
                 "challenger": "current_full_model",
                 "metric": "top10_hit",
                 "lower_is_better": false,
-                "event_count": 4,
-                "mean_raw_delta_challenger_minus_baseline": -0.04999999999999999,
-                "mean_improvement": -0.04999999999999999,
-                "median_improvement": -0.04999999999999999,
+                "event_count": 5,
+                "mean_raw_delta_challenger_minus_baseline": -0.06000000000000001,
+                "mean_improvement": -0.06000000000000001,
+                "median_improvement": -0.09999999999999998,
                 "improvement_ci95": [
-                  -0.09999999999999998,
-                  0.0
+                  -0.10000000000000002,
+                  -0.019999999999999997
                 ],
                 "improved_events": 0,
-                "worse_events": 2,
+                "worse_events": 3,
                 "tied_events": 2,
-                "sign_test_p_value_two_sided": 0.5,
+                "sign_test_p_value_two_sided": 0.25,
                 "event_deltas": [
                   {
                     "event_key": "2026:qualifying:2",
@@ -4448,6 +4493,13 @@
                     "challenger_value": 0.9,
                     "raw_delta_challenger_minus_baseline": -0.09999999999999998,
                     "improvement_delta": -0.09999999999999998
+                  },
+                  {
+                    "event_key": "2026:qualifying:6",
+                    "baseline_value": 0.8,
+                    "challenger_value": 0.7,
+                    "raw_delta_challenger_minus_baseline": -0.10000000000000009,
+                    "improvement_delta": -0.10000000000000009
                   }
                 ]
               },
@@ -4457,7 +4509,7 @@
                 "challenger": "current_full_model_plus_circuit_cards",
                 "metric": "top10_hit",
                 "lower_is_better": false,
-                "event_count": 4,
+                "event_count": 5,
                 "mean_raw_delta_challenger_minus_baseline": 0.0,
                 "mean_improvement": 0.0,
                 "median_improvement": 0.0,
@@ -4467,7 +4519,7 @@
                 ],
                 "improved_events": 0,
                 "worse_events": 0,
-                "tied_events": 4,
+                "tied_events": 5,
                 "sign_test_p_value_two_sided": 1.0,
                 "event_deltas": [
                   {
@@ -4495,6 +4547,13 @@
                     "event_key": "2026:qualifying:5",
                     "baseline_value": 0.9,
                     "challenger_value": 0.9,
+                    "raw_delta_challenger_minus_baseline": 0.0,
+                    "improvement_delta": 0.0
+                  },
+                  {
+                    "event_key": "2026:qualifying:6",
+                    "baseline_value": 0.7,
+                    "challenger_value": 0.7,
                     "raw_delta_challenger_minus_baseline": 0.0,
                     "improvement_delta": 0.0
                   }
@@ -4866,7 +4925,7 @@
           }
         },
         "common_event_count_by_mode": {
-          "qualifying": 4,
+          "qualifying": 5,
           "race": 4
         }
       }
@@ -28785,6 +28844,628 @@
         4
       ],
       "training_event_count": 4,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-qualifying_pre-race",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_starting_grid_or_qualifying_fallback",
+        "sources": [
+          "qualifying_fallback"
+        ]
+      }
+    },
+    {
+      "mode": "qualifying",
+      "round": 6,
+      "event_key": "2026:qualifying:6",
+      "variant": "fp_weighted_rank_baseline",
+      "kind": "baseline",
+      "model_name": "fp_weighted_rank_baseline",
+      "config_signature": {
+        "kind": "baseline",
+        "f1_model": "fp_weighted_rank_baseline",
+        "disable_circuit_features": null,
+        "race_delta_constraint_mode": null
+      },
+      "rows": 22,
+      "metric_available": true,
+      "field_mae": 2.6363636363636362,
+      "mae_on_common": 2.6363636363636362,
+      "field_coverage": 1.0,
+      "top10_hit": 0.8,
+      "podium_hit_count": 2.0,
+      "winner_hit": false,
+      "evaluation": {
+        "available": true,
+        "rows_predicted": 22,
+        "rows_actual": 22,
+        "rows_common": 22,
+        "field_coverage": 1.0,
+        "coverage_threshold": 0.95,
+        "coverage_passed": true,
+        "complete_field": true,
+        "metric_available": true,
+        "mae_valid": true,
+        "mae": 2.6363636363636362,
+        "field_mae": 2.6363636363636362,
+        "mae_on_common": 2.6363636363636362,
+        "rmse": 3.592922335521728,
+        "rmse_on_common": 3.592922335521728,
+        "spearman": 0.8396386222473179,
+        "spearman_on_common": 0.8396386222473179,
+        "field_mae_penalized": 2.6363636363636362,
+        "evaluation_reason": "ok",
+        "top3_hit": 0.6666666666666666,
+        "top3_hit_on_common": 0.6666666666666666,
+        "top10_hit": 0.8,
+        "top10_hit_on_common": 0.8,
+        "pred_top10_mae": 2.9,
+        "pred_top10_mae_on_common": 2.9,
+        "ambiguous_prediction_count": 0,
+        "unmatched_prediction_count": 0,
+        "unmatched_actual_count": 0,
+        "podium_hit_count": 2.0,
+        "winner_hit": false
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-practice_pre-qualifying",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_practice_features",
+        "sources": [
+          "free_practice_features"
+        ]
+      }
+    },
+    {
+      "mode": "qualifying",
+      "round": 6,
+      "event_key": "2026:qualifying:6",
+      "variant": "fp_plus_driver_team_rolling_priors",
+      "kind": "model",
+      "model_name": "pace_baseline::event_pace_index",
+      "config_signature": {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": false,
+        "race_delta_constraint_mode": null
+      },
+      "rows": 22,
+      "metric_available": true,
+      "field_mae": 3.0,
+      "mae_on_common": 3.0,
+      "field_coverage": 1.0,
+      "top10_hit": 0.7,
+      "podium_hit_count": 2.0,
+      "winner_hit": false,
+      "evaluation": {
+        "available": true,
+        "rows_predicted": 22,
+        "rows_actual": 22,
+        "rows_common": 22,
+        "field_coverage": 1.0,
+        "coverage_threshold": 0.95,
+        "coverage_passed": true,
+        "complete_field": true,
+        "metric_available": true,
+        "mae_valid": true,
+        "mae": 3.0,
+        "field_mae": 3.0,
+        "mae_on_common": 3.0,
+        "rmse": 4.0787698680317375,
+        "rmse_on_common": 4.0787698680317375,
+        "spearman": 0.7933370976849238,
+        "spearman_on_common": 0.7933370976849238,
+        "field_mae_penalized": 3.0,
+        "evaluation_reason": "ok",
+        "top3_hit": 0.6666666666666666,
+        "top3_hit_on_common": 0.6666666666666666,
+        "top10_hit": 0.7,
+        "top10_hit_on_common": 0.7,
+        "pred_top10_mae": 3.1,
+        "pred_top10_mae_on_common": 3.1,
+        "ambiguous_prediction_count": 0,
+        "unmatched_prediction_count": 0,
+        "unmatched_actual_count": 0,
+        "podium_hit_count": 2.0,
+        "winner_hit": false
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-practice_pre-qualifying",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_practice_features",
+        "sources": [
+          "free_practice_features"
+        ]
+      }
+    },
+    {
+      "mode": "qualifying",
+      "round": 6,
+      "event_key": "2026:qualifying:6",
+      "variant": "current_full_model",
+      "kind": "model",
+      "model_name": "pace_baseline::event_pace_index",
+      "config_signature": {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": true,
+        "race_delta_constraint_mode": null
+      },
+      "rows": 22,
+      "metric_available": true,
+      "field_mae": 3.0,
+      "mae_on_common": 3.0,
+      "field_coverage": 1.0,
+      "top10_hit": 0.7,
+      "podium_hit_count": 2.0,
+      "winner_hit": false,
+      "evaluation": {
+        "available": true,
+        "rows_predicted": 22,
+        "rows_actual": 22,
+        "rows_common": 22,
+        "field_coverage": 1.0,
+        "coverage_threshold": 0.95,
+        "coverage_passed": true,
+        "complete_field": true,
+        "metric_available": true,
+        "mae_valid": true,
+        "mae": 3.0,
+        "field_mae": 3.0,
+        "mae_on_common": 3.0,
+        "rmse": 4.0787698680317375,
+        "rmse_on_common": 4.0787698680317375,
+        "spearman": 0.7933370976849238,
+        "spearman_on_common": 0.7933370976849238,
+        "field_mae_penalized": 3.0,
+        "evaluation_reason": "ok",
+        "top3_hit": 0.6666666666666666,
+        "top3_hit_on_common": 0.6666666666666666,
+        "top10_hit": 0.7,
+        "top10_hit_on_common": 0.7,
+        "pred_top10_mae": 3.1,
+        "pred_top10_mae_on_common": 3.1,
+        "ambiguous_prediction_count": 0,
+        "unmatched_prediction_count": 0,
+        "unmatched_actual_count": 0,
+        "podium_hit_count": 2.0,
+        "winner_hit": false
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-practice_pre-qualifying",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_practice_features",
+        "sources": [
+          "free_practice_features"
+        ]
+      }
+    },
+    {
+      "mode": "qualifying",
+      "round": 6,
+      "event_key": "2026:qualifying:6",
+      "variant": "current_full_model_plus_circuit_cards",
+      "kind": "model",
+      "model_name": "pace_baseline::event_pace_index",
+      "config_signature": {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": false,
+        "race_delta_constraint_mode": null
+      },
+      "rows": 22,
+      "metric_available": true,
+      "field_mae": 3.0,
+      "mae_on_common": 3.0,
+      "field_coverage": 1.0,
+      "top10_hit": 0.7,
+      "podium_hit_count": 2.0,
+      "winner_hit": false,
+      "evaluation": {
+        "available": true,
+        "rows_predicted": 22,
+        "rows_actual": 22,
+        "rows_common": 22,
+        "field_coverage": 1.0,
+        "coverage_threshold": 0.95,
+        "coverage_passed": true,
+        "complete_field": true,
+        "metric_available": true,
+        "mae_valid": true,
+        "mae": 3.0,
+        "field_mae": 3.0,
+        "mae_on_common": 3.0,
+        "rmse": 4.0787698680317375,
+        "rmse_on_common": 4.0787698680317375,
+        "spearman": 0.7933370976849238,
+        "spearman_on_common": 0.7933370976849238,
+        "field_mae_penalized": 3.0,
+        "evaluation_reason": "ok",
+        "top3_hit": 0.6666666666666666,
+        "top3_hit_on_common": 0.6666666666666666,
+        "top10_hit": 0.7,
+        "top10_hit_on_common": 0.7,
+        "pred_top10_mae": 3.1,
+        "pred_top10_mae_on_common": 3.1,
+        "ambiguous_prediction_count": 0,
+        "unmatched_prediction_count": 0,
+        "unmatched_actual_count": 0,
+        "podium_hit_count": 2.0,
+        "winner_hit": false
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-practice_pre-qualifying",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_practice_features",
+        "sources": [
+          "free_practice_features"
+        ]
+      }
+    },
+    {
+      "mode": "race",
+      "round": 6,
+      "event_key": "2026:race:6",
+      "variant": "grid_only",
+      "kind": "baseline",
+      "model_name": "grid_only",
+      "config_signature": {
+        "kind": "baseline",
+        "f1_model": "grid_only",
+        "disable_circuit_features": null,
+        "race_delta_constraint_mode": null
+      },
+      "rows": 22,
+      "metric_available": false,
+      "field_mae": null,
+      "mae_on_common": null,
+      "field_coverage": null,
+      "top10_hit": null,
+      "podium_hit_count": null,
+      "winner_hit": null,
+      "evaluation": {
+        "available": false,
+        "reason": "actual_results_unavailable"
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-qualifying_pre-race",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_starting_grid_or_qualifying_fallback",
+        "sources": [
+          "qualifying_fallback"
+        ]
+      }
+    },
+    {
+      "mode": "race",
+      "round": 6,
+      "event_key": "2026:race:6",
+      "variant": "grid_plus_fp_race_pace_residual",
+      "kind": "baseline",
+      "model_name": "grid_plus_fp_race_pace_residual",
+      "config_signature": {
+        "kind": "baseline",
+        "f1_model": "grid_plus_fp_race_pace_residual",
+        "disable_circuit_features": null,
+        "race_delta_constraint_mode": null
+      },
+      "rows": 22,
+      "metric_available": false,
+      "field_mae": null,
+      "mae_on_common": null,
+      "field_coverage": null,
+      "top10_hit": null,
+      "podium_hit_count": null,
+      "winner_hit": null,
+      "evaluation": {
+        "available": false,
+        "reason": "actual_results_unavailable"
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-qualifying_pre-race",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_starting_grid_or_qualifying_fallback",
+        "sources": [
+          "qualifying_fallback"
+        ]
+      }
+    },
+    {
+      "mode": "race",
+      "round": 6,
+      "event_key": "2026:race:6",
+      "variant": "grid_delta_unconstrained",
+      "kind": "model",
+      "model_name": "qualifying_baseline",
+      "config_signature": {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": true,
+        "race_delta_constraint_mode": "unconstrained"
+      },
+      "rows": 22,
+      "metric_available": false,
+      "field_mae": null,
+      "mae_on_common": null,
+      "field_coverage": null,
+      "top10_hit": null,
+      "podium_hit_count": null,
+      "winner_hit": null,
+      "evaluation": {
+        "available": false,
+        "reason": "actual_results_unavailable"
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-qualifying_pre-race",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_starting_grid_or_qualifying_fallback",
+        "sources": [
+          "qualifying_fallback"
+        ]
+      }
+    },
+    {
+      "mode": "race",
+      "round": 6,
+      "event_key": "2026:race:6",
+      "variant": "grid_delta_constrained",
+      "kind": "model",
+      "model_name": "qualifying_baseline",
+      "config_signature": {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": true,
+        "race_delta_constraint_mode": "constrained"
+      },
+      "rows": 22,
+      "metric_available": false,
+      "field_mae": null,
+      "mae_on_common": null,
+      "field_coverage": null,
+      "top10_hit": null,
+      "podium_hit_count": null,
+      "winner_hit": null,
+      "evaluation": {
+        "available": false,
+        "reason": "actual_results_unavailable"
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-qualifying_pre-race",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_starting_grid_or_qualifying_fallback",
+        "sources": [
+          "qualifying_fallback"
+        ]
+      }
+    },
+    {
+      "mode": "race",
+      "round": 6,
+      "event_key": "2026:race:6",
+      "variant": "current_full_model",
+      "kind": "model",
+      "model_name": "qualifying_baseline",
+      "config_signature": {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": true,
+        "race_delta_constraint_mode": "constrained"
+      },
+      "rows": 22,
+      "metric_available": false,
+      "field_mae": null,
+      "mae_on_common": null,
+      "field_coverage": null,
+      "top10_hit": null,
+      "podium_hit_count": null,
+      "winner_hit": null,
+      "evaluation": {
+        "available": false,
+        "reason": "actual_results_unavailable"
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
+      "target_round_allowed_in_training": false,
+      "information_cutoff": "post-qualifying_pre-race",
+      "current_event_inputs": {
+        "allowed": true,
+        "description": "current_round_starting_grid_or_qualifying_fallback",
+        "sources": [
+          "qualifying_fallback"
+        ]
+      }
+    },
+    {
+      "mode": "race",
+      "round": 6,
+      "event_key": "2026:race:6",
+      "variant": "current_full_model_plus_circuit_cards",
+      "kind": "model",
+      "model_name": "qualifying_baseline",
+      "config_signature": {
+        "kind": "model",
+        "f1_model": "baseline",
+        "disable_circuit_features": false,
+        "race_delta_constraint_mode": "constrained"
+      },
+      "rows": 22,
+      "metric_available": false,
+      "field_mae": null,
+      "mae_on_common": null,
+      "field_coverage": null,
+      "top10_hit": null,
+      "podium_hit_count": null,
+      "winner_hit": null,
+      "evaluation": {
+        "available": false,
+        "reason": "actual_results_unavailable"
+      },
+      "season": 2026,
+      "year": 2026,
+      "event_name": "Monaco Grand Prix",
+      "train_policy_effective": "same_season_walk_forward",
+      "train_seasons_effective": [
+        2026
+      ],
+      "same_season_only": true,
+      "training_rounds_used": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "training_event_count": 5,
       "target_round_allowed_in_training": false,
       "information_cutoff": "post-qualifying_pre-race",
       "current_event_inputs": {

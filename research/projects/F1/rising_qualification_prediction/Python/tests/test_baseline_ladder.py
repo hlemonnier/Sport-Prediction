@@ -16,16 +16,12 @@ def test_baseline_ladder_declares_required_race_variants() -> None:
 
     assert names == [
         "grid_only",
-        "grid_plus_fp_race_pace_residual",
-        "grid_delta_unconstrained",
-        "grid_delta_constrained",
-        "current_full_model",
-        "current_full_model_plus_circuit_cards",
+        "strategic_race_delta",
     ]
-    constrained = next(spec for spec in specs if spec["name"] == "grid_delta_constrained")
-    current = next(spec for spec in specs if spec["name"] == "current_full_model")
-    assert constrained.get("f1_model") == "baseline"
-    assert "f1_model" not in current
+    strategic = next(spec for spec in specs if spec["name"] == "strategic_race_delta")
+    assert strategic.get("f1_model") == "baseline"
+    assert strategic.get("disable_circuit_features") is False
+    assert strategic.get("race_delta_constraint_mode") == "constrained"
 
 
 def test_baseline_ladder_declares_required_qualifying_variants() -> None:
@@ -43,16 +39,16 @@ def test_baseline_ladder_summary_uses_identical_event_sets() -> None:
     rows = [
         {"mode": "race", "round": 1, "variant": "grid_only", "metric_available": True, "field_mae": 2.0, "top10_hit": 0.8},
         {"mode": "race", "round": 2, "variant": "grid_only", "metric_available": True, "field_mae": 4.0, "top10_hit": 0.7},
-        {"mode": "race", "round": 1, "variant": "current_full_model", "metric_available": True, "field_mae": 1.0, "top10_hit": 0.9},
-        {"mode": "race", "round": 2, "variant": "current_full_model", "metric_available": False, "field_mae": None, "top10_hit": None},
+        {"mode": "race", "round": 1, "variant": "strategic_race_delta", "metric_available": True, "field_mae": 1.0, "top10_hit": 0.9},
+        {"mode": "race", "round": 2, "variant": "strategic_race_delta", "metric_available": False, "field_mae": None, "top10_hit": None},
     ]
 
     summary = _summarize_paired_ladder(rows)
 
     assert summary["common_event_count"] == 1
     assert summary["variant_metrics"]["grid_only"]["field_mae_avg"] == 2.0
-    assert summary["variant_metrics"]["current_full_model"]["field_mae_avg"] == 1.0
-    paired = summary["paired_comparisons"]["current_full_model_vs_grid_only_field_mae"]
+    assert summary["variant_metrics"]["strategic_race_delta"]["field_mae_avg"] == 1.0
+    paired = summary["paired_comparisons"]["strategic_race_delta_vs_grid_only_field_mae"]
     assert paired["available"] is True
     assert paired["event_count"] == 1
     assert paired["mean_improvement"] == 1.0

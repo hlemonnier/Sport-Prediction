@@ -21,30 +21,10 @@ from rqp.runtime import parse_train_seasons
 def _race_ladder_specs() -> list[dict[str, Any]]:
     return [
         {"name": "grid_only", "kind": "baseline"},
-        {"name": "grid_plus_fp_race_pace_residual", "kind": "baseline"},
         {
-            "name": "grid_delta_unconstrained",
+            "name": "strategic_race_delta",
             "kind": "model",
             "f1_model": "baseline",
-            "disable_circuit_features": True,
-            "race_delta_constraint_mode": "unconstrained",
-        },
-        {
-            "name": "grid_delta_constrained",
-            "kind": "model",
-            "f1_model": "baseline",
-            "disable_circuit_features": True,
-            "race_delta_constraint_mode": "constrained",
-        },
-        {
-            "name": "current_full_model",
-            "kind": "model",
-            "disable_circuit_features": True,
-            "race_delta_constraint_mode": "constrained",
-        },
-        {
-            "name": "current_full_model_plus_circuit_cards",
-            "kind": "model",
             "disable_circuit_features": False,
             "race_delta_constraint_mode": "constrained",
         },
@@ -335,27 +315,8 @@ def _paired_delta_summary(
 def _paired_comparison_specs(mode: str) -> list[dict[str, Any]]:
     if mode == "race":
         return [
-            {"baseline": "grid_only", "challenger": "current_full_model", "metric": "field_mae", "lower_is_better": True},
-            {"baseline": "grid_only", "challenger": "grid_delta_constrained", "metric": "field_mae", "lower_is_better": True},
-            {
-                "baseline": "grid_only",
-                "challenger": "grid_plus_fp_race_pace_residual",
-                "metric": "field_mae",
-                "lower_is_better": True,
-            },
-            {
-                "baseline": "current_full_model",
-                "challenger": "current_full_model_plus_circuit_cards",
-                "metric": "field_mae",
-                "lower_is_better": True,
-            },
-            {"baseline": "grid_only", "challenger": "current_full_model", "metric": "top10_hit", "lower_is_better": False},
-            {
-                "baseline": "current_full_model",
-                "challenger": "current_full_model_plus_circuit_cards",
-                "metric": "top10_hit",
-                "lower_is_better": False,
-            },
+            {"baseline": "grid_only", "challenger": "strategic_race_delta", "metric": "field_mae", "lower_is_better": True},
+            {"baseline": "grid_only", "challenger": "strategic_race_delta", "metric": "top10_hit", "lower_is_better": False},
         ]
     if mode == "qualifying":
         return [

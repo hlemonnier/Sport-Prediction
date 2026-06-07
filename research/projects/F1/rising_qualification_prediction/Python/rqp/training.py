@@ -68,7 +68,7 @@ class TrainingResult:
 class CandidateSpec:
     name: str
     build_model: Callable[[], object]
-    task: str  # regression | ranking | eb
+    task: str  # regression | ranking | eb | strategic_race
     family: str  # ml | dl
     scale_features: bool = False
     device_hint: Optional[str] = None
@@ -263,6 +263,290 @@ class QualifyingPositionBaseline:
         if not np.isfinite(fill):
             fill = self.fill_value
         return values.fillna(fill).to_numpy(dtype=float)
+
+
+TEAM_CAR_ARCHETYPE_PROFILES: dict[str, dict[str, float]] = {
+    "red bull": {"power": 0.72, "downforce": 0.88, "low_speed": 0.78, "high_speed": 0.86, "traction": 0.80, "braking": 0.78, "tyre": 0.78},
+    "ferrari": {"power": 0.80, "downforce": 0.86, "low_speed": 0.88, "high_speed": 0.78, "traction": 0.84, "braking": 0.76, "tyre": 0.72},
+    "mclaren": {"power": 0.82, "downforce": 0.88, "low_speed": 0.76, "high_speed": 0.90, "traction": 0.78, "braking": 0.78, "tyre": 0.82},
+    "mercedes": {"power": 0.82, "downforce": 0.78, "low_speed": 0.72, "high_speed": 0.82, "traction": 0.72, "braking": 0.80, "tyre": 0.78},
+    "williams": {"power": 0.82, "downforce": 0.58, "low_speed": 0.52, "high_speed": 0.72, "traction": 0.58, "braking": 0.62, "tyre": 0.58},
+    "aston martin": {"power": 0.76, "downforce": 0.74, "low_speed": 0.72, "high_speed": 0.68, "traction": 0.70, "braking": 0.72, "tyre": 0.66},
+    "alpine": {"power": 0.72, "downforce": 0.62, "low_speed": 0.62, "high_speed": 0.58, "traction": 0.66, "braking": 0.66, "tyre": 0.62},
+    "haas": {"power": 0.78, "downforce": 0.58, "low_speed": 0.56, "high_speed": 0.60, "traction": 0.62, "braking": 0.64, "tyre": 0.56},
+    "racing bulls": {"power": 0.72, "downforce": 0.66, "low_speed": 0.68, "high_speed": 0.64, "traction": 0.70, "braking": 0.66, "tyre": 0.64},
+    "rb": {"power": 0.72, "downforce": 0.66, "low_speed": 0.68, "high_speed": 0.64, "traction": 0.70, "braking": 0.66, "tyre": 0.64},
+    "sauber": {"power": 0.76, "downforce": 0.56, "low_speed": 0.54, "high_speed": 0.58, "traction": 0.58, "braking": 0.60, "tyre": 0.56},
+    "kick sauber": {"power": 0.76, "downforce": 0.56, "low_speed": 0.54, "high_speed": 0.58, "traction": 0.58, "braking": 0.60, "tyre": 0.56},
+}
+
+
+class StrategicRaceDeltaModel:
+    """Single race scorer combining grid, history, FP, and circuit features."""
+
+    def __init__(
+        self,
+        *,
+        driver_prior: float = 2.0,
+        team_prior: float = 3.0,
+        circuit_prior: float = 4.0,
+        cap: float = 2.5,
+    ) -> None:
+        self.driver_prior = float(max(driver_prior, 1e-6))
+        self.team_prior = float(max(team_prior, 1e-6))
+        self.circuit_prior = float(max(circuit_prior, 1e-6))
+        self.cap = float(max(cap, 0.25))
+        self.global_delta: float = 0.0
+        self.driver_delta: dict[str, tuple[float, float]] = {}
+        self.team_delta: dict[str, tuple[float, float]] = {}
+        self.circuit_delta: dict[str, tuple[float, float]] = {}
+        self.archetype_delta: dict[str, tuple[float, float]] = {}
+        self.team_col: Optional[str] = None
+        self.circuit_col: Optional[str] = None
+        self.archetype_col: Optional[str] = None
+        self.calibrators: dict[str, ProbabilityCalibrator] = {}
+
+    @staticmethod
+    def _clean_key(value: object, fallback: str) -> str:
+        if value is None or pd.isna(value):
+            return fallback
+        text = str(value).strip().lower()
+        return text if text and text not in {"nan", "none", "<na>"} else fallback
+
+    @staticmethod
+    def _numeric(frame: pd.DataFrame, column: str, default: float) -> pd.Series:
+        if column not in frame.columns:
+            return pd.Series(float(default), index=frame.index, dtype=float)
+        return pd.to_numeric(frame[column], errors="coerce").fillna(float(default))
+
+    @staticmethod
+    def _rank_component(values: pd.Series, fallback: pd.Series) -> pd.Series:
+        numeric = pd.to_numeric(values, errors="coerce")
+        if numeric.notna().sum() == 0:
+            return fallback.copy()
+        ranked = numeric.rank(method="average", ascending=True)
+        return ranked.fillna(fallback)
+
+    @staticmethod
+    def _team_profile(value: object) -> dict[str, float]:
+        team = StrategicRaceDeltaModel._clean_key(value, "")
+        for key, profile in TEAM_CAR_ARCHETYPE_PROFILES.items():
+            if key in team or team in key:
+                return profile
+        return {"power": 0.65, "downforce": 0.65, "low_speed": 0.65, "high_speed": 0.65, "traction": 0.65, "braking": 0.65, "tyre": 0.65}
+
+    @staticmethod
+    def _shrunken_group_delta(
+        rows: pd.DataFrame,
+        key_col: str,
+        *,
+        prior: float,
+        weights: Optional[np.ndarray],
+    ) -> dict[str, tuple[float, float]]:
+        if key_col not in rows.columns or "race_delta_target" not in rows.columns:
+            return {}
+        keys = rows[key_col].map(lambda value: StrategicRaceDeltaModel._clean_key(value, "unknown"))
+        deltas = pd.to_numeric(rows["race_delta_target"], errors="coerce")
+        valid = deltas.notna()
+        if not valid.any():
+            return {}
+        if weights is None:
+            weight_series = pd.Series(1.0, index=rows.index, dtype=float)
+        else:
+            weight_series = pd.Series(weights, index=rows.index, dtype=float)
+        output: dict[str, tuple[float, float]] = {}
+        for key, idx in keys.loc[valid].groupby(keys.loc[valid], sort=False).groups.items():
+            w = weight_series.loc[idx].astype(float).clip(lower=1e-6)
+            y = deltas.loc[idx].astype(float)
+            denom = float(w.sum())
+            if denom <= 0.0:
+                continue
+            mean = float((y * w).sum() / denom)
+            output[str(key)] = (mean, denom)
+        return output
+
+    def _resolve_circuit_col(self, frame: pd.DataFrame) -> Optional[str]:
+        for candidate in ("circuit_card_id", "event_name_norm", "event_name"):
+            if candidate in frame.columns:
+                return candidate
+        return None
+
+    def _resolve_archetype_col(self, frame: pd.DataFrame) -> Optional[str]:
+        return "circuit_archetype" if "circuit_archetype" in frame.columns else None
+
+    def fit(self, frame: pd.DataFrame) -> "StrategicRaceDeltaModel":
+        if frame.empty or "race_delta_target" not in frame.columns:
+            return self
+        rows = frame.copy()
+        y = pd.to_numeric(rows["race_delta_target"], errors="coerce")
+        valid = y.notna()
+        if not valid.any():
+            return self
+        rows = rows.loc[valid].copy()
+        y = y.loc[valid].astype(float)
+        weights = _sample_weight_array(rows)
+        if weights is None:
+            self.global_delta = float(y.mean())
+        else:
+            self.global_delta = float(np.average(y.to_numpy(dtype=float), weights=weights))
+        if not np.isfinite(self.global_delta):
+            self.global_delta = 0.0
+
+        self.team_col = team_column(rows)
+        self.circuit_col = self._resolve_circuit_col(rows)
+        self.archetype_col = self._resolve_archetype_col(rows)
+        self.driver_delta = self._shrunken_group_delta(rows, "driver_id", prior=self.driver_prior, weights=weights)
+        self.team_delta = self._shrunken_group_delta(rows, self.team_col, prior=self.team_prior, weights=weights) if self.team_col else {}
+        self.circuit_delta = (
+            self._shrunken_group_delta(rows, self.circuit_col, prior=self.circuit_prior, weights=weights)
+            if self.circuit_col
+            else {}
+        )
+        self.archetype_delta = (
+            self._shrunken_group_delta(rows, self.archetype_col, prior=self.circuit_prior, weights=weights)
+            if self.archetype_col
+            else {}
+        )
+        return self
+
+    def _group_prior(self, frame: pd.DataFrame, column: Optional[str], store: dict[str, tuple[float, float]], prior: float) -> pd.Series:
+        if not column or column not in frame.columns or not store:
+            return pd.Series(self.global_delta, index=frame.index, dtype=float)
+        values: list[float] = []
+        for value in frame[column].tolist():
+            key = self._clean_key(value, "unknown")
+            mean, weight = store.get(key, (self.global_delta, 0.0))
+            shrink = float(weight / (weight + prior)) if weight > 0.0 else 0.0
+            values.append((shrink * mean) + ((1.0 - shrink) * self.global_delta))
+        return pd.Series(values, index=frame.index, dtype=float)
+
+    def _mobility(self, frame: pd.DataFrame) -> pd.Series:
+        mobility = (
+            self._numeric(frame, "track_finish_order_mobility", 0.35)
+            if "track_finish_order_mobility" in frame.columns
+            else self._numeric(frame, "track_overtake_propensity", 0.35)
+        ).clip(0.0, 1.0)
+        drs = self._numeric(frame, "circuit_drs_effectiveness", 0.45).clip(0.0, 1.0)
+        difficulty = self._numeric(frame, "circuit_overtaking_difficulty", 0.50).clip(0.0, 1.0)
+        safety = self._numeric(frame, "track_safety_car_prior", 0.25).clip(0.0, 1.0)
+        chaos = self._numeric(frame, "track_chaos_index", 0.20).clip(0.0, 1.0)
+        strategy = self._numeric(frame, "track_strategy_variance_prior", 0.35).clip(0.0, 1.0)
+        value = (
+            0.06
+            + (0.48 * mobility)
+            + (0.16 * drs)
+            - (0.35 * difficulty)
+            + (0.12 * safety)
+            + (0.16 * chaos)
+            + (0.08 * strategy)
+        )
+        return value.clip(lower=0.04, upper=0.85)
+
+    def _team_car_fit_rank(self, frame: pd.DataFrame, fallback: pd.Series) -> pd.Series:
+        if not self.team_col or self.team_col not in frame.columns:
+            return fallback.copy()
+        demands = {
+            "power": self._numeric(frame, "circuit_power_sensitivity", 0.55).clip(0.0, 1.0),
+            "downforce": self._numeric(frame, "circuit_downforce_demand", 0.55).clip(0.0, 1.0),
+            "low_speed": self._numeric(frame, "circuit_low_speed_corner_demand", 0.55).clip(0.0, 1.0),
+            "high_speed": self._numeric(frame, "circuit_high_speed_corner_demand", 0.55).clip(0.0, 1.0),
+            "traction": self._numeric(frame, "circuit_traction_demand", 0.55).clip(0.0, 1.0),
+            "braking": self._numeric(frame, "circuit_braking_demand", 0.55).clip(0.0, 1.0),
+            "tyre": self._numeric(frame, "circuit_tyre_degradation", 0.55).clip(0.0, 1.0),
+        }
+        fit_values: list[float] = []
+        for idx, team_value in frame[self.team_col].items():
+            profile = self._team_profile(team_value)
+            numerator = 0.0
+            denominator = 0.0
+            for key, demand_series in demands.items():
+                demand = float(demand_series.loc[idx])
+                if not np.isfinite(demand):
+                    continue
+                numerator += demand * float(profile.get(key, 0.65))
+                denominator += demand
+            fit_values.append(numerator / denominator if denominator > 0.0 else 0.65)
+        fit = pd.Series(fit_values, index=frame.index, dtype=float)
+        return (-fit).rank(method="average", ascending=True).fillna(fallback)
+
+    def predict(self, frame: pd.DataFrame) -> np.ndarray:
+        if frame.empty:
+            return np.asarray([], dtype=float)
+        grid = self._numeric(frame, "grid_position", 10.0)
+        if grid.notna().sum() == 0:
+            grid = self._numeric(frame, "qualy_position", 10.0)
+        grid = grid.fillna(float(grid.median(skipna=True) if grid.notna().any() else 10.0))
+
+        driver_prior = self._group_prior(frame, "driver_id", self.driver_delta, self.driver_prior)
+        team_prior = self._group_prior(frame, self.team_col, self.team_delta, self.team_prior)
+        circuit_prior = self._group_prior(frame, self.circuit_col, self.circuit_delta, self.circuit_prior)
+        archetype_prior = self._group_prior(frame, self.archetype_col, self.archetype_delta, self.circuit_prior)
+
+        fp_race_rank = self._rank_component(frame.get("fp_race_sim_rank", pd.Series(index=frame.index, dtype=float)), grid)
+        fp_mean_rank = self._rank_component(frame.get("fp_mean_rank", pd.Series(index=frame.index, dtype=float)), grid)
+        fp_quali_rank = self._rank_component(frame.get("fp_quali_sim_rank", pd.Series(index=frame.index, dtype=float)), grid)
+        circuit_fit = self._rank_component(frame.get("circuit_fit_index", pd.Series(index=frame.index, dtype=float)), grid)
+        team_car_fit = self._team_car_fit_rank(frame, grid)
+        driver_archetype = self._rank_component(
+            frame.get("driver_archetype_form_3_fp_weighted_delta", pd.Series(index=frame.index, dtype=float)),
+            grid,
+        )
+        team_archetype_perf = self._rank_component(
+            frame.get("team_archetype_form_3_fp_weighted_delta", pd.Series(index=frame.index, dtype=float)),
+            grid,
+        )
+        driver_circuit = self._rank_component(
+            frame.get("driver_circuit_hist_fp_weighted_delta", pd.Series(index=frame.index, dtype=float)),
+            grid,
+        )
+        team_circuit = self._rank_component(
+            frame.get("team_circuit_hist_fp_weighted_delta", pd.Series(index=frame.index, dtype=float)),
+            grid,
+        )
+
+        fp_race_move = fp_race_rank - grid
+        fp_mean_move = fp_mean_rank - grid
+        fp_quali_move = fp_quali_rank - grid
+        circuit_fit_move = circuit_fit - grid
+        team_car_fit_move = team_car_fit - grid
+        driver_archetype_move = driver_archetype - grid
+        team_archetype_move = team_archetype_perf - grid
+        driver_circuit_move = driver_circuit - grid
+        team_circuit_move = team_circuit - grid
+
+        dnf_penalty = (
+            self._numeric(frame, "track_dnf_prior", 0.08).clip(0.0, 0.60)
+            * (1.0 + self._numeric(frame, "fp_slow_lap_ratio", 0.0).clip(0.0, 1.0))
+            * 0.65
+        )
+        strategic_delta = (
+            (0.34 * driver_prior)
+            + (0.18 * team_prior)
+            + (0.10 * circuit_prior)
+            + (0.08 * archetype_prior)
+            + (0.12 * fp_race_move)
+            + (0.06 * fp_mean_move)
+            + (0.04 * fp_quali_move)
+            + (0.04 * circuit_fit_move)
+            + (0.06 * team_car_fit_move)
+            + (0.03 * driver_archetype_move)
+            + (0.03 * team_archetype_move)
+            + (0.02 * driver_circuit_move)
+            + (0.02 * team_circuit_move)
+            + dnf_penalty
+        )
+        mobility = self._mobility(frame)
+        max_delta = np.maximum(0.60, self.cap * (0.35 + mobility.to_numpy(dtype=float)))
+        delta = strategic_delta.to_numpy(dtype=float) * (0.30 + (0.70 * mobility.to_numpy(dtype=float)))
+        delta = np.clip(delta, -max_delta, max_delta)
+        score = grid.to_numpy(dtype=float) + delta
+        return np.asarray(score, dtype=float)
+
+    def predict_probabilities(self, scores: pd.Series) -> dict[str, pd.Series]:
+        output: dict[str, pd.Series] = {}
+        for label, calibrator in self.calibrators.items():
+            output[label] = calibrator.predict(scores)
+        return output
 
 
 class ColumnBaselineModel:
@@ -890,6 +1174,15 @@ def _fit_candidate(
         return None
     model = candidate.build_model()
     try:
+        if candidate.task == "strategic_race":
+            if not spec.uses_offset:
+                return None
+            strategic_rows = rows.copy()
+            if "race_delta_target" not in strategic_rows.columns:
+                strategic_rows["race_delta_target"] = y
+            model.fit(strategic_rows)
+            return model
+
         if candidate.task == "eb":
             eb_rows = rows.copy()
             eb_rows["target"] = y
@@ -1821,11 +2114,25 @@ def train_model(
     )
     target_spec = _infer_target_spec(train)
     target_spec = replace(target_spec, constraint_mode=_normalize_constraint_mode(race_delta_constraint_mode))
+    strategic_race_supported = bool(target_spec.uses_offset and "grid_position" in train.columns)
     if target_spec.uses_offset:
         notes.append(
             "Race target transform active: models train on race_delta_target and "
             "validation/calibration score reconstructed finish_position=grid_position+predicted_delta.",
         )
+        if strategic_race_supported:
+            candidates = [
+                CandidateSpec(
+                    name="strategic_race_delta",
+                    task="strategic_race",
+                    family="baseline",
+                    build_model=lambda: StrategicRaceDeltaModel(),
+                ),
+            ]
+            notes.append(
+                "Race model policy: unified strategic_race_delta active "
+                "(grid anchor + FP race pace + driver/team/circuit deltas + circuit-card/car-fit features).",
+            )
         if any(candidate.task == "ranking" for candidate in candidates):
             notes.append(
                 "Ranking candidates skipped for race_delta_target: pairwise relevance on raw deltas would optimize movers, not finish order.",
@@ -1981,7 +2288,14 @@ def train_model(
             )
             notes.append(f"Model selection walk-forward: {leaderboard}.")
             eligible_ranking = [score for score in ranking if score.family != "dl"]
-            if eligible_ranking:
+            if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
+                selected_from_cv = "strategic_race_delta"
+                if "strategic_race_delta" in score_lookup:
+                    notes.append(
+                        "Race policy kept the unified strategic race model as production model; "
+                        "grid/pace baselines remain audit comparators only.",
+                    )
+            elif eligible_ranking:
                 selected_from_cv = eligible_ranking[0].name
                 if ranking[0].family == "dl":
                     notes.append(
@@ -2011,7 +2325,10 @@ def train_model(
             notes.append("Aucun score walk-forward exploitable; selection par priorite.")
     else:
         notes.append("Historique insuffisant pour validation walk-forward, selection par priorite.")
-        if race_baseline_supported:
+        if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
+            selected_from_cv = "strategic_race_delta"
+            notes.append("Mode race: modele strategique unifie prioritaire sans folds.")
+        elif race_baseline_supported:
             selected_from_cv = "qualifying_baseline"
             notes.append("Mode conservateur: baseline qualif prioritaire sans folds.")
         elif qualifying_baseline_supported:
@@ -2024,7 +2341,9 @@ def train_model(
             notes.append("Mode conservateur: baseline pace prioritaire sans folds.")
 
     if requested_model == "baseline":
-        if race_baseline_supported:
+        if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
+            selected_from_cv = "strategic_race_delta"
+        elif race_baseline_supported:
             selected_from_cv = "qualifying_baseline"
         elif qualifying_baseline_supported:
             default_col = (
@@ -2116,6 +2435,19 @@ def train_model(
             selected_device = getattr(fitted, "device_used", None)
             break
 
+    if selected_model is None and race_baseline_supported:
+        if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
+            fitted = _fit_candidate(
+                train,
+                feature_cols,
+                candidate_lookup["strategic_race_delta"],
+                target_spec=target_spec,
+            )
+            if fitted is not None:
+                selected_model = fitted
+                selected_name = "strategic_race_delta"
+                selected_family = "baseline"
+                notes.append("Fallback race: modele strategique unifie ajuste sur tout l'historique.")
     if selected_model is None and race_baseline_supported:
         fill_value = _median_fill(race_baseline_col, 10.0)
         selected_model = QualifyingPositionBaseline(
@@ -2246,6 +2578,11 @@ def train_model(
 
     if selected_name == "qualifying_baseline":
         notes.append("Prediction race: baseline qualif contextuelle (qualif + signal predit).")
+    elif selected_name == "strategic_race_delta":
+        notes.append(
+            "Prediction race: modele strategique unifie (grid anchor, FP race pace, "
+            "historique pilote/team/circuit, circuit cards, safety-car/DNF/mobility, car-fit).",
+        )
     elif selected_name and selected_name.startswith("pace_baseline::"):
         notes.append("Prediction qualif: baseline pace local (FP/sprint).")
     elif selected_name and selected_name.startswith("pace_blend::"):

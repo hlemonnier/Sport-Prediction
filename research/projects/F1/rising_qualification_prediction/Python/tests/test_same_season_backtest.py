@@ -93,16 +93,15 @@ def test_same_season_backtest_forces_target_year_training_and_skips_first_round_
         f1_pl_samples=25,
     )
 
-    first_round_current = [
-        row for row in payload["rows"] if row["round"] == 1 and row["variant"] == "current_full_model"
+    first_round_strategic = [
+        row for row in payload["rows"] if row["round"] == 1 and row["variant"] == "strategic_race_delta"
     ]
-    second_round_current = [
-        row for row in payload["rows"] if row["round"] == 2 and row["variant"] == "current_full_model"
+    second_round_strategic = [
+        row for row in payload["rows"] if row["round"] == 2 and row["variant"] == "strategic_race_delta"
     ]
-    assert first_round_current[0]["skip_reason"] == "no_prior_same_season_training_events"
-    assert second_round_current[0]["metric_available"] is True
+    assert first_round_strategic[0]["skip_reason"] == "no_prior_same_season_training_events"
+    assert second_round_strategic[0]["metric_available"] is True
     assert all(train_seasons == [2026] for _, _, train_seasons in captured_train_seasons)
-    assert any(round_number == 2 and variant == "current_full_model_plus_circuit_cards" for round_number, variant, _ in captured_train_seasons)
-    assert not any(round_number == 2 and variant == "current_full_model" for round_number, variant, _ in captured_train_seasons)
+    assert any(round_number == 2 and variant == "strategic_race_delta" for round_number, variant, _ in captured_train_seasons)
     assert payload["training_protocol"]["cross_season_training_allowed"] is False
     assert payload["season_summaries"]["2026"]["rounds_seen"] == [1, 2]

@@ -22,6 +22,7 @@ from rqp.prediction import (
 from rqp.providers import LocalWeekendProvider
 from rqp.training import (
     CandidateSpec,
+    StrategicRaceDeltaModel,
     TargetOffsetModel,
     _fit_candidate,
     _fit_pl_temperature_from_oof,
@@ -29,6 +30,7 @@ from rqp.training import (
     _probability_audit_from_oof,
     _pl_probabilities_for_oof_audit,
     _oof_scores_for_selection,
+    train_model,
 )
 
 
@@ -618,6 +620,81 @@ def test_race_training_target_uses_grid_delta_and_reconstructs_finish_score() ->
 
     assert spec.train_col == "race_delta_target"
     assert pred.tolist() == [3.0, 11.0]
+
+
+def test_strategic_race_delta_model_uses_race_features_not_grid_clone() -> None:
+    train = pd.DataFrame(
+        {
+            "driver_id": ["front", "mover", "front", "mover"],
+            "team_name": ["williams", "ferrari", "williams", "ferrari"],
+            "event_key": [202601, 202601, 202602, 202602],
+            "grid_position": [1.0, 2.0, 1.0, 2.0],
+            "target": [4.0, 1.0, 3.0, 1.0],
+            "race_delta_target": [3.0, -1.0, 2.0, -1.0],
+            "circuit_card_id": ["monaco", "monaco", "monaco", "monaco"],
+            "circuit_archetype": ["street_max_downforce"] * 4,
+        },
+    )
+    current = pd.DataFrame(
+        {
+            "driver_id": ["front", "mover"],
+            "team_name": ["williams", "ferrari"],
+            "grid_position": [1.0, 2.0],
+            "qualy_position": [1.0, 2.0],
+            "fp_race_sim_rank": [2.0, 1.0],
+            "fp_mean_rank": [2.0, 1.0],
+            "fp_quali_sim_rank": [2.0, 1.0],
+            "circuit_fit_index": [0.80, 0.20],
+            "driver_archetype_form_3_fp_weighted_delta": [0.90, 0.10],
+            "team_archetype_form_3_fp_weighted_delta": [0.90, 0.10],
+            "driver_circuit_hist_fp_weighted_delta": [0.90, 0.10],
+            "team_circuit_hist_fp_weighted_delta": [0.90, 0.10],
+            "track_finish_order_mobility": [0.80, 0.80],
+            "track_safety_car_prior": [0.40, 0.40],
+            "track_chaos_index": [0.50, 0.50],
+            "track_strategy_variance_prior": [0.50, 0.50],
+            "track_dnf_prior": [0.10, 0.10],
+            "circuit_downforce_demand": [1.0, 1.0],
+            "circuit_power_sensitivity": [0.12, 0.12],
+            "circuit_low_speed_corner_demand": [1.0, 1.0],
+            "circuit_high_speed_corner_demand": [0.22, 0.22],
+            "circuit_traction_demand": [0.86, 0.86],
+            "circuit_braking_demand": [0.52, 0.52],
+            "circuit_tyre_degradation": [0.32, 0.32],
+        },
+    )
+
+    model = StrategicRaceDeltaModel().fit(train)
+    pred = pd.Series(model.predict(current), index=current["driver_id"], dtype=float)
+
+    assert pred["mover"] < pred["front"]
+    assert pred.tolist() != current["grid_position"].tolist()
+
+
+def test_race_baseline_request_selects_unified_strategic_model() -> None:
+    train = pd.DataFrame(
+        {
+            "driver_id": ["a", "b", "a", "b", "a", "b"],
+            "team_name": ["williams", "ferrari", "williams", "ferrari", "williams", "ferrari"],
+            "event_key": [202601, 202601, 202602, 202602, 202603, 202603],
+            "grid_position": [1.0, 2.0, 1.0, 2.0, 1.0, 2.0],
+            "target": [2.0, 1.0, 3.0, 1.0, 2.0, 1.0],
+            "race_delta_target": [1.0, -1.0, 2.0, -1.0, 1.0, -1.0],
+            "fp_race_sim_rank": [2.0, 1.0, 2.0, 1.0, 2.0, 1.0],
+            "fp_mean_rank": [2.0, 1.0, 2.0, 1.0, 2.0, 1.0],
+            "track_finish_order_mobility": [0.70] * 6,
+            "circuit_overtaking_difficulty": [0.35] * 6,
+        },
+    )
+
+    result = train_model(
+        train,
+        ["grid_position", "fp_race_sim_rank", "fp_mean_rank", "track_finish_order_mobility"],
+        f1_model="baseline",
+    )
+
+    assert result.model_name == "strategic_race_delta"
+    assert any("unified strategic_race_delta" in note for note in result.notes)
 
 
 def test_trained_race_delta_wrapper_is_circuit_mobility_constrained() -> None:

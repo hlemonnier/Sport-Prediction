@@ -10,14 +10,19 @@ import pytest
 
 from run_experiment import _assert_probability_audit_schema
 from rqp.betting import BettingConfig, build_betting_recommendations
+from rqp.config import PredictionConfig
 from rqp.data import _add_temporal_features_train, build_current_features, build_training_data
 from rqp.evaluation import evaluate_prediction_rows
 from rqp.prediction import (
+    _add_race_context_interactions,
+    _build_qualifying_signal_frame,
     _build_oof_qualifying_signal_frame,
     _hierarchical_fallback,
     _predict_probability,
     _race_stochastic_score_layer,
     _rank_based_probability,
+    _weather_neutral_frame,
+    run_prediction,
 )
 from rqp.providers import LocalWeekendProvider
 from rqp.training import (
@@ -103,6 +108,23 @@ class GridSourceProvider:
 class PostRaceGridOnlyProvider(GridSourceProvider):
     def get_starting_grid(self, year, round_number):
         return pd.DataFrame()
+
+
+def _minimal_prediction_config(mode: str) -> PredictionConfig:
+    return PredictionConfig(
+        source="local",
+        mode=mode,
+        year=2026,
+        round_number=8,
+        train_seasons=[],
+        include_standings=False,
+        cache_dir=None,
+        meeting_name=None,
+        country_name=None,
+        weekends_dir=None,
+        f1_pl_samples=400,
+        f1_listwise_seed=7,
+    )
 
 
 def test_evaluation_prefers_driver_id_over_brittle_names() -> None:
@@ -592,6 +614,154 @@ def test_oof_qualifying_context_never_trains_on_same_event(monkeypatch) -> None:
         pd.to_numeric(trained["qualy_pred_training_event_max"], errors="coerce")
         < pd.to_numeric(trained["event_key"], errors="coerce")
     ).all()
+
+
+def test_qualifying_signal_frame_exposes_discrete_predicted_rank() -> None:
+    frame = pd.DataFrame(
+        {
+            "driver_id": ["a", "b", "c", "d"],
+            "event_key": [202601, 202601, 202601, 202601],
+        }
+    )
+    preds = pd.Series([0.30, 0.10, 0.40, 0.20], index=frame.index, dtype=float)
+    signal = _build_qualifying_signal_frame(
+        frame,
+        preds,
+        pd.Series(0.5, index=frame.index, dtype=float),
+        pd.Series(0.2, index=frame.index, dtype=float),
+        source="test",
+    )
+
+    by_driver = signal.set_index("driver_id")
+    assert by_driver.loc["b", "qualy_pred_rank"] == 1.0
+    assert by_driver.loc["d", "qualy_pred_rank"] == 2.0
+    assert by_driver.loc["a", "qualy_pred_rank"] == 3.0
+    assert by_driver.loc["c", "qualy_pred_rank"] == 4.0
+
+
+def test_race_context_uses_predicted_qualifying_grid_before_real_grid_exists() -> None:
+    frame = pd.DataFrame(
+        {
+            "driver_id": ["a", "b", "c"],
+            "qualy_position": [np.nan, np.nan, np.nan],
+            "grid_position": [np.nan, np.nan, np.nan],
+            "grid_source": ["missing", "missing", "missing"],
+            "grid_status": ["unknown", "unknown", "unknown"],
+            "qualy_pred_position": [0.25, 0.10, 0.40],
+            "qualy_pred_rank": [2.0, 1.0, 3.0],
+            "track_qualy_importance": [0.85, 0.85, 0.85],
+        }
+    )
+
+    out = _add_race_context_interactions(frame)
+    by_driver = out.set_index("driver_id")
+
+    assert by_driver.loc["b", "grid_position"] == 1.0
+    assert by_driver.loc["a", "grid_position"] == 2.0
+    assert by_driver.loc["c", "grid_position"] == 3.0
+    assert set(out["grid_source"]) == {"predicted_qualifying_grid"}
+    assert set(out["grid_status"]) == {"predicted"}
+
+
+def test_weather_neutral_frame_removes_weather_from_variance_prior() -> None:
+    frame = pd.DataFrame(
+        {
+            "track_safety_car_prior": [0.20],
+            "track_dnf_prior": [0.10],
+            "track_strategy_variance_prior": [0.40],
+            "track_weather_uncertainty": [0.70],
+            "track_weather_uncertainty_prior": [0.70],
+            "race_generation_variance_prior": [0.50],
+        }
+    )
+
+    neutral, columns = _weather_neutral_frame(frame)
+
+    assert set(columns) == {
+        "race_generation_variance_prior",
+        "track_weather_uncertainty",
+        "track_weather_uncertainty_prior",
+    }
+    assert neutral.loc[0, "track_weather_uncertainty"] == 0.0
+    assert neutral.loc[0, "track_weather_uncertainty_prior"] == 0.0
+    expected = (0.34 * 0.20) + (0.26 * 0.10) + (0.25 * 0.40)
+    assert neutral.loc[0, "race_generation_variance_prior"] == pytest.approx(expected)
+
+
+def test_run_prediction_exposes_qualifying_weather_scenarios(monkeypatch) -> None:
+    current_features = pd.DataFrame(
+        {
+            "driver_id": ["a", "b", "c"],
+            "driver_name": ["A", "B", "C"],
+            "event_key": [202608, 202608, 202608],
+            "event_pace_index": [0.10, 0.20, 0.30],
+            "fp_mean_rank": [1.0, 2.0, 3.0],
+            "track_weather_uncertainty": [0.60, 0.60, 0.60],
+            "track_weather_uncertainty_prior": [0.60, 0.60, 0.60],
+            "race_generation_variance_prior": [0.50, 0.50, 0.50],
+        }
+    )
+
+    monkeypatch.setattr("rqp.prediction.build_training_data", lambda **_kwargs: (pd.DataFrame(), []))
+    monkeypatch.setattr("rqp.prediction.build_current_features", lambda **_kwargs: (current_features.copy(), []))
+
+    result = run_prediction(_minimal_prediction_config("qualifying"))
+
+    scenarios = result.extras["prediction_scenarios"]
+    assert set(scenarios) == {"base_no_weather", "weather_integrated"}
+    assert scenarios["base_no_weather"]["summary"]["weather_uncertainty_max"] == 0.0
+    assert scenarios["weather_integrated"]["summary"]["weather_uncertainty_max"] == pytest.approx(0.60)
+    assert result.extras["model_architecture"]["pre_quali_to_race_contract"]["enabled"] is True
+    assert {row["weather_scenario"] for row in result.extras["all_prediction_rows"]} == {"weather_integrated"}
+
+
+def test_run_prediction_race_before_quali_uses_quali_prediction_and_weather_scenarios(monkeypatch) -> None:
+    race_features = pd.DataFrame(
+        {
+            "driver_id": ["a", "b", "c"],
+            "driver_name": ["A", "B", "C"],
+            "event_key": [202608, 202608, 202608],
+            "event_pace_index": [0.20, 0.10, 0.30],
+            "fp_mean_rank": [2.0, 1.0, 3.0],
+            "fp_race_sim_rank": [2.0, 1.0, 3.0],
+            "qualy_position": [np.nan, np.nan, np.nan],
+            "grid_position": [np.nan, np.nan, np.nan],
+            "grid_source": ["missing", "missing", "missing"],
+            "grid_status": ["unknown", "unknown", "unknown"],
+            "track_weather_uncertainty": [0.75, 0.75, 0.75],
+            "track_weather_uncertainty_prior": [0.75, 0.75, 0.75],
+            "track_finish_order_mobility": [0.25, 0.25, 0.25],
+            "track_safety_car_prior": [0.30, 0.30, 0.30],
+            "track_dnf_prior": [0.08, 0.08, 0.08],
+            "track_strategy_variance_prior": [0.35, 0.35, 0.35],
+            "race_generation_variance_prior": [0.55, 0.55, 0.55],
+            "track_qualy_importance": [0.80, 0.80, 0.80],
+        }
+    )
+    qual_features = race_features.drop(columns=["qualy_position", "grid_position", "grid_source", "grid_status"]).copy()
+
+    def fake_training_data(**kwargs):
+        if kwargs["mode"] == "race":
+            return pd.DataFrame(), []
+        return pd.DataFrame(), []
+
+    def fake_current_features(**kwargs):
+        if kwargs["mode"] == "race":
+            return race_features.copy(), []
+        return qual_features.copy(), []
+
+    monkeypatch.setattr("rqp.prediction.build_training_data", fake_training_data)
+    monkeypatch.setattr("rqp.prediction.build_current_features", fake_current_features)
+
+    result = run_prediction(_minimal_prediction_config("race"))
+
+    scenarios = result.extras["prediction_scenarios"]
+    assert scenarios["base_no_weather"]["summary"]["weather_uncertainty_max"] == 0.0
+    assert scenarios["weather_integrated"]["summary"]["weather_uncertainty_max"] == pytest.approx(0.75)
+    assert result.extras["grid_source_counts"] == {"predicted_qualifying_grid": 3}
+    rows = result.extras["all_prediction_rows"]
+    assert {row["grid_source"] for row in rows} == {"predicted_qualifying_grid"}
+    assert all(row["qualy_pred_rank"] is not None for row in rows)
 
 
 def test_race_training_target_uses_grid_delta_and_reconstructs_finish_score() -> None:

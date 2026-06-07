@@ -13,6 +13,7 @@ from .circuit_cards import (
     CIRCUIT_NUMERIC_FEATURES,
     circuit_card_payload_from_frame,
 )
+from .architecture import architecture_payload
 from .config import PredictionConfig, PredictionResult
 from .data import build_current_features, build_training_data
 from .live_runner import run_live_race_prediction
@@ -22,6 +23,11 @@ from .training import train_model
 from .utils import format_prediction_table
 
 RUNSIM_EXACT_COLUMNS = {"fp_slow_lap_ratio", "fp_quali_vs_race_gap"}
+WEATHER_SCENARIO_COLUMNS = (
+    "track_weather_uncertainty",
+    "track_weather_uncertainty_prior",
+    "race_generation_variance_prior",
+)
 
 
 def _is_runsim_column(column: str) -> bool:
@@ -171,7 +177,10 @@ def _first_numeric_series(features: pd.DataFrame, columns: list[str]) -> Optiona
 
 
 def _race_grid_delta_fallback(features: pd.DataFrame) -> Optional[pd.Series]:
-    start = _first_numeric_series(features, ["grid_position", "qualy_context_position", "qualy_position"])
+    start = _first_numeric_series(
+        features,
+        ["grid_position", "qualy_context_position", "qualy_position", "qualy_pred_rank", "qualy_pred_position"],
+    )
     if start is None or start.notna().sum() == 0:
         return None
 
@@ -258,7 +267,10 @@ def _race_stochastic_score_layer(features: pd.DataFrame, preds: pd.Series) -> pd
     """Build race probability scores from grid-delta mean plus stochastic race priors."""
 
     out = pd.DataFrame(index=features.index)
-    base = _first_numeric_series(features, ["grid_position", "qualy_context_position", "qualy_position"])
+    base = _first_numeric_series(
+        features,
+        ["grid_position", "qualy_context_position", "qualy_position", "qualy_pred_rank", "qualy_pred_position"],
+    )
     pred = pd.to_numeric(preds, errors="coerce")
     if base is None or base.notna().sum() == 0:
         out["race_stochastic_score"] = pred
@@ -361,6 +373,8 @@ def _hierarchical_fallback(
         components.append((0.45, qualy_rank))
     if "qualy_context_position" in features.columns:
         components.append((0.25, _rank_percentile(features["qualy_context_position"])))
+    if "qualy_pred_rank" in features.columns:
+        components.append((0.10, _rank_percentile(features["qualy_pred_rank"])))
     if "qualy_pred_position" in features.columns:
         components.append((0.10, _rank_percentile(features["qualy_pred_position"])))
     if "qualy_pred_rank_pct" in features.columns:
@@ -410,6 +424,7 @@ def _hierarchical_fallback(
             "qualy_context_position_track_adj",
             "qualy_position_track_adj",
             "qualy_position_circuit_importance_adj",
+            "qualy_pred_rank",
             "qualy_pred_position",
             "qualy_pred_position_track_adj",
             "qualy_pred_position_circuit_importance_adj",
@@ -820,6 +835,9 @@ def _qualifying_feature_sets(
         "event_driver_hist_idx",
         "event_pace_index",
         "driver_vs_team_fp_weighted_delta",
+        "track_weather_uncertainty",
+        "track_weather_uncertainty_prior",
+        "race_generation_variance_prior",
     ]
     feature_cols.extend(CIRCUIT_NUMERIC_FEATURES)
     feature_cols.extend(CIRCUIT_INTERACTION_FEATURES)
@@ -854,6 +872,9 @@ def _qualifying_feature_sets(
         "event_pace_index",
         "driver_vs_team_fp_weighted_delta",
         "event_driver_hist_idx",
+        "track_weather_uncertainty",
+        "track_weather_uncertainty_prior",
+        "race_generation_variance_prior",
     ]
     fallback_cols.extend(CIRCUIT_NUMERIC_FEATURES)
     fallback_cols.extend(CIRCUIT_INTERACTION_FEATURES)
@@ -906,6 +927,7 @@ def _race_feature_sets(
         "qualy_gap_to_best",
         "qualy_gap_track_adj",
         "qualy_pred_position",
+        "qualy_pred_rank",
         "qualy_pred_rank_pct",
         "qualy_pred_top10_proba",
         "qualy_pred_top3_proba",
@@ -964,6 +986,7 @@ def _race_feature_sets(
         "qualy_gap_to_best",
         "qualy_gap_track_adj",
         "qualy_pred_position",
+        "qualy_pred_rank",
         "qualy_pred_rank_pct",
         "qualy_pred_top10_proba",
         "position_start",
@@ -1042,14 +1065,21 @@ def _build_qualifying_signal_frame(
     if "event_key" in out.columns:
         valid = out["event_key"].notna()
         out["qualy_pred_rank_pct"] = float("nan")
+        out["qualy_pred_rank"] = float("nan")
         if valid.any():
             out.loc[valid, "qualy_pred_rank_pct"] = (
                 out.loc[valid]
                 .groupby("event_key", sort=False)["qualy_pred_position"]
                 .rank(method="average", pct=True, ascending=True)
             )
+            out.loc[valid, "qualy_pred_rank"] = (
+                out.loc[valid]
+                .groupby("event_key", sort=False)["qualy_pred_position"]
+                .rank(method="first", ascending=True)
+            )
     else:
         out["qualy_pred_rank_pct"] = _rank_percentile(out["qualy_pred_position"])
+        out["qualy_pred_rank"] = out["qualy_pred_position"].rank(method="first", ascending=True)
     subset = ["driver_id"]
     if "event_key" in out.columns:
         subset.insert(0, "event_key")
@@ -1129,6 +1159,7 @@ def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         "qualy_position",
         "grid_position",
         "qualy_pred_position",
+        "qualy_pred_rank",
         "track_qualy_importance",
         "track_finish_order_mobility",
         "track_overtake_propensity",
@@ -1182,16 +1213,44 @@ def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         upper=1.0,
     )
 
-    qualy_actual = pd.to_numeric(out.get("qualy_position"), errors="coerce")
-    grid_position = pd.to_numeric(out.get("grid_position"), errors="coerce")
-    if isinstance(grid_position, pd.Series):
-        out["grid_position"] = grid_position.where(grid_position.notna(), qualy_actual)
-        out["grid_position_track_adj"] = out["grid_position"] * (0.35 + qualy_importance)
-    else:
-        out["grid_position"] = qualy_actual if isinstance(qualy_actual, pd.Series) else float("nan")
-        out["grid_position_track_adj"] = float("nan")
+    qualy_actual = (
+        pd.to_numeric(out["qualy_position"], errors="coerce")
+        if "qualy_position" in out.columns
+        else pd.Series(float("nan"), index=out.index, dtype=float)
+    )
+    grid_position = (
+        pd.to_numeric(out["grid_position"], errors="coerce")
+        if "grid_position" in out.columns
+        else pd.Series(float("nan"), index=out.index, dtype=float)
+    )
+    qualy_pred_rank = (
+        pd.to_numeric(out["qualy_pred_rank"], errors="coerce")
+        if "qualy_pred_rank" in out.columns
+        else pd.Series(float("nan"), index=out.index, dtype=float)
+    )
+    qualy_pred_position = (
+        pd.to_numeric(out["qualy_pred_position"], errors="coerce")
+        if "qualy_pred_position" in out.columns
+        else pd.Series(float("nan"), index=out.index, dtype=float)
+    )
+    predicted_grid = qualy_pred_rank.where(qualy_pred_rank.notna(), qualy_pred_position)
+    filled_grid = grid_position.where(grid_position.notna(), qualy_actual)
+    predicted_grid_mask = filled_grid.isna() & predicted_grid.notna()
+    out["grid_position"] = filled_grid.where(filled_grid.notna(), predicted_grid)
+    if predicted_grid_mask.any():
+        if "grid_source" not in out.columns:
+            out["grid_source"] = "unknown"
+        grid_source = out["grid_source"].astype(object).where(out["grid_source"].notna(), "unknown")
+        grid_source.loc[predicted_grid_mask] = "predicted_qualifying_grid"
+        out["grid_source"] = grid_source
+        if "grid_status" not in out.columns:
+            out["grid_status"] = "unknown"
+        grid_status = out["grid_status"].astype(object).where(out["grid_status"].notna(), "unknown")
+        grid_status.loc[predicted_grid_mask] = "predicted"
+        out["grid_status"] = grid_status
+    out["grid_position_track_adj"] = out["grid_position"] * (0.35 + qualy_importance)
     race_start = pd.to_numeric(out.get("grid_position"), errors="coerce")
-    qualy_pred = pd.to_numeric(out.get("qualy_pred_position"), errors="coerce")
+    qualy_pred = qualy_pred_position.where(qualy_pred_position.notna(), qualy_pred_rank)
     if isinstance(race_start, pd.Series) and isinstance(qualy_pred, pd.Series):
         out["qualy_context_position"] = (qualy_importance * race_start) + ((1.0 - qualy_importance) * qualy_pred)
         out["qualy_context_position"] = out["qualy_context_position"].where(
@@ -1340,7 +1399,159 @@ def _merge_predicted_qualifying_context(
 
     race_train = _add_race_context_interactions(race_train)
     race_features = _add_race_context_interactions(race_features)
+    if not race_features.empty and "grid_source" in race_features.columns:
+        predicted_grid_rows = race_features["grid_source"].astype(str).eq("predicted_qualifying_grid")
+        if predicted_grid_rows.any():
+            notes.append(
+                "[Race<-Quali] Pre-qualifying race path active: "
+                f"qualy_pred_rank used as provisional grid for {int(predicted_grid_rows.sum())} current rows.",
+            )
     return race_train, race_features
+
+
+def _weather_uncertainty_series(frame: pd.DataFrame) -> pd.Series:
+    for column in ("track_weather_uncertainty_prior", "track_weather_uncertainty"):
+        if column not in frame.columns:
+            continue
+        values = pd.to_numeric(frame[column], errors="coerce")
+        if values.notna().any():
+            return values.fillna(0.0).clip(lower=0.0, upper=1.0)
+    return pd.Series(0.0, index=frame.index, dtype=float)
+
+
+def _weather_neutral_frame(frame: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    if frame.empty:
+        return frame.copy(), []
+    out = frame.copy()
+    neutralized: list[str] = []
+    for column in ("track_weather_uncertainty", "track_weather_uncertainty_prior"):
+        if column in out.columns:
+            out[column] = 0.0
+            neutralized.append(column)
+    if "race_generation_variance_prior" in out.columns:
+        safety = pd.to_numeric(
+            out.get("track_safety_car_prior", pd.Series(0.25, index=out.index)),
+            errors="coerce",
+        ).fillna(0.25).clip(lower=0.0, upper=1.0)
+        dnf = pd.to_numeric(
+            out.get("track_dnf_prior", pd.Series(0.08, index=out.index)),
+            errors="coerce",
+        ).fillna(0.08).clip(lower=0.0, upper=1.0)
+        strategy = pd.to_numeric(
+            out.get("track_strategy_variance_prior", pd.Series(0.35, index=out.index)),
+            errors="coerce",
+        ).fillna(0.35).clip(lower=0.0, upper=1.0)
+        out["race_generation_variance_prior"] = (
+            (0.34 * safety) + (0.26 * dnf) + (0.25 * strategy)
+        ).clip(lower=0.0, upper=1.0)
+        neutralized.append("race_generation_variance_prior")
+    return out, sorted(set(neutralized))
+
+
+def _weather_scenario_summary(frame: pd.DataFrame) -> dict[str, object]:
+    weather = _weather_uncertainty_series(frame)
+    return {
+        "rows": int(len(frame)),
+        "weather_uncertainty_mean": float(weather.mean(skipna=True)) if not weather.empty else 0.0,
+        "weather_uncertainty_max": float(weather.max(skipna=True)) if not weather.empty else 0.0,
+        "weather_columns": [column for column in WEATHER_SCENARIO_COLUMNS if column in frame.columns],
+        "source": "track_weather_uncertainty_prior",
+    }
+
+
+def _score_prediction_output(
+    *,
+    config: PredictionConfig,
+    features: pd.DataFrame,
+    model: Optional[object],
+    feature_cols: List[str],
+    fallback_cols: List[str],
+    listwise_temperature: Optional[float],
+    scenario_name: str,
+    emit_notes: bool,
+) -> tuple[pd.DataFrame, list[str]]:
+    scoring_notes: list[str] = []
+    preds = predict_with_model(model, features, feature_cols, fallback_cols)
+    output = features.copy()
+    output["pred"] = preds
+    output["prediction_scenario"] = scenario_name
+    output["weather_scenario"] = scenario_name
+    output["weather_uncertainty_level"] = _weather_uncertainty_series(output)
+    listwise_preds = preds
+    if config.mode == "race":
+        race_stochastic = _race_stochastic_score_layer(output, preds)
+        output = output.join(race_stochastic)
+        if "race_stochastic_pl_score" in output.columns:
+            listwise_preds = pd.to_numeric(output["race_stochastic_pl_score"], errors="coerce").fillna(preds)
+    proba_win = _predict_probability(model, preds, label="win", k=1)
+    proba_top10, proba_top3 = _predict_probabilities(model, preds)
+    proba_win = pd.Series(np.minimum(proba_win.clip(0.0, 1.0), proba_top3), index=preds.index, dtype=float)
+    proba_win = _event_total_probability_with_caps(preds, proba_win, k=1, caps=proba_top3)
+    output["proba_win"] = proba_win
+    output["proba_top10"] = proba_top10
+    output["proba_top3"] = proba_top3
+
+    if str(config.f1_listwise).strip().lower() == "pl_gumbel":
+        effective_temperature = (
+            float(listwise_temperature)
+            if listwise_temperature is not None
+            else float(config.f1_pl_temperature)
+        )
+        if config.mode == "qualifying":
+            weather_level = float(output["weather_uncertainty_level"].mean(skipna=True))
+            if np.isfinite(weather_level) and weather_level > 0.0:
+                effective_temperature *= 1.0 + (0.70 * min(1.0, max(0.0, weather_level)))
+        listwise = _pl_gumbel_listwise(
+            frame=output,
+            preds=listwise_preds,
+            mode=config.mode,
+            samples=int(config.f1_pl_samples),
+            temperature=effective_temperature,
+            seed=int(config.f1_listwise_seed),
+        )
+        output = output.join(listwise)
+        output["old_rank_based_top10"] = proba_top10
+        output["old_rank_based_top3"] = proba_top3
+        output["old_rank_based_win"] = proba_win
+        output["proba_win"] = output["p_win"]
+        output["proba_top10"] = output["p_top10"]
+        output["proba_top3"] = output["p_top3"]
+        if emit_notes:
+            scoring_notes.append(
+                "Listwise PL active: proba_win/proba_top10/proba_top3 remplaces par p_win/p_top10/p_top3 "
+                f"(seed stable par event, temperature={effective_temperature:.3f}, scenario={scenario_name}).",
+            )
+            if config.mode == "race":
+                scoring_notes.append(
+                    "Race stochastic layer active: grid-delta scores are adjusted by mobility, safety-car, "
+                    "strategy, weather, and DNF priors before PL/Gumbel probability sampling.",
+                )
+            elif scenario_name == "weather_integrated":
+                scoring_notes.append(
+                    "Qualifying weather scenario active: weather uncertainty priors widen PL/Gumbel temperature "
+                    "for the integrated scenario.",
+                )
+    else:
+        output["listwise_enabled"] = False
+
+    if "driver_name" not in output.columns:
+        if "driver_id" in output.columns:
+            output["driver_name"] = output["driver_id"]
+        else:
+            output["driver_name"] = pd.Series(dtype=str)
+    elif "driver_id" in output.columns:
+        output["driver_name"] = output["driver_name"].fillna(output["driver_id"])
+    return output, scoring_notes
+
+
+def _scenario_records(output: pd.DataFrame) -> dict[str, object]:
+    all_rows = format_prediction_table(output, top_n=None)
+    rows = format_prediction_table(output, top_n=10)
+    return {
+        "rows": _prediction_records(rows),
+        "all_prediction_rows": _prediction_records(all_rows),
+        "summary": _weather_scenario_summary(output),
+    }
 
 
 def run_prediction(config: PredictionConfig) -> PredictionResult:
@@ -1358,6 +1569,7 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
                 dl_available=False,
                 candidate_leaderboard=[],
                 extras={
+                    "model_architecture": architecture_payload(),
                     "live_summary": {
                         "available": False,
                         "reason": "live_mode_requires_race",
@@ -1378,6 +1590,7 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             dl_available=False,
             candidate_leaderboard=[],
             extras={
+                "model_architecture": architecture_payload(),
                 "live_summary": live_summary,
                 "trace_path": live_summary.get("trace_path"),
                 "trace_path_jsonl": live_summary.get("trace_path_jsonl"),
@@ -1470,63 +1683,44 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         notes.append(
             "Fallback heuristique actif: qualif=blend FP pace empirique; race=position qualif si disponible.",
         )
-    preds = predict_with_model(training_result.model, features, feature_cols, fallback_cols)
-    output = features.copy()
-    output["pred"] = preds
-    listwise_preds = preds
-    if config.mode == "race":
-        race_stochastic = _race_stochastic_score_layer(output, preds)
-        output = output.join(race_stochastic)
-        if "race_stochastic_pl_score" in output.columns:
-            listwise_preds = pd.to_numeric(output["race_stochastic_pl_score"], errors="coerce").fillna(preds)
-    proba_win = _predict_probability(training_result.model, preds, label="win", k=1)
-    proba_top10, proba_top3 = _predict_probabilities(training_result.model, preds)
-    proba_win = pd.Series(np.minimum(proba_win.clip(0.0, 1.0), proba_top3), index=preds.index, dtype=float)
-    proba_win = _event_total_probability_with_caps(preds, proba_win, k=1, caps=proba_top3)
-    output["proba_win"] = proba_win
-    output["proba_top10"] = proba_top10
-    output["proba_top3"] = proba_top3
-
-    if str(config.f1_listwise).strip().lower() == "pl_gumbel":
-        effective_temperature = (
-            float(training_result.listwise_temperature)
-            if training_result.listwise_temperature is not None
-            else float(config.f1_pl_temperature)
-        )
-        listwise = _pl_gumbel_listwise(
-            frame=output,
-            preds=listwise_preds,
-            mode=config.mode,
-            samples=int(config.f1_pl_samples),
-            temperature=effective_temperature,
-            seed=int(config.f1_listwise_seed),
-        )
-        output = output.join(listwise)
-        output["old_rank_based_top10"] = proba_top10
-        output["old_rank_based_top3"] = proba_top3
-        output["old_rank_based_win"] = proba_win
-        output["proba_win"] = output["p_win"]
-        output["proba_top10"] = output["p_top10"]
-        output["proba_top3"] = output["p_top3"]
-        notes.append(
-            "Listwise PL active: proba_win/proba_top10/proba_top3 remplaces par p_win/p_top10/p_top3 "
-            f"(seed stable par event, temperature={effective_temperature:.3f}).",
-        )
-        if config.mode == "race":
-            notes.append(
-                "Race stochastic layer active: grid-delta scores are adjusted by mobility, safety-car, "
-                "strategy, weather, and DNF priors before PL/Gumbel probability sampling.",
-            )
-    else:
-        output["listwise_enabled"] = False
-
-    if "driver_name" not in output.columns:
-        if "driver_id" in output.columns:
-            output["driver_name"] = output["driver_id"]
-        else:
-            output["driver_name"] = pd.Series(dtype=str)
-    elif "driver_id" in output.columns:
-        output["driver_name"] = output["driver_name"].fillna(output["driver_id"])
+    output, scoring_notes = _score_prediction_output(
+        config=config,
+        features=features,
+        model=training_result.model,
+        feature_cols=feature_cols,
+        fallback_cols=fallback_cols,
+        listwise_temperature=training_result.listwise_temperature,
+        scenario_name="weather_integrated",
+        emit_notes=True,
+    )
+    notes.extend(scoring_notes)
+    weather_neutral_features, neutralized_weather_columns = _weather_neutral_frame(features)
+    base_output, _ = _score_prediction_output(
+        config=config,
+        features=weather_neutral_features,
+        model=training_result.model,
+        feature_cols=feature_cols,
+        fallback_cols=fallback_cols,
+        listwise_temperature=training_result.listwise_temperature,
+        scenario_name="base_no_weather",
+        emit_notes=False,
+    )
+    prediction_scenarios = {
+        "base_no_weather": {
+            **_scenario_records(base_output),
+            "weather_feature_state": "neutralized",
+            "neutralized_columns": neutralized_weather_columns,
+        },
+        "weather_integrated": {
+            **_scenario_records(output),
+            "weather_feature_state": "integrated",
+            "neutralized_columns": [],
+        },
+    }
+    notes.append(
+        "Weather scenarios active: base_no_weather neutralizes weather uncertainty priors; "
+        "weather_integrated keeps the available track/weather priors.",
+    )
 
     version = compute_version(config.round_number, config.include_standings)
     all_rows = format_prediction_table(output, top_n=None)
@@ -1552,10 +1746,13 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         dl_available=training_result.dl_available,
         candidate_leaderboard=training_result.candidate_leaderboard,
         extras={
+            "model_architecture": architecture_payload(),
             "all_prediction_rows": _prediction_records(all_rows),
+            "prediction_scenarios": prediction_scenarios,
             "circuit_card": circuit_card,
             "circuit_feature_state": "quarantined" if config.disable_circuit_features else "enabled_research_only",
             "circuit_feature_columns": list(CIRCUIT_NUMERIC_FEATURES + CIRCUIT_INTERACTION_FEATURES),
+            "weather_feature_columns": [column for column in WEATHER_SCENARIO_COLUMNS if column in features.columns],
             "listwise_temperature": training_result.listwise_temperature,
             "probability_audit": training_result.probability_audit,
             "grid_source_counts": grid_source_counts,

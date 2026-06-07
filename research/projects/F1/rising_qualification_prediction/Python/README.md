@@ -9,6 +9,55 @@ Lifecycle:
 - live 2026 operations (`outputs/f1/live`)
 - shared raw weekends (`data/f1/raw/weekends`)
 
+## Model Architecture
+
+Current architecture:
+
+```text
+F1 Prediction System
+|-- Pre-Quali Model
+|   `-- predicts qualifying
+|-- Pre-Race Model
+|   `-- predicts race from grid/quali + race features
+|-- Live Race Model
+|   `-- updates prediction and strategy during race
+`-- Ultimate Lap-Time Model
+    `-- predicts theoretical best lap pace
+```
+
+Active now:
+- `Pre-Quali Model`: predicts qualifying from FP pace, team/driver form,
+  circuit-card features, and available weather uncertainty priors.
+- `Pre-Race Model`: predicts the race from the official grid when available,
+  qualifying fallback when only qualifying is available, or the Pre-Quali
+  predicted rank when the weekend is still before qualifying.
+
+Planned:
+- `Live Race Model`: starts from grid/race state and updates finishing order and
+  strategy from live events, lap-time degradation, tyre age, pit stops, and
+  weather changes.
+- `Ultimate Lap-Time Model`: estimates theoretical best lap pace for the
+  upcoming weekend from car/team pace, circuit demands, track evolution, and
+  weather/session context.
+
+Pre-quali race flow:
+- Run the Pre-Quali model first.
+- Merge `qualy_pred_position`, `qualy_pred_rank`, `qualy_pred_top3_proba`, and
+  `qualy_pred_top10_proba` into the race feature frame.
+- If real `grid_position` and `qualy_position` are missing, use
+  `qualy_pred_rank` as the provisional race grid and label rows with
+  `grid_source=predicted_qualifying_grid`.
+
+Weather outputs:
+- Every qualifying/race prediction emits two scenario payloads under
+  `prediction_scenarios`.
+- `base_no_weather` neutralizes weather uncertainty priors and removes the
+  weather component from race-generation variance.
+- `weather_integrated` keeps the available track/weather uncertainty priors.
+- Current weather integration uses available local historical/track weather
+  uncertainty priors. A live forecast feed can later replace or augment those
+  priors without changing the scenario contract.
+
 ## Quick Start
 
 ```bash
@@ -130,6 +179,10 @@ Additional ablation flag:
 Prediction JSON now includes:
 - `rows`: top-10 table for UI/review.
 - `all_prediction_rows`: full-field sorted table for betting/research consumers.
+- `model_architecture`: current four-stage F1 prediction architecture and the
+  active pre-quali-to-race contract.
+- `prediction_scenarios`: `base_no_weather` and `weather_integrated` tables for
+  both qualifying and race modes.
 - `circuit_card`: the target event circuit profile used by the model, including
   downforce demand, power sensitivity, corner-speed demands, tyre degradation,
   overtaking difficulty, qualifying importance, safety-car risk, strategy

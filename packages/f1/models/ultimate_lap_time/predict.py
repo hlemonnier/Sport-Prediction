@@ -1,12 +1,27 @@
-"""Ultimate lap-time model contract.
-
-This is a reserved model surface for theoretical best-lap pace. It is not wired
-into production predictions until we have reliable stint, tyre, fuel, traffic,
-and weather training targets.
-"""
+"""Ultimate lap-time prediction entrypoints."""
 
 from __future__ import annotations
 
+from typing import Any, Mapping
 
-def predict_ultimate_lap_time(*_args: object, **_kwargs: object) -> None:
-    raise NotImplementedError("Ultimate lap-time model is an explicit future model surface.")
+import pandas as pd
+
+from packages.f1.models.ultimate_lap_time.model import UltimateLapTimeModel
+
+
+def predict_ultimate_lap_time(
+    model: UltimateLapTimeModel,
+    context: Mapping[str, Any] | pd.Series | pd.DataFrame,
+    *,
+    return_details: bool = False,
+) -> float | pd.Series | pd.DataFrame:
+    """Predict theoretical best-lap pace for one or more context rows."""
+
+    if not isinstance(model, UltimateLapTimeModel):
+        raise TypeError("model must be an UltimateLapTimeModel returned by train_ultimate_lap_time")
+    if return_details:
+        return model.predict_details(context)
+    return model.predict(context)
+
+
+__all__ = ["predict_ultimate_lap_time"]

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from packages.sports_core.paths import find_repo_root
 from packages.f1.orchestration.model_registry import (
     CANDIDATE_STATUS,
     FALLBACK_STATUS,
@@ -216,9 +217,10 @@ def test_live_strategy_rl_requires_simulator_validation_then_promotes_and_rolls_
 
 
 def test_phase9_profiles_declare_non_promotion_defaults_and_artifact_paths() -> None:
+    repo_root = find_repo_root(__file__)
     profile_paths = (
-        Path("configs/f1/profiles/ultimate_lap_time_deep.yaml"),
-        Path("configs/f1/profiles/live_strategy_rl.yaml"),
+        repo_root / "configs/f1/profiles/ultimate_lap_time_deep.yaml",
+        repo_root / "configs/f1/profiles/live_strategy_rl.yaml",
     )
 
     profiles = [yaml.safe_load(path.read_text(encoding="utf-8")) for path in profile_paths]

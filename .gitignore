@@ -1,5 +1,6 @@
 .env
 .env.local
+.venv/
 .DS_Store
 apps/api/data/
 apps/api/target/

@@ -79,3 +79,6 @@ remain runnable via shims, but new source ownership belongs under `packages`.
 - [F1 Advanced Model Upgrade Plan](f1_advanced_model_upgrade_plan.md): mathematical
   upgrade path for Ultimate Lap-Time and Live Race Strategy, including
   CNN/TCN/DL, RL/MPC, simulator, data contracts, losses, and validation gates.
+- [F1 CNN/RL/DL Roadmap](f1_cnn_rl_dl_roadmap.md): practical phase-by-phase
+  implementation roadmap from current baselines to telemetry CNN/TCN,
+  simulator, DP/MPC, offline RL, and multi-agent RL.

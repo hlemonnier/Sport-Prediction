@@ -239,3 +239,12 @@ def test_phase9_profiles_declare_non_promotion_defaults_and_artifact_paths() -> 
         assert str(profile["registry"]["artifact_path"]).startswith("artifacts/")
         assert str(profile["promotion"]["calibration_report_path"]).startswith("artifacts/")
         assert str(profile["promotion"]["baseline_comparison"]["report_path"]).startswith("artifacts/")
+
+
+def test_live_strategy_rl_profile_uses_phase7_policy_id() -> None:
+    repo_root = find_repo_root(__file__)
+    phase7_profile = yaml.safe_load((repo_root / "configs/f1/profiles/live_strategy.yaml").read_text(encoding="utf-8"))
+    phase9_profile = yaml.safe_load((repo_root / "configs/f1/profiles/live_strategy_rl.yaml").read_text(encoding="utf-8"))
+
+    assert phase9_profile["runtime_family"] == phase7_profile["model_family"]
+    assert phase7_profile["rl"]["offline_rl"]["model_id"] == phase9_profile["registry"]["model_id"]

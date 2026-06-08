@@ -7,6 +7,12 @@ from packages.f1.orchestration.model_promotion import (
 )
 
 
+ULTIMATE_LAP_TIME_CANDIDATE_MODEL_ID = "ultimate_lap_time_distance_tcn_v1"
+ULTIMATE_LAP_TIME_BASELINE_MODEL_ID = "ultimate_lap_time_deterministic_baseline_v1"
+LIVE_STRATEGY_CANDIDATE_MODEL_ID = "live_strategy_conservative_offline_q_v1"
+LIVE_STRATEGY_BASELINE_MODEL_ID = "deterministic_baseline_v1"
+
+
 def _ultimate_metrics(**overrides: float) -> dict[str, float]:
     metrics = {
         "p50_mae": 0.20,
@@ -24,8 +30,8 @@ def _ultimate_metrics(**overrides: float) -> dict[str, float]:
 
 def test_ultimate_lap_promotion_requires_candidate_to_beat_deterministic_baseline() -> None:
     decision = evaluate_model_promotion(
-        candidate_model_id="ultimate_lap_time_distance_tcn",
-        baseline_model_id="ultimate_lap_time_deterministic_baseline_v1",
+        candidate_model_id=ULTIMATE_LAP_TIME_CANDIDATE_MODEL_ID,
+        baseline_model_id=ULTIMATE_LAP_TIME_BASELINE_MODEL_ID,
         candidate_metrics=_ultimate_metrics(p05_pinball=0.09),
         baseline_metrics=_ultimate_metrics(p05_pinball=0.12),
         config=ultimate_lap_time_promotion_config(),
@@ -43,8 +49,8 @@ def test_promotion_fails_closed_without_baseline_or_required_metrics() -> None:
     metrics.pop("p50_rmse")
 
     decision = evaluate_model_promotion(
-        candidate_model_id="ultimate_lap_time_distance_tcn",
-        baseline_model_id="ultimate_lap_time_deterministic_baseline_v1",
+        candidate_model_id=ULTIMATE_LAP_TIME_CANDIDATE_MODEL_ID,
+        baseline_model_id=ULTIMATE_LAP_TIME_BASELINE_MODEL_ID,
         candidate_metrics=metrics,
         baseline_metrics=None,
         config=ultimate_lap_time_promotion_config(),
@@ -59,8 +65,8 @@ def test_promotion_fails_closed_without_baseline_or_required_metrics() -> None:
 
 def test_promotion_fails_when_candidate_does_not_beat_baseline() -> None:
     decision = evaluate_model_promotion(
-        candidate_model_id="ultimate_lap_time_distance_tcn",
-        baseline_model_id="ultimate_lap_time_deterministic_baseline_v1",
+        candidate_model_id=ULTIMATE_LAP_TIME_CANDIDATE_MODEL_ID,
+        baseline_model_id=ULTIMATE_LAP_TIME_BASELINE_MODEL_ID,
         candidate_metrics=_ultimate_metrics(p05_pinball=0.14),
         baseline_metrics=_ultimate_metrics(p05_pinball=0.12),
         config=ultimate_lap_time_promotion_config(),
@@ -76,15 +82,15 @@ def test_live_strategy_promotion_requires_locked_simulator_validation() -> None:
     baseline = {"policy_value": 10.0, "illegal_action_rate": 0.05, "regret_vs_oracle": 2.0}
 
     missing_sim = evaluate_model_promotion(
-        candidate_model_id="conservative_tabular_offline_q_v1",
-        baseline_model_id="deterministic_baseline_v1",
+        candidate_model_id=LIVE_STRATEGY_CANDIDATE_MODEL_ID,
+        baseline_model_id=LIVE_STRATEGY_BASELINE_MODEL_ID,
         candidate_metrics=candidate,
         baseline_metrics=baseline,
         config=config,
     )
     validated = evaluate_model_promotion(
-        candidate_model_id="conservative_tabular_offline_q_v1",
-        baseline_model_id="deterministic_baseline_v1",
+        candidate_model_id=LIVE_STRATEGY_CANDIDATE_MODEL_ID,
+        baseline_model_id=LIVE_STRATEGY_BASELINE_MODEL_ID,
         candidate_metrics=candidate,
         baseline_metrics=baseline,
         config=config,

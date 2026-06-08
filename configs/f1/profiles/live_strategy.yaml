@@ -115,7 +115,7 @@ rl:
       - pit_timing_lap_mae
       - delta_vs_trivial_baseline
   offline_rl:
-    model_id: conservative_tabular_offline_q_v1
+    model_id: live_strategy_conservative_offline_q_v1
     algorithm: conservative_fitted_q_iteration
     dependency_policy: numpy_only
     bucket_precision: 2

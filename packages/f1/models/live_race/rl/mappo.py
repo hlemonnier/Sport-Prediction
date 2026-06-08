@@ -14,10 +14,17 @@ from typing import Mapping, Optional, Sequence
 
 import numpy as np
 
-from packages.f1.models.live_race.action_space import ACTION_PIT_NOW, ACTION_STAY_OUT, StrategyAction
+from packages.f1.models.live_race.action_space import (
+    ACTION_PIT_NOW,
+    ACTION_STAY_OUT,
+    ActionMaskConfig,
+    StrategyAction,
+    build_legal_action_mask,
+)
 from packages.f1.models.live_race.environment import StrategyState
 from packages.f1.models.live_race.rl.multi_agent_env import (
     MultiAgentLiveRaceEnv,
+    MultiAgentRaceConfig,
     MultiAgentRaceState,
     build_traffic_heavy_scenario,
 )
@@ -47,6 +54,7 @@ class MAPPOStylePolicy:
     pit_schedule_by_driver: dict[str, int]
     config: MAPPOConfig = field(default_factory=MAPPOConfig)
     action_space: tuple[StrategyAction, ...] = field(default_factory=tuple)
+    action_mask_config: ActionMaskConfig = field(default_factory=lambda: MultiAgentRaceConfig().action_mask)
     training_diagnostics: dict[str, object] = field(default_factory=dict)
     model_id: str = "mappo_style_staggered_strategy_v1"
 
@@ -65,7 +73,7 @@ class MAPPOStylePolicy:
         """Select from one car's public observation only."""
 
         if "HARD" in set(state.used_compounds) or (state.remaining_laps or 0) <= 2:
-            return StrategyAction(ACTION_STAY_OUT)
+            return self._mask_action(state, StrategyAction(ACTION_STAY_OUT))
         target_lap = int(
             self.pit_schedule_by_driver.get(
                 str(state.driver_id),
@@ -78,8 +86,22 @@ class MAPPOStylePolicy:
         if int(state.lap_number) >= target_lap and (
             recent_pit_fraction <= float(self.config.recent_pit_fraction_cap) or is_overdue or panic
         ):
-            return StrategyAction(ACTION_PIT_NOW, compound=self.config.pit_compound)
-        return StrategyAction(ACTION_STAY_OUT)
+            return self._mask_action(state, StrategyAction(ACTION_PIT_NOW, compound=self.config.pit_compound))
+        return self._mask_action(state, StrategyAction(ACTION_STAY_OUT))
+
+    def _mask_action(self, state: StrategyState, action: StrategyAction) -> StrategyAction:
+        mask = build_legal_action_mask(
+            state,
+            action_space=self.action_space or None,
+            config=self.action_mask_config,
+        )
+        if mask.is_legal(action):
+            return action
+        stay = StrategyAction(ACTION_STAY_OUT)
+        if mask.is_legal(stay):
+            return stay
+        legal = mask.legal_actions
+        return legal[0] if legal else stay
 
     def select_actions(self, state: MultiAgentRaceState) -> tuple[StrategyAction, ...]:
         """Convenience batch execution with a public same-lap cap."""
@@ -139,17 +161,26 @@ class MAPPOStylePolicy:
         scores: dict[str, dict[str, float]] = {}
         for car in state.cars:
             target_lap = int(self.pit_schedule_by_driver.get(str(car.driver_id), self.config.pit_target_lap_fallback))
+            pit_action = StrategyAction(ACTION_PIT_NOW, compound=self.config.pit_compound)
+            stay_action = StrategyAction(ACTION_STAY_OUT)
+            mask = build_legal_action_mask(
+                car,
+                action_space=self.action_space or None,
+                config=self.action_mask_config,
+            )
             tyre_pressure = float(car.tyre_age) * _finite(car.deg_rate_mean, 0.04)
             traffic_pressure = _finite(car.metadata.get("multi_agent_traffic_pressure"), 0.0)
             schedule_bonus = 3.0 if int(car.lap_number) >= target_lap else -1.0 * float(target_lap - int(car.lap_number))
             sync_risk = float(scheduled_counts.get(int(car.lap_number), 0))
             pit_score = (2.2 * tyre_pressure) + (0.8 * traffic_pressure) + schedule_bonus - (1.4 * sync_risk)
             stay_score = -(1.5 * tyre_pressure) - (0.6 * traffic_pressure)
-            if "HARD" in set(car.used_compounds) or (car.remaining_laps or 0) <= 2:
+            if "HARD" in set(car.used_compounds) or (car.remaining_laps or 0) <= 2 or not mask.is_legal(pit_action):
                 pit_score = -1e6
+            if not mask.is_legal(stay_action):
+                stay_score = -1e6
             scores[str(car.driver_id)] = {
-                StrategyAction(ACTION_STAY_OUT).key: float(stay_score),
-                StrategyAction(ACTION_PIT_NOW, compound=self.config.pit_compound).key: float(pit_score),
+                stay_action.key: float(stay_score),
+                pit_action.key: float(pit_score),
             }
         return scores
 
@@ -225,6 +256,7 @@ def fit_mappo_style_policy(
         pit_schedule_by_driver=dict(best_schedule),
         config=cfg,
         action_space=tuple(race_env.action_space),
+        action_mask_config=race_env.config.action_mask,
         model_id=cfg.model_id,
         training_diagnostics={
             "algorithm": "centralized_schedule_search_with_decentralized_masked_policy",

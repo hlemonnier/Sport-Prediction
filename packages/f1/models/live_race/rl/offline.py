@@ -280,12 +280,22 @@ def evaluate_offline_rl_policy(
 
     offline_value = _extract_policy_value(offline_payload)
     deltas: dict[str, Optional[float]] = {}
+    comparison_values: dict[str, Optional[float]] = {}
     for key in ("behavior_cloning", "dp_mpc"):
         if key in comparison_payloads:
             value = _extract_policy_value(comparison_payloads[key])
+            comparison_values[key] = value
             deltas[f"policy_value_delta_vs_{key}"] = None if offline_value is None or value is None else float(
                 offline_value - value
             )
+    required_comparisons = ("behavior_cloning", "dp_mpc")
+    missing_comparisons = tuple(key for key in required_comparisons if key not in comparison_payloads)
+    comparison_gate_pass = bool(
+        offline_value is not None
+        and not missing_comparisons
+        and all(value is not None and float(offline_value) > float(value) for value in comparison_values.values())
+    )
+    offline_payload_gate_pass = bool(_payload_gate(offline_payload) and offline_value is not None)
 
     return OfflineRLEvaluationResult(
         available=True,
@@ -294,14 +304,18 @@ def evaluate_offline_rl_policy(
             "evaluation_setting": "locked_simulator",
             "policy_value": offline_value,
             "comparison_deltas": deltas,
+            "comparison_values": comparison_values,
+            "comparison_gate_pass": bool(comparison_gate_pass),
+            "missing_comparisons_for_promotion": list(missing_comparisons),
             "historical_accuracy_used_for_promotion": False,
-            "promotion_gate_pass": bool(_payload_gate(offline_payload) and offline_value is not None),
+            "promotion_gate_pass": bool(offline_payload_gate_pass and comparison_gate_pass),
         },
         comparison_payloads=comparison_payloads,
         diagnostics={
             **policy.diagnostics,
             "locked_simulator_supplied": True,
             "comparison_keys": sorted(comparison_payloads.keys()),
+            "offline_payload_gate_pass": bool(offline_payload_gate_pass),
         },
     )
 

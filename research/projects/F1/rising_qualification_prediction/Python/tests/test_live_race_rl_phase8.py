@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from packages.f1.models.live_race.action_space import ACTION_PIT_NOW, StrategyAction
+from dataclasses import replace
+
+from packages.f1.models.live_race.action_space import (
+    ACTION_PIT_NOW,
+    ACTION_STAY_OUT,
+    StrategyAction,
+    build_legal_action_mask,
+)
 from packages.f1.models.live_race.rl.mappo import MAPPOConfig, MAPPOStylePolicy, fit_mappo_style_policy
 from packages.f1.models.live_race.rl.multi_agent_env import (
     MultiAgentLiveRaceEnv,
@@ -49,6 +56,29 @@ def test_mappo_style_training_returns_decentralized_policy_with_centralized_diag
     assert set(scores) == set(state.driver_ids)
     assert all("pit_now:HARD:conservative" in driver_scores for driver_scores in scores.values())
     assert all(policy.select_action(car).action_type in {"stay_out", "pit_now"} for car in state.cars)
+
+
+def test_mappo_style_policy_masks_illegal_decentralized_pit_actions() -> None:
+    env = MultiAgentLiveRaceEnv()
+    state = env.reset(build_traffic_heavy_scenario(car_count=6, seed=7))
+    policy = MAPPOStylePolicy(
+        pit_schedule_by_driver={driver_id: int(state.lap_number) for driver_id in state.driver_ids},
+        config=MAPPOConfig(candidate_pit_laps=(5,), max_stagger_laps=1),
+        action_space=env.action_space,
+        action_mask_config=env.config.action_mask,
+    )
+
+    hard_unavailable = replace(
+        state.cars[0],
+        metadata={**state.cars[0].metadata, "available_compounds": ("MEDIUM",)},
+    )
+    action = policy.select_action(hard_unavailable)
+    mask = build_legal_action_mask(hard_unavailable, action_space=env.action_space, config=env.config.action_mask)
+    scores = policy.centralized_action_scores(replace(state, cars=(hard_unavailable, *state.cars[1:])))
+
+    assert action.action_type == ACTION_STAY_OUT
+    assert mask.is_legal(action)
+    assert scores[hard_unavailable.driver_id]["pit_now:HARD:conservative"] == -1e6
 
 
 def test_phase8_self_play_beats_single_agent_baseline_and_avoids_sync_pattern() -> None:

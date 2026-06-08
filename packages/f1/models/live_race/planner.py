@@ -1,9 +1,9 @@
-"""Deterministic DP/MPC-style planner for live F1 race strategy.
+"""DP/MPC-style planners for live F1 race strategy.
 
-This is the Phase 3 non-DL challenger.  It is intentionally not branded as the
-future calibrated simulator: transitions are a practical deterministic
-approximation from the current live state, compound priors, track-status flags,
-and optional deterministic strategy-adapter scores.
+The Phase 3 deterministic planner remains the dependency-light baseline. Phase
+6 adds simulator-backed DP/MPC planners that evaluate legal action sequences
+against seedable stress scenarios while keeping points and finishing order
+explicitly proxy-only.
 """
 
 from __future__ import annotations
@@ -30,6 +30,12 @@ from packages.f1.models.live_race.environment import (
     StrategyReward,
     StrategyState,
     StrategyTransition,
+)
+from packages.f1.models.live_race.simulator import (
+    LiveRaceSimulator,
+    RaceSimulatorConfig,
+    SimulatorScenario,
+    default_strategy_scenarios,
 )
 from packages.f1.models.live_race.state import compound_deg_prior
 from packages.f1.models.live_race.strategy import BaselineStrategyPolicyAdapter, StrategyPolicyAdapter
@@ -92,6 +98,66 @@ class PlannerResult:
     diagnostics: dict[str, object]
 
 
+@dataclass(frozen=True)
+class SimulatorMPCConfig:
+    """Finite-horizon MPC scoring configuration over simulator scenarios."""
+
+    horizon_laps: int = 5
+    action_mask: ActionMaskConfig = ActionMaskConfig()
+    simulator: RaceSimulatorConfig = RaceSimulatorConfig()
+    compounds: tuple[str, ...] = DRY_COMPOUNDS
+    include_pit_next_lap: bool = True
+    race_time_weight: float = 1.0
+    expected_points_weight: float = 0.0
+    downside_cvar_weight: float = 0.15
+    illegal_action_penalty_weight: float = 1.0
+    cvar_alpha: float = 0.20
+    branch_limit: int = 8
+    max_sequences: int = 512
+
+
+@dataclass(frozen=True)
+class ScenarioRolloutScore:
+    scenario_id: str
+    horizon_time_seconds: float
+    illegal_action_count: int
+    final_position_proxy: Optional[int]
+    points_proxy: float
+    action_keys: tuple[str, ...]
+
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "scenario_id": self.scenario_id,
+            "horizon_time_seconds": float(self.horizon_time_seconds),
+            "illegal_action_count": int(self.illegal_action_count),
+            "final_position_proxy": self.final_position_proxy,
+            "points_proxy": float(self.points_proxy),
+            "action_keys": list(self.action_keys),
+        }
+
+
+@dataclass(frozen=True)
+class SequenceEvaluation:
+    sequence: tuple[StrategyAction, ...]
+    utility: float
+    expected_time_seconds: float
+    downside_cvar_seconds: float
+    illegal_action_penalty: float
+    expected_points_proxy: float
+    scenario_results: tuple[ScenarioRolloutScore, ...]
+
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "sequence": [action.key for action in self.sequence],
+            "utility": float(self.utility),
+            "expected_time_seconds": float(self.expected_time_seconds),
+            "downside_cvar_seconds": float(self.downside_cvar_seconds),
+            "illegal_action_penalty": float(self.illegal_action_penalty),
+            "expected_points_proxy": float(self.expected_points_proxy),
+            "scenario_results": [item.to_payload() for item in self.scenario_results],
+        }
+
+
 def compound_service_life(compound: object, cfg: DeterministicTransitionConfig | None = None) -> float:
     config = cfg or DeterministicTransitionConfig()
     normalized = normalize_compound(compound)
@@ -143,6 +209,22 @@ def _finite(value: Optional[float], default: float) -> float:
         return float(value)
     except Exception:
         return float(default)
+
+
+def _points_proxy(position: Optional[int]) -> float:
+    if position is None:
+        return 0.0
+    points = {1: 25.0, 2: 18.0, 3: 15.0, 4: 12.0, 5: 10.0, 6: 8.0, 7: 6.0, 8: 4.0, 9: 2.0, 10: 1.0}
+    return float(points.get(int(position), 0.0))
+
+
+def _worst_tail_cvar(values: np.ndarray, *, alpha: float) -> float:
+    arr = np.asarray([float(value) for value in values if np.isfinite(float(value))], dtype=float)
+    if arr.size == 0:
+        return 0.0
+    tail_count = max(1, int(np.ceil(float(np.clip(alpha, 1e-6, 1.0)) * arr.size)))
+    worst = np.sort(arr)[-tail_count:]
+    return float(np.mean(worst))
 
 
 def _circuit_tyre_multiplier(state: StrategyState) -> float:
@@ -412,7 +494,8 @@ class DeterministicStrategyPlanner:
             action_values=action_values,
             plan=best_plan,
             diagnostics={
-                "planner": "deterministic_dp_pre_sim_v1",
+                "planner": self._planner_id(),
+                "transition_model": getattr(self.transition_model, "model_id", "deterministic_pre_sim_v1"),
                 "horizon_laps": int(depth),
                 "legal_action_count": int(legal_mask.legal_count),
                 "limitations": self.limitations,
@@ -504,6 +587,264 @@ class DeterministicStrategyPlanner:
         except Exception:
             return 0.0
 
+    def _planner_id(self) -> str:
+        transition_model_id = str(getattr(self.transition_model, "model_id", "deterministic_pre_sim_v1"))
+        if transition_model_id != "deterministic_pre_sim_v1":
+            return "simulator_dp_v1"
+        return "deterministic_dp_pre_sim_v1"
+
+
+class SimulatorMPCPlanner:
+    """Model-predictive planner that evaluates legal sequences in simulator scenarios."""
+
+    def __init__(
+        self,
+        *,
+        config: SimulatorMPCConfig | None = None,
+        scenarios: Optional[Sequence[SimulatorScenario]] = None,
+    ) -> None:
+        self.config = config or SimulatorMPCConfig()
+        sim_config = replace(
+            self.config.simulator,
+            seed=int(self.config.simulator.seed),
+            action_mask=self.config.action_mask,
+            compounds=self.config.compounds,
+            include_pit_next_lap=bool(self.config.include_pit_next_lap),
+        )
+        self.simulator_config = sim_config
+        self.action_space = build_action_space(
+            compounds=self.config.compounds,
+            include_pit_next_lap=bool(self.config.include_pit_next_lap),
+        )
+        self.scenarios = tuple(scenarios or default_strategy_scenarios(seed=int(sim_config.seed)))
+        if not self.scenarios:
+            self.scenarios = (SimulatorScenario(),)
+
+    @property
+    def limitations(self) -> tuple[str, ...]:
+        return (
+            "single_car_mpc_over_simulator_scenarios",
+            "points_and_final_order_are_proxy_only",
+            "scenario_set_is_hand_tuned_until_calibrated",
+        )
+
+    def plan(self, state: StrategyState | Mapping[str, object]) -> PlannerResult:
+        start = state if isinstance(state, StrategyState) else StrategyState.from_mapping(state)
+        depth = min(max(1, int(self.config.horizon_laps)), max(1, int(start.remaining_laps or self.config.horizon_laps)))
+        legal_mask = build_legal_action_mask(start, action_space=self.action_space, config=self.config.action_mask)
+        sequences = self._enumerate_legal_sequences(start, depth=depth)
+        if not sequences:
+            fallback = StrategyAction(ACTION_STAY_OUT)
+            return PlannerResult(
+                action=fallback,
+                value=-float(self.config.simulator.reward.illegal_action_penalty),
+                action_values={},
+                plan=(fallback,),
+                diagnostics={
+                    "planner": "simulator_mpc_v1",
+                    "horizon_laps": int(depth),
+                    "legal_action_count": int(legal_mask.legal_count),
+                    "reason": "no_legal_sequences",
+                    "limitations": self.limitations,
+                },
+            )
+
+        evaluations = [self.score_action_sequence(start, sequence) for sequence in sequences]
+        best = max(evaluations, key=lambda item: (item.utility, -len(item.sequence)))
+        first = best.sequence[0]
+        action_values: dict[str, float] = {}
+        for evaluation in evaluations:
+            key = evaluation.sequence[0].key
+            action_values[key] = max(float(action_values.get(key, -float("inf"))), float(evaluation.utility))
+
+        return PlannerResult(
+            action=first,
+            value=float(best.utility),
+            action_values=action_values,
+            plan=best.sequence,
+            diagnostics={
+                "planner": "simulator_mpc_v1",
+                "transition_model": self.simulator_config.model_id,
+                "horizon_laps": int(depth),
+                "legal_action_count": int(legal_mask.legal_count),
+                "evaluated_sequence_count": int(len(evaluations)),
+                "scenario_ids": [scenario.scenario_id for scenario in self.scenarios],
+                "scenario_diagnostics": self._scenario_diagnostics(),
+                "best_sequence": best.to_payload(),
+                "utility_components": {
+                    "race_time_weight": float(self.config.race_time_weight),
+                    "expected_points_weight": float(self.config.expected_points_weight),
+                    "downside_cvar_weight": float(self.config.downside_cvar_weight),
+                    "illegal_action_penalty_weight": float(self.config.illegal_action_penalty_weight),
+                    "cvar_alpha": float(self.config.cvar_alpha),
+                },
+                "illegal_action_proof": "plan_selected_from_legal_action_sequences_and_rechecked_against_action_mask",
+                "points_and_final_order_are_proxy_only": True,
+                "limitations": self.limitations,
+            },
+        )
+
+    def value_action(self, state: StrategyState | Mapping[str, object], action: StrategyAction) -> float:
+        start = state if isinstance(state, StrategyState) else StrategyState.from_mapping(state)
+        depth = min(max(1, int(self.config.horizon_laps)), max(1, int(start.remaining_laps or self.config.horizon_laps)))
+        legal_mask = build_legal_action_mask(start, action_space=self.action_space, config=self.config.action_mask)
+        if not legal_mask.is_legal(action):
+            return -float(self.config.simulator.reward.illegal_action_penalty)
+        sequences = [sequence for sequence in self._enumerate_legal_sequences(start, depth=depth) if sequence and sequence[0] == action]
+        if not sequences:
+            sequences = [(action,)]
+        return float(max(self.score_action_sequence(start, sequence).utility for sequence in sequences))
+
+    def score_action_sequence(
+        self,
+        state: StrategyState | Mapping[str, object],
+        sequence: Sequence[StrategyAction],
+    ) -> SequenceEvaluation:
+        start = state if isinstance(state, StrategyState) else StrategyState.from_mapping(state)
+        actions = tuple(action if isinstance(action, StrategyAction) else StrategyAction.from_key(action) for action in sequence)
+        scenario_results = tuple(self._rollout_sequence_for_scenario(start, actions, scenario) for scenario in self.scenarios)
+        times = np.asarray([item.horizon_time_seconds for item in scenario_results], dtype=float)
+        illegal_counts = np.asarray([float(item.illegal_action_count) for item in scenario_results], dtype=float)
+        points = np.asarray([item.points_proxy for item in scenario_results], dtype=float)
+        expected_time = float(np.mean(times)) if times.size else 0.0
+        downside_cvar = _worst_tail_cvar(times, alpha=float(self.config.cvar_alpha))
+        illegal_penalty = float(np.mean(illegal_counts)) * float(self.config.simulator.reward.illegal_action_penalty)
+        expected_points = float(np.mean(points)) if points.size else 0.0
+        utility = (
+            (float(self.config.expected_points_weight) * expected_points)
+            - (float(self.config.race_time_weight) * expected_time)
+            - (float(self.config.downside_cvar_weight) * downside_cvar)
+            - (float(self.config.illegal_action_penalty_weight) * illegal_penalty)
+        )
+        return SequenceEvaluation(
+            sequence=actions,
+            utility=float(utility),
+            expected_time_seconds=float(expected_time),
+            downside_cvar_seconds=float(downside_cvar),
+            illegal_action_penalty=float(illegal_penalty),
+            expected_points_proxy=float(expected_points),
+            scenario_results=scenario_results,
+        )
+
+    def _rollout_sequence_for_scenario(
+        self,
+        state: StrategyState,
+        sequence: tuple[StrategyAction, ...],
+        scenario: SimulatorScenario,
+    ) -> ScenarioRolloutScore:
+        simulator = LiveRaceSimulator(config=self.simulator_config, scenario=scenario, action_space=self.action_space)
+        transitions = simulator.simulate_action_sequence(state, sequence)
+        total_time = float(sum(t.reward_t.components.get("race_time_delta_seconds", 0.0) for t in transitions))
+        illegal = int(sum(0 if t.is_action_legal() else 1 for t in transitions))
+        final_state = transitions[-1].state_t1 if transitions else state
+        return ScenarioRolloutScore(
+            scenario_id=scenario.scenario_id,
+            horizon_time_seconds=float(total_time),
+            illegal_action_count=int(illegal),
+            final_position_proxy=final_state.position,
+            points_proxy=_points_proxy(final_state.position),
+            action_keys=tuple(transition.action_t.key for transition in transitions),
+        )
+
+    def _enumerate_legal_sequences(self, start: StrategyState, *, depth: int) -> tuple[tuple[StrategyAction, ...], ...]:
+        nominal = LiveRaceSimulator(config=self.simulator_config, scenario=self.scenarios[0], action_space=self.action_space)
+        frontier: list[tuple[tuple[StrategyAction, ...], StrategyState]] = [((), start)]
+        complete: list[tuple[StrategyAction, ...]] = []
+        seen: set[tuple[str, ...]] = set()
+        for _ in range(max(1, int(depth))):
+            next_frontier: list[tuple[tuple[StrategyAction, ...], StrategyState]] = []
+            for sequence, state in frontier:
+                mask = build_legal_action_mask(state, action_space=self.action_space, config=self.config.action_mask)
+                for action in self._ordered_candidate_actions(mask.legal_actions):
+                    transition = nominal.step(state, action)
+                    new_sequence = (*sequence, action)
+                    key = tuple(item.key for item in new_sequence)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    if transition.done or len(new_sequence) >= int(depth):
+                        complete.append(new_sequence)
+                    else:
+                        next_frontier.append((new_sequence, transition.state_t1))
+                    if len(complete) + len(next_frontier) >= int(self.config.max_sequences):
+                        break
+                if len(complete) + len(next_frontier) >= int(self.config.max_sequences):
+                    break
+            frontier = next_frontier
+            if not frontier or len(complete) >= int(self.config.max_sequences):
+                break
+        for sequence, _ in frontier:
+            key = tuple(item.key for item in sequence)
+            if sequence and key not in seen:
+                complete.append(sequence)
+                seen.add(key)
+            if len(complete) >= int(self.config.max_sequences):
+                break
+        return tuple(complete[: int(self.config.max_sequences)])
+
+    def _ordered_candidate_actions(self, legal_actions: Sequence[StrategyAction]) -> tuple[StrategyAction, ...]:
+        compound_priority = {"MEDIUM": 0, "HARD": 1, "SOFT": 2, "INTER": 3, "WET": 4}
+        type_priority = {ACTION_STAY_OUT: 0, ACTION_PIT_NOW: 1, ACTION_PIT_NEXT_LAP: 2}
+
+        def priority(action: StrategyAction) -> tuple[int, int, int, str]:
+            return (
+                int(type_priority.get(action.action_type, 9)),
+                int(compound_priority.get(str(action.compound), 9)),
+                0 if action.mode == "conservative" else 1,
+                action.key,
+            )
+
+        ordered = sorted(tuple(legal_actions), key=priority)
+        return tuple(ordered[: max(1, int(self.config.branch_limit))])
+
+    def _scenario_diagnostics(self) -> dict[str, object]:
+        diagnostics: dict[str, object] = {}
+        for scenario in self.scenarios:
+            diagnostics[scenario.scenario_id] = {
+                "traffic_multiplier": float(scenario.traffic_multiplier),
+                "pit_loss_multiplier": float(scenario.pit_loss_multiplier),
+                "weather_offset_seconds": float(scenario.weather_offset_seconds),
+                "wet_track": bool(scenario.wet_track),
+                "forced_track_status": scenario.forced_track_status,
+                "overtake_propensity": scenario.overtake_propensity,
+                "note": dict(scenario.metadata).get("diagnostic"),
+            }
+        return diagnostics
+
+
+class SimulatorDPPlanner(DeterministicStrategyPlanner):
+    """Finite-horizon DP planner using the Phase 5 simulator as transition model."""
+
+    def __init__(
+        self,
+        *,
+        config: PlannerConfig | None = None,
+        simulator_config: RaceSimulatorConfig | None = None,
+        scenario: SimulatorScenario | None = None,
+    ) -> None:
+        planner_config = config or PlannerConfig(strategy_score_weight=0.0)
+        action_space = build_action_space(
+            compounds=planner_config.compounds,
+            include_pit_next_lap=bool(planner_config.include_pit_next_lap),
+        )
+        sim_config = replace(
+            simulator_config or RaceSimulatorConfig(),
+            action_mask=planner_config.action_mask,
+            reward=planner_config.reward,
+            compounds=planner_config.compounds,
+            include_pit_next_lap=bool(planner_config.include_pit_next_lap),
+        )
+        simulator = LiveRaceSimulator(
+            config=sim_config,
+            scenario=scenario or SimulatorScenario(),
+            action_space=action_space,
+        )
+        super().__init__(
+            config=planner_config,
+            transition_model=simulator,
+            strategy_adapter=None,
+        )
+
 
 def _state_to_adapter_row(state: StrategyState) -> dict[str, object]:
     return {
@@ -532,6 +873,11 @@ __all__ = [
     "DeterministicTransitionConfig",
     "PlannerConfig",
     "PlannerResult",
+    "ScenarioRolloutScore",
+    "SequenceEvaluation",
+    "SimulatorDPPlanner",
+    "SimulatorMPCConfig",
+    "SimulatorMPCPlanner",
     "TransitionModel",
     "compound_lap_delta",
     "compound_service_life",

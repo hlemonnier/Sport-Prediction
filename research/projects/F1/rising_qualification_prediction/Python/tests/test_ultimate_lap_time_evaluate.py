@@ -7,10 +7,32 @@ import pytest
 
 import packages.f1.models.ultimate_lap_time.evaluate as ultimate_evaluate
 from packages.f1.models.ultimate_lap_time.evaluate import (
+    DETERMINISTIC_BASELINE_MODEL_NAME,
+    evaluate_ultimate_lap_time_baseline_backtest,
     evaluate_ultimate_lap_time_predictions,
     pinball_loss,
+    write_ultimate_lap_time_baseline_backtest_report,
     write_ultimate_lap_time_evaluation_report,
 )
+
+
+def _baseline_laps(event_key: str, offset: float = 0.0) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "event_key": [event_key] * 4,
+            "session": ["Q"] * 4,
+            "circuit_id": ["bahrain"] * 4,
+            "driver_id": ["VER", "LEC", "NOR", "PIA"],
+            "team_id": ["red_bull", "ferrari", "mclaren", "mclaren"],
+            "lap_time_seconds": [89.8 + offset, 90.1 + offset, 90.4 + offset, 90.6 + offset],
+            "sector1_seconds": [29.8 + offset / 3.0, 30.0 + offset / 3.0, 30.2 + offset / 3.0, 30.3 + offset / 3.0],
+            "sector2_seconds": [30.0, 30.1, 30.2, 30.3],
+            "sector3_seconds": [30.0, 30.0, 30.0, 30.0],
+            "is_accurate": [True] * 4,
+            "is_box_lap": [False] * 4,
+            "track_status": ["1"] * 4,
+        }
+    )
 
 
 def test_ultimate_lap_evaluation_metrics_and_report_shape(tmp_path) -> None:
@@ -87,3 +109,49 @@ def test_default_report_path_is_repo_rooted(monkeypatch, tmp_path) -> None:
 
     assert output_path == tmp_path / ultimate_evaluate.DEFAULT_REPORT_RELATIVE_PATH
     assert output_path.exists()
+
+
+def test_relative_report_path_is_repo_rooted_from_research_cwd(monkeypatch, tmp_path) -> None:
+    research_cwd = tmp_path / "research/projects/F1/rising_qualification_prediction/Python"
+    research_cwd.mkdir(parents=True)
+    monkeypatch.chdir(research_cwd)
+    monkeypatch.setattr(ultimate_evaluate, "find_repo_root", lambda _: tmp_path)
+    result = ultimate_evaluate.UltimateLapTimeEvaluationResult(
+        model_name="unit_test_model",
+        row_count=1,
+        metrics={metric: 1.0 for metric in ultimate_evaluate.REQUIRED_METRICS},
+        calibration_curve=[],
+        leakage_issues=(),
+    )
+
+    output_path = write_ultimate_lap_time_evaluation_report(
+        result,
+        "artifacts/reports/f1/ultimate_lap_time/custom_eval.json",
+    )
+
+    assert output_path == tmp_path / "artifacts/reports/f1/ultimate_lap_time/custom_eval.json"
+    assert not (research_cwd / "artifacts").exists()
+
+
+def test_ultimate_baseline_backtest_report_uses_artifacts_backtests(monkeypatch, tmp_path) -> None:
+    research_cwd = tmp_path / "research/projects/F1/rising_qualification_prediction/Python"
+    research_cwd.mkdir(parents=True)
+    monkeypatch.chdir(research_cwd)
+    monkeypatch.setattr(ultimate_evaluate, "find_repo_root", lambda _: tmp_path)
+
+    result = evaluate_ultimate_lap_time_baseline_backtest(
+        _baseline_laps("2026-bahrain-train"),
+        _baseline_laps("2026-bahrain-holdout", offset=0.2),
+    )
+    output_path = write_ultimate_lap_time_baseline_backtest_report(
+        result,
+        "artifacts/backtests/f1/ultimate_lap_time/baseline.json",
+    )
+    payload = json.loads(output_path.read_text())
+
+    assert output_path == tmp_path / "artifacts/backtests/f1/ultimate_lap_time/baseline.json"
+    assert payload["artifact_type"] == "ultimate_lap_time_baseline_backtest"
+    assert payload["model_name"] == DETERMINISTIC_BASELINE_MODEL_NAME
+    assert payload["evaluation"]["model_name"] == DETERMINISTIC_BASELINE_MODEL_NAME
+    assert payload["evaluation"]["missing_metrics"] == []
+    assert not (research_cwd / "artifacts").exists()

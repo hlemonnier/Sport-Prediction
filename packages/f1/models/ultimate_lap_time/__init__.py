@@ -7,7 +7,12 @@ from .datasets import (
     dataset_summary,
 )
 from .deep import DistanceTelemetryTCN, DistanceTelemetryTCNConfig, torch_available
-from .evaluate import evaluate_ultimate_lap_time_predictions
+from .evaluate import (
+    DETERMINISTIC_BASELINE_MODEL_NAME,
+    evaluate_ultimate_lap_time_baseline_backtest,
+    evaluate_ultimate_lap_time_predictions,
+    write_ultimate_lap_time_baseline_backtest_report,
+)
 from .evaluate_deep import evaluate_deep_ultimate_lap_time
 from .model import UltimateLapTimeConfig, UltimateLapTimeModel, UltimateLapTimeTrainingSummary
 from .predict import predict_ultimate_lap_time
@@ -37,6 +42,7 @@ __all__ = [
     "DistanceTelemetryTCN",
     "DistanceTelemetryTCNConfig",
     "DistanceNormalizedTelemetryTensor",
+    "DETERMINISTIC_BASELINE_MODEL_NAME",
     "TabularQuantileConfig",
     "UltimateLapTimeConfig",
     "UltimateLapMetadata",
@@ -51,6 +57,7 @@ __all__ = [
     "build_ultimate_lap_example",
     "dataset_summary",
     "evaluate_deep_ultimate_lap_time",
+    "evaluate_ultimate_lap_time_baseline_backtest",
     "evaluate_ultimate_lap_time_predictions",
     "examples_to_deep_numpy",
     "fit_tabular_quantile_model",
@@ -59,4 +66,5 @@ __all__ = [
     "torch_available",
     "train_ultimate_lap_time",
     "train_ultimate_lap_time_deep",
+    "write_ultimate_lap_time_baseline_backtest_report",
 ]

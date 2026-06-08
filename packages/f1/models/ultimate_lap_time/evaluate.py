@@ -4,19 +4,28 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
 
+from packages.f1.models.ultimate_lap_time.model import (
+    UltimateLapTimeConfig,
+    fit_ultimate_lap_time_model,
+)
 from packages.f1.models.ultimate_lap_time.schemas import UltimateLapTelemetryExample
 from packages.sports_core.paths import find_repo_root
 
 
+DETERMINISTIC_BASELINE_MODEL_NAME = "ultimate_lap_time_deterministic_baseline_v1"
 DEFAULT_REPORT_RELATIVE_PATH = Path("artifacts/reports/f1/ultimate_lap_time_evaluation.json")
+DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH = Path(
+    "artifacts/backtests/f1/ultimate_lap_time_deterministic_baseline_v1.json"
+)
 DEFAULT_REPORT_PATH = find_repo_root(__file__) / DEFAULT_REPORT_RELATIVE_PATH
+DEFAULT_BASELINE_BACKTEST_PATH = find_repo_root(__file__) / DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH
 ACTUAL_COLUMNS: tuple[str, ...] = ("lap_time_seconds", "lap_duration", "LapTime", "lap_time", "duration")
 P05_COLUMNS: tuple[str, ...] = ("lap_p05", "p05_prediction", "predicted_p05", "p05", "pace_floor_seconds")
 P50_COLUMNS: tuple[str, ...] = (
@@ -45,6 +54,17 @@ REQUIRED_METRICS: tuple[str, ...] = (
     "fastest_lap_winner_hit_rate",
     "top3_fastest_lap_accuracy",
 )
+
+
+def _resolve_artifact_path(path: str | Path | None, default_relative_path: Path) -> Path:
+    if path is None:
+        return find_repo_root(__file__) / default_relative_path
+    output_path = Path(path).expanduser()
+    if output_path.is_absolute():
+        return output_path
+    if not output_path.parts or output_path.parts[0] != "artifacts":
+        raise ValueError("relative artifact paths must live under artifacts/")
+    return find_repo_root(__file__) / output_path
 
 
 def _as_dataframe(data: pd.DataFrame | Sequence[Mapping[str, Any]] | Sequence[UltimateLapTelemetryExample]) -> pd.DataFrame:
@@ -235,6 +255,26 @@ class UltimateLapTimeEvaluationResult:
         }
 
 
+@dataclass(frozen=True)
+class UltimateLapTimeBaselineBacktestResult:
+    """Comparable deterministic-baseline backtest payload for Phase 0 locking."""
+
+    model_name: str
+    training_summary: dict[str, Any]
+    evaluation: UltimateLapTimeEvaluationResult
+    artifact_relative_path: str = str(DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "artifact_type": "ultimate_lap_time_baseline_backtest",
+            "model_name": self.model_name,
+            "baseline_model": self.model_name,
+            "artifact_relative_path": self.artifact_relative_path,
+            "training_summary": self.training_summary,
+            "evaluation": self.evaluation.to_dict(),
+        }
+
+
 def normalize_evaluation_frame(
     actual: pd.DataFrame | Sequence[Mapping[str, Any]] | Sequence[UltimateLapTelemetryExample],
     predictions: pd.DataFrame | Sequence[Mapping[str, Any]] | None = None,
@@ -329,20 +369,69 @@ def write_ultimate_lap_time_evaluation_report(
 ) -> Path:
     """Write an evaluation payload under artifacts/reports/f1 by default."""
 
-    output_path = Path(path) if path is not None else find_repo_root(__file__) / DEFAULT_REPORT_RELATIVE_PATH
+    output_path = _resolve_artifact_path(path, DEFAULT_REPORT_RELATIVE_PATH)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True), encoding="utf-8")
+    return output_path
+
+
+def evaluate_ultimate_lap_time_baseline_backtest(
+    train_laps: pd.DataFrame,
+    evaluation_laps: pd.DataFrame,
+    *,
+    config: UltimateLapTimeConfig | None = None,
+    group_columns: Sequence[str] = DEFAULT_GROUP_COLUMNS,
+) -> UltimateLapTimeBaselineBacktestResult:
+    """Fit and evaluate the locked deterministic baseline on explicit holdout rows."""
+
+    if not isinstance(train_laps, pd.DataFrame) or not isinstance(evaluation_laps, pd.DataFrame):
+        raise TypeError("train_laps and evaluation_laps must be pandas DataFrames")
+    if train_laps.empty:
+        raise ValueError("train_laps must contain at least one timing row")
+    if evaluation_laps.empty:
+        raise ValueError("evaluation_laps must contain at least one timing row")
+
+    model = fit_ultimate_lap_time_model(train_laps, config=config)
+    predictions = model.predict_details(evaluation_laps)
+    evaluation = evaluate_ultimate_lap_time_predictions(
+        evaluation_laps,
+        predictions,
+        model_name=DETERMINISTIC_BASELINE_MODEL_NAME,
+        group_columns=group_columns,
+    )
+    return UltimateLapTimeBaselineBacktestResult(
+        model_name=DETERMINISTIC_BASELINE_MODEL_NAME,
+        training_summary=asdict(model.training_summary),
+        evaluation=evaluation,
+    )
+
+
+def write_ultimate_lap_time_baseline_backtest_report(
+    result: UltimateLapTimeBaselineBacktestResult,
+    path: str | Path | None = None,
+) -> Path:
+    """Write the deterministic baseline backtest report under artifacts/backtests/f1."""
+
+    output_path = _resolve_artifact_path(path, DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True), encoding="utf-8")
     return output_path
 
 
 __all__ = [
+    "DEFAULT_BASELINE_BACKTEST_PATH",
+    "DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH",
     "DEFAULT_REPORT_PATH",
     "DEFAULT_REPORT_RELATIVE_PATH",
+    "DETERMINISTIC_BASELINE_MODEL_NAME",
     "REQUIRED_METRICS",
+    "UltimateLapTimeBaselineBacktestResult",
     "UltimateLapTimeEvaluationResult",
+    "evaluate_ultimate_lap_time_baseline_backtest",
     "evaluate_ultimate_lap_time_predictions",
     "leakage_issues_for_evaluation",
     "normalize_evaluation_frame",
     "pinball_loss",
+    "write_ultimate_lap_time_baseline_backtest_report",
     "write_ultimate_lap_time_evaluation_report",
 ]

@@ -45,3 +45,91 @@ planner:
     - deterministic_no_random_sc_vsc_sampling
     - pit_loss_and_tyre_degradation_are_hand_tuned_priors
     - position_reward_is_proxy_not_counterfactual_race_order
+simulator:
+  simulator_id: live_race_simulator_v1
+  seed: 7
+  transition_terms:
+    - event_lap_baseline
+    - driver_pace_state
+    - tyre_degradation_state
+    - compound_effect
+    - fuel_proxy
+    - traffic_loss
+    - track_status_offset
+    - weather_offset
+    - deterministic_seed_noise
+  pit_action:
+    applies_track_status_circuit_traffic_pit_loss: true
+    resets_tyre_age: true
+    resets_degradation_prior: true
+  calibration_metrics:
+    - one_step_lap_time_mae
+    - one_step_lap_time_crps_deterministic_point_forecast
+    - pit_loss_mae_when_observed
+    - track_status_residuals
+    - final_order_proxy_rank_correlation
+  limitations:
+    - single_car_traffic_and_final_order_are_proxy_only
+    - hand_tuned_pace_tyre_pit_loss_priors_until_calibrated
+mpc:
+  planner_id: simulator_mpc_v1
+  transition_model: live_race_simulator_v1
+  horizon_laps: 5
+  branch_limit: 8
+  max_sequences: 512
+  utility:
+    race_time_weight: 1.0
+    expected_points_weight: 0.0
+    downside_cvar_weight: 0.15
+    illegal_action_penalty_weight: 1.0
+    cvar_alpha: 0.20
+  scenarios:
+    - monaco_low_overtake
+    - high_overtake
+    - wet
+    - sc_vsc
+  diagnostics:
+    points_and_final_order_are_proxy_only: true
+    require_legal_action_sequences: true
+rl:
+  phase: phase_7_behavior_cloning_offline_rl
+  replay_dataset:
+    dataset_id: live_strategy_rl_replay_v1
+    source_contract: StrategyTransition
+    action_index: shared_live_strategy_action_space
+    legal_masks_required: true
+    ood_flags_required: true
+    reward_clip:
+      min: -500.0
+      max: 100.0
+  behavior_cloning:
+    model_id: masked_behavior_cloning_warm_start_v1
+    target: observed_team_action
+    bucket_precision: 2
+    smoothing: 0.25
+    role: warm_start_only
+    promotion_allowed: false
+    required_diagnostics:
+      - action_selection_accuracy
+      - pit_decision_f1
+      - pit_timing_lap_mae
+      - delta_vs_trivial_baseline
+  offline_rl:
+    model_id: conservative_tabular_offline_q_v1
+    algorithm: conservative_fitted_q_iteration
+    dependency_policy: numpy_only
+    bucket_precision: 2
+    iterations: 60
+    learning_rate: 0.30
+    discount: 0.92
+    conservative_penalty: 0.40
+    ood_action_penalty: 8.0
+    value_clip:
+      min: -800.0
+      max: 200.0
+    legal_masks_required: true
+    locked_simulator_evaluation_required: true
+    historical_accuracy_promotion_allowed: false
+    comparisons:
+      - behavior_cloning
+      - dp_mpc

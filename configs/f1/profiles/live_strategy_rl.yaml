@@ -1,0 +1,55 @@
+profile_name: live_strategy_rl
+profile_version: phase9_production_registry_v1
+model_family: live_strategy
+runtime_family: live_race
+source: local_or_fastf1_replay
+registry:
+  model_id: live_strategy_conservative_offline_q_v1
+  model_family: live_strategy
+  version: v1
+  training_data_cutoff: pending_locked_replay_cutoff
+  feature_schema_version: live_strategy_state_v1_no_future_lap_fields
+  artifact_path: artifacts/models/f1/live_strategy/rl/live_strategy_conservative_offline_q_v1
+  metrics: {}
+  promotion_status: candidate
+  fallback_model_id: deterministic_baseline_v1
+  deterministic_fallback: false
+  metadata:
+    algorithm: conservative_fitted_q_iteration
+    production_replacement_allowed_by_default: false
+fallback:
+  model_id: deterministic_baseline_v1
+  model_family: live_strategy
+  deterministic_fallback: true
+  artifact_path: artifacts/models/f1/live_strategy/deterministic_baseline_v1
+promotion:
+  production_replacement_allowed_by_default: false
+  split_strategy: historical_replay_prefix_walk_forward
+  prohibited_split_strategies:
+    - random
+    - random_split
+    - row_random
+    - iid_random
+    - session_row_random
+  calibration_report_path: artifacts/reports/f1/live_strategy/rl/calibration_report.json
+  baseline_comparison:
+    required: true
+    baseline_model_id: deterministic_baseline_v1
+    report_path: artifacts/reports/f1/live_strategy/rl/baseline_comparison.json
+    metrics:
+      - policy_value
+      - illegal_action_rate
+      - regret_vs_oracle
+  leakage_tests:
+    required: true
+    fail_closed_on_issues: true
+    report_path: artifacts/reports/f1/live_strategy/rl/leakage_report.json
+  simulator_validation:
+    required: true
+    simulator_id: live_race_simulator_v1
+    report_path: artifacts/reports/f1/live_strategy/rl/locked_simulator_validation.json
+  required_metrics:
+    - policy_value
+    - illegal_action_rate
+    - regret_vs_oracle
+  gate_status: not_promotable_until_locked_reports_exist

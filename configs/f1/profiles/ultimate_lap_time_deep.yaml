@@ -1,0 +1,55 @@
+profile_name: ultimate_lap_time_deep
+profile_version: phase9_production_registry_v1
+model_family: ultimate_lap_time
+source: local_or_fastf1_or_openf1
+registry:
+  model_id: ultimate_lap_time_distance_tcn_v1
+  model_family: ultimate_lap_time
+  version: v1
+  training_data_cutoff: pending_locked_walk_forward_cutoff
+  feature_schema_version: ultimate_lap_time_telemetry_schema_v1
+  artifact_path: artifacts/models/f1/ultimate_lap_time/deep/ultimate_lap_time_distance_tcn_v1
+  metrics: {}
+  promotion_status: candidate
+  fallback_model_id: ultimate_lap_time_deterministic_baseline_v1
+  deterministic_fallback: false
+  metadata:
+    architecture: distance_normalized_tcn
+    production_replacement_allowed_by_default: false
+fallback:
+  model_id: ultimate_lap_time_deterministic_baseline_v1
+  model_family: ultimate_lap_time
+  deterministic_fallback: true
+  artifact_path: artifacts/models/f1/ultimate_lap_time/deterministic_baseline_v1
+promotion:
+  production_replacement_allowed_by_default: false
+  split_strategy: grouped_event_circuit_time_walk_forward
+  prohibited_split_strategies:
+    - random
+    - random_split
+    - row_random
+    - iid_random
+    - session_row_random
+  calibration_report_path: artifacts/reports/f1/ultimate_lap_time/deep/calibration_report.json
+  baseline_comparison:
+    required: true
+    baseline_model_id: ultimate_lap_time_deterministic_baseline_v1
+    report_path: artifacts/reports/f1/ultimate_lap_time/deep/baseline_comparison.json
+    metrics:
+      - p05_pinball
+  leakage_tests:
+    required: true
+    fail_closed_on_issues: true
+    report_path: artifacts/reports/f1/ultimate_lap_time/deep/leakage_report.json
+  simulator_validation:
+    required: false
+  required_metrics:
+    - p50_mae
+    - p50_rmse
+    - p05_pinball
+    - p50_pinball
+    - p90_pinball
+    - interval_coverage
+    - fastest_lap_winner_hit_rate
+    - top3_fastest_lap_accuracy
+  gate_status: not_promotable_until_locked_reports_exist

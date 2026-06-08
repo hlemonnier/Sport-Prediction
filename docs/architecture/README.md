@@ -73,3 +73,9 @@ sport-prediction/
 
 The backend still discovers experiments under `research/projects`. Those folders
 remain runnable via shims, but new source ownership belongs under `packages`.
+
+## Advanced Model Plans
+
+- [F1 Advanced Model Upgrade Plan](f1_advanced_model_upgrade_plan.md): mathematical
+  upgrade path for Ultimate Lap-Time and Live Race Strategy, including
+  CNN/TCN/DL, RL/MPC, simulator, data contracts, losses, and validation gates.

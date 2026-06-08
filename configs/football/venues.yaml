@@ -1,0 +1,3 @@
+venues: []
+notes:
+  - Venue latitude, longitude, and timezone unlock Open-Meteo fixture weather.

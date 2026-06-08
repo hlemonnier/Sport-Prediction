@@ -7,7 +7,7 @@ import pandas as pd
 
 from run_betting import build_parser as build_betting_parser
 from run_forward_bet_settlement import build_parser as build_settlement_parser
-from rqp.betting import (
+from packages.f1.betting import (
     BettingConfig,
     build_betting_report,
     build_betting_recommendations,

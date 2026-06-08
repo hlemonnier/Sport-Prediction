@@ -7,6 +7,7 @@ be used, but the target race result is never part of the training window.
 """
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import copy
@@ -20,7 +21,7 @@ from typing import Any, Optional, Sequence
 
 import pandas as pd
 
-from rqp.providers import LocalWeekendProvider
+from packages.f1.data.providers import LocalWeekendProvider
 
 from run_f1_baseline_ladder import (
     _evaluate_variant,
@@ -42,7 +43,7 @@ def default_weekends_dir() -> str:
 
 
 def default_output_path() -> str:
-    return str(_project_root() / "outputs" / "f1" / "reviews" / "same_season_walk_forward_backtest.json")
+    return str(_project_root() / "artifacts" / "backtests" / "f1" / "same_season_walk_forward_backtest.json")
 
 
 def _utc_now() -> str:
@@ -482,7 +483,7 @@ def build_same_season_backtest(
         "generated_at": _utc_now(),
         "training_protocol": {
             "name": "same_season_walk_forward",
-            "rule": "For target season Y and round R, model variants receive train_seasons=[Y]; rqp.data.build_training_data excludes rounds >= R in the same season.",
+            "rule": "For target season Y and round R, model variants receive train_seasons=[Y]; packages.f1.features.assembly.build_training_data excludes rounds >= R in the same season.",
             "race_information_cutoff": "post-qualifying/pre-race; current-round grid or qualifying fallback is allowed, target race result is not.",
             "qualifying_information_cutoff": "post-practice/pre-qualifying; current-round practice features are allowed, target qualifying result is not.",
             "cross_season_training_allowed": False,

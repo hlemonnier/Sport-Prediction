@@ -2,6 +2,7 @@
 """Walk-forward 2026 F1 backtest with weighted current-season learning."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import json
@@ -12,15 +13,15 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from rqp import PredictionConfig, run_prediction
-from rqp.evaluation import evaluate_prediction_rows
-from rqp.providers import FastF1Provider, LocalWeekendProvider, OpenF1Provider
-from rqp.runtime import parse_compare_families, parse_json_object
+from packages.f1 import PredictionConfig, run_prediction
+from packages.f1.orchestration.backtest import evaluate_prediction_rows
+from packages.f1.data.providers import FastF1Provider, LocalWeekendProvider, OpenF1Provider
+from packages.f1.orchestration.runtime import parse_compare_families, parse_json_object
 
 
 def default_output_dir() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "outputs" / "f1" / "rolling_2026")
+    return str(project_root / "artifacts" / "backtests" / "f1" / "rolling_2026")
 
 
 def default_weekends_dir() -> str:
@@ -30,12 +31,12 @@ def default_weekends_dir() -> str:
 
 def default_selection_csv() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "outputs" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv")
+    return str(project_root / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv")
 
 
 def default_summary_csv() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "outputs" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv")
+    return str(project_root / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv")
 
 
 def _utc_now() -> str:

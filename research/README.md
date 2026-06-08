@@ -14,6 +14,9 @@ Each experiment is a reproducible unit with:
 - `sport_cli.py` CLI navigator for projects and papers
 
 ## Quick paths
-- F1 experiment: `research/projects/F1/rising_qualification_prediction/`
-- Football experiment: `research/projects/Football/Match Result Prediction/`
+- F1 experiment runner: `research/projects/F1/rising_qualification_prediction/`
+- Football experiment runner: `research/projects/Football/Match Result Prediction/`
+- F1 package source: `../packages/f1`
+- Football package source: `../packages/football`
+- Shared core source: `../packages/sports_core`
 - Papers index: `research/papers/README.md`

@@ -1,0 +1,11 @@
+model_family: pre_race
+source: local
+features:
+  - qualifying_or_predicted_grid
+  - practice
+  - standings
+  - circuit
+  - race_strategy
+  - weather
+target: race_order
+same_season_training: true

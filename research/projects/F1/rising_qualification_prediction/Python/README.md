@@ -1,12 +1,13 @@
 # Rising Qualification Prediction (Python)
 
-This folder contains the F1 prediction runtime with separated lifecycle.
+This folder contains the F1 experiment runner compatibility layer.
+Authoritative F1 package code now lives in `../../../../../packages/f1`.
 
 The canonical experiment contract is declared in `../experiment.json` (context, snapshot root, model families, entrypoint).
 
 Lifecycle:
-- preseason proxy validation on 2025 (`outputs/f1/preseason/holdout_2025`)
-- live 2026 operations (`outputs/f1/live`)
+- preseason proxy validation on 2025 (`artifacts/backtests/f1/preseason/holdout_2025`)
+- live 2026 operations (`artifacts/predictions/f1/live`)
 - shared raw weekends (`data/f1/raw/weekends`)
 
 ## Model Architecture
@@ -54,9 +55,9 @@ Weather outputs:
 - `base_no_weather` neutralizes weather uncertainty priors and removes the
   weather component from race-generation variance.
 - `weather_integrated` keeps the available track/weather uncertainty priors.
-- Current weather integration uses available local historical/track weather
-  uncertainty priors. A live forecast feed can later replace or augment those
-  priors without changing the scenario contract.
+- Current weather integration can use Open-Meteo through the shared
+  `packages/sports_core` weather layer when `--weather on` is supplied;
+  otherwise it falls back to local historical/track weather uncertainty priors.
 
 ## Quick Start
 
@@ -116,8 +117,8 @@ python run_experiment.py profile \
 ```bash
 python run_horizon_a_vs_b_lap_snapshots.py \
   --year 2025 \
-  --horizon-a-dir outputs/f1/compare_2025_afterfix_fullrace/horizon_a \
-  --horizon-b-dir outputs/f1/compare_2025_afterfix_fullrace/horizon_b \
+  --horizon-a-dir artifacts/backtests/f1/compare_2025_afterfix_fullrace/horizon_a \
+  --horizon-b-dir artifacts/backtests/f1/compare_2025_afterfix_fullrace/horizon_b \
   --weekends-dir data/f1/raw/weekends \
   --cutoff-mode distance_pct \
   --distance-cutoffs 5,10,20,30,40,50,60,70,80,90,100 \
@@ -194,7 +195,7 @@ Prediction JSON now includes:
 
 ## Circuit Cards
 
-Every known F1 event name is mapped to a numeric circuit card in `rqp/circuit_cards.py`.
+Every known F1 event name is mapped to a numeric circuit card in `packages/f1/data/schemas/circuit.py`.
 Cards are static priors for the circuit archetype, then local historical track
 stats refine them when available. The feature builder attaches the card to both
 training rows and current-event rows, so predictions can account for circuit fit:
@@ -244,7 +245,7 @@ Run:
 
 ```bash
 python run_betting.py \
-  --predictions outputs/f1/live/2026/profile_weekend_pre_qualifying.json \
+  --predictions artifacts/predictions/f1/live/2026/profile_weekend_pre_qualifying.json \
   --odds odds.csv \
   --bankroll 1000 \
   --fractional-kelly 0.25 \
@@ -269,9 +270,9 @@ python run_forward_bet_logger.py \
   --event-id 2026_round_06_spanish_gp \
   --information-cutoff post-qualifying \
   --market-close-utc 2026-06-07T12:00:00Z \
-  --predictions outputs/f1/rolling_2026/2026/round_06/postqual_race_prediction.json \
+  --predictions artifacts/backtests/f1/rolling_2026/2026/round_06/postqual_race_prediction.json \
   --odds odds_round_06_postqual.csv \
-  --log-path outputs/f1/forward_test/f1_forward_bet_log.jsonl
+  --log-path artifacts/predictions/f1/forward_test/f1_forward_bet_log.jsonl
 ```
 
 The forward logger appends a hash-chained JSONL record containing prediction artifact hash, odds file hash, model probabilities, odds, Kelly/cap stake outputs, skipped rows, and the previous record hash. It refuses to create evidence records after market close unless `--allow-after-close` is explicitly provided for a dry-run/backfill.

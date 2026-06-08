@@ -2,6 +2,7 @@
 """Operational weekend pipeline for in-season F1 predictions."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import json
@@ -10,15 +11,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from rqp import PredictionConfig, run_prediction
-from rqp.evaluation import evaluate_prediction_rows
-from rqp.providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
-from rqp.runtime import parse_compare_families, parse_json_object, parse_train_seasons
+from packages.f1 import PredictionConfig, run_prediction
+from packages.f1.orchestration.backtest import evaluate_prediction_rows
+from packages.f1.data.providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
+from packages.f1.orchestration.runtime import parse_compare_families, parse_json_object, parse_train_seasons
 
 
 def default_output_dir() -> str:
     project_root = Path(__file__).resolve().parents[5]
-    return str(project_root / "outputs" / "f1" / "live")
+    return str(project_root / "artifacts" / "predictions" / "f1" / "live")
 
 
 def _build_provider(

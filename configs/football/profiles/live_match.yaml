@@ -1,0 +1,9 @@
+model_family: live_match
+source: future_event_feed
+features:
+  - live_state
+  - events
+  - xg_stream
+  - substitutions
+  - cards
+target: rolling_match_result

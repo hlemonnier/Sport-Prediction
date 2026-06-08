@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 import run_f1_same_season_backtest as same_season
-from rqp.runtime import parse_train_seasons
+from packages.f1.orchestration.runtime import parse_train_seasons
 
 
 class FakeProvider:

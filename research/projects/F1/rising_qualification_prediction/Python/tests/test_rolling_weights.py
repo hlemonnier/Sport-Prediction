@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pandas as pd
 
-from rqp.config import PredictionConfig
-from rqp.prediction import _apply_season_sample_weighting
-from rqp.training import EBRankModel
+from packages.f1.data.schemas.session import PredictionConfig
+from packages.f1.orchestration.prediction import _apply_season_sample_weighting
+from packages.f1.models.training import EBRankModel
 
 
 def test_apply_season_sample_weighting_marks_current_year_rows() -> None:

@@ -2,6 +2,7 @@
 """Evaluate Horizon A vs Horizon B on early live-race lap snapshots."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 from datetime import datetime, timezone
@@ -19,7 +20,7 @@ try:
 except Exception:  # pragma: no cover - optional dependency for plot artifact
     plt = None
 
-from rqp.live_runner import (
+from packages.f1.models.live_race.predict import (
     _build_snapshot,
     _event_seed,
     _finalize_output_mapping,
@@ -27,9 +28,9 @@ from rqp.live_runner import (
     _sample_pit_loss_seconds,
     _strategy_template_probabilities,
 )
-from rqp.evaluation import evaluate_prediction_rows
-from rqp.live_state_space import FilterConfig, FilterState, build_event_lap_baseline, parse_track_status
-from rqp.providers import LocalWeekendProvider
+from packages.f1.orchestration.backtest import evaluate_prediction_rows
+from packages.f1.models.live_race.state import FilterConfig, FilterState, build_event_lap_baseline, parse_track_status
+from packages.f1.data.providers import LocalWeekendProvider
 
 
 NEVER_BEFORE_FINISH = "Never before finish"
@@ -1947,12 +1948,12 @@ def main() -> None:
     parser.add_argument("--year", type=int, default=2025)
     parser.add_argument(
         "--horizon-a-dir",
-        default="outputs/f1/compare_2025_afterfix_fullrace/horizon_a",
+        default="artifacts/backtests/f1/compare_2025_afterfix_fullrace/horizon_a",
         help="Folder containing Horizon A artifacts (rXX.json).",
     )
     parser.add_argument(
         "--horizon-b-dir",
-        default="outputs/f1/compare_2025_afterfix_fullrace/horizon_b",
+        default="artifacts/backtests/f1/compare_2025_afterfix_fullrace/horizon_b",
         help="Folder containing Horizon B artifacts (rXX.json) with trace_path.",
     )
     parser.add_argument(
@@ -1962,7 +1963,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default="outputs/f1/compare_2025_afterfix_lap_snapshots",
+        default="artifacts/backtests/f1/compare_2025_afterfix_lap_snapshots",
         help="Output directory for CSV/JSON/plot artifacts.",
     )
     parser.add_argument(

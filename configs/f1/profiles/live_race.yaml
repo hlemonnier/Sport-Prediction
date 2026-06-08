@@ -1,0 +1,10 @@
+model_family: live_race
+source: local_or_fastf1
+features:
+  - starting_grid
+  - live_timing
+  - lap_times
+  - degradation
+  - pit_state
+  - weather
+target: rolling_race_order

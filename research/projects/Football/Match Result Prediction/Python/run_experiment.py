@@ -88,6 +88,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--football_model", choices=["dixon", "gbdt", "hybrid"], default="dixon")
     parser.add_argument("--football_calibration", choices=["off", "auto", "platt", "isotonic"], default="auto")
     parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
+    parser.add_argument("--weather", choices=["on", "off"], default="off")
+    parser.add_argument("--weather-provider", choices=["open_meteo"], default="open_meteo")
+    parser.add_argument("--weather-latitude", type=float, default=None)
+    parser.add_argument("--weather-longitude", type=float, default=None)
+    parser.add_argument("--weather-timezone", default=None)
+    parser.add_argument("--weather-cache-dir", default=None)
+    parser.add_argument("--weather-hours-before", type=float, default=2.0)
+    parser.add_argument("--weather-hours-after", type=float, default=3.0)
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
     parser.add_argument("--quiet", action="store_true")
@@ -113,6 +121,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         football_model=args.football_model,
         football_calibration=args.football_calibration,
         shadow_eval=(str(args.shadow_eval).strip().lower() == "on"),
+        weather_enabled=(str(args.weather).strip().lower() == "on"),
+        weather_provider=args.weather_provider,
+        weather_latitude=args.weather_latitude,
+        weather_longitude=args.weather_longitude,
+        weather_timezone=args.weather_timezone,
+        weather_cache_dir=args.weather_cache_dir,
+        weather_hours_before=args.weather_hours_before,
+        weather_hours_after=args.weather_hours_after,
     )
 
     payload, rows = _build_payload(config)

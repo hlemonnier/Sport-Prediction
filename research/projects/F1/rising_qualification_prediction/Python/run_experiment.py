@@ -2,6 +2,7 @@
 """Canonical experiment runner for Rising Qualification Prediction (F1)."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import json
@@ -12,10 +13,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Sequence
 
-from rqp import PredictionConfig, run_prediction
-from rqp.evaluation import evaluate_prediction_rows
-from rqp.providers import LocalWeekendProvider
-from rqp.runtime import parse_compare_families, parse_json_object, parse_train_seasons
+from packages.f1 import PredictionConfig, run_prediction
+from packages.f1.orchestration.backtest import evaluate_prediction_rows
+from packages.f1.data.providers import LocalWeekendProvider
+from packages.f1.orchestration.runtime import parse_compare_families, parse_json_object, parse_train_seasons
 
 try:
     import tomllib
@@ -244,6 +245,7 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
     experiments = profile.get("experiments", {})
     dl = profile.get("dl", {})
     f1 = profile.get("f1", {})
+    weather = profile.get("weather", {})
     f1_listwise = f1.get("listwise", {}) if isinstance(f1, dict) else {}
     f1_live = f1.get("live", {}) if isinstance(f1, dict) else {}
     if not isinstance(defaults, dict):
@@ -256,6 +258,8 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
         dl = {}
     if not isinstance(f1, dict):
         f1 = {}
+    if not isinstance(weather, dict):
+        weather = {}
     if not isinstance(f1_listwise, dict):
         f1_listwise = {}
     if not isinstance(f1_live, dict):
@@ -367,6 +371,76 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
                 else None
             )
         ),
+        "weather_enabled": _as_on_off(
+            getattr(args, "weather", None)
+            if getattr(args, "weather", None) is not None
+            else weather.get("enabled", False),
+            False,
+        ),
+        "weather_provider": str(
+            getattr(args, "weather_provider", None)
+            if getattr(args, "weather_provider", None) is not None
+            else weather.get("provider", "open_meteo"),
+        ).strip().lower(),
+        "weather_latitude": (
+            _as_float(getattr(args, "weather_latitude", None), 0.0)
+            if getattr(args, "weather_latitude", None) is not None
+            else (
+                _as_float(weather.get("latitude"), 0.0)
+                if weather.get("latitude") is not None
+                else None
+            )
+        ),
+        "weather_longitude": (
+            _as_float(getattr(args, "weather_longitude", None), 0.0)
+            if getattr(args, "weather_longitude", None) is not None
+            else (
+                _as_float(weather.get("longitude"), 0.0)
+                if weather.get("longitude") is not None
+                else None
+            )
+        ),
+        "weather_timezone": (
+            str(
+                getattr(args, "weather_timezone", None)
+                if getattr(args, "weather_timezone", None) is not None
+                else weather.get("timezone")
+            ).strip()
+            if (
+                getattr(args, "weather_timezone", None) is not None
+                or weather.get("timezone") is not None
+            )
+            else None
+        ),
+        "weather_start": (
+            str(
+                getattr(args, "weather_start", None)
+                if getattr(args, "weather_start", None) is not None
+                else weather.get("start")
+            ).strip()
+            if (
+                getattr(args, "weather_start", None) is not None
+                or weather.get("start") is not None
+            )
+            else None
+        ),
+        "weather_end": (
+            str(
+                getattr(args, "weather_end", None)
+                if getattr(args, "weather_end", None) is not None
+                else weather.get("end")
+            ).strip()
+            if (
+                getattr(args, "weather_end", None) is not None
+                or weather.get("end") is not None
+            )
+            else None
+        ),
+        "weather_cache_dir": _resolve_project_path(
+            getattr(args, "weather_cache_dir", None)
+            if getattr(args, "weather_cache_dir", None) is not None
+            else weather.get("cache_dir")
+        ),
     }
 
 
@@ -413,6 +487,14 @@ def _build_prediction_config(
         f1_live_cache_dir=base.get("f1_live_cache_dir"),
         f1_live_replay_path=base.get("f1_live_replay_path"),
         f1_live_replay_cutoff_lap=base.get("f1_live_replay_cutoff_lap"),
+        weather_enabled=bool(base.get("weather_enabled", False)),
+        weather_provider=str(base.get("weather_provider", "open_meteo")),
+        weather_latitude=base.get("weather_latitude"),
+        weather_longitude=base.get("weather_longitude"),
+        weather_timezone=base.get("weather_timezone"),
+        weather_start=base.get("weather_start"),
+        weather_end=base.get("weather_end"),
+        weather_cache_dir=base.get("weather_cache_dir"),
     )
 
 
@@ -570,7 +652,8 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
     phase = str(args.phase or defaults.get("phase", "pre-qualifying"))
     script = Path(__file__).resolve().parent / "run_live_weekend_pipeline.py"
     output_dir = _resolve_project_path(
-        args.output_dir or _resolve_profile_value(profile, "outputs", "base_dir", "outputs/f1/live")
+        args.output_dir
+        or _resolve_profile_value(profile, "artifacts", "base_dir", "artifacts/predictions/f1/live")
     )
     if output_dir is None:
         raise SystemExit("Invalid output_dir for weekend workflow.")
@@ -677,14 +760,14 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
     base = _profile_base_config(profile, args)
     training = profile.get("training", {})
     evaluation = profile.get("evaluation", {})
-    outputs = profile.get("outputs", {})
+    artifacts = profile.get("artifacts", {})
     experiments = profile.get("experiments", {})
     if not isinstance(training, dict):
         training = {}
     if not isinstance(evaluation, dict):
         evaluation = {}
-    if not isinstance(outputs, dict):
-        outputs = {}
+    if not isinstance(artifacts, dict):
+        artifacts = {}
     if not isinstance(experiments, dict):
         experiments = {}
 
@@ -714,7 +797,9 @@ def _run_backtest_ablation_compare(profile: dict[str, Any], args: argparse.Names
     compare_families = _as_list_str(experiments.get("compare_families", base["compare_families"]), ["ml"])
     dl_requested = enable_dl and ("dl" in {f.lower() for f in compare_families})
 
-    output_root_value = _resolve_project_path(args.output_dir or outputs.get("base_dir") or "outputs/f1/preseason/holdout_2025")
+    output_root_value = _resolve_project_path(
+        args.output_dir or artifacts.get("base_dir") or "artifacts/backtests/f1/preseason/holdout_2025"
+    )
     if output_root_value is None:
         raise SystemExit("Invalid output_dir for backtest workflow.")
 
@@ -890,6 +975,14 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_replay_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default=None)
+        parser.add_argument("--weather", choices=["on", "off"], default=None)
+        parser.add_argument("--weather-provider", choices=["open_meteo"], default=None)
+        parser.add_argument("--weather-latitude", type=float, default=None)
+        parser.add_argument("--weather-longitude", type=float, default=None)
+        parser.add_argument("--weather-timezone", default=None)
+        parser.add_argument("--weather-start", default=None)
+        parser.add_argument("--weather-end", default=None)
+        parser.add_argument("--weather-cache-dir", default=None)
         parser.add_argument("--output-format", choices=["text", "json"], default="json")
         parser.add_argument("--output-path", default=None)
         parser.add_argument("--quiet", action="store_true")
@@ -938,6 +1031,14 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_replay_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
+        parser.add_argument("--weather", choices=["on", "off"], default="off")
+        parser.add_argument("--weather-provider", choices=["open_meteo"], default="open_meteo")
+        parser.add_argument("--weather-latitude", type=float, default=None)
+        parser.add_argument("--weather-longitude", type=float, default=None)
+        parser.add_argument("--weather-timezone", default=None)
+        parser.add_argument("--weather-start", default=None)
+        parser.add_argument("--weather-end", default=None)
+        parser.add_argument("--weather-cache-dir", default=None)
         parser.add_argument("--output-format", choices=["text", "json"], default="text")
         parser.add_argument("--output-path", default=None)
         parser.add_argument("--quiet", action="store_true")
@@ -1030,6 +1131,14 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         f1_live_cache_dir=args.f1_live_cache_dir,
         f1_live_replay_path=args.f1_live_replay_path,
         f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
+        weather_enabled=(str(args.weather).strip().lower() == "on"),
+        weather_provider=args.weather_provider,
+        weather_latitude=args.weather_latitude,
+        weather_longitude=args.weather_longitude,
+        weather_timezone=args.weather_timezone,
+        weather_start=args.weather_start,
+        weather_end=args.weather_end,
+        weather_cache_dir=args.weather_cache_dir,
     )
 
     result = run_prediction(config)

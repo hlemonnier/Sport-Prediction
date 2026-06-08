@@ -2,6 +2,7 @@
 """Settle hash-chained F1 forward-test betting logs with explicit result data."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import json
@@ -9,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Sequence
 
-from rqp.betting import load_settlement_frame, settle_forward_bet_log
+from packages.f1.betting import load_settlement_frame, settle_forward_bet_log
 
 
 def _utc_now() -> str:
@@ -23,7 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
             "and explicit settlement rows."
         ),
     )
-    parser.add_argument("--log-path", default="outputs/f1/forward_test/f1_forward_bet_log.jsonl")
+    parser.add_argument("--log-path", default="artifacts/predictions/f1/forward_test/f1_forward_bet_log.jsonl")
     parser.add_argument("--settlements", required=True, help="CSV/JSON result rows with event_id, market, selection, and won/result/finish_position.")
     parser.add_argument("--settled-at-utc", default=None)
     parser.add_argument("--allow-after-close-records", action="store_true")

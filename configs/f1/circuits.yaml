@@ -1,0 +1,5 @@
+circuits_source: packages/f1/data/schemas/circuit.py
+weather_locations_source: packages/sports_core/weather/locations.py
+notes:
+  - Circuit cards are first-class F1 priors and apply to every known circuit.
+  - Provider-derived track stats should refine, not replace, the static cards.

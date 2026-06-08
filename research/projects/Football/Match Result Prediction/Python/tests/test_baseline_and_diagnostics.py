@@ -17,6 +17,7 @@ from mrp.training import (
     rank_outcome_classes,
     select_hybrid_weight,
 )
+from mrp.weather import location_from_fixture
 
 
 def _match(
@@ -203,3 +204,28 @@ def test_cli_help_exposes_horizon_a_flags() -> None:
     assert "--football_model" in stdout
     assert "--football_calibration" in stdout
     assert "--shadow_eval" in stdout
+    assert "--weather" in stdout
+
+
+def test_football_fixture_location_uses_venue_coordinates() -> None:
+    fixture = FixtureRecord(
+        match_id="fixture_weather",
+        date=datetime(2026, 8, 15, 15, 0),
+        season=2026,
+        league="epl",
+        round_number=1,
+        home_team_id="ars",
+        away_team_id="che",
+        venue_name="Emirates Stadium",
+        venue_latitude=51.5549,
+        venue_longitude=-0.1084,
+        timezone="Europe/London",
+    )
+
+    location = location_from_fixture(fixture)
+
+    assert location is not None
+    assert location.name == "Emirates Stadium"
+    assert location.latitude == 51.5549
+    assert location.longitude == -0.1084
+    assert location.timezone == "Europe/London"

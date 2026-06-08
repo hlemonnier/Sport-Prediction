@@ -2,13 +2,14 @@
 """Build F1 betting recommendations from model predictions and market odds."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import json
 from pathlib import Path
 from typing import Optional, Sequence
 
-from rqp.betting import (
+from packages.f1.betting import (
     BettingConfig,
     build_betting_recommendations,
     build_betting_report,

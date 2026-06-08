@@ -2,13 +2,14 @@
 """Build historical F1 datasets from FastF1/OpenF1."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from rqp.pipeline import PipelineConfig, run_pipeline
+from packages.f1.orchestration.weekend_pipeline import PipelineConfig, run_pipeline
 
 
 def parse_csv_list(value: str) -> list[str]:

@@ -16,13 +16,17 @@ import pandas as pd
 
 SOURCE_FILES = [
     "research/projects/F1/rising_qualification_prediction/Python/run_rolling_2026_backtest.py",
-    "research/projects/F1/rising_qualification_prediction/Python/rqp/config.py",
-    "research/projects/F1/rising_qualification_prediction/Python/rqp/prediction.py",
-    "research/projects/F1/rising_qualification_prediction/Python/rqp/training.py",
-    "research/projects/F1/rising_qualification_prediction/Python/rqp/data.py",
-    "research/projects/F1/rising_qualification_prediction/Python/rqp/providers.py",
-    "research/projects/F1/rising_qualification_prediction/Python/rqp/utils.py",
-    "research/projects/F1/rising_qualification_prediction/Python/rqp/betting.py",
+    "packages/f1/data/schemas/session.py",
+    "packages/f1/data/schemas/result.py",
+    "packages/f1/orchestration/prediction.py",
+    "packages/f1/models/training.py",
+    "packages/f1/features/assembly.py",
+    "packages/f1/data/providers/base.py",
+    "packages/f1/data/providers/fastf1.py",
+    "packages/f1/data/providers/openf1.py",
+    "packages/f1/data/providers/local_weekends.py",
+    "packages/f1/data/utils.py",
+    "packages/f1/betting/recommendations.py",
     "research/projects/F1/rising_qualification_prediction/Python/run_betting.py",
 ]
 
@@ -77,7 +81,7 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 def _artifact_path(repo: Path, season: int, round_number: int, target: str) -> Path:
     name = "qualifying_prediction.json" if target == "qualifying" else "postqual_race_prediction.json"
-    return repo / "outputs" / "f1" / "rolling_2026" / str(season) / f"round_{round_number:02d}" / name
+    return repo / "artifacts" / "backtests" / "f1" / "rolling_2026" / str(season) / f"round_{round_number:02d}" / name
 
 
 def _artifact_index(repo: Path, selections: pd.DataFrame) -> dict[tuple[int, int, str], dict[str, Any]]:
@@ -231,9 +235,9 @@ def _build_methodology(repo: Path, git_head: str, git_dirty: bool, code_hash: st
             ("git_head", git_head),
             ("git_dirty", str(git_dirty)),
             ("source_code_sha256", code_hash),
-            ("selection_artifacts", "outputs/f1/rolling_2026/2026/round_XX/*.json"),
-            ("selection_csv_source", "outputs/f1/docs/F1_2026_Rolling_Backtest_Selections.csv"),
-            ("summary_csv_source", "outputs/f1/docs/F1_2026_Rolling_Backtest_Summary.csv"),
+            ("selection_artifacts", "artifacts/backtests/f1/rolling_2026/2026/round_XX/*.json"),
+            ("selection_csv_source", "artifacts/reports/f1/docs/F1_2026_Rolling_Backtest_Selections.csv"),
+            ("summary_csv_source", "artifacts/reports/f1/docs/F1_2026_Rolling_Backtest_Summary.csv"),
             ("base_train_seasons", "2022, 2023, 2024, 2025"),
             ("holdout_protocol", "2026 walk-forward: R1 uses 2022-2025 only; Rn uses 2022-2025 plus prior 2026 rounds < n."),
             ("current_year_weighting", "Prior 2026 rows are weighted 3.0x in the verified rolling run."),
@@ -278,10 +282,10 @@ def _raw_manifest(repo: Path) -> pd.DataFrame:
 
 
 def _artifact_manifest(repo: Path) -> pd.DataFrame:
-    paths = list((repo / "outputs" / "f1" / "rolling_2026").glob("2026/round_*/*.json"))
+    paths = list((repo / "artifacts" / "backtests" / "f1" / "rolling_2026").glob("2026/round_*/*.json"))
     paths += [
-        repo / "outputs" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv",
-        repo / "outputs" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv",
+        repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv",
+        repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv",
     ]
     rows: list[dict[str, Any]] = []
     for path in sorted(p for p in paths if p.exists()):
@@ -632,11 +636,11 @@ def main() -> None:
     args = parser.parse_args()
 
     repo = _repo_root()
-    output_dir = Path(args.output_dir) if args.output_dir else repo / "outputs" / "f1" / "evidence_pack_v3"
+    output_dir = Path(args.output_dir) if args.output_dir else repo / "artifacts" / "reports" / "f1" / "evidence_pack_v3"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    selections_path = repo / "outputs" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv"
-    summary_path = repo / "outputs" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv"
+    selections_path = repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv"
+    summary_path = repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv"
     selections = pd.read_csv(selections_path)
     summary = pd.read_csv(summary_path)
 

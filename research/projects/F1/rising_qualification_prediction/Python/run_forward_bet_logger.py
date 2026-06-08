@@ -2,6 +2,7 @@
 """Append hash-chained F1 forward-test betting records before market close."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import hashlib
@@ -10,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Sequence
 
-from rqp.betting import (
+from packages.f1.betting import (
     BettingConfig,
     build_betting_recommendations,
     build_betting_report,
@@ -73,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--market-close-utc", required=True, help="ISO UTC timestamp. Logging after this fails unless --allow-after-close is set.")
     parser.add_argument("--predictions", required=True)
     parser.add_argument("--odds", required=True)
-    parser.add_argument("--log-path", default="outputs/f1/forward_test/f1_forward_bet_log.jsonl")
+    parser.add_argument("--log-path", default="artifacts/predictions/f1/forward_test/f1_forward_bet_log.jsonl")
     parser.add_argument("--selection-logged-at-utc", default=None)
     parser.add_argument("--allow-after-close", action="store_true")
     parser.add_argument("--bankroll", type=float, default=1000.0)

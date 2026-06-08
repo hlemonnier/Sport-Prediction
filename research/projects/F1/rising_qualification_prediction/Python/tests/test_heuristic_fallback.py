@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from rqp.prediction import _hierarchical_fallback
+from packages.f1.orchestration.prediction import _hierarchical_fallback
 
 
 def test_qualifying_fallback_prioritizes_empirical_fp_pace_blend() -> None:

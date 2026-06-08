@@ -1,0 +1,14 @@
+"""Pre-qualifying training entrypoints."""
+
+from __future__ import annotations
+
+from packages.f1.models.training import train_model
+
+
+def train_pre_quali_model(*args: object, **kwargs: object) -> object:
+    """Train the shared rank model for qualifying targets."""
+
+    return train_model(*args, **kwargs)
+
+
+__all__ = ["train_pre_quali_model", "train_model"]

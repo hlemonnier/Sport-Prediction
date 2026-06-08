@@ -1,0 +1,8 @@
+model_family: pre_quali
+source: local
+features:
+  - practice
+  - standings
+  - circuit
+  - weather
+target: qualifying_order

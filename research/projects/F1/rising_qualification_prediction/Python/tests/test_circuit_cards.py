@@ -10,10 +10,10 @@ if "requests" not in sys.modules:
     requests_stub.RequestException = Exception
     sys.modules["requests"] = requests_stub
 
-from rqp.circuit_cards import circuit_card_from_event
-from rqp.config import PredictionConfig
-from rqp.data import _attach_temporal_features_current, _attach_track_stats
-from rqp.prediction import _qualifying_feature_sets, _race_feature_sets
+from packages.f1.data.schemas.circuit import circuit_card_from_event
+from packages.f1.data.schemas.session import PredictionConfig
+from packages.f1.features.assembly import _attach_temporal_features_current, _attach_track_stats
+from packages.f1.orchestration.prediction import _qualifying_feature_sets, _race_feature_sets
 from run_circuit_card_ablation import _decision_from_summary
 
 

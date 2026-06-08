@@ -61,7 +61,7 @@
       }
     }
   },
-  "outputs": {
-    "base_dir": "outputs/f1/preseason/holdout_2025"
+  "artifacts": {
+    "base_dir": "artifacts/backtests/f1/preseason/holdout_2025"
   }
 }

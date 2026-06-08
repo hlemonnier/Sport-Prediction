@@ -51,7 +51,7 @@
       "min_top10_gain": 0.005
     }
   },
-  "outputs": {
-    "base_dir": "outputs/f1/live"
+  "artifacts": {
+    "base_dir": "artifacts/predictions/f1/live"
   }
 }

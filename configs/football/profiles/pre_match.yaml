@@ -1,0 +1,9 @@
+model_family: pre_match
+source: local
+features:
+  - team_form
+  - attack_defense
+  - home_away
+  - rest_travel
+  - weather
+target: match_result_1x2

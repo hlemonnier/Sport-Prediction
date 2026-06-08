@@ -1,0 +1,10 @@
+artifact_root: artifacts
+predictions:
+  f1: artifacts/predictions/f1
+  football: artifacts/predictions/football
+backtests:
+  f1: artifacts/backtests/f1
+  football: artifacts/backtests/football
+reports:
+  f1: artifacts/reports/f1
+  football: artifacts/reports/football

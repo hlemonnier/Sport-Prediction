@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from run_experiment import build_parser
-from rqp.prediction import _pl_gumbel_listwise
+from packages.f1.orchestration.prediction import _pl_gumbel_listwise
 
 
 def _sample_frame() -> tuple[pd.DataFrame, pd.Series]:

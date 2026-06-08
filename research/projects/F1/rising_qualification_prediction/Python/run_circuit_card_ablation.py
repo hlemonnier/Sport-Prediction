@@ -2,6 +2,7 @@
 """Paired full-field circuit-card ablation for local F1 prediction artifacts."""
 
 from __future__ import annotations
+import repo_bootstrap  # noqa: F401
 
 import argparse
 import json
@@ -12,10 +13,10 @@ from typing import Any, Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from rqp import PredictionConfig, run_prediction
-from rqp.evaluation import evaluate_prediction_rows
-from rqp.providers import LocalWeekendProvider
-from rqp.runtime import parse_train_seasons
+from packages.f1 import PredictionConfig, run_prediction
+from packages.f1.orchestration.backtest import evaluate_prediction_rows
+from packages.f1.data.providers import LocalWeekendProvider
+from packages.f1.orchestration.runtime import parse_train_seasons
 
 
 def _records(result) -> list[dict[str, Any]]:

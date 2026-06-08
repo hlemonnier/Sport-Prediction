@@ -1,0 +1,7 @@
+model_family: scoreline
+source: local
+features:
+  - team_goal_intensity
+  - attack_defense
+  - home_away
+target: exact_scoreline

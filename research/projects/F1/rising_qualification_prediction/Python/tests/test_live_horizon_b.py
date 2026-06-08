@@ -7,16 +7,16 @@ import pandas as pd
 
 from run_experiment import build_parser as build_prediction_parser
 from run_live_weekend_pipeline import build_parser as build_weekend_parser
-from rqp.config import PredictionConfig
-from rqp.live_runner import (
+from packages.f1.data.schemas.session import PredictionConfig
+from packages.f1.models.live_race.predict import (
     _finalize_output_mapping,
     _mc_position_distribution,
     _strategy_template_probabilities,
     _write_trace,
     run_live_race_prediction,
 )
-from rqp.live_sources import LiveSourceResult, _build_race_time_seconds, load_live_observations
-from rqp.live_state_space import (
+from packages.f1.models.live_race.sources import LiveSourceResult, _build_race_time_seconds, load_live_observations
+from packages.f1.models.live_race.state import (
     BaselineModel,
     FilterConfig,
     apply_track_gating,
@@ -424,9 +424,9 @@ def test_live_summary_includes_disable_reason_when_no_position_dist(monkeypatch)
         _ = config
         return LiveSourceResult(frame=frame.copy(), source_used="local", notes=[])
 
-    monkeypatch.setattr("rqp.live_runner.load_live_observations", _fake_loader)
+    monkeypatch.setattr("packages.f1.models.live_race.predict.load_live_observations", _fake_loader)
     monkeypatch.setattr(
-        "rqp.live_runner._write_trace",
+        "packages.f1.models.live_race.predict._write_trace",
         lambda trace, config, event_key: {
             "trace_path": "/tmp/fake_trace.parquet",
             "trace_path_jsonl": "/tmp/fake_trace.jsonl",
@@ -450,9 +450,9 @@ def test_live_replay_predictions_are_truncation_invariant_through_lap(monkeypatc
         _ = config
         return LiveSourceResult(frame=frames.pop(0).copy(), source_used="local", notes=[])
 
-    monkeypatch.setattr("rqp.live_runner.load_live_observations", _fake_loader)
+    monkeypatch.setattr("packages.f1.models.live_race.predict.load_live_observations", _fake_loader)
     monkeypatch.setattr(
-        "rqp.live_runner._write_trace",
+        "packages.f1.models.live_race.predict._write_trace",
         lambda trace, config, event_key: {
             "trace_path": "/tmp/fake_trace.parquet",
             "trace_path_jsonl": "/tmp/fake_trace.jsonl",
@@ -496,7 +496,7 @@ def test_trace_writer_falls_back_to_jsonl_when_parquet_unavailable(monkeypatch, 
     )
     config = _base_config()
 
-    monkeypatch.setattr("rqp.live_runner._resolve_artifacts_dir", lambda cfg: tmp_path)
+    monkeypatch.setattr("packages.f1.models.live_race.predict._resolve_artifacts_dir", lambda cfg: tmp_path)
 
     def _raise_no_parquet(self, path, index=False):  # noqa: ARG001
         raise ImportError("pyarrow missing")

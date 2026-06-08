@@ -9,11 +9,11 @@ import pandas as pd
 import pytest
 
 from run_experiment import _assert_probability_audit_schema
-from rqp.betting import BettingConfig, build_betting_recommendations
-from rqp.config import PredictionConfig
-from rqp.data import _add_temporal_features_train, build_current_features, build_training_data
-from rqp.evaluation import evaluate_prediction_rows
-from rqp.prediction import (
+from packages.f1.betting import BettingConfig, build_betting_recommendations
+from packages.f1.data.schemas.session import PredictionConfig
+from packages.f1.features.assembly import _add_temporal_features_train, build_current_features, build_training_data
+from packages.f1.orchestration.backtest import evaluate_prediction_rows
+from packages.f1.orchestration.prediction import (
     _add_race_context_interactions,
     _build_qualifying_signal_frame,
     _build_oof_qualifying_signal_frame,
@@ -24,8 +24,8 @@ from rqp.prediction import (
     _weather_neutral_frame,
     run_prediction,
 )
-from rqp.providers import LocalWeekendProvider
-from rqp.training import (
+from packages.f1.data.providers import LocalWeekendProvider
+from packages.f1.models.training import (
     CandidateSpec,
     StrategicRaceDeltaModel,
     TargetOffsetModel,
@@ -590,7 +590,7 @@ def test_oof_qualifying_context_never_trains_on_same_event(monkeypatch) -> None:
     def fake_train_model(train, *_args, **_kwargs):
         return SimpleNamespace(model=None, model_name="fake", notes=[])
 
-    monkeypatch.setattr("rqp.prediction.train_model", fake_train_model)
+    monkeypatch.setattr("packages.f1.orchestration.prediction.train_model", fake_train_model)
     signal = _build_oof_qualifying_signal_frame(
         qual_train=qual_train,
         qual_feature_cols=["event_pace_index", "fp_mean_rank"],
@@ -702,8 +702,8 @@ def test_run_prediction_exposes_qualifying_weather_scenarios(monkeypatch) -> Non
         }
     )
 
-    monkeypatch.setattr("rqp.prediction.build_training_data", lambda **_kwargs: (pd.DataFrame(), []))
-    monkeypatch.setattr("rqp.prediction.build_current_features", lambda **_kwargs: (current_features.copy(), []))
+    monkeypatch.setattr("packages.f1.orchestration.prediction.build_training_data", lambda **_kwargs: (pd.DataFrame(), []))
+    monkeypatch.setattr("packages.f1.orchestration.prediction.build_current_features", lambda **_kwargs: (current_features.copy(), []))
 
     result = run_prediction(_minimal_prediction_config("qualifying"))
 
@@ -750,8 +750,8 @@ def test_run_prediction_race_before_quali_uses_quali_prediction_and_weather_scen
             return race_features.copy(), []
         return qual_features.copy(), []
 
-    monkeypatch.setattr("rqp.prediction.build_training_data", fake_training_data)
-    monkeypatch.setattr("rqp.prediction.build_current_features", fake_current_features)
+    monkeypatch.setattr("packages.f1.orchestration.prediction.build_training_data", fake_training_data)
+    monkeypatch.setattr("packages.f1.orchestration.prediction.build_current_features", fake_current_features)
 
     result = run_prediction(_minimal_prediction_config("race"))
 

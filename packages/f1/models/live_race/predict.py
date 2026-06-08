@@ -123,6 +123,27 @@ def _sigmoid(value: float) -> float:
     return float(1.0 / (1.0 + np.exp(-clipped)))
 
 
+TELEMETRY_STRATEGY_FEED_COLUMNS = (
+    "compound_service_life_laps",
+    "compound_deg_prior",
+    "tyre_life_used_ratio",
+    "track_risk_score",
+    "rolling_clean_pace_delta_3",
+    "estimated_deg_slope_5",
+)
+
+
+def _json_safe_scalar(value: object) -> object:
+    if isinstance(value, np.generic):
+        value = value.item()
+    try:
+        if value is None or pd.isna(value):
+            return None
+    except Exception:
+        pass
+    return value
+
+
 def _normalized_compound(compound: object) -> str:
     text = str(compound or "").strip().upper()
     if text in {"SOFT", "C4", "C5"}:
@@ -756,31 +777,35 @@ def _build_snapshot(trace: pd.DataFrame) -> pd.DataFrame:
         .copy()
     )
     snapshot = snapshot.reset_index(drop=True)
-    snapshot = snapshot[
-        [
-            "driver_id",
-            "driver_name",
-            "lap_number",
-            "stint_id",
-            "compound",
-            "tyre_age",
-            "race_status",
-            "source",
-            "track_status",
-            "is_sc_vsc",
-            "is_yellow",
-            "race_time_seconds",
-            "gap_to_leader_seconds",
-            "pace_penalty_mean",
-            "pace_penalty_std",
-            "deg_rate_mean",
-            "deg_rate_std",
-            "next_lap_mean",
-            "next_lap_std",
-            "next_lap_pi90_low",
-            "next_lap_pi90_high",
-        ]
+    base_columns = [
+        "driver_id",
+        "driver_name",
+        "lap_number",
+        "stint_id",
+        "compound",
+        "tyre_age",
+        "race_status",
+        "source",
+        "track_status",
+        "is_sc_vsc",
+        "is_yellow",
+        "race_time_seconds",
+        "gap_to_leader_seconds",
+        "pace_penalty_mean",
+        "pace_penalty_std",
+        "deg_rate_mean",
+        "deg_rate_std",
+        "next_lap_mean",
+        "next_lap_std",
+        "next_lap_pi90_low",
+        "next_lap_pi90_high",
     ]
+    telemetry_columns = [
+        col
+        for col in trace.columns
+        if col.startswith("telemetry_") or col in TELEMETRY_STRATEGY_FEED_COLUMNS
+    ]
+    snapshot = snapshot[[col for col in [*base_columns, *telemetry_columns] if col in snapshot.columns]]
     snapshot = snapshot.rename(columns={"lap_number": "lap_last"})
     return snapshot
 
@@ -815,7 +840,6 @@ def run_live_race_prediction(
 
     telemetry = telemetry_adapter or NoopTelemetryFeatureAdapter()
     strategy = strategy_adapter or NoopStrategyPolicyAdapter()
-    _ = strategy
 
     source_result = load_live_observations(config)
     notes.extend(source_result.notes)
@@ -859,7 +883,28 @@ def run_live_race_prediction(
 
     filter_cfg = FilterConfig()
 
-    _ = telemetry.build_lap_features(observations)
+    telemetry_trace_columns: list[str] = []
+    telemetry_strategy_columns: list[str] = []
+    telemetry_disabled_reason: Optional[str] = None
+    try:
+        telemetry_features = telemetry.build_lap_features(observations)
+        if not isinstance(telemetry_features, pd.DataFrame):
+            telemetry_disabled_reason = "telemetry_adapter_returned_non_dataframe"
+        else:
+            telemetry_features = telemetry_features.reindex(observations.index)
+            for column in telemetry_features.columns:
+                trace_column = f"telemetry_{column}"
+                observations[trace_column] = telemetry_features[column]
+                telemetry_trace_columns.append(trace_column)
+            for column in TELEMETRY_STRATEGY_FEED_COLUMNS:
+                if column in telemetry_features.columns and column not in observations.columns:
+                    observations[column] = telemetry_features[column]
+                    telemetry_strategy_columns.append(column)
+            if telemetry_trace_columns:
+                notes.append(f"Live telemetry adapter produced {len(telemetry_trace_columns)} feature columns.")
+    except Exception as exc:
+        telemetry_disabled_reason = f"{type(exc).__name__}: {exc}"
+        notes.append(f"Live telemetry adapter unavailable: {telemetry_disabled_reason}.")
 
     event_key = int(pd.to_numeric(observations.get("event_key"), errors="coerce").dropna().iloc[0])
     seed = _event_seed(event_key=event_key, base_seed=int(config.f1_live_seed))
@@ -946,54 +991,55 @@ def run_live_race_prediction(
                 cfg=filter_cfg,
             )
 
-            trace_rows.append(
-                {
-                    "event_key": event_key,
-                    "source": source_result.source_used,
-                    "driver_id": str(driver_id),
-                    "driver_name": str(row.get("driver_name") or driver_id),
-                    "lap_number": lap_number,
-                    "stint_id": stint_id,
-                    "compound": compound,
-                    "tyre_age": int(state.tyre_age),
-                    "is_box_lap": bool(is_box_lap),
-                    "is_accurate": bool(is_accurate),
-                    "track_status": str(row.get("track_status") or ""),
-                    "is_red": bool(flags.is_red),
-                    "is_sc_vsc": bool(flags.is_sc_vsc),
-                    "is_yellow": bool(flags.is_yellow),
-                    "is_greenish": bool(flags.is_greenish),
-                    "gate_mode": gate.mode,
-                    "gate_skip_update": bool(gate.skip_update),
-                    "gate_note": gate.note,
-                    "r_effective": float(gate.r_effective),
-                    "reset_applied": bool(reset_applied),
-                    "baseline_lap": float(baseline_current),
-                    "lap_time_seconds": lap_time,
-                    "one_step_pred_mean": float(one_step_pred_mean),
-                    "one_step_pred_std": float(one_step_pred_std),
-                    "one_step_error": float(lap_time - one_step_pred_mean) if np.isfinite(lap_time) else float("nan"),
-                    "pace_penalty_mean": float(state.mean[0]),
-                    "pace_penalty_std": float(np.sqrt(max(state.cov[0, 0], 1e-9))),
-                    "deg_rate_mean": float(state.mean[1]),
-                    "deg_rate_std": float(np.sqrt(max(state.cov[1, 1], 1e-9))),
-                    "innovation": float(update_meta.get("innovation", float("nan"))),
-                    "innovation_var": float(update_meta.get("S", float("nan"))),
-                    "robust_applied": bool(update_meta.get("robust_applied", False)),
-                    "robust_scale": float(update_meta.get("robust_scale", 1.0)),
-                    "skip_reason": update_meta.get("skip_reason"),
-                    "next_lap_mean": float(next_lap_mean),
-                    "next_lap_std": float(next_lap_std),
-                    "next_lap_pi90_low": float(next_lap_mean - (1.645 * next_lap_std)),
-                    "next_lap_pi90_high": float(next_lap_mean + (1.645 * next_lap_std)),
-                    "race_time_seconds": race_time_seconds,
-                    "gap_to_leader_seconds": as_float(row.get("gap_to_leader_seconds")),
-                    "timestamp": as_float(row.get("timestamp")),
-                    "eval_included": bool(can_assimilate and (not gate.skip_update)),
-                    "assim_laps_driver": int(state.assimilated_laps),
-                    "race_status": "running",
-                }
-            )
+            trace_row: dict[str, Any] = {
+                "event_key": event_key,
+                "source": source_result.source_used,
+                "driver_id": str(driver_id),
+                "driver_name": str(row.get("driver_name") or driver_id),
+                "lap_number": lap_number,
+                "stint_id": stint_id,
+                "compound": compound,
+                "tyre_age": int(state.tyre_age),
+                "is_box_lap": bool(is_box_lap),
+                "is_accurate": bool(is_accurate),
+                "track_status": str(row.get("track_status") or ""),
+                "is_red": bool(flags.is_red),
+                "is_sc_vsc": bool(flags.is_sc_vsc),
+                "is_yellow": bool(flags.is_yellow),
+                "is_greenish": bool(flags.is_greenish),
+                "gate_mode": gate.mode,
+                "gate_skip_update": bool(gate.skip_update),
+                "gate_note": gate.note,
+                "r_effective": float(gate.r_effective),
+                "reset_applied": bool(reset_applied),
+                "baseline_lap": float(baseline_current),
+                "lap_time_seconds": lap_time,
+                "one_step_pred_mean": float(one_step_pred_mean),
+                "one_step_pred_std": float(one_step_pred_std),
+                "one_step_error": float(lap_time - one_step_pred_mean) if np.isfinite(lap_time) else float("nan"),
+                "pace_penalty_mean": float(state.mean[0]),
+                "pace_penalty_std": float(np.sqrt(max(state.cov[0, 0], 1e-9))),
+                "deg_rate_mean": float(state.mean[1]),
+                "deg_rate_std": float(np.sqrt(max(state.cov[1, 1], 1e-9))),
+                "innovation": float(update_meta.get("innovation", float("nan"))),
+                "innovation_var": float(update_meta.get("S", float("nan"))),
+                "robust_applied": bool(update_meta.get("robust_applied", False)),
+                "robust_scale": float(update_meta.get("robust_scale", 1.0)),
+                "skip_reason": update_meta.get("skip_reason"),
+                "next_lap_mean": float(next_lap_mean),
+                "next_lap_std": float(next_lap_std),
+                "next_lap_pi90_low": float(next_lap_mean - (1.645 * next_lap_std)),
+                "next_lap_pi90_high": float(next_lap_mean + (1.645 * next_lap_std)),
+                "race_time_seconds": race_time_seconds,
+                "gap_to_leader_seconds": as_float(row.get("gap_to_leader_seconds")),
+                "timestamp": as_float(row.get("timestamp")),
+                "eval_included": bool(can_assimilate and (not gate.skip_update)),
+                "assim_laps_driver": int(state.assimilated_laps),
+                "race_status": "running",
+            }
+            for column in [*telemetry_trace_columns, *telemetry_strategy_columns]:
+                trace_row[column] = _json_safe_scalar(row.get(column))
+            trace_rows.append(trace_row)
 
         states[str(driver_id)] = state
 
@@ -1010,6 +1056,23 @@ def run_live_race_prediction(
         horizon_laps=horizon,
         seed=seed,
     )
+
+    strategy_policy_columns: list[str] = []
+    strategy_policy_disabled_reason: Optional[str] = None
+    try:
+        strategy_actions = strategy.evaluate_actions(snapshot_with_dist)
+        if not isinstance(strategy_actions, pd.DataFrame):
+            strategy_policy_disabled_reason = "strategy_adapter_returned_non_dataframe"
+        elif strategy_actions.empty and not snapshot_with_dist.empty:
+            strategy_policy_disabled_reason = "strategy_adapter_returned_empty_actions"
+        else:
+            strategy_actions = strategy_actions.reindex(snapshot_with_dist.index)
+            for column in strategy_actions.columns:
+                snapshot_with_dist[column] = strategy_actions[column]
+                strategy_policy_columns.append(column)
+    except Exception as exc:
+        strategy_policy_disabled_reason = f"{type(exc).__name__}: {exc}"
+        notes.append(f"Live strategy policy unavailable: {strategy_policy_disabled_reason}.")
 
     snapshot_final = _finalize_output_mapping(snapshot_with_dist, dist_summary, horizon_laps=horizon)
 
@@ -1045,6 +1108,23 @@ def run_live_race_prediction(
         "rollout_pit_events_mean": dist_summary.get("rollout_pit_events_mean"),
         "rollout_strategy_mix": dist_summary.get("rollout_strategy_mix"),
         "rollout_strategy_assignments": int(dist_summary.get("rollout_strategy_assignments", 0)),
+        "telemetry_features_enabled": bool(telemetry_trace_columns),
+        "telemetry_features_disabled_reason": telemetry_disabled_reason,
+        "telemetry_feature_columns": telemetry_trace_columns,
+        "telemetry_strategy_feed_columns": telemetry_strategy_columns,
+        "strategy_policy_enabled": bool(strategy_policy_columns),
+        "strategy_policy_disabled_reason": strategy_policy_disabled_reason,
+        "strategy_policy_columns": strategy_policy_columns,
+        "strategy_action_counts": (
+            snapshot_final["recommended_action"].value_counts(dropna=False).to_dict()
+            if "recommended_action" in snapshot_final.columns
+            else {}
+        ),
+        "strategy_mean_pit_urgency": (
+            float(pd.to_numeric(snapshot_final["pit_urgency"], errors="coerce").mean())
+            if "pit_urgency" in snapshot_final.columns
+            else None
+        ),
         "invalid_race_time_count": int(dist_summary.get("invalid_race_time_count", 0)),
         "invalid_race_time_penalty_seconds": dist_summary.get("invalid_race_time_penalty_seconds"),
         "seed_effective": int(seed),
@@ -1069,6 +1149,11 @@ def run_live_race_prediction(
         if isinstance(strategy_mix, dict) and strategy_mix:
             lead_name, lead_share = max(strategy_mix.items(), key=lambda item: float(item[1]))
             notes.append(f"Rollout dominant strategy={lead_name} ({100.0 * float(lead_share):.1f}%).")
+    if bool(live_summary.get("strategy_policy_enabled", False)):
+        action_counts = live_summary.get("strategy_action_counts")
+        if isinstance(action_counts, dict) and action_counts:
+            lead_action, lead_count = max(action_counts.items(), key=lambda item: int(item[1]))
+            notes.append(f"Live strategy policy action={lead_action} for {int(lead_count)} driver(s).")
 
     if replay_eval.get("available"):
         model_metrics = replay_eval.get("model", {})

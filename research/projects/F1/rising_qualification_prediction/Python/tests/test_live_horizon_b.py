@@ -441,6 +441,36 @@ def test_live_summary_includes_disable_reason_when_no_position_dist(monkeypatch)
     assert result.snapshot["proba_top3"].isna().all()
 
 
+def test_live_runner_surfaces_strategy_policy_and_telemetry_features(monkeypatch) -> None:
+    frame = _sample_live_observations(include_race_time=True)
+
+    def _fake_loader(config: PredictionConfig) -> LiveSourceResult:
+        _ = config
+        return LiveSourceResult(frame=frame.copy(), source_used="local", notes=[])
+
+    monkeypatch.setattr("packages.f1.models.live_race.predict.load_live_observations", _fake_loader)
+    monkeypatch.setattr(
+        "packages.f1.models.live_race.predict._write_trace",
+        lambda trace, config, event_key: {
+            "trace_path": "/tmp/fake_trace.parquet",
+            "trace_path_jsonl": "/tmp/fake_trace.jsonl",
+            "trace_format_effective": "parquet",
+        },
+    )
+
+    result = run_live_race_prediction(_base_config(f1_live_horizon_laps=4))
+
+    assert bool(result.summary["telemetry_features_enabled"]) is True
+    assert bool(result.summary["strategy_policy_enabled"]) is True
+    assert "telemetry_track_risk_score" in result.trace.columns
+    assert "recommended_action" in result.snapshot.columns
+    assert "pit_urgency" in result.snapshot.columns
+    assert set(result.snapshot["recommended_action"]).issubset({"stay_out", "pit_next_lap", "pit_now"})
+    assert isinstance(result.summary["strategy_action_counts"], dict)
+    assert sum(int(value) for value in result.summary["strategy_action_counts"].values()) == len(result.snapshot)
+    assert any("Live strategy policy action=" in note for note in result.notes)
+
+
 def test_live_replay_predictions_are_truncation_invariant_through_lap(monkeypatch) -> None:
     full_frame = _sample_live_observations(include_race_time=True)
     truncated_frame = full_frame[pd.to_numeric(full_frame["lap_number"], errors="coerce") <= 2].copy()

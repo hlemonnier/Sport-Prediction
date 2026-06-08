@@ -1,0 +1,47 @@
+model_family: live_race
+profile_name: live_strategy
+profile_version: live_strategy_contracts_v1
+source: local_or_fastf1_replay
+artifacts:
+  report_dir: artifacts/reports/f1
+  replay_dir: artifacts/replays/f1/live_strategy
+contracts:
+  state_schema: live_strategy_state_v1_no_future_lap_fields
+  transition_schema: strategy_transition_v1
+  no_leakage:
+    state_available_through_lap_required: true
+    replay_prefix_invariance_required: true
+action_space:
+  action_types:
+    - stay_out
+    - pit_now
+    - pit_next_lap
+  compounds:
+    - SOFT
+    - MEDIUM
+    - HARD
+  modes:
+    - conservative
+    - aggressive
+  min_laps_after_stop: 2
+  enforce_dry_mandatory_change: true
+evaluation:
+  metrics:
+    - policy_value
+    - illegal_action_rate
+    - action_distribution
+    - transition_consistency
+    - no_leakage_replay_invariance
+    - regret_vs_oracle
+  fail_closed_on_missing_metrics: true
+planner:
+  planner_id: deterministic_dp_pre_sim_v1
+  horizon_laps: 12
+  discount: 1.0
+  strategy_score_weight: 0.05
+  transition_model: deterministic_pre_sim_v1
+  limitations:
+    - single_car_no_traffic_response
+    - deterministic_no_random_sc_vsc_sampling
+    - pit_loss_and_tyre_degradation_are_hand_tuned_priors
+    - position_reward_is_proxy_not_counterfactual_race_order

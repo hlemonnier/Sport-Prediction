@@ -1,0 +1,57 @@
+model_family: ultimate_lap_time
+source: local_or_fastf1_or_openf1
+baseline_model: ultimate_lap_time_deterministic_baseline_v1
+dataset:
+  telemetry_basis: distance_normalized
+  tensor_layout: channels_x_distance_bins
+  distance_bins: 200
+  split_fields:
+    - season
+    - event_key
+    - circuit_id
+    - session
+  required_metadata:
+    - event_key
+    - circuit_id
+    - driver_id
+    - team_id
+    - session
+    - split_key
+features:
+  telemetry_channels:
+    - Speed
+    - Throttle
+    - Brake
+    - RPM
+    - nGear
+    - DRS
+  static:
+    - driver
+    - team
+    - circuit
+    - session
+    - compound
+    - tyre_age
+    - weather
+targets:
+  - lap_time_seconds
+  - sector1_seconds
+  - sector2_seconds
+  - sector3_seconds
+  - p05_target
+  - p50_target
+  - p90_target
+evaluation:
+  report_path: artifacts/reports/f1/ultimate_lap_time_evaluation.json
+  required_metrics:
+    - p50_mae
+    - p50_rmse
+    - p05_pinball
+    - p50_pinball
+    - p90_pinball
+    - interval_coverage
+    - fastest_lap_winner_hit_rate
+    - top3_fastest_lap_accuracy
+promotion:
+  fail_closed_on_missing_metrics: true
+  fail_closed_on_leakage_issues: true

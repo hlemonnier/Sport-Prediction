@@ -120,6 +120,8 @@ def _run_qualifying_prediction(
     dl_hyperparams: dict[str, Any],
     dl_seed: int,
     disable_runsim_features: bool,
+    disable_circuit_features: bool,
+    weather_config: dict[str, Any],
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -139,6 +141,8 @@ def _run_qualifying_prediction(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        disable_circuit_features=disable_circuit_features,
+        **weather_config,
     )
     return _prediction_payload(config)
 
@@ -161,6 +165,8 @@ def _run_race_prediction(
     dl_hyperparams: dict[str, Any],
     dl_seed: int,
     disable_runsim_features: bool,
+    disable_circuit_features: bool,
+    weather_config: dict[str, Any],
     f1_mode: str = "offline",
     f1_live_source: str = "auto",
     f1_live_model: str = "ssm_v1",
@@ -188,6 +194,8 @@ def _run_race_prediction(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        disable_circuit_features=disable_circuit_features,
+        **weather_config,
         f1_mode=f1_mode,
         f1_live_source=f1_live_source,
         f1_live_model=f1_live_model,
@@ -219,6 +227,8 @@ def _run_pre_qualifying(
     dl_hyperparams: dict[str, Any],
     dl_seed: int,
     disable_runsim_features: bool,
+    disable_circuit_features: bool,
+    weather_config: dict[str, Any],
 ) -> dict[str, str]:
     qualifying_payload = _run_qualifying_prediction(
         source=source,
@@ -236,6 +246,8 @@ def _run_pre_qualifying(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        disable_circuit_features=disable_circuit_features,
+        weather_config=weather_config,
     )
     qualifying_path = output_dir / "prequal_qualifying_prediction.json"
     _write_json(qualifying_path, qualifying_payload)
@@ -257,6 +269,8 @@ def _run_pre_qualifying(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        disable_circuit_features=disable_circuit_features,
+        weather_config=weather_config,
         f1_mode="offline",
     )
     race_path = output_dir / "prequal_race_prediction.json"
@@ -287,6 +301,8 @@ def _run_post_qualifying(
     dl_hyperparams: dict[str, Any],
     dl_seed: int,
     disable_runsim_features: bool,
+    disable_circuit_features: bool,
+    weather_config: dict[str, Any],
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
         source=source,
@@ -305,6 +321,8 @@ def _run_post_qualifying(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        disable_circuit_features=disable_circuit_features,
+        weather_config=weather_config,
         f1_mode="offline",
     )
     race_path = output_dir / "postqual_race_prediction.json"
@@ -415,6 +433,8 @@ def _run_live_race(
     dl_hyperparams: dict[str, Any],
     dl_seed: int,
     disable_runsim_features: bool,
+    disable_circuit_features: bool,
+    weather_config: dict[str, Any],
     f1_live_source: str,
     f1_live_model: str,
     f1_live_horizon_laps: int,
@@ -440,6 +460,8 @@ def _run_live_race(
         dl_hyperparams=dl_hyperparams,
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
+        disable_circuit_features=disable_circuit_features,
+        weather_config=weather_config,
         f1_mode="live",
         f1_live_source=f1_live_source,
         f1_live_model=f1_live_model,
@@ -510,6 +532,27 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dl-hyperparams", default="{}")
     parser.add_argument("--dl-seed", type=int, default=42)
     parser.add_argument("--disable-runsim-features", action="store_true")
+    parser.add_argument(
+        "--disable-circuit-features",
+        dest="disable_circuit_features",
+        action="store_true",
+        default=None,
+        help="Disable predictive circuit/track priors. This remains the default unless explicitly enabled.",
+    )
+    parser.add_argument(
+        "--enable-circuit-features",
+        dest="disable_circuit_features",
+        action="store_false",
+        help="Enable circuit-card and historical track priors for research/live weekend runs.",
+    )
+    parser.add_argument("--weather", choices=["on", "off"], default="off")
+    parser.add_argument("--weather-provider", default="open_meteo")
+    parser.add_argument("--weather-latitude", type=float, default=None)
+    parser.add_argument("--weather-longitude", type=float, default=None)
+    parser.add_argument("--weather-timezone", default=None)
+    parser.add_argument("--weather-start", default=None)
+    parser.add_argument("--weather-end", default=None)
+    parser.add_argument("--weather-cache-dir", default=None)
     parser.add_argument("--f1-mode", choices=["offline", "live"], default="offline")
     parser.add_argument("--f1-live-source", choices=["auto", "local", "fastf1"], default="auto")
     parser.add_argument("--f1-live-model", choices=["ssm_v1"], default="ssm_v1")
@@ -532,6 +575,19 @@ def main() -> None:
     train_seasons = parse_train_seasons(args.train_seasons, args.year, args.train_policy)
     compare_families = parse_compare_families(args.compare_families)
     dl_hyperparams = parse_json_object(args.dl_hyperparams, "--dl-hyperparams")
+    disable_circuit_features = (
+        True if args.disable_circuit_features is None else bool(args.disable_circuit_features)
+    )
+    weather_config = {
+        "weather_enabled": str(args.weather).strip().lower() == "on",
+        "weather_provider": str(args.weather_provider),
+        "weather_latitude": args.weather_latitude,
+        "weather_longitude": args.weather_longitude,
+        "weather_timezone": args.weather_timezone,
+        "weather_start": args.weather_start,
+        "weather_end": args.weather_end,
+        "weather_cache_dir": args.weather_cache_dir,
+    }
     output_dir = _round_dir(args.output_dir, args.year, args.round_number)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -566,6 +622,8 @@ def main() -> None:
             dl_hyperparams=dl_hyperparams,
             dl_seed=args.dl_seed,
             disable_runsim_features=args.disable_runsim_features,
+            disable_circuit_features=disable_circuit_features,
+            weather_config=weather_config,
         )
         executed.append("pre-qualifying")
 
@@ -589,6 +647,8 @@ def main() -> None:
             dl_hyperparams=dl_hyperparams,
             dl_seed=args.dl_seed,
             disable_runsim_features=args.disable_runsim_features,
+            disable_circuit_features=disable_circuit_features,
+            weather_config=weather_config,
         )
         executed.append("post-qualifying")
 
@@ -620,6 +680,8 @@ def main() -> None:
             dl_hyperparams=dl_hyperparams,
             dl_seed=args.dl_seed,
             disable_runsim_features=args.disable_runsim_features,
+            disable_circuit_features=disable_circuit_features,
+            weather_config=weather_config,
             f1_live_source=args.f1_live_source,
             f1_live_model=args.f1_live_model,
             f1_live_horizon_laps=args.f1_live_horizon_laps,
@@ -656,6 +718,9 @@ def main() -> None:
         "dl_arch": args.dl_arch,
         "dl_seed": int(args.dl_seed),
         "disable_runsim_features": bool(args.disable_runsim_features),
+        "disable_circuit_features": bool(disable_circuit_features),
+        "circuit_feature_state": "quarantined" if disable_circuit_features else "enabled_research_only",
+        "weather": weather_config,
         "f1_mode": str(args.f1_mode),
         "f1_mode_effective": f1_mode_effective,
         "f1_live_source": str(args.f1_live_source),
@@ -683,6 +748,10 @@ def main() -> None:
             "trace_path",
             "trace_path_jsonl",
             "trace_format_effective",
+            "prediction_phase",
+            "race_input_evidence",
+            "circuit_feature_state",
+            "weather",
         ]:
             if key in live_snapshot_payload:
                 payload[key] = live_snapshot_payload[key]

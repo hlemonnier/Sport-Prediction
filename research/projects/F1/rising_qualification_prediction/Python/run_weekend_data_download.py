@@ -96,21 +96,29 @@ def session_kind(session_name: str) -> Optional[str]:
 
 
 def export_laps(session: fastf1.core.Session) -> pd.DataFrame:
-    if session.laps is None or session.laps.empty:
+    try:
+        laps = session.laps
+    except Exception:
         return pd.DataFrame()
-    available_cols = [col for col in LAP_COLUMNS if col in session.laps.columns]
+    if laps is None or laps.empty:
+        return pd.DataFrame()
+    available_cols = [col for col in LAP_COLUMNS if col in laps.columns]
     if not available_cols:
         return pd.DataFrame()
-    frame = session.laps[available_cols].copy()
+    frame = laps[available_cols].copy()
     if "DriverNumber" in frame.columns:
         frame["DriverNumber"] = frame["DriverNumber"].astype(str)
     return frame
 
 
 def export_results(session: fastf1.core.Session) -> pd.DataFrame:
-    if session.results is None or session.results.empty:
+    try:
+        results = session.results
+    except Exception:
         return pd.DataFrame()
-    frame = session.results.reset_index(drop=True).copy()
+    if results is None or results.empty:
+        return pd.DataFrame()
+    frame = results.reset_index(drop=True).copy()
     if "DriverNumber" in frame.columns:
         frame["DriverNumber"] = frame["DriverNumber"].astype(str)
     return frame
@@ -177,6 +185,9 @@ def download_weekend(
 
         laps = normalize_for_csv(export_laps(session))
         results = normalize_for_csv(export_results(session))
+        if laps.empty and results.empty:
+            notes.append(f"{session_name}: no lap/results data available after load")
+            continue
         session_slug = slugify(session_name)
 
         laps_path = None

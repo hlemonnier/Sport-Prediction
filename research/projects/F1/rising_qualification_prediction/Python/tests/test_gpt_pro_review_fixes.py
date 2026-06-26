@@ -19,6 +19,7 @@ from packages.f1.orchestration.prediction import (
     _build_oof_qualifying_signal_frame,
     _hierarchical_fallback,
     _predict_probability,
+    _prediction_input_phase,
     _race_stochastic_score_layer,
     _rank_based_probability,
     _weather_neutral_frame,
@@ -759,9 +760,38 @@ def test_run_prediction_race_before_quali_uses_quali_prediction_and_weather_scen
     assert scenarios["base_no_weather"]["summary"]["weather_uncertainty_max"] == 0.0
     assert scenarios["weather_integrated"]["summary"]["weather_uncertainty_max"] == pytest.approx(0.75)
     assert result.extras["grid_source_counts"] == {"predicted_qualifying_grid": 3}
+    assert result.extras["prediction_phase"]["phase"] == "pre_fp_provisional"
+    assert result.extras["prediction_phase"]["predicted_grid_rows"] == 3
+    assert result.extras["prediction_phase"]["actual_current_fp_available"] is False
+    assert result.extras["race_input_evidence"]["weather_enabled"] is False
+    assert "track_finish_order_mobility" in result.extras["race_input_evidence"]["race_context_columns_present"]
     rows = result.extras["all_prediction_rows"]
     assert {row["grid_source"] for row in rows} == {"predicted_qualifying_grid"}
     assert all(row["qualy_pred_rank"] is not None for row in rows)
+
+
+def test_prediction_input_phase_separates_fp_qualifying_and_grid_states() -> None:
+    config = _minimal_prediction_config("race")
+
+    pre_fp = pd.DataFrame(
+        {
+            "driver_id": ["a", "b"],
+            "pace_sessions_available": [0, 0],
+            "fp_total_laps": [0, 0],
+            "qualy_position": [np.nan, np.nan],
+            "grid_position": [1.0, 2.0],
+            "grid_source": ["predicted_qualifying_grid", "predicted_qualifying_grid"],
+            "provisional_current_field": [True, True],
+        }
+    )
+    post_fp = pre_fp.assign(pace_sessions_available=[2, 2], fp_total_laps=[35, 31])
+    post_qualifying = pre_fp.assign(qualy_position=[1.0, 2.0], grid_source=["qualifying_fallback", "qualifying_fallback"])
+    official_grid = pre_fp.assign(grid_source=["pre_race_official_grid", "pre_race_official_grid"])
+
+    assert _prediction_input_phase(config, pre_fp)["phase"] == "pre_fp_provisional"
+    assert _prediction_input_phase(config, post_fp)["phase"] == "post_fp_pre_qualifying"
+    assert _prediction_input_phase(config, post_qualifying)["phase"] == "post_qualifying_pre_grid"
+    assert _prediction_input_phase(config, official_grid)["phase"] == "post_grid_pre_race"
 
 
 def test_race_training_target_uses_grid_delta_and_reconstructs_finish_score() -> None:

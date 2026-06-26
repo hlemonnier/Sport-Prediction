@@ -1233,6 +1233,204 @@ def build_training_data(
     return train, notes
 
 
+def _latest_prior_field(
+    provider: BaseProvider,
+    year: int,
+    round_number: int,
+    notes: List[str],
+) -> Tuple[pd.DataFrame, Optional[int]]:
+    try:
+        rounds = provider.list_rounds(year)
+    except (Exception, SystemExit) as exc:
+        notes.append(f"Echec listing rounds {year} pour field provisoire: {exc}")
+        return pd.DataFrame(), None
+
+    prior_rounds = sorted(
+        {
+            int(rnd.get("round_number", 0))
+            for rnd in rounds
+            if int(rnd.get("round_number", 0)) > 0 and int(rnd.get("round_number", 0)) < int(round_number)
+        },
+        reverse=True,
+    )
+    for prior_round in prior_rounds:
+        for getter_name in ("get_race_results", "get_qualifying_results", "get_fp_features"):
+            getter = getattr(provider, getter_name, None)
+            if getter is None:
+                continue
+            try:
+                candidate = getter(year, prior_round)
+            except (Exception, SystemExit) as exc:
+                notes.append(f"Echec field provisoire {year} round {prior_round} via {getter_name}: {exc}")
+                continue
+            if candidate is None or candidate.empty or "driver_id" not in candidate.columns:
+                continue
+            frame = candidate.copy()
+            frame["driver_id"] = frame["driver_id"].astype(str)
+            frame = frame[frame["driver_id"].str.strip() != ""]
+            if frame.empty:
+                continue
+            if "driver_name" not in frame.columns:
+                frame["driver_name"] = frame["driver_id"]
+            team_col = team_column(frame)
+            if team_col is None:
+                frame["team_name"] = pd.NA
+                team_col = "team_name"
+            roster = (
+                frame[["driver_id", "driver_name", team_col]]
+                .rename(columns={team_col: "team_name"})
+                .drop_duplicates(subset=["driver_id"], keep="last")
+                .reset_index(drop=True)
+            )
+            return roster, prior_round
+    return pd.DataFrame(), None
+
+
+def _provisional_current_features_from_history(
+    provider: BaseProvider,
+    mode: str,
+    year: int,
+    round_number: int,
+    include_standings: bool,
+    history: Optional[pd.DataFrame],
+    notes: List[str],
+) -> pd.DataFrame:
+    roster, source_round = _latest_prior_field(provider, year, round_number, notes)
+    if roster.empty:
+        notes.append("Field provisoire indisponible: aucun round precedent avec pilotes.")
+        return pd.DataFrame()
+
+    event_name = _event_name_for_round(provider, year, round_number, notes)
+    current = roster.copy()
+    current["event_name"] = event_name
+    current["event_year"] = year
+    current["event_round"] = round_number
+    current["event_key"] = (year * 100) + round_number
+    current["pace_sessions_available"] = 0.0
+    current["fp_total_laps"] = 0.0
+    current["provisional_current_field"] = True
+    current["provisional_field_source_round"] = source_round
+
+    if mode != "qualifying":
+        current["qualy_position"] = float("nan")
+        current["qualy_gap_to_best"] = float("nan")
+        current["grid_position"] = float("nan")
+        current["grid_source"] = "missing"
+        current["grid_status"] = "unknown"
+
+    if include_standings:
+        try:
+            standings = provider.get_standings(year, round_number)
+        except (Exception, SystemExit) as exc:
+            notes.append(f"Echec recuperation standings: {exc}")
+            standings = None
+        if standings is not None and not standings.empty:
+            standings = standings.copy()
+            standings["driver_id"] = standings["driver_id"].astype(str)
+            current = current.merge(
+                standings[["driver_id", "position_start"]],
+                on="driver_id",
+                how="left",
+            )
+
+    current = _attach_track_stats(
+        frame=current,
+        provider=provider,
+        year=year,
+        round_number=round_number,
+        notes=notes,
+    )
+    current = _attach_temporal_features_current(current, history)
+    current = _fill_provisional_pace_proxy(current)
+    notes.append(
+        "Aucune donnee FP disponible pour ce round: field provisoire construit "
+        f"depuis le round {source_round}; proxy pace derive de la forme temporelle, "
+        "aucune lap time cible synthetisee."
+    )
+    return current
+
+
+def _first_numeric_feature(frame: pd.DataFrame, columns: list[str]) -> pd.Series:
+    for column in columns:
+        if column not in frame.columns:
+            continue
+        values = pd.to_numeric(frame[column], errors="coerce")
+        if values.notna().any():
+            return values
+    return pd.Series(float("nan"), index=frame.index, dtype=float)
+
+
+def _fill_provisional_pace_proxy(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or "provisional_current_field" not in frame.columns:
+        return frame
+    out = frame.copy()
+
+    proxy_specs = {
+        "fp_mean_delta": [
+            "driver_ewma_fp_mean_delta",
+            "driver_form_3_fp_mean_delta",
+            "driver_form_5_fp_mean_delta",
+            "team_ewma_fp_mean_delta",
+            "team_form_3_fp_mean_delta",
+        ],
+        "fp_weighted_delta": [
+            "driver_ewma_fp_weighted_delta",
+            "driver_form_3_fp_weighted_delta",
+            "team_ewma_fp_weighted_delta",
+            "team_form_3_fp_weighted_delta",
+            "driver_ewma_fp_mean_delta",
+        ],
+        "fp_quali_sim_delta": [
+            "driver_ewma_fp_quali_sim_delta",
+            "driver_form_3_fp_quali_sim_delta",
+            "driver_ewma_fp_weighted_delta",
+            "driver_form_3_fp_weighted_delta",
+        ],
+        "fp_race_sim_delta": [
+            "driver_ewma_fp_race_sim_delta",
+            "driver_form_3_fp_race_sim_delta",
+            "driver_ewma_fp_weighted_delta",
+            "driver_form_3_fp_weighted_delta",
+        ],
+    }
+    for target, sources in proxy_specs.items():
+        proxy = _first_numeric_feature(out, sources)
+        current = pd.to_numeric(out[target], errors="coerce") if target in out.columns else proxy
+        out[target] = current.where(current.notna(), proxy)
+
+    if "fp_mean_top3_delta" not in out.columns:
+        out["fp_mean_top3_delta"] = pd.to_numeric(out["fp_mean_delta"], errors="coerce")
+    if "fp_quali_vs_race_gap" not in out.columns:
+        out["fp_quali_vs_race_gap"] = (
+            pd.to_numeric(out["fp_race_sim_delta"], errors="coerce")
+            - pd.to_numeric(out["fp_quali_sim_delta"], errors="coerce")
+        )
+    for count_col in [
+        "pace_sessions_available",
+        "fp_total_laps",
+        "quali_sim_sessions_available",
+        "race_sim_sessions_available",
+        "fp_quali_sim_laps",
+        "fp_race_sim_laps",
+    ]:
+        out[count_col] = 0.0
+
+    rank_specs = {
+        "fp_mean_rank": "fp_mean_delta",
+        "fp_quali_sim_rank": "fp_quali_sim_delta",
+        "fp_race_sim_rank": "fp_race_sim_delta",
+    }
+    for rank_col, value_col in rank_specs.items():
+        if value_col in out.columns:
+            values = pd.to_numeric(out[value_col], errors="coerce")
+        else:
+            values = pd.Series(float("nan"), index=out.index, dtype=float)
+        out[rank_col] = values.rank(method="average", ascending=True)
+
+    out["provisional_pace_proxy"] = "temporal_form"
+    return _add_event_relative_features(out)
+
+
 def build_current_features(
     provider: BaseProvider,
     mode: str,
@@ -1249,7 +1447,16 @@ def build_current_features(
         return pd.DataFrame(), notes
     if fp_features.empty:
         notes.append("Aucune donnee FP disponible pour ce round.")
-        return pd.DataFrame(), notes
+        current = _provisional_current_features_from_history(
+            provider=provider,
+            mode=mode,
+            year=year,
+            round_number=round_number,
+            include_standings=include_standings,
+            history=history,
+            notes=notes,
+        )
+        return current, notes
     fp_features = fp_features.copy()
     fp_features["driver_id"] = fp_features["driver_id"].astype(str)
     event_name = _event_name_for_round(provider, year, round_number, notes)

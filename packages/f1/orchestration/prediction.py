@@ -29,6 +29,64 @@ WEATHER_SCENARIO_COLUMNS = (
     "track_weather_uncertainty_prior",
     "race_generation_variance_prior",
 )
+RACE_CONTEXT_EVIDENCE_COLUMNS = (
+    "track_finish_order_mobility",
+    "track_overtake_propensity",
+    "track_grid_stability",
+    "track_safety_car_propensity",
+    "track_sc_lap_ratio",
+    "track_vsc_lap_ratio",
+    "track_dnf_rate",
+    "track_pit_stop_intensity",
+    "track_weather_uncertainty",
+    "track_safety_car_prior",
+    "track_dnf_prior",
+    "track_strategy_variance_prior",
+    "track_weather_uncertainty_prior",
+    "race_generation_variance_prior",
+    "track_same_event_count",
+    "track_history_count",
+    "track_stats_reliability",
+    "track_chaos_index",
+    "track_qualy_importance",
+)
+RACE_STRENGTH_EVIDENCE_COLUMNS = (
+    "fp_mean_delta",
+    "fp_weighted_delta",
+    "fp_quali_sim_delta",
+    "fp_quali_sim_rank",
+    "fp_race_sim_delta",
+    "fp_race_sim_rank",
+    "driver_ewma_fp_mean_delta",
+    "driver_form_3_fp_mean_delta",
+    "driver_form_5_fp_mean_delta",
+    "driver_ewma_fp_weighted_delta",
+    "driver_form_3_fp_weighted_delta",
+    "driver_ewma_fp_race_sim_delta",
+    "driver_form_3_fp_race_sim_delta",
+    "team_ewma_fp_mean_delta",
+    "team_form_3_fp_mean_delta",
+    "team_form_5_fp_mean_delta",
+    "team_ewma_fp_weighted_delta",
+    "team_form_3_fp_weighted_delta",
+    "event_pace_index",
+    "driver_vs_team_fp_weighted_delta",
+    "position_start",
+)
+CURRENT_WEEKEND_EVIDENCE_COLUMNS = (
+    "pace_sessions_available",
+    "fp_total_laps",
+    "fp1_delta",
+    "fp2_delta",
+    "fp3_delta",
+    "sq_delta",
+    "sprint_delta",
+    "qualy_position",
+    "qualy_gap_to_best",
+    "grid_position",
+    "grid_source",
+    "grid_status",
+)
 
 
 def _is_runsim_column(column: str) -> bool:
@@ -1567,6 +1625,142 @@ def _weather_event_name(features: pd.DataFrame, config: PredictionConfig) -> str
     return f"Round {config.round_number}"
 
 
+def _non_null_numeric_count(frame: pd.DataFrame, column: str) -> int:
+    if frame.empty or column not in frame.columns:
+        return 0
+    return int(pd.to_numeric(frame[column], errors="coerce").notna().sum())
+
+
+def _positive_numeric_count(frame: pd.DataFrame, column: str) -> int:
+    if frame.empty or column not in frame.columns:
+        return 0
+    values = pd.to_numeric(frame[column], errors="coerce")
+    return int((values.fillna(0.0) > 0.0).sum())
+
+
+def _true_count(frame: pd.DataFrame, column: str) -> int:
+    if frame.empty or column not in frame.columns:
+        return 0
+    values = frame[column]
+    if values.dtype == bool:
+        return int(values.fillna(False).sum())
+    return int(values.astype(str).str.lower().isin({"1", "true", "yes"}).sum())
+
+
+def _numeric_feature_snapshot(frame: pd.DataFrame, columns: tuple[str, ...]) -> dict[str, float | None]:
+    snapshot: dict[str, float | None] = {}
+    for column in columns:
+        if column not in frame.columns:
+            continue
+        values = pd.to_numeric(frame[column], errors="coerce").replace([np.inf, -np.inf], np.nan)
+        if values.notna().any():
+            value = float(values.mean(skipna=True))
+            if np.isfinite(value):
+                snapshot[column] = value
+            else:
+                snapshot[column] = None
+    return snapshot
+
+
+def _prediction_input_phase(config: PredictionConfig, features: pd.DataFrame) -> dict[str, object]:
+    row_count = int(len(features))
+    fp_session_rows = _positive_numeric_count(features, "pace_sessions_available")
+    fp_lap_rows = _positive_numeric_count(features, "fp_total_laps")
+    actual_fp_rows = max(fp_session_rows, fp_lap_rows)
+    actual_qualifying_rows = _non_null_numeric_count(features, "qualy_position")
+    provisional_rows = _true_count(features, "provisional_current_field")
+
+    grid_source_counts: dict[str, int] = {}
+    official_grid_rows = 0
+    qualifying_grid_rows = 0
+    predicted_grid_rows = 0
+    if "grid_source" in features.columns:
+        grid_sources = features["grid_source"].fillna("unknown").astype(str)
+        grid_source_counts = {
+            str(key): int(value)
+            for key, value in grid_sources.value_counts(dropna=False).to_dict().items()
+        }
+        grid_position = (
+            pd.to_numeric(features["grid_position"], errors="coerce")
+            if "grid_position" in features.columns
+            else pd.Series(float("nan"), index=features.index, dtype=float)
+        )
+        official_grid_mask = (
+            grid_sources.isin({"pre_race_official_grid", "retrospective_results_grid"})
+            & grid_position.notna()
+        )
+        qualifying_grid_mask = grid_sources.eq("qualifying_fallback") & grid_position.notna()
+        predicted_grid_mask = grid_sources.eq("predicted_qualifying_grid") & grid_position.notna()
+        official_grid_rows = int(official_grid_mask.sum())
+        qualifying_grid_rows = int(qualifying_grid_mask.sum())
+        predicted_grid_rows = int(predicted_grid_mask.sum())
+
+    if row_count == 0:
+        phase = "no_current_field"
+    elif str(config.mode).strip().lower() == "qualifying":
+        phase = "post_fp_pre_qualifying" if actual_fp_rows > 0 else "pre_fp_provisional"
+    elif official_grid_rows > 0:
+        phase = "post_grid_pre_race"
+    elif qualifying_grid_rows > 0 or actual_qualifying_rows > 0:
+        phase = "post_qualifying_pre_grid"
+    elif actual_fp_rows > 0:
+        phase = "post_fp_pre_qualifying"
+    else:
+        phase = "pre_fp_provisional"
+
+    return {
+        "phase": phase,
+        "mode": str(config.mode),
+        "source": str(config.source),
+        "year": int(config.year),
+        "round_number": int(config.round_number),
+        "train_seasons": [int(year) for year in config.train_seasons],
+        "row_count": row_count,
+        "actual_current_fp_available": actual_fp_rows > 0,
+        "actual_current_fp_rows": int(actual_fp_rows),
+        "actual_current_fp_session_rows": int(fp_session_rows),
+        "actual_current_fp_lap_rows": int(fp_lap_rows),
+        "actual_current_qualifying_available": actual_qualifying_rows > 0,
+        "actual_current_qualifying_rows": int(actual_qualifying_rows),
+        "official_grid_available": official_grid_rows > 0,
+        "official_grid_rows": int(official_grid_rows),
+        "qualifying_grid_fallback_rows": int(qualifying_grid_rows),
+        "predicted_grid_rows": int(predicted_grid_rows),
+        "provisional_current_rows": int(provisional_rows),
+        "provisional_current_field": provisional_rows > 0,
+        "grid_source_counts": grid_source_counts,
+    }
+
+
+def _race_input_evidence(
+    *,
+    config: PredictionConfig,
+    features: pd.DataFrame,
+    feature_cols: List[str],
+    fallback_cols: List[str],
+    weather_summary: dict[str, object],
+) -> dict[str, object]:
+    model_features_available = [column for column in feature_cols if column in features.columns]
+    fallback_features_available = [column for column in fallback_cols if column in features.columns]
+    context_columns = [column for column in RACE_CONTEXT_EVIDENCE_COLUMNS if column in features.columns]
+    strength_columns = [column for column in RACE_STRENGTH_EVIDENCE_COLUMNS if column in features.columns]
+    current_weekend_columns = [column for column in CURRENT_WEEKEND_EVIDENCE_COLUMNS if column in features.columns]
+    return {
+        "race_context_columns_present": context_columns,
+        "race_strength_columns_present": strength_columns,
+        "current_weekend_columns_present": current_weekend_columns,
+        "model_features_available": model_features_available,
+        "fallback_features_available": fallback_features_available,
+        "track_context_snapshot_mean": _numeric_feature_snapshot(features, RACE_CONTEXT_EVIDENCE_COLUMNS),
+        "race_strength_snapshot_mean": _numeric_feature_snapshot(features, RACE_STRENGTH_EVIDENCE_COLUMNS),
+        "current_weekend_snapshot_mean": _numeric_feature_snapshot(features, CURRENT_WEEKEND_EVIDENCE_COLUMNS),
+        "circuit_feature_state": "quarantined" if config.disable_circuit_features else "enabled_research_only",
+        "weather_enabled": bool(getattr(config, "weather_enabled", False)),
+        "weather_available": bool(weather_summary.get("weather_available", False)),
+        "weather_provider": weather_summary.get("provider") or getattr(config, "weather_provider", "open_meteo"),
+    }
+
+
 def run_prediction(config: PredictionConfig) -> PredictionResult:
     mode_live = str(config.f1_mode or "offline").strip().lower() == "live"
     if mode_live:
@@ -1768,6 +1962,45 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         if "grid_status" in output.columns
         else {}
     )
+    prediction_phase = _prediction_input_phase(config, output)
+    race_input_evidence: dict[str, object] = {}
+    if config.mode == "race":
+        race_input_evidence = _race_input_evidence(
+            config=config,
+            features=features,
+            feature_cols=feature_cols,
+            fallback_cols=fallback_cols,
+            weather_summary=weather_summary,
+        )
+        phase_name = str(prediction_phase.get("phase", "unknown"))
+        if phase_name == "pre_fp_provisional":
+            notes.append(
+                "Race prediction phase: pre_fp_provisional; no current-weekend FP, real qualifying, or official grid "
+                "was available, so the race ranking is expected to stay grid/form anchored until fresh session data is downloaded.",
+            )
+        elif phase_name == "post_fp_pre_qualifying":
+            notes.append(
+                "Race prediction phase: post_fp_pre_qualifying; current-weekend FP pace is available, "
+                "but race grid still comes from predicted qualifying context.",
+            )
+        elif phase_name == "post_qualifying_pre_grid":
+            notes.append(
+                "Race prediction phase: post_qualifying_pre_grid; real qualifying is available and used as the race-start anchor.",
+            )
+        elif phase_name == "post_grid_pre_race":
+            notes.append(
+                "Race prediction phase: post_grid_pre_race; official starting-grid context is available and used.",
+            )
+        if not config.disable_circuit_features:
+            notes.append(
+                "Race context enabled: historical track mobility, overtake, safety-car, DNF, pit/strategy, "
+                "weather-prior, and circuit-card features are available to the race model.",
+            )
+        if bool(getattr(config, "weather_enabled", False)):
+            notes.append(
+                "Race weather context requested: "
+                f"weather_available={bool(weather_summary.get('weather_available', False))}.",
+            )
     return PredictionResult(
         version=version,
         table=table,
@@ -1786,6 +2019,8 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             "circuit_feature_columns": list(CIRCUIT_NUMERIC_FEATURES + CIRCUIT_INTERACTION_FEATURES),
             "weather_feature_columns": [column for column in WEATHER_SCENARIO_COLUMNS if column in features.columns],
             "weather": weather_summary,
+            "prediction_phase": prediction_phase,
+            "race_input_evidence": race_input_evidence,
             "listwise_temperature": training_result.listwise_temperature,
             "probability_audit": training_result.probability_audit,
             "grid_source_counts": grid_source_counts,

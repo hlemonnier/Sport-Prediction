@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import ToastHost from "@/components/ToastHost";
 import UiPreferencesBootstrap from "@/components/UiPreferencesBootstrap";
 import "./globals.css";
 
-const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
@@ -19,7 +19,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${space.variable} ${mono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
       <body>
         <UiPreferencesBootstrap />
         <ToastHost />
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <TopBar />
             <main className="site-main">{children}</main>
             <footer className="footer">
-              Local mode — No data leaves this machine
+              Runtime local — Public F1 APIs enabled
             </footer>
           </div>
         </div>

@@ -1,0 +1,105 @@
+services:
+  f1-platform-api:
+    build:
+      context: ..
+      dockerfile: services/f1-platform/Dockerfile
+    environment:
+      F1_PLATFORM_ENV: local
+      F1_PLATFORM_REDIS_URL: redis://redis:6379/0
+      F1_PLATFORM_DATABASE_URL: postgresql://sport_prediction:sport_prediction@postgres:5432/sport_prediction
+      F1_PLATFORM_EVENT_STORE: /app/data/platform-events
+      F1_PLATFORM_FASTF1_ARTIFACT_STORE: /app/data/fastf1-artifacts
+      F1_PLATFORM_FASTF1_CACHE: /app/data/fastf1-cache
+      F1_PLATFORM_PREDICTION_URL: http://f1-prediction-service:8002
+    ports:
+      - "8001:8001"
+    volumes:
+      - f1-platform-api-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      f1-prediction-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+
+  f1-prediction-service:
+    build:
+      context: ..
+      dockerfile: services/f1-prediction-service/Dockerfile
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health', timeout=2)",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+
+  f1-openf1-ingestor:
+    profiles: ["live"]
+    build:
+      context: ..
+      dockerfile: services/f1-platform/Dockerfile
+    command: ["python", "-m", "f1_platform.live_ingestor"]
+    environment:
+      F1_PLATFORM_API_URL: http://f1-platform-api:8001
+      OPENF1_USERNAME: ${OPENF1_USERNAME:-}
+      OPENF1_PASSWORD: ${OPENF1_PASSWORD:-}
+      OPENF1_MQTT_TOPICS: ${OPENF1_MQTT_TOPICS:-v1/sessions,v1/drivers,v1/laps,v1/position,v1/intervals,v1/stints,v1/pit,v1/race_control,v1/weather,v1/car_data,v1/location,v1/overtakes}
+      OPENF1_DEAD_LETTER_PATH: /app/data/openf1-dead-letter.jsonl
+    volumes:
+      - f1-platform-api-data:/app/data
+    depends_on:
+      f1-platform-api:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - f1-platform-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sport_prediction
+      POSTGRES_PASSWORD: sport_prediction
+      POSTGRES_DB: sport_prediction
+    ports:
+      - "5432:5432"
+    volumes:
+      - f1-platform-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sport_prediction -d sport_prediction"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  f1-platform-api-data:
+  f1-platform-redis:
+  f1-platform-postgres:

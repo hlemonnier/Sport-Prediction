@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   readUiPreferences,
   subscribeUiPreferences,
+  type SportModule,
   updateUiPreferences,
 } from "@/lib/uiPreferences";
 
@@ -25,7 +26,7 @@ const F1_SESSIONS = ["Preview", "Qualifying", "Race", "Review"] as const;
 const defaultF1: F1Context = {
   season: "2026",
   round: "1",
-  session: "Preview",
+  session: "Race",
 };
 
 const defaultFootball: FootballContext = {
@@ -33,6 +34,42 @@ const defaultFootball: FootballContext = {
   season: "2026",
   match: "Next",
 };
+
+const sportModules: SportModule[] = ["F1", "Football"];
+
+function sportFromPath(pathname: string): SportModule | null {
+  if (pathname.startsWith("/f1")) return "F1";
+  if (pathname.startsWith("/football")) return "Football";
+  return null;
+}
+
+function f1SessionFromPath(pathname: string): F1Context["session"] | null {
+  if (pathname.startsWith("/f1/research/preview") || pathname.startsWith("/f1/preview")) {
+    return "Preview";
+  }
+  if (pathname.startsWith("/f1/research/qualifying") || pathname.startsWith("/f1/qualifying")) {
+    return "Qualifying";
+  }
+  if (pathname.startsWith("/f1/research/review") || pathname.startsWith("/f1/review")) {
+    return "Review";
+  }
+  if (pathname.startsWith("/f1/insights") || pathname.startsWith("/f1/race")) {
+    return "Race";
+  }
+  return null;
+}
+
+function equivalentSportHref(sport: SportModule, pathname: string): string {
+  const page = pathname.split("/")[2] ?? "";
+  if (sport === "F1") {
+    if (page === "preview") return "/f1/research/preview";
+    if (page === "review") return "/f1/research/review";
+    return "/f1";
+  }
+  if (page === "preview") return "/football/preview";
+  if (page === "review") return "/football/review";
+  return "/football/match";
+}
 
 function readLocal<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") {
@@ -49,11 +86,16 @@ function readLocal<T>(key: string, fallback: T): T {
 
 export default function TopBar() {
   const pathname = usePathname();
-  const isF1 = pathname.startsWith("/f1");
-  const isFootball = pathname.startsWith("/football");
+  const router = useRouter();
+  const routeSport = sportFromPath(pathname);
+  const routeF1Session = f1SessionFromPath(pathname);
 
-  const [f1Context, setF1Context] = useState<F1Context>(defaultF1);
+  const [f1Context, setF1Context] = useState<F1Context>({
+    ...defaultF1,
+    session: routeF1Session ?? defaultF1.session,
+  });
   const [footballContext, setFootballContext] = useState<FootballContext>(defaultFootball);
+  const [selectedSport, setSelectedSport] = useState<SportModule>(routeSport ?? "F1");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
@@ -61,18 +103,22 @@ export default function TopBar() {
     const normalizedF1 = F1_SESSIONS.includes(storedF1.session as typeof F1_SESSIONS[number])
       ? storedF1
       : { ...storedF1, session: defaultF1.session };
-    setF1Context(normalizedF1);
+    setF1Context({ ...normalizedF1, session: routeF1Session ?? normalizedF1.session });
     setFootballContext(readLocal("context:football", defaultFootball));
-  }, []);
+  }, [routeF1Session]);
 
   useEffect(() => {
     const syncPreferences = () => {
       const prefs = readUiPreferences();
       setSidebarCollapsed(prefs.sidebarCollapsed);
+      setSelectedSport(routeSport ?? prefs.defaultSportModule);
+      if (routeSport && prefs.defaultSportModule !== routeSport) {
+        updateUiPreferences({ defaultSportModule: routeSport });
+      }
     };
     syncPreferences();
     return subscribeUiPreferences(syncPreferences);
-  }, []);
+  }, [routeSport]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -86,15 +132,37 @@ export default function TopBar() {
     }
   }, [footballContext]);
 
+  const selectSport = (sport: SportModule) => {
+    setSelectedSport(sport);
+    updateUiPreferences({ defaultSportModule: sport });
+    if (routeSport && routeSport !== sport) {
+      router.push(equivalentSportHref(sport, pathname));
+    }
+  };
+
   return (
     <div className="topbar">
       <div className="topbar-brand" aria-label="Sport Lab Prediction Engine">
         <span className="topbar-brand-dot" />
         <span className="topbar-brand-text">Sport Lab</span>
-        <span className="topbar-brand-sub">Prediction Engine</span>
+        <span className="topbar-brand-sub">{selectedSport} Module</span>
       </div>
-      <div className="topbar-title">Context</div>
-      {isF1 ? (
+      <div className="sport-switcher" role="tablist" aria-label="Sport module">
+        {sportModules.map((sport) => (
+          <button
+            key={sport}
+            type="button"
+            role="tab"
+            aria-selected={selectedSport === sport}
+            className={`sport-switcher-item ${selectedSport === sport ? "active" : ""}`}
+            onClick={() => selectSport(sport)}
+          >
+            {sport}
+          </button>
+        ))}
+      </div>
+      <div className="topbar-title">{selectedSport} Context</div>
+      {selectedSport === "F1" ? (
         <div className="context-grid">
           <div className="context-field">
             <label>Season</label>
@@ -133,7 +201,7 @@ export default function TopBar() {
             </select>
           </div>
         </div>
-      ) : isFootball ? (
+      ) : (
         <div className="context-grid">
           <div className="context-field">
             <label>League</label>
@@ -163,8 +231,6 @@ export default function TopBar() {
             />
           </div>
         </div>
-      ) : (
-        <div className="context-hint">Select a sport module to set context</div>
       )}
       <div className="topbar-actions">
         <button

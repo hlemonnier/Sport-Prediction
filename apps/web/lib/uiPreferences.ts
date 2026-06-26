@@ -44,7 +44,7 @@ export type UserSavings = {
 };
 
 export const defaultUiPreferences: UiPreferences = {
-  themeMode: "system",
+  themeMode: "dark",
   accentPreset: "red",
   density: "comfortable",
   showBackgroundGrid: true,
@@ -62,7 +62,7 @@ export const defaultUiPreferences: UiPreferences = {
   rememberSidebarState: true,
   compactSidebarLabels: false,
   sidebarCollapsed: false,
-  defaultSportModule: "Football",
+  defaultSportModule: "F1",
   dashboardChartRange: "7d",
   dashboardChartStyle: "line",
 };
@@ -101,17 +101,8 @@ function coerceNumber(
 }
 
 function sanitizePreferences(raw: Partial<UiPreferences>): UiPreferences {
-  const themeMode =
-    raw.themeMode === "light" || raw.themeMode === "dark" || raw.themeMode === "system"
-      ? raw.themeMode
-      : defaultUiPreferences.themeMode;
-  const accentPreset =
-    raw.accentPreset === "blue" ||
-    raw.accentPreset === "emerald" ||
-    raw.accentPreset === "amber" ||
-    raw.accentPreset === "red"
-      ? raw.accentPreset
-      : defaultUiPreferences.accentPreset;
+  const themeMode: ThemeMode = "dark";
+  const accentPreset: AccentPreset = "red";
   const density = raw.density === "dense" || raw.density === "comfortable"
     ? raw.density
     : defaultUiPreferences.density;
@@ -214,11 +205,8 @@ export function readUserSavings(): UserSavings {
 }
 
 export function resolveThemeMode(mode: ThemeMode): "light" | "dark" {
-  if (mode === "light" || mode === "dark") return mode;
-  if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
-  }
-  return "light";
+  void mode;
+  return "dark";
 }
 
 export function applyUiPreferences(prefs: UiPreferences): void {
@@ -230,12 +218,15 @@ export function applyUiPreferences(prefs: UiPreferences): void {
   body.classList.add(resolvedTheme === "dark" ? "theme-dark" : "theme-light");
 
   body.classList.remove("accent-red", "accent-blue", "accent-emerald", "accent-amber");
-  body.classList.add(`accent-${prefs.accentPreset}`);
+  body.classList.add("accent-red");
 
   body.classList.toggle("dense", prefs.density === "dense");
   body.classList.toggle("no-grid", !prefs.showBackgroundGrid);
   body.classList.toggle("sidebar-collapsed", prefs.sidebarCollapsed);
   body.classList.toggle("sidebar-compact", prefs.compactSidebarLabels);
+  body.classList.remove("sport-f1", "sport-football");
+  body.classList.add(prefs.defaultSportModule === "F1" ? "sport-f1" : "sport-football");
+  body.dataset.sport = prefs.defaultSportModule.toLowerCase();
 
   const gridOpacity = (prefs.gridIntensity / 100) * 0.12;
   body.style.setProperty("--grid-opacity", gridOpacity.toFixed(3));

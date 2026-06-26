@@ -1,0 +1,9 @@
+fastf1>=3.5
+fastapi>=0.115
+paho-mqtt>=2.1
+pandas>=2.2
+pyarrow>=16.0
+psycopg[binary]>=3.2
+redis>=5.0
+uvicorn[standard]>=0.30
+pytest>=8.0

@@ -140,6 +140,66 @@ def test_feature_sets_consume_circuit_card_columns() -> None:
     assert "track_qualy_importance" in race_no_cards
 
 
+def test_qualifying_feature_contract_excludes_race_only_inputs() -> None:
+    qualifying_features, qualifying_fallback = _qualifying_feature_sets()
+    qualifying_columns = set(qualifying_features + qualifying_fallback)
+
+    assert "sq_delta" in qualifying_columns
+    assert "sq_rank" in qualifying_columns
+    assert "fp_quali_sim_delta" in qualifying_columns
+    assert "fp_quali_sim_rank" in qualifying_columns
+    assert "fp_quali_sim_delta_downforce_adj" in qualifying_columns
+    assert "circuit_downforce_demand" in qualifying_columns
+    assert "circuit_power_sensitivity" in qualifying_columns
+
+    race_only_columns = {
+        "sprint_delta",
+        "sprint_rank",
+        "fp_race_sim_delta",
+        "fp_race_sim_rank",
+        "fp_race_sim_laps",
+        "race_sim_sessions_available",
+        "fp_slow_lap_ratio",
+        "fp_quali_vs_race_gap",
+        "driver_ewma_fp_race_sim_delta",
+        "driver_form_3_fp_race_sim_delta",
+        "track_finish_order_mobility",
+        "track_overtake_propensity",
+        "track_safety_car_prior",
+        "track_dnf_prior",
+        "track_strategy_variance_prior",
+        "race_generation_variance_prior",
+        "circuit_overtaking_difficulty",
+        "circuit_strategy_variance",
+        "circuit_safety_car_probability",
+        "fp_race_sim_delta_tyre_adj",
+        "fp_race_sim_delta_power_adj",
+        "circuit_fit_index",
+    }
+    assert qualifying_columns.isdisjoint(race_only_columns)
+
+
+def test_race_feature_contract_keeps_grid_and_race_inputs() -> None:
+    race_features, race_fallback = _race_feature_sets(include_standings=True)
+    race_columns = set(race_features + race_fallback)
+
+    for column in [
+        "grid_position",
+        "qualy_position",
+        "sprint_delta",
+        "fp_race_sim_delta",
+        "fp_race_sim_rank",
+        "track_finish_order_mobility",
+        "track_overtake_propensity",
+        "track_safety_car_prior",
+        "track_dnf_prior",
+        "track_strategy_variance_prior",
+        "race_generation_variance_prior",
+        "position_start",
+    ]:
+        assert column in race_columns
+
+
 def test_circuit_fit_index_changes_relative_order_across_circuit_traits() -> None:
     base = pd.DataFrame(
         {

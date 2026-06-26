@@ -794,6 +794,22 @@ def test_prediction_input_phase_separates_fp_qualifying_and_grid_states() -> Non
     assert _prediction_input_phase(config, official_grid)["phase"] == "post_grid_pre_race"
 
 
+def test_qualifying_fallback_ignores_race_sim_columns() -> None:
+    features = pd.DataFrame(
+        {
+            "driver_id": ["qualy_car", "race_car"],
+            "fp_quali_sim_rank": [1.0, 2.0],
+            "fp_race_sim_rank": [2.0, 1.0],
+            "fp_race_sim_delta": [2.0, 0.1],
+            "driver_form_3_fp_race_sim_delta": [2.0, 0.1],
+        }
+    )
+
+    score = _hierarchical_fallback(features, ["fp_quali_sim_rank"])
+
+    assert float(score.iloc[0]) < float(score.iloc[1])
+
+
 def test_race_training_target_uses_grid_delta_and_reconstructs_finish_score() -> None:
     train = pd.DataFrame(
         {

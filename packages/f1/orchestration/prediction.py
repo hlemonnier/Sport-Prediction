@@ -29,6 +29,27 @@ WEATHER_SCENARIO_COLUMNS = (
     "track_weather_uncertainty_prior",
     "race_generation_variance_prior",
 )
+QUALIFYING_CIRCUIT_NUMERIC_FEATURES = (
+    "circuit_downforce_demand",
+    "circuit_power_sensitivity",
+    "circuit_low_speed_corner_demand",
+    "circuit_high_speed_corner_demand",
+    "circuit_traction_demand",
+    "circuit_braking_demand",
+    "circuit_tyre_degradation",
+    "circuit_kerb_bump_penalty",
+    "circuit_drs_effectiveness",
+    "circuit_card_reliability",
+)
+QUALIFYING_CIRCUIT_INTERACTION_FEATURES = (
+    "fp_weighted_delta_downforce_adj",
+    "fp_weighted_delta_power_adj",
+    "fp_quali_sim_delta_downforce_adj",
+    "driver_archetype_form_3_fp_weighted_delta",
+    "team_archetype_form_3_fp_weighted_delta",
+    "driver_circuit_hist_fp_weighted_delta",
+    "team_circuit_hist_fp_weighted_delta",
+)
 RACE_CONTEXT_EVIDENCE_COLUMNS = (
     "track_finish_order_mobility",
     "track_overtake_propensity",
@@ -396,14 +417,39 @@ def _hierarchical_fallback(
 ) -> pd.Series:
     if features.empty:
         return pd.Series(dtype=float)
+    fallback_col_set = set(fallback_cols)
+    race_context = bool(
+        fallback_col_set.intersection(
+            {
+                "grid_position",
+                "qualy_position",
+                "qualy_context_position",
+                "fp_race_sim_rank",
+                "fp_race_sim_delta",
+            }
+        )
+    )
+    if not race_context and "qualy_position" in features.columns:
+        race_context = True
+    if not race_context and "grid_position" in features.columns:
+        race_context = any(
+            column in features.columns
+            for column in (
+                "fp_race_sim_rank",
+                "fp_race_sim_delta",
+                "track_finish_order_mobility",
+                "track_overtake_propensity",
+            )
+        )
 
     # Empirically strongest no-training fallbacks on the local 2025 holdout:
     # qualifying: FP mean rank + event pace + qualifying-sim rank;
     # race: actual qualifying position. These avoid overfitting a model when no
     # historical seasons are available while still preserving event-local signal.
-    race_score = _race_grid_delta_fallback(features)
-    if race_score is not None:
-        return race_score
+    if race_context:
+        race_score = _race_grid_delta_fallback(features)
+        if race_score is not None:
+            return race_score
 
     qualifying_score = _weighted_rank_score(
         features,
@@ -414,7 +460,6 @@ def _hierarchical_fallback(
             ("fp_quali_sim_delta_downforce_adj", 0.75, True),
             ("fp_weighted_delta_downforce_adj", 0.55, True),
             ("fp_weighted_delta_power_adj", 0.45, True),
-            ("circuit_fit_index", 0.85, True),
             ("team_archetype_form_3_fp_weighted_delta", 0.50, True),
             ("driver_archetype_form_3_fp_weighted_delta", 0.35, True),
         ],
@@ -450,18 +495,12 @@ def _hierarchical_fallback(
         [
             "fp_quali_sim_delta",
             "fp_quali_sim_rank",
-            "fp_race_sim_delta",
-            "fp_race_sim_rank",
-            "fp_slow_lap_ratio",
-            "fp_quali_vs_race_gap",
             "fp_weighted_delta",
             "fp_delta_std",
             "fp_mean_top3_delta",
             "fp_mean_lap_std",
             "driver_form_3_fp_quali_sim_delta",
             "driver_ewma_fp_quali_sim_delta",
-            "driver_form_3_fp_race_sim_delta",
-            "driver_ewma_fp_race_sim_delta",
             "driver_form_3_fp_weighted_delta",
             "driver_ewma_fp_weighted_delta",
             "driver_form_3_fp_mean_delta",
@@ -475,25 +514,38 @@ def _hierarchical_fallback(
             "fp_weighted_delta_downforce_adj",
             "fp_weighted_delta_power_adj",
             "fp_quali_sim_delta_downforce_adj",
-            "fp_race_sim_delta_tyre_adj",
-            "fp_race_sim_delta_power_adj",
             "fp_mean_delta",
             "fp_mean_rank",
-            "qualy_context_position",
-            "qualy_context_position_track_adj",
-            "qualy_position_track_adj",
-            "qualy_position_circuit_importance_adj",
-            "qualy_pred_rank",
-            "qualy_pred_position",
-            "qualy_pred_position_track_adj",
-            "qualy_pred_position_circuit_importance_adj",
-            "qualy_pred_vs_actual_gap",
-            "track_chaos_index",
-            "circuit_overtaking_difficulty",
-            "circuit_qualifying_importance",
             "circuit_downforce_demand",
             "circuit_power_sensitivity",
-        ],
+        ]
+        + (
+            [
+                "fp_race_sim_delta",
+                "fp_race_sim_rank",
+                "fp_slow_lap_ratio",
+                "fp_quali_vs_race_gap",
+                "driver_form_3_fp_race_sim_delta",
+                "driver_ewma_fp_race_sim_delta",
+                "fp_race_sim_delta_tyre_adj",
+                "fp_race_sim_delta_power_adj",
+                "qualy_context_position",
+                "qualy_context_position_track_adj",
+                "qualy_position_track_adj",
+                "qualy_position_circuit_importance_adj",
+                "qualy_pred_rank",
+                "qualy_pred_position",
+                "qualy_pred_position_track_adj",
+                "qualy_pred_position_circuit_importance_adj",
+                "qualy_pred_vs_actual_gap",
+                "track_chaos_index",
+                "circuit_overtaking_difficulty",
+                "circuit_qualifying_importance",
+                "circuit_fit_index",
+            ]
+            if race_context
+            else []
+        ),
     )
     if driver_form is not None:
         components.append((0.30, driver_form))
@@ -852,19 +904,12 @@ def _qualifying_feature_sets(
         "fp2_delta",
         "fp3_delta",
         "sq_delta",
-        "sprint_delta",
         "fp_mean_delta",
         "fp_weighted_delta",
         "fp_quali_sim_delta",
         "fp_quali_sim_rank",
         "fp_quali_sim_laps",
         "quali_sim_sessions_available",
-        "fp_race_sim_delta",
-        "fp_race_sim_rank",
-        "fp_race_sim_laps",
-        "race_sim_sessions_available",
-        "fp_slow_lap_ratio",
-        "fp_quali_vs_race_gap",
         "fp_delta_std",
         "pace_sessions_available",
         "fp_mean_top3_delta",
@@ -874,7 +919,6 @@ def _qualifying_feature_sets(
         "fp2_rank",
         "fp3_rank",
         "sq_rank",
-        "sprint_rank",
         "fp_mean_rank",
         "driver_ewma_fp_mean_delta",
         "driver_form_3_fp_mean_delta",
@@ -883,8 +927,6 @@ def _qualifying_feature_sets(
         "driver_form_3_fp_weighted_delta",
         "driver_ewma_fp_quali_sim_delta",
         "driver_form_3_fp_quali_sim_delta",
-        "driver_ewma_fp_race_sim_delta",
-        "driver_form_3_fp_race_sim_delta",
         "driver_form_3_vs_team_fp_weighted_delta",
         "team_ewma_fp_mean_delta",
         "team_form_3_fp_mean_delta",
@@ -896,21 +938,15 @@ def _qualifying_feature_sets(
         "driver_vs_team_fp_weighted_delta",
         "track_weather_uncertainty",
         "track_weather_uncertainty_prior",
-        "race_generation_variance_prior",
     ]
-    feature_cols.extend(CIRCUIT_NUMERIC_FEATURES)
-    feature_cols.extend(CIRCUIT_INTERACTION_FEATURES)
+    feature_cols.extend(QUALIFYING_CIRCUIT_NUMERIC_FEATURES)
+    feature_cols.extend(QUALIFYING_CIRCUIT_INTERACTION_FEATURES)
     fallback_cols = [
         "fp_mean_delta",
         "fp_weighted_delta",
         "fp_quali_sim_delta",
         "fp_quali_sim_rank",
         "fp_quali_sim_laps",
-        "fp_race_sim_delta",
-        "fp_race_sim_rank",
-        "fp_race_sim_laps",
-        "fp_slow_lap_ratio",
-        "fp_quali_vs_race_gap",
         "fp_delta_std",
         "pace_sessions_available",
         "fp_mean_top3_delta",
@@ -922,8 +958,6 @@ def _qualifying_feature_sets(
         "driver_form_3_fp_weighted_delta",
         "driver_form_3_fp_quali_sim_delta",
         "driver_ewma_fp_quali_sim_delta",
-        "driver_form_3_fp_race_sim_delta",
-        "driver_ewma_fp_race_sim_delta",
         "driver_form_3_vs_team_fp_weighted_delta",
         "driver_ewma_fp_weighted_delta",
         "team_form_3_fp_mean_delta",
@@ -933,10 +967,9 @@ def _qualifying_feature_sets(
         "event_driver_hist_idx",
         "track_weather_uncertainty",
         "track_weather_uncertainty_prior",
-        "race_generation_variance_prior",
     ]
-    fallback_cols.extend(CIRCUIT_NUMERIC_FEATURES)
-    fallback_cols.extend(CIRCUIT_INTERACTION_FEATURES)
+    fallback_cols.extend(QUALIFYING_CIRCUIT_NUMERIC_FEATURES)
+    fallback_cols.extend(QUALIFYING_CIRCUIT_INTERACTION_FEATURES)
     feature_cols, fallback_cols = _apply_runsim_ablation(feature_cols, fallback_cols, disable_runsim)
     return _apply_circuit_ablation(feature_cols, fallback_cols, disable_circuit)
 

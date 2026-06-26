@@ -41,31 +41,31 @@ export default function RunResult({ run }: { run: RunDetail | null }) {
 
   const chartOption = {
     grid: { left: 40, right: 16, top: 24, bottom: 44 },
-    textStyle: { color: "#1a1a19", fontFamily: "JetBrains Mono, monospace" },
+    textStyle: { color: "#fefefe", fontFamily: "JetBrains Mono, monospace" },
     xAxis: {
       type: "category",
       data: chartData.map((item) => item.label),
-      axisLabel: { rotate: 35, color: "#66655f", fontSize: 10 },
-      axisLine: { lineStyle: { color: "#e5e4e2" } },
+      axisLabel: { rotate: 35, color: "#a7a7a7", fontSize: 10 },
+      axisLine: { lineStyle: { color: "#292929" } },
     },
     yAxis: {
       type: "value",
-      axisLabel: { color: "#66655f", fontSize: 10 },
-      splitLine: { lineStyle: { color: "rgba(220, 38, 38, 0.08)" } },
+      axisLabel: { color: "#a7a7a7", fontSize: 10 },
+      splitLine: { lineStyle: { color: "rgba(255, 99, 99, 0.1)" } },
     },
     series: [
       {
         type: "bar",
         data: chartData.map((item) => item.value),
-        itemStyle: { color: "#dc2626", borderRadius: [2, 2, 0, 0] },
+        itemStyle: { color: "#ff6363", borderRadius: [2, 2, 0, 0] },
         barMaxWidth: 32,
       },
     ],
     tooltip: {
       trigger: "axis",
-      backgroundColor: "#ffffff",
-      borderColor: "#e5e4e2",
-      textStyle: { color: "#1a1a19", fontSize: 11 },
+      backgroundColor: "#151515",
+      borderColor: "#292929",
+      textStyle: { color: "#fefefe", fontSize: 11 },
     },
   };
 

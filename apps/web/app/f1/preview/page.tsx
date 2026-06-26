@@ -1,5 +1,5 @@
-import F1Preview from "@/components/F1Preview";
+import { redirect } from "next/navigation";
 
 export default function F1PreviewPage() {
-  return <F1Preview />;
+  redirect("/f1/research/preview");
 }

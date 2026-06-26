@@ -198,7 +198,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="page-title">Settings</h1>
         <p className="page-status">
-          Customize theme, accent, dashboard visibility, and sidebar behavior.
+          Customize dashboard visibility, density, and sidebar behavior.
         </p>
       </div>
 
@@ -207,7 +207,7 @@ export default function SettingsPage() {
           <div className="panel-header">
             <div className="panel-header-left">
               <h2 className="module-title">Appearance</h2>
-              <span className="module-subtitle">Theme, accent palette, and visual density</span>
+              <span className="module-subtitle">Locked dark palette and visual density</span>
             </div>
           </div>
           <div className="panel-body">
@@ -215,28 +215,10 @@ export default function SettingsPage() {
               <div className="settings-row">
                 <div className="settings-row-copy">
                   <span className="data-health-label">Theme mode</span>
-                  <span className="empty-state-hint">Choose how the interface follows light/dark mode.</span>
+                  <span className="empty-state-hint">The platform is locked to full dark mode.</span>
                 </div>
                 <div className="segmented">
-                  <button
-                    type="button"
-                    className={`segmented-item ${preferences.themeMode === "system" ? "active" : ""}`}
-                    onClick={() => setPreferences((prev) => ({ ...prev, themeMode: "system" }))}
-                  >
-                    System
-                  </button>
-                  <button
-                    type="button"
-                    className={`segmented-item ${preferences.themeMode === "light" ? "active" : ""}`}
-                    onClick={() => setPreferences((prev) => ({ ...prev, themeMode: "light" }))}
-                  >
-                    Light
-                  </button>
-                  <button
-                    type="button"
-                    className={`segmented-item ${preferences.themeMode === "dark" ? "active" : ""}`}
-                    onClick={() => setPreferences((prev) => ({ ...prev, themeMode: "dark" }))}
-                  >
+                  <button type="button" className="segmented-item active" disabled>
                     Dark
                   </button>
                 </div>
@@ -245,36 +227,11 @@ export default function SettingsPage() {
               <div className="settings-row">
                 <div className="settings-row-copy">
                   <span className="data-health-label">Accent color</span>
-                  <span className="empty-state-hint">Pick a brand-safe accent preset.</span>
+                  <span className="empty-state-hint">Current accent is #FF6363.</span>
                 </div>
                 <div className="segmented">
-                  <button
-                    type="button"
-                    className={`segmented-item ${preferences.accentPreset === "red" ? "active" : ""}`}
-                    onClick={() => setPreferences((prev) => ({ ...prev, accentPreset: "red" }))}
-                  >
-                    Red
-                  </button>
-                  <button
-                    type="button"
-                    className={`segmented-item ${preferences.accentPreset === "blue" ? "active" : ""}`}
-                    onClick={() => setPreferences((prev) => ({ ...prev, accentPreset: "blue" }))}
-                  >
-                    Blue
-                  </button>
-                  <button
-                    type="button"
-                    className={`segmented-item ${preferences.accentPreset === "emerald" ? "active" : ""}`}
-                    onClick={() => setPreferences((prev) => ({ ...prev, accentPreset: "emerald" }))}
-                  >
-                    Emerald
-                  </button>
-                  <button
-                    type="button"
-                    className={`segmented-item ${preferences.accentPreset === "amber" ? "active" : ""}`}
-                    onClick={() => setPreferences((prev) => ({ ...prev, accentPreset: "amber" }))}
-                  >
-                    Amber
+                  <button type="button" className="segmented-item active" disabled>
+                    #FF6363
                   </button>
                 </div>
               </div>
@@ -411,8 +368,8 @@ export default function SettingsPage() {
 
               <div className="settings-row">
                 <div className="settings-row-copy">
-                  <span className="data-health-label">Default sport module</span>
-                  <span className="empty-state-hint">Used by dashboard CTAs for first/next run.</span>
+                  <span className="data-health-label">Active sport module</span>
+                  <span className="empty-state-hint">Mirrors the top switcher and drives dashboard context.</span>
                 </div>
                 <div className="segmented">
                   <button

@@ -82,22 +82,26 @@ export default function HomeDashboard() {
   }, []);
 
   const footballReady = Boolean(status?.football.matches.exists && status?.football.fixtures.exists);
-  const lastRun = runs.length > 0 ? runs[0] : null;
-  const doneRuns = runs.filter((run) => run.status === "done").length;
-  const failedRuns = runs.filter((run) => run.status === "error").length;
-  const pendingRuns = runs.length - doneRuns - failedRuns;
+  const activeSport = uiPrefs.defaultSportModule;
+  const sportRuns = runs.filter((run) => run.sport === activeSport);
+  const latestSportRun = sportRuns.length > 0 ? sportRuns[0] : null;
+  const doneRuns = sportRuns.filter((run) => run.status === "done").length;
+  const failedRuns = sportRuns.filter((run) => run.status === "error").length;
+  const pendingRuns = sportRuns.length - doneRuns - failedRuns;
   const readyDatasets = status
     ? [status.football.teams, status.football.matches, status.football.fixtures].filter((item) => item.exists).length
     : 0;
-  const upperModuleCount =
-    (uiPrefs.showUpcomingMatches ? 1 : 0) + (uiPrefs.showF1Overview ? 1 : 0);
+  const showActiveSportModule =
+    activeSport === "Football" ? uiPrefs.showUpcomingMatches : uiPrefs.showF1Overview;
+  const upperModuleCount = showActiveSportModule ? 1 : 0;
   const lowerModuleCount =
     (uiPrefs.showDataHealth ? 1 : 0) +
     (uiPrefs.showLatestRuns ? 1 : 0) +
     (uiPrefs.showQuickCompare ? 1 : 0);
   const chartRangeDays = uiPrefs.dashboardChartRange === "30d" ? 30 : 7;
-  const firstRunHref = uiPrefs.defaultSportModule === "F1" ? "/f1/qualifying" : "/football/match";
-  const nextRunHref = uiPrefs.defaultSportModule === "F1" ? "/f1/race" : "/football/match";
+  const firstRunHref = uiPrefs.defaultSportModule === "F1" ? "/f1/research/qualifying" : "/football/match";
+  const nextRunHref = uiPrefs.defaultSportModule === "F1" ? "/f1/insights/live" : "/football/match";
+  const activeSportLabel = activeSport === "F1" ? "F1" : "Football";
 
   const cssValue = (name: string, fallback: string) => {
     if (typeof window === "undefined") return fallback;
@@ -122,11 +126,11 @@ export default function HomeDashboard() {
     return color;
   };
 
-  const inkColor = cssValue("--ink", "#1a1a19");
-  const mutedColor = cssValue("--muted", "#58554f");
-  const borderColor = cssValue("--border", "#e5e4e2");
-  const accentColor = cssValue("--accent", "#dc2626");
-  const panelColor = cssValue("--panel", "#ffffff");
+  const inkColor = cssValue("--ink", "#fefefe");
+  const mutedColor = cssValue("--muted", "#a7a7a7");
+  const borderColor = cssValue("--border", "#292929");
+  const accentColor = cssValue("--accent", "#ff6363");
+  const panelColor = cssValue("--panel", "#151515");
   const accentAreaTop = toRgba(accentColor, 0.2);
   const accentAreaBottom = toRgba(accentColor, 0);
 
@@ -141,7 +145,7 @@ export default function HomeDashboard() {
       buckets[key] = 0;
       labels.push(key);
     }
-    runs.forEach((run) => {
+    sportRuns.forEach((run) => {
       const key = new Date(run.createdAt).toISOString().slice(0, 10);
       if (key in buckets) {
         buckets[key] += 1;
@@ -244,49 +248,64 @@ export default function HomeDashboard() {
   return (
     <div className="stack-lg">
       <div>
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-status">Snapshot of data readiness, recent activity, and next actions.</p>
+        <h1 className="page-title">{activeSportLabel} Dashboard</h1>
+        <p className="page-status">Snapshot of selected-sport readiness, recent activity, and next actions.</p>
       </div>
 
       {uiPrefs.showKpiCards ? (
         <div className="dashboard-kpis">
           <div className="kpi-card primary">
-            <span className="kpi-label">Runs in workspace</span>
-            <span className="kpi-value">{runs.length}</span>
+            <span className="kpi-label">{activeSportLabel} runs</span>
+            <span className="kpi-value">{sportRuns.length}</span>
             <span className="kpi-meta">
               {doneRuns} completed · {failedRuns} failed
             </span>
             <div className="kpi-actions">
-              <Link href={runs.length > 0 ? "/runs" : firstRunHref} className="button button-sm">
-                {runs.length > 0 ? "Open runs" : "Run first prediction"}
+              <Link href={sportRuns.length > 0 ? "/runs" : firstRunHref} className="button button-sm">
+                {sportRuns.length > 0 ? "Open runs" : "Run first prediction"}
               </Link>
             </div>
           </div>
 
           <div className="kpi-card">
-            <span className="kpi-label">Football data readiness</span>
-            <span className="kpi-value">{readyDatasets}/3</span>
-            <span className="kpi-meta">
-              {footballReady ? "Ready for preview and match workflows." : "Teams, matches, and fixtures are required."}
-            </span>
-            <div className="kpi-actions">
-              <Link href="/football/preview" className="button secondary button-sm">
-                Open football preview
-              </Link>
-            </div>
+            {activeSport === "Football" ? (
+              <>
+                <span className="kpi-label">Football data readiness</span>
+                <span className="kpi-value">{readyDatasets}/3</span>
+                <span className="kpi-meta">
+                  {footballReady ? "Ready for preview and match workflows." : "Teams, matches, and fixtures are required."}
+                </span>
+                <div className="kpi-actions">
+                  <Link href="/football/preview" className="button secondary button-sm">
+                    Open football preview
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="kpi-label">F1 platform module</span>
+                <span className="kpi-value">Live</span>
+                <span className="kpi-meta">OpenF1 transport, FastF1 batch jobs, and prediction service boundary.</span>
+                <div className="kpi-actions">
+                  <Link href="/f1/insights/live" className="button secondary button-sm">
+                    Open F1 insights
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="kpi-card">
-            <span className="kpi-label">Latest run</span>
-            <span className="kpi-value mono">{lastRun ? lastRun.id.slice(0, 8) : "—"}</span>
+            <span className="kpi-label">Latest {activeSportLabel} run</span>
+            <span className="kpi-value mono">{latestSportRun ? latestSportRun.id.slice(0, 8) : "—"}</span>
             <span className="kpi-meta">
-              {lastRun
-                ? `${lastRun.project} · ${new Date(lastRun.createdAt).toLocaleDateString()}`
-                : "No run executed yet in this workspace."}
+              {latestSportRun
+                ? `${latestSportRun.project} · ${new Date(latestSportRun.createdAt).toLocaleDateString()}`
+                : `No ${activeSportLabel} run executed yet in this workspace.`}
             </span>
             <div className="kpi-actions">
-              <Link href={lastRun ? `/runs/${lastRun.id}` : firstRunHref} className="button secondary button-sm">
-                {lastRun ? "Inspect run" : "Run first prediction"}
+              <Link href={latestSportRun ? `/runs/${latestSportRun.id}` : firstRunHref} className="button secondary button-sm">
+                {latestSportRun ? "Inspect run" : "Run first prediction"}
               </Link>
             </div>
           </div>
@@ -312,14 +331,14 @@ export default function HomeDashboard() {
           <div className="panel">
             <div className="panel-header">
               <div className="panel-header-left">
-                <h2 className="module-title">Run Status Distribution</h2>
+                <h2 className="module-title">{activeSportLabel} Run Status</h2>
                 <span className="module-subtitle">Done vs pending vs failed</span>
               </div>
             </div>
             <div className="panel-body">
-              {runs.length === 0 ? (
+              {sportRuns.length === 0 ? (
                 <div className="empty-state compact">
-                  <span className="empty-state-text">No run data to chart yet.</span>
+                  <span className="empty-state-text">No {activeSportLabel} run data to chart yet.</span>
                   <span className="empty-state-hint">Launch a prediction to start visual tracking.</span>
                 </div>
               ) : (
@@ -331,14 +350,14 @@ export default function HomeDashboard() {
           <div className="panel">
             <div className="panel-header">
               <div className="panel-header-left">
-                <h2 className="module-title">Runs Trend ({chartRangeDays} days)</h2>
+                <h2 className="module-title">{activeSportLabel} Trend ({chartRangeDays} days)</h2>
                 <span className="module-subtitle">Daily execution volume</span>
               </div>
             </div>
             <div className="panel-body">
-              {runs.length === 0 ? (
+              {sportRuns.length === 0 ? (
                 <div className="empty-state compact">
-                  <span className="empty-state-text">No recent trend to display.</span>
+                  <span className="empty-state-text">No recent {activeSportLabel} trend to display.</span>
                   <span className="empty-state-hint">The curve appears after your first runs.</span>
                 </div>
               ) : (
@@ -365,7 +384,7 @@ export default function HomeDashboard() {
 
       {upperModuleCount > 0 ? (
         <div className={`dashboard-grid-two ${upperModuleCount === 1 ? "single" : ""}`}>
-          {uiPrefs.showUpcomingMatches ? (
+          {activeSport === "Football" && uiPrefs.showUpcomingMatches ? (
             <div className="panel">
               <div className="panel-header">
                 <div className="panel-header-left">
@@ -453,7 +472,7 @@ export default function HomeDashboard() {
             </div>
           ) : null}
 
-          {uiPrefs.showF1Overview ? (
+          {activeSport === "F1" && uiPrefs.showF1Overview ? (
             <div className="panel">
               <div className="panel-header">
                 <div className="panel-header-left">
@@ -494,7 +513,7 @@ export default function HomeDashboard() {
               </div>
               <div className="panel-footer">
                 <span>Use the top bar to set season and round.</span>
-                <Link href="/f1/preview" className="button secondary button-sm">
+                <Link href="/f1/research/preview" className="button secondary button-sm">
                   Open F1 preview
                 </Link>
               </div>
@@ -505,9 +524,9 @@ export default function HomeDashboard() {
         <div className="panel">
           <div className="panel-body">
             <div className="empty-state compact">
-              <span className="empty-state-text">Primary dashboard modules are hidden.</span>
+              <span className="empty-state-text">{activeSportLabel} dashboard module is hidden.</span>
               <span className="empty-state-hint">
-                Re-enable Upcoming Matches or F1 Overview from Settings.
+                Re-enable the selected sport module from Settings.
               </span>
               <div className="empty-state-actions">
                 <Link href="/settings" className="button secondary button-sm">
@@ -528,27 +547,49 @@ export default function HomeDashboard() {
           {uiPrefs.showDataHealth ? (
             <div className="panel">
               <div className="panel-header">
-                <h2 className="module-title">Data Health</h2>
-                <span className="module-subtitle">{readyDatasets}/3 ready</span>
+                <h2 className="module-title">{activeSportLabel} Data Health</h2>
+                <span className="module-subtitle">
+                  {activeSport === "Football" ? `${readyDatasets}/3 ready` : "Platform services"}
+                </span>
               </div>
               <div className="panel-body">
-                <div className="data-health">
-                  <div className="data-health-row">
-                    <span className={`status-dot ${status?.football.teams.exists ? "ok" : "miss"}`} />
-                    <span className="data-health-label">Teams</span>
-                    <span className="data-health-hint">{status?.football.teams.exists ? "Ready" : "Missing"}</span>
+                {activeSport === "Football" ? (
+                  <div className="data-health">
+                    <div className="data-health-row">
+                      <span className={`status-dot ${status?.football.teams.exists ? "ok" : "miss"}`} />
+                      <span className="data-health-label">Teams</span>
+                      <span className="data-health-hint">{status?.football.teams.exists ? "Ready" : "Missing"}</span>
+                    </div>
+                    <div className="data-health-row">
+                      <span className={`status-dot ${status?.football.matches.exists ? "ok" : "miss"}`} />
+                      <span className="data-health-label">Matches</span>
+                      <span className="data-health-hint">{status?.football.matches.exists ? "Ready" : "Missing"}</span>
+                    </div>
+                    <div className="data-health-row">
+                      <span className={`status-dot ${status?.football.fixtures.exists ? "ok" : "miss"}`} />
+                      <span className="data-health-label">Fixtures</span>
+                      <span className="data-health-hint">{status?.football.fixtures.exists ? "Ready" : "Missing"}</span>
+                    </div>
                   </div>
-                  <div className="data-health-row">
-                    <span className={`status-dot ${status?.football.matches.exists ? "ok" : "miss"}`} />
-                    <span className="data-health-label">Matches</span>
-                    <span className="data-health-hint">{status?.football.matches.exists ? "Ready" : "Missing"}</span>
+                ) : (
+                  <div className="data-health">
+                    <div className="data-health-row">
+                      <span className="status-dot ok" />
+                      <span className="data-health-label">F1 platform API</span>
+                      <span className="data-health-hint">Snapshot, replay, ingest and stream contracts</span>
+                    </div>
+                    <div className="data-health-row">
+                      <span className="status-dot ok" />
+                      <span className="data-health-label">Prediction service</span>
+                      <span className="data-health-hint">Separate model boundary with fallback</span>
+                    </div>
+                    <div className="data-health-row">
+                      <span className="status-dot warn" />
+                      <span className="data-health-label">Live credentials</span>
+                      <span className="data-health-hint">OpenF1 auth remains backend-only</span>
+                    </div>
                   </div>
-                  <div className="data-health-row">
-                    <span className={`status-dot ${status?.football.fixtures.exists ? "ok" : "miss"}`} />
-                    <span className="data-health-label">Fixtures</span>
-                    <span className="data-health-hint">{status?.football.fixtures.exists ? "Ready" : "Missing"}</span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           ) : null}
@@ -556,16 +597,16 @@ export default function HomeDashboard() {
           {uiPrefs.showLatestRuns ? (
             <div className="panel">
               <div className="panel-header">
-                <h2 className="module-title">Latest Runs</h2>
+                <h2 className="module-title">Latest {activeSportLabel} Runs</h2>
                 <span className="chip">
-                  <span className={`chip-led ${runs.length > 0 ? "green" : "amber"}`} />
-                  {runs.length}
+                  <span className={`chip-led ${sportRuns.length > 0 ? "green" : "amber"}`} />
+                  {sportRuns.length}
                 </span>
               </div>
               <div className="panel-body">
-                {runs.length === 0 ? (
+                {sportRuns.length === 0 ? (
                   <div className="empty-state compact">
-                    <span className="empty-state-text">No runs recorded yet</span>
+                    <span className="empty-state-text">No {activeSportLabel} runs recorded yet</span>
                     <span className="empty-state-hint">Start with one prediction run, then compare iterations.</span>
                     <div className="empty-state-actions">
                       <Link href={firstRunHref} className="button button-sm">
@@ -575,7 +616,7 @@ export default function HomeDashboard() {
                   </div>
                 ) : (
                   <div className="stack-sm">
-                    {runs.slice(0, 4).map((run) => (
+                    {sportRuns.slice(0, 4).map((run) => (
                       <Link
                         key={run.id}
                         href={`/runs/${run.id}`}
@@ -596,18 +637,18 @@ export default function HomeDashboard() {
           {uiPrefs.showQuickCompare ? (
             <div className="panel">
               <div className="panel-header">
-                <h2 className="module-title">Quick Compare</h2>
+                <h2 className="module-title">{activeSportLabel} Quick Compare</h2>
               </div>
               <div className="panel-body">
-                {runs.length < 2 ? (
+                {sportRuns.length < 2 ? (
                   <div className="empty-state compact">
                     <span className="empty-state-text">Need at least 2 runs to compare</span>
                     <span className="empty-state-hint">
                       Run another prediction to unlock side-by-side comparison.
                     </span>
                     <div className="empty-state-actions">
-                      <Link href={runs.length === 0 ? firstRunHref : nextRunHref} className="button button-sm">
-                        {runs.length === 0 ? "Run first prediction" : "Run another prediction"}
+                      <Link href={sportRuns.length === 0 ? firstRunHref : nextRunHref} className="button button-sm">
+                        {sportRuns.length === 0 ? "Run first prediction" : "Run another prediction"}
                       </Link>
                     </div>
                   </div>
@@ -615,11 +656,11 @@ export default function HomeDashboard() {
                   <div className="stack-sm">
                     <div className="data-health-row">
                       <span className="data-health-label">Last</span>
-                      <span className="data-health-hint">{runs[0].id.slice(0, 8)} — {runs[0].status}</span>
+                      <span className="data-health-hint">{sportRuns[0].id.slice(0, 8)} — {sportRuns[0].status}</span>
                     </div>
                     <div className="data-health-row">
                       <span className="data-health-label">Previous</span>
-                      <span className="data-health-hint">{runs[1].id.slice(0, 8)} — {runs[1].status}</span>
+                      <span className="data-health-hint">{sportRuns[1].id.slice(0, 8)} — {sportRuns[1].status}</span>
                     </div>
                     <Link href="/compare" className="button secondary button-sm" style={{ alignSelf: "flex-start", marginTop: 4 }}>
                       Open Compare
@@ -652,16 +693,16 @@ export default function HomeDashboard() {
         <div className="panel">
           <div className="panel-header">
             <div className="panel-header-left">
-              <h2 className="module-title">Recent Runs</h2>
-              <span className="module-subtitle">{runs.length} total</span>
+              <h2 className="module-title">Recent {activeSportLabel} Runs</h2>
+              <span className="module-subtitle">{sportRuns.length} total</span>
             </div>
-            {runs.length > 0 ? (
+            {sportRuns.length > 0 ? (
               <Link href="/runs" className="button secondary button-sm">
                 View All
               </Link>
             ) : null}
           </div>
-          {runs.length > 0 ? (
+          {sportRuns.length > 0 ? (
             <div className="panel-body" style={{ padding: 0 }}>
               <table className="table">
                 <thead>
@@ -674,7 +715,7 @@ export default function HomeDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {runs.slice(0, 8).map((run) => (
+                  {sportRuns.slice(0, 8).map((run) => (
                     <tr key={run.id}>
                       <td className="mono" style={{ fontSize: 12 }}>
                         <Link href={`/runs/${run.id}`} className="text-accent">
@@ -700,7 +741,7 @@ export default function HomeDashboard() {
           ) : (
             <div className="panel-body">
               <div className="empty-state compact">
-                <span className="empty-state-text">No runs to list yet.</span>
+                <span className="empty-state-text">No {activeSportLabel} runs to list yet.</span>
                 <span className="empty-state-hint">Run your first prediction to populate this table.</span>
                 <div className="empty-state-actions">
                   <Link href={firstRunHref} className="button button-sm">

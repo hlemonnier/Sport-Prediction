@@ -3,22 +3,59 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { readUiPreferences, subscribeUiPreferences } from "@/lib/uiPreferences";
+import { readUiPreferences, subscribeUiPreferences, type SportModule } from "@/lib/uiPreferences";
 
 const dashboardItem = { label: "Dashboard", href: "/" };
 
-const groups = [
+type NavItem = {
+  label: string;
+  href: string;
+};
+
+type NavGroup = {
+  label: string;
+  sport: SportModule | null;
+  hideWhenSport?: SportModule[];
+  items: NavItem[];
+};
+
+const labItems: NavItem[] = [
+  { label: "Runs", href: "/runs" },
+  { label: "Sweeps", href: "/sweeps" },
+  { label: "Compare", href: "/compare" },
+  { label: "Diagnostics", href: "/diagnostics" },
+  { label: "Research Library", href: "/research" },
+];
+
+const groups: NavGroup[] = [
   {
-    label: "F1",
+    label: "Insights",
+    sport: "F1" as const,
     items: [
-      { label: "Preview", href: "/f1/preview" },
-      { label: "Qualifying", href: "/f1/qualifying" },
-      { label: "Race", href: "/f1/race" },
-      { label: "Review", href: "/f1/review" },
+      { label: "Home", href: "/f1/insights" },
+      { label: "Live Dashboard", href: "/f1/insights/live" },
+      { label: "Session Analysis", href: "/f1/insights/session-analysis" },
+      { label: "Engineer", href: "/f1/insights/engineer" },
+      { label: "Season", href: "/f1/insights/season" },
+      { label: "Standings", href: "/f1/insights/standings" },
+      { label: "Driver Ranking", href: "/f1/insights/driver-ranking" },
+      { label: "Power Units", href: "/f1/insights/power-units" },
+    ],
+  },
+  {
+    label: "Research Lab",
+    sport: "F1" as const,
+    items: [
+      { label: "Overview", href: "/f1/research" },
+      { label: "Preview", href: "/f1/research/preview" },
+      { label: "Qualifying", href: "/f1/research/qualifying" },
+      { label: "Review", href: "/f1/research/review" },
+      ...labItems,
     ],
   },
   {
     label: "Football",
+    sport: "Football" as const,
     items: [
       { label: "Preview", href: "/football/preview" },
       { label: "Match", href: "/football/match" },
@@ -27,15 +64,28 @@ const groups = [
   },
   {
     label: "Lab",
-    items: [
-      { label: "Runs", href: "/runs" },
-      { label: "Sweeps", href: "/sweeps" },
-      { label: "Compare", href: "/compare" },
-      { label: "Diagnostics", href: "/diagnostics" },
-      { label: "Research", href: "/research" },
-    ],
+    sport: null,
+    hideWhenSport: ["F1"],
+    items: labItems,
   },
 ];
+
+function sportFromPath(pathname: string): SportModule | null {
+  if (pathname.startsWith("/f1")) return "F1";
+  if (pathname.startsWith("/football")) return "Football";
+  return null;
+}
+
+function isSectionIndex(href: string): boolean {
+  return href === "/f1/research" || href === "/f1/insights" || href === "/football";
+}
+
+function isActiveHref(pathname: string, href: string): boolean {
+  if (href === "/" || isSectionIndex(href)) {
+    return pathname === href;
+  }
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -44,13 +94,24 @@ export default function Sidebar() {
   const [autoExpandActiveGroup, setAutoExpandActiveGroup] = useState(true);
   const [autoCollapseNonActiveGroups, setAutoCollapseNonActiveGroups] = useState(false);
   const [rememberSidebarState, setRememberSidebarState] = useState(true);
+  const [selectedSport, setSelectedSport] = useState<SportModule>("Football");
+  const routeSport = sportFromPath(pathname);
+  const activeSport = routeSport ?? selectedSport;
 
+  const visibleGroups = useMemo(
+    () =>
+      groups.filter((group) => {
+        if (group.sport !== null) return group.sport === activeSport;
+        return !group.hideWhenSport?.includes(activeSport);
+      }),
+    [activeSport]
+  );
   const activeGroup = useMemo(
     () =>
-      groups.find((group) =>
-        group.items.some((item) => pathname === item.href || pathname.startsWith(item.href + "/"))
+      visibleGroups.find((group) =>
+        group.items.some((item) => isActiveHref(pathname, item.href))
       )?.label,
-    [pathname]
+    [pathname, visibleGroups]
   );
 
   useEffect(() => {
@@ -59,10 +120,11 @@ export default function Sidebar() {
       setAutoExpandActiveGroup(prefs.autoExpandActiveGroup);
       setAutoCollapseNonActiveGroups(prefs.autoCollapseNonActiveGroups);
       setRememberSidebarState(prefs.rememberSidebarState);
+      setSelectedSport(routeSport ?? prefs.defaultSportModule);
     };
     syncPreferences();
     return subscribeUiPreferences(syncPreferences);
-  }, []);
+  }, [routeSport]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !rememberSidebarState) return;
@@ -132,8 +194,11 @@ export default function Sidebar() {
           </Link>
         </div>
 
-        {groups.map((group) => (
-          <div className="nav-group" key={group.label}>
+        {visibleGroups.map((group) => (
+          <div
+            className={`nav-group ${group.sport === activeSport ? "current-sport" : ""}`}
+            key={group.label}
+          >
             <button
               type="button"
               className="nav-group-toggle"
@@ -147,10 +212,7 @@ export default function Sidebar() {
             </button>
             <div className={`nav-group-links ${collapsed[group.label] ? "collapsed" : ""}`}>
               {group.items.map((item) => {
-                const active =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : pathname === item.href || pathname.startsWith(item.href + "/");
+                const active = isActiveHref(pathname, item.href);
                 return (
                   <Link
                     key={item.href}
@@ -174,7 +236,7 @@ export default function Sidebar() {
         </Link>
       </div>
       <div className="sidebar-footer">
-        Local mode &middot; No data leaves device
+        Runtime local &middot; Public F1 APIs enabled
       </div>
     </aside>
   );

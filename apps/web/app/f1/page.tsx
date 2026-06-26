@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import F1ModeDashboard from "@/components/F1ModeDashboard";
 
 export default function F1Page() {
-  redirect("/f1/preview");
+  return <F1ModeDashboard />;
 }

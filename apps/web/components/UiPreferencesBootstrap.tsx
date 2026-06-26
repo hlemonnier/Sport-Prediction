@@ -12,17 +12,27 @@ import {
   writeUiPreferences,
 } from "@/lib/uiPreferences";
 
+function clearRouteChrome(): void {
+  if (typeof document === "undefined") return;
+  document.body.classList.remove("f1-insights-chrome");
+}
+
 export default function UiPreferencesBootstrap() {
   useEffect(() => {
     let cancelled = false;
 
     const sync = () => {
       applyUiPreferences(readUiPreferences());
+      clearRouteChrome();
     };
 
     sync();
 
     const hydrateFromDatabase = async () => {
+      if (!process.env.NEXT_PUBLIC_API_URL && !process.env.API_URL) {
+        return;
+      }
+
       try {
         const response = await getUserPreferences();
         if (cancelled) {
@@ -33,6 +43,7 @@ export default function UiPreferencesBootstrap() {
           const serverPreferences = coerceUiPreferences(response.preferences);
           writeUiPreferences(serverPreferences);
           applyUiPreferences(serverPreferences);
+          clearRouteChrome();
         }
 
         writeUserSavings(coerceUserSavings(response.savings));
@@ -45,28 +56,9 @@ export default function UiPreferencesBootstrap() {
 
     const unsubscribe = subscribeUiPreferences(sync);
 
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleSystemTheme = () => {
-      const prefs = readUiPreferences();
-      if (prefs.themeMode === "system") {
-        applyUiPreferences(prefs);
-      }
-    };
-
-    if (typeof media.addEventListener === "function") {
-      media.addEventListener("change", handleSystemTheme);
-    } else {
-      media.addListener(handleSystemTheme);
-    }
-
     return () => {
       cancelled = true;
       unsubscribe();
-      if (typeof media.removeEventListener === "function") {
-        media.removeEventListener("change", handleSystemTheme);
-      } else {
-        media.removeListener(handleSystemTheme);
-      }
     };
   }, []);
 

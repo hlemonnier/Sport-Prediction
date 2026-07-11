@@ -6,6 +6,7 @@ import repo_bootstrap  # noqa: F401
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -28,12 +29,18 @@ from packages.f1.models.live_race.predict import (
     _sample_pit_loss_seconds,
     _strategy_template_probabilities,
 )
+from packages.f1.models.live_race.calibration import (
+    MonteCarloPriorConfig,
+    load_live_race_calibration,
+)
 from packages.f1.orchestration.backtest import evaluate_prediction_rows
+from packages.f1.orchestration.evidence import f1_runtime_manifest
 from packages.f1.models.live_race.state import FilterConfig, FilterState, build_event_lap_baseline, parse_track_status
 from packages.f1.data.providers import LocalWeekendProvider
 
 
 NEVER_BEFORE_FINISH = "Never before finish"
+BENCHMARK_SCHEMA_VERSION = "f1_horizon_a_vs_b_complete_field_calibration_v3"
 Z_SCORE_50 = 0.6744897501960817
 Z_SCORE_90 = 1.6448536269514722
 
@@ -51,6 +58,78 @@ def _resolve_path(project_root: Path, raw: str) -> Path:
     if path.is_absolute():
         return path
     return (project_root / path).resolve()
+
+
+def _portable_path(path: Path | str | None, *, project_root: Path) -> Optional[str]:
+    """Return a repo-relative artifact reference whenever possible."""
+
+    if path is None:
+        return None
+    resolved = Path(path).expanduser().resolve()
+    try:
+        return resolved.relative_to(project_root.resolve()).as_posix()
+    except ValueError:
+        return resolved.as_posix()
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _manifest_digest(files: list[dict[str, str]]) -> str:
+    canonical = json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _file_manifest(paths: Iterable[Path], *, project_root: Path, version: str) -> dict[str, Any]:
+    files = [
+        {
+            "path": str(_portable_path(path, project_root=project_root)),
+            "sha256": _sha256_file(path),
+        }
+        for path in sorted({path.expanduser().resolve() for path in paths}, key=lambda item: item.as_posix())
+        if path.is_file()
+    ]
+    return {
+        "manifest_version": version,
+        "aggregate_sha256": _manifest_digest(files),
+        "file_count": int(len(files)),
+        "files": files,
+    }
+
+
+def _implementation_manifest(*, project_root: Path) -> dict[str, Any]:
+    return _file_manifest(
+        [
+            Path(__file__).resolve(),
+            project_root / ".python-version",
+            Path(__file__).resolve().with_name("pyproject.toml"),
+            *sorted((project_root / "packages" / "f1").rglob("*.py")),
+        ],
+        project_root=project_root,
+        version="f1_source_tree_manifest_v1",
+    )
+
+
+def _input_data_manifest(
+    *,
+    project_root: Path,
+    weekends_dir: Path,
+    year: int,
+) -> dict[str, Any]:
+    season_dir = weekends_dir / str(int(year))
+    manifest = _file_manifest(
+        (path for path in season_dir.rglob("*") if path.is_file()) if season_dir.exists() else (),
+        project_root=project_root,
+        version="f1_weekend_input_manifest_v1",
+    )
+    manifest["weekends_root"] = _portable_path(weekends_dir, project_root=project_root)
+    manifest["seasons"] = [int(year)]
+    return manifest
 
 
 def _parse_lap_cutoffs(raw: str) -> list[int]:
@@ -97,6 +176,16 @@ def _load_json(path: Path) -> Optional[dict[str, Any]]:
     return payload
 
 
+def _full_field_prediction_rows(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Prefer the explicit full-field surface; legacy top-table rows fail later."""
+
+    for key in ("all_prediction_rows", "rows"):
+        raw_rows = payload.get(key)
+        if isinstance(raw_rows, list) and raw_rows:
+            return [row for row in raw_rows if isinstance(row, dict)]
+    return []
+
+
 def _trace_path_from_payload(payload: dict[str, Any], project_root: Path, payload_path: Path) -> Optional[Path]:
     candidates: list[Path] = []
     direct = payload.get("trace_path")
@@ -119,6 +208,9 @@ def _trace_path_from_payload(payload: dict[str, Any], project_root: Path, payloa
             (project_root / raw_path).resolve(),
             (project_root / raw_path.name).resolve(),
         ]
+        trace_root = project_root / "artifacts" / "predictions" / "f1" / "live" / "traces"
+        if trace_root.exists():
+            rel_candidates.extend(sorted(trace_root.rglob(raw_path.name)))
         for rel in rel_candidates:
             if rel.exists():
                 return rel
@@ -126,15 +218,19 @@ def _trace_path_from_payload(payload: dict[str, Any], project_root: Path, payloa
 
 
 def _fallback_trace_path(project_root: Path, year: int, round_number: int) -> Optional[Path]:
-    directory = project_root / "data" / "f1" / "live" / "artifacts" / str(int(year)) / f"round_{int(round_number):02d}"
-    if not directory.exists():
-        return None
-    parquet_paths = sorted(directory.glob("live_trace_*.parquet"))
-    if parquet_paths:
-        return parquet_paths[-1]
-    jsonl_paths = sorted(directory.glob("live_trace_*.jsonl"))
-    if jsonl_paths:
-        return jsonl_paths[-1]
+    directories = (
+        project_root / "artifacts" / "predictions" / "f1" / "live" / "traces" / str(int(year)) / f"round_{int(round_number):02d}",
+        project_root / "data" / "f1" / "live" / "artifacts" / str(int(year)) / f"round_{int(round_number):02d}",
+    )
+    for directory in directories:
+        if not directory.exists():
+            continue
+        parquet_paths = sorted(directory.glob("live_trace_*.parquet"))
+        if parquet_paths:
+            return parquet_paths[-1]
+        jsonl_paths = sorted(directory.glob("live_trace_*.jsonl"))
+        if jsonl_paths:
+            return jsonl_paths[-1]
     return None
 
 
@@ -348,6 +444,7 @@ def _mc_position_distribution_with_samples(
     horizon_laps: int,
     seed: int,
     requested_samples: int,
+    mc_priors: MonteCarloPriorConfig,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     return _mc_position_distribution(
         snapshot=snapshot,
@@ -361,6 +458,7 @@ def _mc_position_distribution_with_samples(
         emit_observability=True,
         observability_top_drivers=10,
         observability_max_position=20,
+        mc_priors=mc_priors,
     )
 
 
@@ -371,6 +469,7 @@ def _predict_snapshot_from_trace(
     horizon_laps: int,
     base_seed: int,
     mc_samples: int,
+    calibration_path: Path | str | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     if trace.empty:
         return pd.DataFrame(), {
@@ -395,7 +494,15 @@ def _predict_snapshot_from_trace(
     baseline = build_event_lap_baseline(work, min_clean_obs_per_lap=8)
     states = _build_states_from_trace(work)
     snapshot = _build_snapshot(work)
-    cfg = FilterConfig()
+    if calibration_path is None:
+        cfg = FilterConfig()
+        mc_priors = MonteCarloPriorConfig()
+        calibration_path_used = None
+    else:
+        calibration_path_used = str(Path(calibration_path).expanduser().resolve())
+        bundle = load_live_race_calibration(calibration_path_used)
+        cfg = bundle.filter_config
+        mc_priors = bundle.monte_carlo_priors
 
     snapshot_with_dist, dist_summary = _mc_position_distribution_with_samples(
         snapshot=snapshot,
@@ -405,6 +512,28 @@ def _predict_snapshot_from_trace(
         horizon_laps=max(1, int(horizon_laps)),
         seed=seed,
         requested_samples=max(50, int(mc_samples)),
+        mc_priors=mc_priors,
+    )
+    dist_summary.update(
+        {
+            "calibration_path": calibration_path_used,
+            "filter_calibration": cfg.diagnostics(),
+            "mc_prior_calibration": mc_priors.diagnostics(),
+            "prior_calibration_ready": bool(cfg.promotion_ready and mc_priors.promotion_ready),
+            # A calibrated prior is only one promotion prerequisite. Model-level
+            # promotion additionally requires locked replay and comparator evidence.
+            "promotion_ready": False,
+            "uses_hand_tuned_priors": bool(not cfg.promotion_ready or not mc_priors.promotion_ready),
+            "promotion_blockers": [
+                "locked_model_replay_and_comparator_evidence_required",
+                *(
+                    []
+                    if cfg.promotion_ready and mc_priors.promotion_ready
+                    else ["locked_replay_prior_calibration_required"]
+                ),
+                "heuristic_strategy_template_probabilities_not_calibrated",
+            ],
+        }
     )
     snapshot_final = _finalize_output_mapping(
         snapshot_with_dist,
@@ -2030,6 +2159,11 @@ def main() -> None:
         help="Window size for pit-within-W-laps calibration diagnostics.",
     )
     parser.add_argument("--f1-live-seed", type=int, default=42)
+    parser.add_argument(
+        "--f1-live-calibration-path",
+        default=None,
+        help="Locked-replay filter/MC calibration artifact. Without it Horizon B is research-only.",
+    )
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     args = parser.parse_args()
 
@@ -2038,6 +2172,11 @@ def main() -> None:
     horizon_b_dir = _resolve_path(project_root, args.horizon_b_dir)
     weekends_dir = _resolve_path(project_root, args.weekends_dir)
     output_dir = _resolve_path(project_root, args.output_dir)
+    calibration_path = (
+        _resolve_path(project_root, args.f1_live_calibration_path)
+        if args.f1_live_calibration_path
+        else None
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if not horizon_a_dir.exists():
@@ -2046,6 +2185,13 @@ def main() -> None:
         raise SystemExit(f"Horizon B directory not found: {horizon_b_dir}")
     if not weekends_dir.exists():
         raise SystemExit(f"Weekends directory not found: {weekends_dir}")
+    if calibration_path is not None:
+        if not calibration_path.is_file():
+            raise SystemExit(f"Live calibration artifact not found: {calibration_path}")
+        try:
+            load_live_race_calibration(calibration_path)
+        except Exception as exc:
+            raise SystemExit(f"Live calibration artifact rejected: {exc}") from exc
 
     if float(args.clean_max_chaos_fraction) > float(args.chaotic_min_chaos_fraction):
         raise SystemExit("--clean-max-chaos-fraction must be <= --chaotic-min-chaos-fraction.")
@@ -2067,6 +2213,7 @@ def main() -> None:
 
     per_round_rows: list[dict[str, Any]] = []
     issues: list[str] = []
+    input_artifacts: list[dict[str, Any]] = []
     observability_parts: dict[str, list[pd.DataFrame]] = {
         "a1_lap_availability": [],
         "a2_track_status_composition": [],
@@ -2106,8 +2253,8 @@ def main() -> None:
             issues.append(f"Round {round_number:02d}: missing/invalid B artifact ({b_path}).")
             continue
 
-        a_rows = a_payload.get("rows")
-        if not isinstance(a_rows, list) or not a_rows:
+        a_rows = _full_field_prediction_rows(a_payload)
+        if not a_rows:
             issues.append(f"Round {round_number:02d}: A rows unavailable.")
             continue
 
@@ -2131,8 +2278,35 @@ def main() -> None:
         try:
             trace = _read_trace(trace_path)
         except Exception as exc:
-            issues.append(f"Round {round_number:02d}: trace read failed ({trace_path}): {exc}")
-            continue
+            jsonl_fallback = trace_path.with_suffix(".jsonl")
+            if trace_path.suffix.lower() == ".parquet" and jsonl_fallback.exists():
+                try:
+                    trace = _read_trace(jsonl_fallback)
+                    trace_path = jsonl_fallback
+                except Exception as fallback_exc:
+                    issues.append(
+                        f"Round {round_number:02d}: trace read failed ({trace_path}: {exc}; "
+                        f"{jsonl_fallback}: {fallback_exc})."
+                    )
+                    continue
+            else:
+                issues.append(f"Round {round_number:02d}: trace read failed ({trace_path}): {exc}")
+                continue
+
+        input_artifacts.append(
+            {
+                "round": int(round_number),
+                "horizon_a_path": _portable_path(a_path, project_root=project_root),
+                "horizon_a_sha256": _sha256_file(a_path),
+                "horizon_b_path": _portable_path(b_path, project_root=project_root),
+                "horizon_b_sha256": _sha256_file(b_path),
+                "trace_path": _portable_path(trace_path, project_root=project_root),
+                "trace_sha256": _sha256_file(trace_path),
+                "horizon_a_rows": int(a_eval["rows_predicted"]),
+                "actual_rows": int(a_eval["rows_actual"]),
+                "complete_field": bool(a_eval["complete_field"]),
+            }
+        )
 
         total_laps_completed = _total_laps_completed(trace)
         if total_laps_completed is None:
@@ -2176,6 +2350,7 @@ def main() -> None:
                 horizon_laps=args.horizon_laps,
                 base_seed=args.f1_live_seed,
                 mc_samples=args.mc_samples,
+                calibration_path=calibration_path,
             )
             if snapshot.empty:
                 issues.append(f"Round {round_number:02d} {cutoff_label}: snapshot unavailable.")
@@ -2224,7 +2399,20 @@ def main() -> None:
                 "B_mc_samples_requested": dist_summary.get("mc_samples_requested"),
                 "B_mc_samples_effective": dist_summary.get("mc_samples_effective"),
                 "B_sum_p_win": dist_summary.get("sum_p_win"),
-                "trace_path": str(trace_path),
+                "B_prior_calibration_ready": bool(dist_summary.get("prior_calibration_ready", False)),
+                "B_promotion_ready": bool(dist_summary.get("promotion_ready", False)),
+                "B_uses_hand_tuned_priors": bool(dist_summary.get("uses_hand_tuned_priors", True)),
+                "B_filter_calibration_mode": (
+                    dist_summary.get("filter_calibration", {}).get("calibration_mode")
+                    if isinstance(dist_summary.get("filter_calibration"), dict)
+                    else None
+                ),
+                "B_mc_prior_calibration_mode": (
+                    dist_summary.get("mc_prior_calibration", {}).get("calibration_mode")
+                    if isinstance(dist_summary.get("mc_prior_calibration"), dict)
+                    else None
+                ),
+                "trace_path": _portable_path(trace_path, project_root=project_root),
             }
             per_round_rows.append(row)
             cutoff_obs = _build_cutoff_observability(
@@ -2243,6 +2431,40 @@ def main() -> None:
         raise SystemExit("No evaluable round/lap rows produced.")
 
     per_round_frame = per_round_frame.sort_values(["cutoff_sort_value", "round"], kind="mergesort").reset_index(drop=True)
+
+    expected_cutoff_count = int(len(pct_cutoffs) if args.cutoff_mode == "distance_pct" else len(lap_cutoffs))
+    round_cutoff_counts = {
+        int(round_number): int(count)
+        for round_number, count in per_round_frame.groupby("round", sort=True).size().to_dict().items()
+    }
+    rounds_with_output = sorted(round_cutoff_counts)
+    requested_rounds_complete = rounds_with_output == sorted({int(value) for value in rounds})
+    all_requested_cutoffs_complete = bool(
+        requested_rounds_complete
+        and all(round_cutoff_counts.get(int(round_number), 0) == expected_cutoff_count for round_number in rounds)
+    )
+
+    for item in input_artifacts:
+        round_number = int(item.get("round", -1))
+        round_rows = per_round_frame[per_round_frame["round"] == round_number].copy()
+        actual_rows = int(item.get("actual_rows", 0))
+        b_rows = pd.to_numeric(round_rows.get("B_rows"), errors="coerce").dropna().astype(int).tolist()
+        b_matched = pd.to_numeric(round_rows.get("B_matched"), errors="coerce").dropna().astype(int).tolist()
+        cutoff_count = int(len(round_rows))
+        b_complete = bool(
+            cutoff_count == expected_cutoff_count
+            and actual_rows > 0
+            and len(b_rows) == cutoff_count
+            and len(b_matched) == cutoff_count
+            and all(value == actual_rows for value in b_rows)
+            and all(value == actual_rows for value in b_matched)
+        )
+        item["horizon_b_rows_by_cutoff"] = b_rows
+        item["horizon_b_matched_by_cutoff"] = b_matched
+        item["cutoff_count"] = cutoff_count
+        item["expected_cutoff_count"] = expected_cutoff_count
+        item["horizon_b_complete_field"] = b_complete
+        item["same_actual_field"] = bool(item.get("complete_field")) and b_complete
 
     summaries: list[dict[str, Any]] = []
     for cutoff_value in sorted(per_round_frame["cutoff_sort_value"].dropna().astype(float).unique().tolist()):
@@ -2440,7 +2662,7 @@ def main() -> None:
             observability_artifacts[artifact_name] = None
             continue
         artifact_frame.to_csv(artifact_path, index=False)
-        observability_artifacts[artifact_name] = str(artifact_path)
+        observability_artifacts[artifact_name] = _portable_path(artifact_path, project_root=project_root)
 
     observability_plot_targets = {
         "a3_baseline_quality_plot": _render_baseline_quality_plot(
@@ -2482,9 +2704,60 @@ def main() -> None:
             cutoff_mode=args.cutoff_mode,
         ),
     }
-    observability_artifacts.update({name: path for name, path in observability_plot_targets.items()})
+    observability_artifacts.update(
+        {
+            name: _portable_path(path, project_root=project_root) if path else None
+            for name, path in observability_plot_targets.items()
+        }
+    )
+
+    population_complete = bool(
+        requested_rounds_complete
+        and all_requested_cutoffs_complete
+        and not issues
+        and len(input_artifacts) == len(rounds)
+        and all(bool(item.get("same_actual_field")) for item in input_artifacts)
+    )
+    prior_calibration_ready = bool(per_round_frame["B_prior_calibration_ready"].all())
+    calibration_manifest = None
+    if calibration_path is not None:
+        calibration_manifest = {
+            "path": _portable_path(calibration_path, project_root=project_root),
+            "sha256": _sha256_file(calibration_path),
+        }
 
     summary_payload = {
+        "schema_version": BENCHMARK_SCHEMA_VERSION,
+        "validation_status": (
+            "valid_complete_field_locked_calibration"
+            if population_complete and calibration_path is not None and prior_calibration_ready
+            else (
+                "valid_complete_field_research_only_hand_priors"
+                if population_complete and calibration_path is None
+                else (
+                    "invalid_locked_calibration_contract"
+                    if population_complete
+                    else "invalid_incomplete_population"
+                )
+            )
+        ),
+        "population_contract": {
+            "headline_metrics_require_complete_field": True,
+            "minimum_field_coverage": 0.95,
+            "horizon_a_and_b_use_same_actual_field": True,
+            "cross_population_headline_comparisons_allowed": False,
+            "requested_rounds_complete": requested_rounds_complete,
+            "all_requested_cutoffs_complete": all_requested_cutoffs_complete,
+            "issues_empty": not issues,
+            "expected_cutoff_count_per_round": expected_cutoff_count,
+        },
+        "implementation": _implementation_manifest(project_root=project_root),
+        "runtime": f1_runtime_manifest(),
+        "input_data": _input_data_manifest(
+            project_root=project_root,
+            weekends_dir=weekends_dir,
+            year=int(args.year),
+        ),
         "year": int(args.year),
         "cutoff_mode": str(args.cutoff_mode),
         "distance_cutoffs": [int(value) for value in pct_cutoffs],
@@ -2493,6 +2766,19 @@ def main() -> None:
         "mc_samples": int(args.mc_samples),
         "pit_window_laps": int(max(1, int(args.pit_window_laps))),
         "common_random_numbers": True,
+        "live_calibration": {
+            "artifact": calibration_manifest,
+            "prior_calibration_ready": prior_calibration_ready,
+            "model_promotion_ready": False,
+            "uses_hand_tuned_priors": bool(per_round_frame["B_uses_hand_tuned_priors"].any()),
+            "calibration_mode": (
+                "locked_replay" if calibration_path is not None else "hand_prior"
+            ),
+            "promotion_blockers": [
+                "locked_model_replay_and_comparator_evidence_required",
+                "heuristic_strategy_template_probabilities_not_calibrated",
+            ],
+        },
         "chaos_thresholds": {
             "clean_max_fraction": float(args.clean_max_chaos_fraction),
             "chaotic_min_fraction": float(args.chaotic_min_chaos_fraction),
@@ -2502,8 +2788,10 @@ def main() -> None:
             "score": float(args.epsilon_score),
         },
         "rounds_requested": [int(value) for value in rounds],
-        "rounds_with_output": sorted({int(value) for value in per_round_frame["round"].unique().tolist()}),
+        "rounds_with_output": rounds_with_output,
+        "round_cutoff_counts": {str(key): value for key, value in round_cutoff_counts.items()},
         "rows_total": int(len(per_round_frame)),
+        "input_artifacts": input_artifacts,
         "rounds_chaos": json.loads(
             round_chaos[
                 [
@@ -2526,16 +2814,16 @@ def main() -> None:
             "artifacts": observability_artifacts,
         },
         "artifacts": {
-            "per_round_csv": str(per_round_path),
-            "summary_csv": str(summary_csv_path),
-            "summary_json": str(summary_json_path),
-            "curve_csv": str(curve_csv_path),
-            "crossover_per_round_csv": str(crossover_per_round_path),
-            "crossover_distribution_csv": str(crossover_distribution_path),
-            "crossover_survival_csv": str(crossover_survival_path),
-            "crossover_overview_csv": str(crossover_overview_path),
-            "overtake_plot": plot_written,
-            "observability_dir": str(observability_dir),
+            "per_round_csv": _portable_path(per_round_path, project_root=project_root),
+            "summary_csv": _portable_path(summary_csv_path, project_root=project_root),
+            "summary_json": _portable_path(summary_json_path, project_root=project_root),
+            "curve_csv": _portable_path(curve_csv_path, project_root=project_root),
+            "crossover_per_round_csv": _portable_path(crossover_per_round_path, project_root=project_root),
+            "crossover_distribution_csv": _portable_path(crossover_distribution_path, project_root=project_root),
+            "crossover_survival_csv": _portable_path(crossover_survival_path, project_root=project_root),
+            "crossover_overview_csv": _portable_path(crossover_overview_path, project_root=project_root),
+            "overtake_plot": _portable_path(plot_written, project_root=project_root),
+            "observability_dir": _portable_path(observability_dir, project_root=project_root),
         },
         "issues": issues,
         "generated_at": _utc_now(),

@@ -163,7 +163,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="legacy_auto",
     )
     parser.add_argument("--weekends-dir", default="data/f1/raw/weekends")
-    parser.add_argument("--f1-model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
+    parser.add_argument(
+        "--f1-model",
+        choices=["auto", "baseline", "strategic_baseline", "xgb_rank", "eb_rank", "lgbm_rank"],
+        default="auto",
+    )
     parser.add_argument("--f1-pl-samples", type=int, default=300)
     parser.add_argument("--bootstrap-samples", type=int, default=2000)
     parser.add_argument("--seed", type=int, default=42)

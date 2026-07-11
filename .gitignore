@@ -1,6 +1,8 @@
 .env
 .env.local
 .venv/
+.venv*/
+*.egg-info/
 .DS_Store
 apps/api/data/
 apps/api/target/

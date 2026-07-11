@@ -6,6 +6,13 @@ import sys
 
 import pandas as pd
 
+from packages.f1.models.live_race.calibration import (
+    LiveRaceCalibrationBundle,
+    MonteCarloPriorConfig,
+    write_live_race_calibration,
+)
+from packages.f1.models.live_race.state import FilterConfig
+
 
 _MODULE_PATH = Path(__file__).resolve().parents[1] / "run_horizon_a_vs_b_lap_snapshots.py"
 _PYTHON_ROOT = str(_MODULE_PATH.parent)
@@ -15,6 +22,38 @@ _MODULE_SPEC = importlib.util.spec_from_file_location("run_horizon_a_vs_b_lap_sn
 assert _MODULE_SPEC is not None and _MODULE_SPEC.loader is not None
 snapshots = importlib.util.module_from_spec(_MODULE_SPEC)
 _MODULE_SPEC.loader.exec_module(snapshots)
+
+
+def _snapshot_trace() -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for driver_idx, driver_id in enumerate(("1", "2")):
+        cumulative = 0.0
+        for lap in range(1, 4):
+            lap_time = 90.0 + 0.2 * driver_idx + 0.05 * lap
+            cumulative += lap_time
+            rows.append(
+                {
+                    "event_key": 202501,
+                    "driver_id": driver_id,
+                    "driver_name": driver_id,
+                    "lap_number": lap,
+                    "timestamp": float(lap),
+                    "lap_time_seconds": lap_time,
+                    "race_time_seconds": cumulative,
+                    "is_box_lap": False,
+                    "is_accurate": True,
+                    "track_status": "1",
+                    "stint_id": 1,
+                    "tyre_age": lap,
+                    "compound": "MEDIUM",
+                    "pace_penalty_mean": 0.2 * driver_idx,
+                    "pace_penalty_std": 0.3,
+                    "deg_rate_mean": 0.04,
+                    "deg_rate_std": 0.02,
+                    "assim_laps_driver": lap,
+                }
+            )
+    return pd.DataFrame(rows)
 
 
 def test_distance_cutoff_plan_maps_percentages_to_real_laps() -> None:
@@ -27,6 +66,65 @@ def test_distance_cutoff_plan_maps_percentages_to_real_laps() -> None:
     assert [row["cutoff_label"] for row in plan] == ["5%", "10%", "20%"]
     assert [row["lap_cutoff"] for row in plan] == [3, 6, 11]
     assert abs(float(plan[0]["cutoff_pct_realized"]) - (300.0 / 53.0)) < 1e-9
+
+
+def test_snapshot_hand_prior_mode_is_explicitly_not_promotable() -> None:
+    snapshot, summary = snapshots._predict_snapshot_from_trace(
+        _snapshot_trace(),
+        lap_cutoff=3,
+        horizon_laps=2,
+        base_seed=42,
+        mc_samples=50,
+    )
+
+    assert not snapshot.empty
+    assert summary["prior_calibration_ready"] is False
+    assert summary["promotion_ready"] is False
+    assert summary["uses_hand_tuned_priors"] is True
+    assert summary["filter_calibration"]["calibration_mode"] == "hand_prior"
+
+
+def test_snapshot_uses_locked_replay_calibration_artifact(tmp_path: Path) -> None:
+    filter_config = FilterConfig(
+        phi=0.8,
+        q_pace=0.1,
+        q_deg=0.02,
+        r_obs=0.15,
+        calibration_mode="locked_replay",
+        calibration_source_id="locked-benchmark",
+        calibration_rows=200,
+    )
+    priors = MonteCarloPriorConfig(
+        calibration_mode="locked_replay",
+        calibration_source_id="locked-benchmark",
+        transition_rows=120,
+        pit_rows=30,
+    )
+    calibration_path = write_live_race_calibration(
+        LiveRaceCalibrationBundle(
+            filter_config=filter_config,
+            monte_carlo_priors=priors,
+            source_id="locked-benchmark",
+            source_rows=400,
+        ),
+        tmp_path / "calibration.json",
+    )
+
+    snapshot, summary = snapshots._predict_snapshot_from_trace(
+        _snapshot_trace(),
+        lap_cutoff=3,
+        horizon_laps=2,
+        base_seed=42,
+        mc_samples=50,
+        calibration_path=calibration_path,
+    )
+
+    assert not snapshot.empty
+    assert summary["prior_calibration_ready"] is True
+    assert summary["promotion_ready"] is False
+    assert "heuristic_strategy_template_probabilities_not_calibrated" in summary["promotion_blockers"]
+    assert summary["uses_hand_tuned_priors"] is False
+    assert summary["filter_calibration"]["phi"] == 0.8
 
 
 def test_chaos_profile_counts_sc_vsc_red_laps() -> None:
@@ -324,3 +422,71 @@ def test_cutoff_observability_uses_position_and_pairwise_payloads() -> None:
     assert not out["d13_pairwise_ahead_top10"].empty
     assert not out["d14_ranking_curve"].empty
     assert float(out["d15_mc_health"].iloc[0]["mc_samples_effective"]) == 180.0
+
+
+def test_headline_horizon_evaluation_rejects_top10_only_population() -> None:
+    actual = pd.DataFrame(
+        {
+            "driver_id": [str(value) for value in range(1, 21)],
+            "position": list(range(1, 21)),
+        }
+    )
+    predicted = [
+        {"driver_id": str(value), "rank": value}
+        for value in range(1, 11)
+    ]
+
+    result = snapshots._evaluate_prediction(predicted, actual)
+
+    assert result["available"] is False
+    assert result["metric_available"] is False
+    assert result["complete_field"] is False
+    assert result["mae"] is None
+
+
+def test_horizon_a_loader_prefers_explicit_full_field_rows() -> None:
+    payload = {
+        "rows": [{"driver_id": str(value), "rank": value} for value in range(1, 11)],
+        "all_prediction_rows": [
+            {"driver_id": str(value), "rank": value} for value in range(1, 21)
+        ],
+    }
+
+    selected = snapshots._full_field_prediction_rows(payload)
+
+    assert len(selected) == 20
+    assert selected[-1]["driver_id"] == "20"
+
+
+def test_portable_path_is_repo_relative_for_artifacts(tmp_path: Path) -> None:
+    project_root = tmp_path / "repo"
+    artifact = project_root / "artifacts" / "report.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text("{}", encoding="utf-8")
+
+    assert snapshots._portable_path(artifact, project_root=project_root) == "artifacts/report.json"
+    assert len(snapshots._sha256_file(artifact)) == 64
+
+
+def test_stale_trace_path_relocates_to_current_artifact_tree(tmp_path: Path) -> None:
+    project_root = tmp_path / "repo"
+    payload_path = project_root / "artifacts" / "backtests" / "horizon_b" / "r08.json"
+    payload_path.parent.mkdir(parents=True)
+    relocated = (
+        project_root
+        / "artifacts"
+        / "predictions"
+        / "f1"
+        / "live"
+        / "traces"
+        / "2025"
+        / "round_08"
+        / "live_trace_202508.jsonl"
+    )
+    relocated.parent.mkdir(parents=True)
+    relocated.write_text("{}\n", encoding="utf-8")
+    payload = {"trace_path": "/old/machine/live_trace_202508.jsonl"}
+
+    resolved = snapshots._trace_path_from_payload(payload, project_root, payload_path)
+
+    assert resolved == relocated

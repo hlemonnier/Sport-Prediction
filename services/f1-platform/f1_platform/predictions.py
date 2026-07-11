@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import json
-from dataclasses import dataclass
+import math
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from os import environ
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
@@ -103,60 +104,87 @@ class RemotePredictionService(PredictionService):
         except URLError as exc:
             raise RuntimeError(f"F1 prediction service failed: {exc.reason}") from exc
 
+        response_kind = response_payload.get("predictionKind", response_payload.get("prediction_kind"))
+        if response_kind is not None and str(response_kind).strip().lower().replace("_", "-") != kind:
+            raise RuntimeError(
+                f"F1 prediction service returned prediction kind {response_kind!r} for requested kind {kind!r}"
+            )
         predictions = response_payload.get("predictions")
         if not isinstance(predictions, list):
             raise RuntimeError("F1 prediction service response did not include predictions list")
-        return [_prediction_from_payload(item, state.seq) for item in predictions if isinstance(item, dict)]
+        prediction_rows = [item for item in predictions if isinstance(item, dict)]
+        if len(prediction_rows) != len(predictions):
+            raise RuntimeError("F1 prediction service response included a non-object prediction row")
+        _validate_joint_prediction_payloads(prediction_rows, state)
+        return [_prediction_from_payload(item, state.seq) for item in prediction_rows]
 
 
 class HeuristicPredictionService(PredictionService):
-    """Deterministic placeholder until package F1 models are wired in.
+    """Honest target-specific fallback when the model service is unavailable.
 
-    It is intentionally conservative and versioned so UI/API integration can be
-    built without pretending this is a trained production forecast.
+    These are deterministic snapshot baselines, not trained package models.
+    Their position matrices are jointly balanced so probability invariants are
+    preserved even during a remote-service outage.
     """
 
-    model_version = "heuristic_live_race_v0"
-    features_version = "live_state_snapshot_v1"
+    model_versions = {
+        "race": "platform_fallback_live_race_joint_baseline_v1",
+        "qualifying": "platform_fallback_qualifying_pace_baseline_v1",
+        "next-lap": "platform_fallback_next_lap_pace_baseline_v1",
+        "strategy": "platform_fallback_strategy_context_baseline_v1",
+    }
+    feature_versions = {
+        "race": "platform_fallback_live_race_snapshot_v1",
+        "qualifying": "platform_fallback_qualifying_snapshot_v1",
+        "next-lap": "platform_fallback_next_lap_snapshot_v1",
+        "strategy": "platform_fallback_strategy_snapshot_v1",
+    }
 
     async def predict_qualifying(self, state: SessionSnapshot) -> list[PredictionSnapshot]:
-        return self._position_based_predictions(state)
+        return self._target_predictions(state, "qualifying")
 
     async def predict_race(self, state: SessionSnapshot) -> list[PredictionSnapshot]:
-        return self._position_based_predictions(state)
+        return self._target_predictions(state, "race")
 
     async def predict_next_lap(self, state: SessionSnapshot) -> list[PredictionSnapshot]:
-        return self._position_based_predictions(state)
+        return self._target_predictions(state, "next-lap")
 
     async def predict_strategy(self, state: SessionSnapshot) -> list[PredictionSnapshot]:
-        return self._position_based_predictions(state)
+        return self._target_predictions(state, "strategy")
 
-    def _position_based_predictions(self, state: SessionSnapshot) -> list[PredictionSnapshot]:
-        drivers = [driver for driver in state.drivers if driver.position is not None]
+    def _target_predictions(self, state: SessionSnapshot, kind: str) -> list[PredictionSnapshot]:
+        drivers = list(state.drivers)
         if not drivers:
             return []
-        total = max(len(drivers), 1)
-        snapshots = []
-        for driver in drivers:
-            rank = float(driver.position or total)
-            strength = max(0.0, (total + 1.0 - rank) / total)
-            distribution = _distribution_for_driver(driver, total)
+        total = len(drivers)
+        ordered = sorted(drivers, key=lambda driver: (_fallback_target_score(driver, kind, total), driver.driver_number))
+        distributions = _joint_fallback_distributions(ordered, kind=kind)
+        snapshots: list[PredictionSnapshot] = []
+        for driver in ordered:
+            distribution = distributions[driver.driver_number]
             position_p10 = _position_percentile(distribution, 0.10)
             position_p90 = _position_percentile(distribution, 0.90)
+            expected_position = sum(float(position) * probability for position, probability in distribution.items())
             snapshots.append(
                 PredictionSnapshot(
-                    model_version=self.model_version,
+                    model_version=self.model_versions[kind],
                     prediction_time=utc_now_iso(),
                     source_event_sequence=state.seq,
-                    features_version=self.features_version,
+                    features_version=self.feature_versions[kind],
                     driver_number=driver.driver_number,
-                    expected_position=rank,
+                    expected_position=round(expected_position, 6),
                     position_distribution=distribution,
-                    win_probability=round(max(0.01, strength**3), 4),
-                    podium_probability=round(max(0.03, strength**1.8), 4),
-                    points_probability=round(max(0.08, min(0.98, strength + 0.12)), 4),
-                    dnf_probability=0.03,
-                    confidence=round(min(0.85, 0.35 + state.seq / 250.0), 4),
+                    win_probability=round(distribution.get("1", 0.0), 12),
+                    podium_probability=round(
+                        sum(distribution.get(str(position), 0.0) for position in range(1, min(3, total) + 1)),
+                        12,
+                    ),
+                    points_probability=round(
+                        sum(distribution.get(str(position), 0.0) for position in range(1, min(10, total) + 1)),
+                        12,
+                    ),
+                    dnf_probability=0.03 if kind in {"race", "strategy"} else 0.0,
+                    confidence=0.32 if kind in {"race", "strategy"} else 0.26,
                     position_p10=position_p10,
                     position_p90=position_p90,
                 )
@@ -164,13 +192,56 @@ class HeuristicPredictionService(PredictionService):
         return snapshots
 
 
-def _distribution_for_driver(driver: DriverState, total: int) -> dict[str, float]:
-    position = driver.position or total
-    weights: dict[int, float] = {}
-    for place in range(1, total + 1):
-        weights[place] = 1.0 / (1.0 + abs(place - position))
-    normalizer = sum(weights.values()) or 1.0
-    return {str(place): round(weight / normalizer, 4) for place, weight in weights.items()}
+def _fallback_target_score(driver: DriverState, kind: str, total: int) -> float:
+    if kind in {"race", "strategy"}:
+        return float(driver.position or total)
+
+    lap_signal = driver.best_lap_time if kind == "qualifying" else driver.last_lap_time
+    if lap_signal is None:
+        lap_signal = driver.last_lap_time if kind == "qualifying" else driver.best_lap_time
+    score = float(lap_signal) if lap_signal is not None else 1_000.0 + float(driver.driver_number) / 1_000.0
+    if kind == "next-lap":
+        compound = str(driver.current_compound or "UNKNOWN").upper()
+        deg = {"SOFT": 0.050, "MEDIUM": 0.040, "HARD": 0.030, "INTERMEDIATE": 0.060, "WET": 0.065}.get(
+            compound,
+            0.040,
+        )
+        score += deg * max(0.0, float(driver.tyre_age or 0))
+    return score
+
+
+def _joint_fallback_distributions(
+    ordered: list[DriverState],
+    *,
+    kind: str,
+) -> dict[int, dict[str, float]]:
+    total = len(ordered)
+    sigma = 1.50 if kind == "race" else 1.30 if kind in {"qualifying", "next-lap"} else 0.90
+    matrix = [
+        [
+            max(1e-15, math.exp(-((position - rank) ** 2) / (2.0 * sigma * sigma)))
+            for position in range(1, total + 1)
+        ]
+        for rank in range(1, total + 1)
+    ]
+    for _ in range(1000):
+        for row_index in range(total):
+            row_sum = sum(matrix[row_index]) or 1.0
+            matrix[row_index] = [value / row_sum for value in matrix[row_index]]
+        for column_index in range(total):
+            column_sum = sum(matrix[row][column_index] for row in range(total)) or 1.0
+            for row_index in range(total):
+                matrix[row_index][column_index] /= column_sum
+        row_error = max(abs(sum(row) - 1.0) for row in matrix)
+        if row_error <= 1e-12:
+            break
+    return {
+        driver.driver_number: {
+            str(position): round(matrix[row_index][position - 1], 12)
+            for position in range(1, total + 1)
+        }
+        for row_index, driver in enumerate(ordered)
+    }
 
 
 def prediction_service_from_env() -> PredictionService:
@@ -183,6 +254,115 @@ def prediction_service_from_env() -> PredictionService:
         RemotePredictionConfig(base_url=url, timeout_seconds=timeout, fallback_on_error=fallback),
         fallback=HeuristicPredictionService(),
     )
+
+
+def _validate_joint_prediction_payloads(
+    payloads: list[dict[str, Any]],
+    state: SessionSnapshot,
+    *,
+    tolerance: float = 2e-5,
+) -> None:
+    """Reject incomplete or incoherent remote position marginals.
+
+    A valid F1 order is an assignment: every driver occupies one position and
+    every position is occupied by one driver.  Validating this boundary keeps a
+    malformed remote response from silently reaching the UI; the caller can
+    then use its configured safe fallback.
+    """
+
+    expected_drivers = {int(driver.driver_number) for driver in state.drivers}
+    if not expected_drivers:
+        if payloads:
+            raise RuntimeError("F1 prediction service returned predictions for an empty driver field")
+        return
+    if len(payloads) != len(expected_drivers):
+        raise RuntimeError(
+            "F1 prediction service returned an incomplete field: "
+            f"expected {len(expected_drivers)} drivers, received {len(payloads)}"
+        )
+
+    total = len(expected_drivers)
+    expected_positions = {str(position) for position in range(1, total + 1)}
+    rows: dict[int, dict[str, float]] = {}
+    for payload in payloads:
+        driver_number = _required_int(payload.get("driver_number", payload.get("driverNumber")), "driver_number")
+        if driver_number in rows:
+            raise RuntimeError(f"F1 prediction service returned duplicate driver {driver_number}")
+        model_version = payload.get("model_version", payload.get("modelVersion"))
+        features_version = payload.get("features_version", payload.get("featuresVersion"))
+        if not str(model_version or "").strip() or not str(features_version or "").strip():
+            raise RuntimeError(
+                f"F1 prediction service driver {driver_number} is missing explicit model/features provenance"
+            )
+        raw_distribution = payload.get("position_distribution", payload.get("positionDistribution"))
+        if not isinstance(raw_distribution, dict):
+            raise RuntimeError(f"F1 prediction service driver {driver_number} has no position distribution")
+        distribution: dict[str, float] = {}
+        for key, raw_probability in raw_distribution.items():
+            probability = _optional_float(raw_probability)
+            if probability is None or not math.isfinite(probability) or not 0.0 <= probability <= 1.0:
+                raise RuntimeError(
+                    f"F1 prediction service driver {driver_number} has invalid probability for position {key}"
+                )
+            distribution[str(key)] = probability
+        if set(distribution) != expected_positions:
+            raise RuntimeError(
+                f"F1 prediction service driver {driver_number} position keys do not cover 1..{total}"
+            )
+        if abs(sum(distribution.values()) - 1.0) > tolerance:
+            raise RuntimeError(f"F1 prediction service driver {driver_number} distribution does not sum to one")
+
+        derived = {
+            "win": distribution["1"],
+            "podium": sum(distribution[str(position)] for position in range(1, min(3, total) + 1)),
+            "points": sum(distribution[str(position)] for position in range(1, min(10, total) + 1)),
+        }
+        supplied = {
+            "win": _optional_float(payload.get("win_probability", payload.get("winProbability"))),
+            "podium": _optional_float(payload.get("podium_probability", payload.get("podiumProbability"))),
+            "points": _optional_float(payload.get("points_probability", payload.get("pointsProbability"))),
+        }
+        for name, expected in derived.items():
+            if supplied[name] is None or abs(float(supplied[name]) - expected) > tolerance:
+                raise RuntimeError(
+                    f"F1 prediction service driver {driver_number} {name} probability disagrees with its distribution"
+                )
+        rows[driver_number] = distribution
+
+    if set(rows) != expected_drivers:
+        missing = sorted(expected_drivers - set(rows))
+        unexpected = sorted(set(rows) - expected_drivers)
+        raise RuntimeError(
+            f"F1 prediction service driver field mismatch; missing={missing}, unexpected={unexpected}"
+        )
+
+    column_sums = {
+        position: sum(distribution[position] for distribution in rows.values())
+        for position in expected_positions
+    }
+    bad_columns = {
+        position: value
+        for position, value in column_sums.items()
+        if abs(value - 1.0) > tolerance
+    }
+    if bad_columns:
+        raise RuntimeError(f"F1 prediction service position columns do not sum to one: {bad_columns}")
+
+    win_sum = sum(distribution["1"] for distribution in rows.values())
+    podium_sum = sum(
+        sum(distribution[str(position)] for position in range(1, min(3, total) + 1))
+        for distribution in rows.values()
+    )
+    points_sum = sum(
+        sum(distribution[str(position)] for position in range(1, min(10, total) + 1))
+        for distribution in rows.values()
+    )
+    if abs(win_sum - 1.0) > tolerance:
+        raise RuntimeError("F1 prediction service win probabilities do not sum to one")
+    if abs(podium_sum - float(min(3, total))) > tolerance:
+        raise RuntimeError("F1 prediction service podium probabilities do not sum to the podium capacity")
+    if abs(points_sum - float(min(10, total))) > tolerance:
+        raise RuntimeError("F1 prediction service points probabilities do not sum to the points capacity")
 
 
 def _prediction_from_payload(payload: dict[str, Any], fallback_sequence: int) -> PredictionSnapshot:
@@ -231,7 +411,7 @@ def _distribution_payload(value: Any) -> dict[str, float]:
     for key, raw in value.items():
         number = _optional_float(raw)
         if number is not None:
-            out[str(key)] = round(max(0.0, min(1.0, number)), 6)
+            out[str(key)] = round(max(0.0, min(1.0, number)), 12)
     return out
 
 
@@ -306,4 +486,4 @@ def _probability(value: Any, *, default: float = 0.0) -> float:
     number = _optional_float(value)
     if number is None:
         return default
-    return round(max(0.0, min(1.0, number)), 6)
+    return round(max(0.0, min(1.0, number)), 12)

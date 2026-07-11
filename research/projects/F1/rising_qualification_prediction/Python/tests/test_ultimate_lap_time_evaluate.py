@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 import packages.f1.models.ultimate_lap_time.evaluate as ultimate_evaluate
+from packages.f1.models.ultimate_lap_time.model import aggregate_ideal_lap_holdout_targets
 from packages.f1.models.ultimate_lap_time.evaluate import (
     DETERMINISTIC_BASELINE_MODEL_NAME,
     evaluate_ultimate_lap_time_baseline_backtest,
@@ -14,6 +15,7 @@ from packages.f1.models.ultimate_lap_time.evaluate import (
     write_ultimate_lap_time_baseline_backtest_report,
     write_ultimate_lap_time_evaluation_report,
 )
+from packages.f1.models.ultimate_lap_time.schemas import IDEAL_LAP_TARGET_CONTRACT
 
 
 def _baseline_laps(event_key: str, offset: float = 0.0) -> pd.DataFrame:
@@ -42,7 +44,8 @@ def test_ultimate_lap_evaluation_metrics_and_report_shape(tmp_path) -> None:
             "session": ["Q", "Q", "Q", "Q", "Q", "Q"],
             "circuit_id": ["bahrain", "bahrain", "bahrain", "jeddah", "jeddah", "jeddah"],
             "driver_id": ["VER", "LEC", "NOR", "VER", "LEC", "NOR"],
-            "lap_time_seconds": [89.8, 90.1, 90.4, 88.9, 89.2, 89.5],
+            "ideal_lap_time_seconds": [89.8, 90.1, 90.4, 88.9, 89.2, 89.5],
+            "target_contract": [IDEAL_LAP_TARGET_CONTRACT] * 6,
         }
     )
     predictions = pd.DataFrame(
@@ -63,12 +66,14 @@ def test_ultimate_lap_evaluation_metrics_and_report_shape(tmp_path) -> None:
     assert result.metrics["fastest_lap_winner_hit_rate"] == pytest.approx(1.0)
     assert result.metrics["top3_fastest_lap_accuracy"] == pytest.approx(1.0)
     assert result.leakage_issues == ()
-    assert result.promotion_gate_passed
+    assert result.evaluation_contract_passed
+    assert not result.promotion_gate_passed
     assert result.calibration_curve
 
     output_path = write_ultimate_lap_time_evaluation_report(result, tmp_path / "eval.json")
     payload = json.loads(output_path.read_text())
-    assert payload["promotion_gate_passed"] is True
+    assert payload["evaluation_contract_passed"] is True
+    assert payload["promotion_gate_passed"] is False
     assert payload["metrics"]["p05_pinball"] == pytest.approx(result.metrics["p05_pinball"])
 
 
@@ -82,7 +87,8 @@ def test_evaluation_flags_exact_target_prediction_as_leakage() -> None:
         {
             "event_key": ["e"] * 4,
             "session": ["Q"] * 4,
-            "lap_time_seconds": [90.0, 91.0, 92.0, 93.0],
+            "ideal_lap_time_seconds": [90.0, 91.0, 92.0, 93.0],
+            "target_contract": [IDEAL_LAP_TARGET_CONTRACT] * 4,
             "lap_p05": [89.9, 90.9, 91.9, 92.9],
             "lap_p50": [90.0, 91.0, 92.0, 93.0],
             "lap_p90": [90.1, 91.1, 92.1, 93.1],
@@ -93,6 +99,44 @@ def test_evaluation_flags_exact_target_prediction_as_leakage() -> None:
 
     assert result.leakage_issues == ("predicted_p50 exactly matches actual lap time on every finite row",)
     assert not result.promotion_gate_passed
+
+
+def test_evaluation_rejects_arbitrary_raw_lap_rows() -> None:
+    raw_laps = _baseline_laps("raw-holdout")
+    predictions = pd.DataFrame(
+        {
+            "lap_p05": [89.0] * len(raw_laps),
+            "lap_p50": [90.0] * len(raw_laps),
+            "lap_p90": [91.0] * len(raw_laps),
+        }
+    )
+
+    with pytest.raises(ValueError, match="aggregate raw holdout laps first"):
+        evaluate_ultimate_lap_time_predictions(raw_laps, predictions)
+
+
+def test_holdout_target_is_explicit_sector_minimum_aggregation() -> None:
+    laps = pd.DataFrame(
+        {
+            "event_key": ["e1", "e1"],
+            "session": ["Q", "Q"],
+            "circuit_id": ["bahrain", "bahrain"],
+            "driver_id": ["VER", "VER"],
+            "team_id": ["red_bull", "red_bull"],
+            "lap_time_seconds": [90.0, 90.2],
+            "sector1_seconds": [29.0, 30.0],
+            "sector2_seconds": [31.0, 30.0],
+            "sector3_seconds": [30.0, 30.2],
+        }
+    )
+
+    targets = aggregate_ideal_lap_holdout_targets(laps)
+
+    assert len(targets) == 1
+    assert targets.loc[0, "ideal_lap_time_seconds"] == pytest.approx(89.0)
+    assert targets.loc[0, "target_contract"] == IDEAL_LAP_TARGET_CONTRACT
+    assert targets.loc[0, "clean_lap_count"] == 2
+    assert "lap_time_seconds" not in targets.columns
 
 
 def test_default_report_path_is_repo_rooted(monkeypatch, tmp_path) -> None:
@@ -154,4 +198,7 @@ def test_ultimate_baseline_backtest_report_uses_artifacts_backtests(monkeypatch,
     assert payload["model_name"] == DETERMINISTIC_BASELINE_MODEL_NAME
     assert payload["evaluation"]["model_name"] == DETERMINISTIC_BASELINE_MODEL_NAME
     assert payload["evaluation"]["missing_metrics"] == []
+    assert payload["evaluation"]["target_contract"] == IDEAL_LAP_TARGET_CONTRACT
+    assert payload["training_summary"]["holdout_raw_lap_rows"] == 4
+    assert payload["training_summary"]["holdout_ideal_target_rows"] == 4
     assert not (research_cwd / "artifacts").exists()

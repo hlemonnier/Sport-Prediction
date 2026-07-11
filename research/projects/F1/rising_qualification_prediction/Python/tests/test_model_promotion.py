@@ -32,7 +32,7 @@ def test_ultimate_lap_promotion_requires_candidate_to_beat_deterministic_baselin
     decision = evaluate_model_promotion(
         candidate_model_id=ULTIMATE_LAP_TIME_CANDIDATE_MODEL_ID,
         baseline_model_id=ULTIMATE_LAP_TIME_BASELINE_MODEL_ID,
-        candidate_metrics=_ultimate_metrics(p05_pinball=0.09),
+        candidate_metrics=_ultimate_metrics(p50_mae=0.18, p50_rmse=0.22, p50_pinball=0.08),
         baseline_metrics=_ultimate_metrics(p05_pinball=0.12),
         config=ultimate_lap_time_promotion_config(),
     )
@@ -40,7 +40,7 @@ def test_ultimate_lap_promotion_requires_candidate_to_beat_deterministic_baselin
     assert decision.promotion_gate_passed is True
     assert decision.promotion_status == "promoted"
     assert decision.reasons == ()
-    assert decision.metric_comparisons[0].metric == "p05_pinball"
+    assert decision.metric_comparisons[0].metric == "p50_mae"
     assert decision.metric_comparisons[0].direction == "lower"
 
 
@@ -67,13 +67,13 @@ def test_promotion_fails_when_candidate_does_not_beat_baseline() -> None:
     decision = evaluate_model_promotion(
         candidate_model_id=ULTIMATE_LAP_TIME_CANDIDATE_MODEL_ID,
         baseline_model_id=ULTIMATE_LAP_TIME_BASELINE_MODEL_ID,
-        candidate_metrics=_ultimate_metrics(p05_pinball=0.14),
+        candidate_metrics=_ultimate_metrics(p50_mae=0.22, p50_rmse=0.22, p50_pinball=0.08),
         baseline_metrics=_ultimate_metrics(p05_pinball=0.12),
         config=ultimate_lap_time_promotion_config(),
     )
 
     assert decision.promotion_gate_passed is False
-    assert decision.reasons == ("candidate_does_not_beat_baseline:p05_pinball",)
+    assert decision.reasons == ("candidate_does_not_beat_baseline:p50_mae",)
 
 
 def test_live_strategy_promotion_requires_locked_simulator_validation() -> None:

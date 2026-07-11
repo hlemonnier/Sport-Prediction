@@ -227,19 +227,34 @@ def sector_mae_tensor(prediction: "torch.Tensor", target: "torch.Tensor") -> "to
     return torch.mean(torch.abs(pred[mask] - truth[mask]))
 
 
-def fastest_lap_pairwise_rank_loss(prediction: "torch.Tensor", target: "torch.Tensor") -> "torch.Tensor":
+def fastest_lap_pairwise_rank_loss(
+    prediction: "torch.Tensor",
+    target: "torch.Tensor",
+    group_ids: "torch.Tensor",
+) -> "torch.Tensor":
+    """Pairwise fastest-lap loss restricted to one event/circuit/session.
+
+    Absolute lap times are not comparable across tracks. Requiring explicit
+    group ids prevents a random mixed-circuit batch from creating nonsensical
+    ranking pairs.
+    """
+
     if torch is None:
         raise RuntimeError("PyTorch is not installed")
+    if group_ids.ndim != 1 or group_ids.shape[0] != prediction.shape[0]:
+        raise ValueError("group_ids must have one value per prediction row")
     pred = prediction[:, 1]
     truth = target[:, 1]
     mask = torch.isfinite(pred) & torch.isfinite(truth)
     pred = pred[mask]
     truth = truth[mask]
+    groups = group_ids[mask]
     if pred.numel() < 2:
         return torch.zeros((), dtype=prediction.dtype, device=prediction.device)
     pred_diff = pred[:, None] - pred[None, :]
     truth_sign = torch.sign(truth[:, None] - truth[None, :])
-    pair_mask = truth_sign != 0
+    same_group = groups[:, None] == groups[None, :]
+    pair_mask = (truth_sign != 0) & same_group
     if not torch.any(pair_mask):
         return torch.zeros((), dtype=prediction.dtype, device=prediction.device)
     return F.softplus(-truth_sign[pair_mask] * pred_diff[pair_mask]).mean()
@@ -256,12 +271,20 @@ def ultimate_lap_time_deep_loss(
     prediction: "torch.Tensor",
     target: "torch.Tensor",
     config: DistanceTelemetryTCNConfig,
+    *,
+    group_ids: "torch.Tensor | None" = None,
 ) -> "torch.Tensor":
     """Composite loss from the roadmap: pinball + sectors + rank + monotonicity."""
 
     quantile = pinball_loss_tensor(prediction, target)
     sector = sector_mae_tensor(prediction, target)
-    rank = fastest_lap_pairwise_rank_loss(prediction, target)
+    if float(config.lambda_rank) > 0.0 and group_ids is None:
+        raise ValueError("group_ids are required when lambda_rank is positive")
+    rank = (
+        fastest_lap_pairwise_rank_loss(prediction, target, group_ids)
+        if group_ids is not None
+        else torch.zeros((), dtype=prediction.dtype, device=prediction.device)
+    )
     mono = monotonic_quantile_penalty(prediction)
     return (
         quantile

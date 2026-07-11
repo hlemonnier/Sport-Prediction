@@ -13,6 +13,7 @@ from packages.f1.data.schemas.circuit import (
 )
 from packages.f1.data.providers import BaseProvider
 from packages.f1.data.utils import normalize_event_name, team_column
+from packages.f1.features.wet import add_f1_wet_pace_interactions
 
 
 PACE_DELTA_WEIGHTS = {
@@ -82,8 +83,6 @@ def _attach_track_stats(
             out[key] = float(numeric)
     if "track_finish_order_mobility" not in out.columns and "track_overtake_propensity" in out.columns:
         out["track_finish_order_mobility"] = out["track_overtake_propensity"]
-    if "track_overtake_propensity" not in out.columns and "track_finish_order_mobility" in out.columns:
-        out["track_overtake_propensity"] = out["track_finish_order_mobility"]
     out = _add_track_interactions(out)
     return out
 
@@ -121,8 +120,6 @@ def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
 
     if "track_finish_order_mobility" not in out.columns and "track_overtake_propensity" in out.columns:
         out["track_finish_order_mobility"] = out["track_overtake_propensity"]
-    if "track_overtake_propensity" not in out.columns and "track_finish_order_mobility" in out.columns:
-        out["track_overtake_propensity"] = out["track_finish_order_mobility"]
     mobility = (
         out["track_finish_order_mobility"]
         if "track_finish_order_mobility" in out.columns
@@ -302,7 +299,10 @@ def _add_track_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         + traction * ((0.50 * weighted_fit) + (0.30 * race_fit) + (0.20 * consistency_fit))
     ) / (downforce + power + tyre + low_speed + traction).replace(0.0, 1.0)
 
-    return out
+    # Accept the legacy provider alias above, but never expose it downstream:
+    # observed grid-to-finish movement is not an overtake probability.
+    out = out.drop(columns=["track_overtake_propensity"], errors="ignore")
+    return add_f1_wet_pace_interactions(out)
 
 
 def _numeric_feature(frame: pd.DataFrame, column: str, default: float) -> pd.Series:
@@ -896,162 +896,27 @@ def _attach_temporal_features_current(
     out["driver_id"] = out["driver_id"].astype(str)
     out["event_name"] = out.get("event_name", pd.Series(index=out.index, dtype=object))
     out["event_name_norm"] = out["event_name"].map(normalize_event_name)
-
-    temporal_cols = [
-        "driver_ewma_fp_mean_delta",
-        "driver_form_3_fp_mean_delta",
-        "driver_form_5_fp_mean_delta",
-        "driver_ewma_fp_weighted_delta",
-        "driver_form_3_fp_weighted_delta",
-        "driver_ewma_fp_quali_sim_delta",
-        "driver_form_3_fp_quali_sim_delta",
-        "driver_ewma_fp_race_sim_delta",
-        "driver_form_3_fp_race_sim_delta",
-        "driver_form_3_vs_team_fp_weighted_delta",
-        "team_ewma_fp_mean_delta",
-        "team_form_3_fp_mean_delta",
-        "team_form_5_fp_mean_delta",
-        "team_ewma_fp_weighted_delta",
-        "team_form_3_fp_weighted_delta",
-        "driver_archetype_form_3_fp_weighted_delta",
-        "team_archetype_form_3_fp_weighted_delta",
-        "driver_circuit_hist_fp_weighted_delta",
-        "team_circuit_hist_fp_weighted_delta",
-        "event_driver_hist_idx",
-    ]
-    for col in temporal_cols:
-        out[col] = float("nan")
-
     if history is None or history.empty or "driver_id" not in history.columns:
         return _add_event_relative_features(out)
 
-    hist = _add_temporal_features_train(history)
-    hist = hist.copy()
-    hist["driver_id"] = hist["driver_id"].astype(str)
-    if "circuit_archetype" in hist.columns:
-        hist["circuit_archetype"] = hist["circuit_archetype"].astype(str).str.strip().str.lower()
-    if "circuit_card_id" in hist.columns:
-        hist["circuit_card_id"] = hist["circuit_card_id"].astype(str).str.strip().str.lower()
-    if "circuit_archetype" in out.columns:
-        out["circuit_archetype"] = out["circuit_archetype"].astype(str).str.strip().str.lower()
-    if "circuit_card_id" in out.columns:
-        out["circuit_card_id"] = out["circuit_card_id"].astype(str).str.strip().str.lower()
-    sort_cols = [c for c in ["event_key", "event_year", "event_round"] if c in hist.columns]
-    if sort_cols:
-        hist = hist.sort_values(sort_cols, kind="mergesort")
-
-    driver_last = hist.groupby("driver_id", sort=False).tail(1).set_index("driver_id")
-    for col in [
-        "driver_ewma_fp_mean_delta",
-        "driver_form_3_fp_mean_delta",
-        "driver_form_5_fp_mean_delta",
-        "driver_ewma_fp_weighted_delta",
-        "driver_form_3_fp_weighted_delta",
-        "driver_ewma_fp_quali_sim_delta",
-        "driver_form_3_fp_quali_sim_delta",
-        "driver_ewma_fp_race_sim_delta",
-        "driver_form_3_fp_race_sim_delta",
-        "driver_form_3_vs_team_fp_weighted_delta",
-    ]:
-        if col in driver_last.columns:
-            out[col] = out["driver_id"].map(driver_last[col])
-
-    hist_team_col = team_column(hist)
-    current_team_col = team_column(out)
-    if hist_team_col and current_team_col:
-        hist[hist_team_col] = (
-            hist[hist_team_col]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .replace({"nan": pd.NA, "none": pd.NA, "<na>": pd.NA, "": pd.NA})
-        )
-        out[current_team_col] = (
-            out[current_team_col]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .replace({"nan": pd.NA, "none": pd.NA, "<na>": pd.NA, "": pd.NA})
-        )
-        team_last = hist.groupby(hist_team_col, sort=False).tail(1).set_index(hist_team_col)
-        for col in [
-            "team_ewma_fp_mean_delta",
-            "team_form_3_fp_mean_delta",
-            "team_form_5_fp_mean_delta",
-            "team_ewma_fp_weighted_delta",
-            "team_form_3_fp_weighted_delta",
-        ]:
-            if col in team_last.columns:
-                out[col] = out[current_team_col].map(team_last[col])
-
-    if "fp_weighted_delta" in hist.columns:
-        hist_weighted = pd.to_numeric(hist["fp_weighted_delta"], errors="coerce")
-        hist = hist.copy()
-        hist["fp_weighted_delta"] = hist_weighted
-
-        if "circuit_archetype" in hist.columns and "circuit_archetype" in out.columns:
-            hist_valid = hist.dropna(subset=["fp_weighted_delta"]).copy()
-            driver_arch = (
-                hist_valid
-                .groupby(["driver_id", "circuit_archetype"], sort=False)["fp_weighted_delta"]
-                .apply(lambda s: float(s.tail(3).mean()))
-            )
-            out["driver_archetype_form_3_fp_weighted_delta"] = _lookup_pair_series(
-                keys_a=out["driver_id"],
-                keys_b=out["circuit_archetype"],
-                values=driver_arch,
-                index=out.index,
-            )
-            if hist_team_col and current_team_col:
-                team_arch = (
-                    hist_valid
-                    .groupby([hist_valid[hist_team_col], hist_valid["circuit_archetype"]], sort=False)["fp_weighted_delta"]
-                    .apply(lambda s: float(s.tail(3).mean()))
-                )
-                out["team_archetype_form_3_fp_weighted_delta"] = _lookup_pair_series(
-                    keys_a=out[current_team_col],
-                    keys_b=out["circuit_archetype"],
-                    values=team_arch,
-                    index=out.index,
-                )
-
-        if "circuit_card_id" in hist.columns and "circuit_card_id" in out.columns:
-            hist_valid = hist.dropna(subset=["fp_weighted_delta"]).copy()
-            driver_circuit = (
-                hist_valid
-                .groupby(["driver_id", "circuit_card_id"], sort=False)["fp_weighted_delta"]
-                .mean()
-            )
-            out["driver_circuit_hist_fp_weighted_delta"] = _lookup_pair_series(
-                keys_a=out["driver_id"],
-                keys_b=out["circuit_card_id"],
-                values=driver_circuit,
-                index=out.index,
-            )
-            if hist_team_col and current_team_col:
-                team_circuit = (
-                    hist_valid
-                    .groupby([hist_valid[hist_team_col], hist_valid["circuit_card_id"]], sort=False)["fp_weighted_delta"]
-                    .mean()
-                )
-                out["team_circuit_hist_fp_weighted_delta"] = _lookup_pair_series(
-                    keys_a=out[current_team_col],
-                    keys_b=out["circuit_card_id"],
-                    values=team_circuit,
-                    index=out.index,
-                )
-
-    hist["event_name_norm"] = hist.get("event_name", pd.Series(index=hist.index, dtype=object)).map(
-        normalize_event_name,
-    )
-    track_driver = hist.groupby(["event_name_norm", "driver_id"], sort=False)["fp_mean_delta"].mean()
-    keys = list(zip(out["event_name_norm"], out["driver_id"]))
-    out["event_driver_hist_idx"] = [track_driver.get(key, float("nan")) for key in keys]
-    driver_mean = hist.groupby("driver_id", sort=False)["fp_mean_delta"].mean()
-    out["event_driver_hist_idx"] = out["event_driver_hist_idx"].fillna(out["driver_id"].map(driver_mean))
-
-    out = _add_event_relative_features(out)
-    return out
+    # Run the exact shifted training transform on history + a marked current
+    # event.  The shift excludes each current row while including every
+    # completed historical event, including the latest one, exactly once.
+    # Mapping the already-shifted tail row used to omit that latest event.
+    original_index = out.index.copy()
+    hist = history.copy()
+    hist["__temporal_current_row"] = False
+    hist["__temporal_current_order"] = -1
+    current_rows = out.copy()
+    current_rows["__temporal_current_row"] = True
+    current_rows["__temporal_current_order"] = range(len(current_rows))
+    combined = pd.concat([hist, current_rows], ignore_index=True, sort=False)
+    transformed = _add_temporal_features_train(combined)
+    current_out = transformed.loc[transformed["__temporal_current_row"].fillna(False)].copy()
+    current_out = current_out.sort_values("__temporal_current_order", kind="mergesort")
+    current_out = current_out.drop(columns=["__temporal_current_row", "__temporal_current_order"], errors="ignore")
+    current_out.index = original_index
+    return current_out
 
 
 def _lookup_pair_series(

@@ -12,7 +12,7 @@ RACE_CONTEXT_COLUMNS: tuple[str, ...] = (
     "fp_race_sim_delta_track_adj",
     "track_grid_stability",
     "track_chaos_index",
-    "track_overtake_propensity",
+    "track_finish_order_mobility",
     "race_generation_variance_prior",
 )
 

@@ -19,9 +19,11 @@ from packages.f1.features.assembly import build_current_features, build_training
 from packages.f1.models.live_race.predict import run_live_race_prediction
 from packages.f1.data.providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
 from packages.f1.models.probability import pl_gumbel_probabilities
+from packages.f1.models.race_probability import race_stochastic_score_layer as _race_stochastic_score_layer
 from packages.f1.models.training import train_model
 from packages.f1.data.utils import format_prediction_table
 from packages.f1.features.weather import apply_f1_weather_to_features, fetch_f1_weather_summary
+from packages.f1.features.wet import add_f1_wet_pace_interactions, wet_pace_evidence_rows
 
 RUNSIM_EXACT_COLUMNS = {"fp_slow_lap_ratio", "fp_quali_vs_race_gap"}
 WEATHER_SCENARIO_COLUMNS = (
@@ -52,7 +54,6 @@ QUALIFYING_CIRCUIT_INTERACTION_FEATURES = (
 )
 RACE_CONTEXT_EVIDENCE_COLUMNS = (
     "track_finish_order_mobility",
-    "track_overtake_propensity",
     "track_grid_stability",
     "track_safety_car_propensity",
     "track_sc_lap_ratio",
@@ -108,6 +109,40 @@ CURRENT_WEEKEND_EVIDENCE_COLUMNS = (
     "grid_source",
     "grid_status",
 )
+RACE_INFORMATION_HORIZONS = {
+    "pre_fp_provisional",
+    "post_fp_pre_qualifying",
+    "post_qualifying_pre_grid",
+    "post_grid_pre_race",
+}
+PRE_QUALIFYING_RACE_HORIZONS = {"pre_fp_provisional", "post_fp_pre_qualifying"}
+CURRENT_WEEKEND_PRACTICE_EXACT_COLUMNS = {
+    "pace_sessions_available",
+    "quali_sim_sessions_available",
+    "race_sim_sessions_available",
+    "wet_sim_sessions_available",
+    "wet_pace_evidence_reliability",
+    "event_pace_index",
+    "driver_vs_team_fp_weighted_delta",
+    "circuit_fit_index",
+}
+
+
+def _is_current_weekend_practice_column(column: str) -> bool:
+    return (
+        column.startswith(("fp_", "fp1_", "fp2_", "fp3_", "sq_", "sprint_"))
+        or column in CURRENT_WEEKEND_PRACTICE_EXACT_COLUMNS
+    )
+
+
+def _scrub_current_weekend_practice(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    out = frame.copy()
+    for column in list(out.columns):
+        if _is_current_weekend_practice_column(str(column)):
+            out[column] = float("nan")
+    return out
 
 
 def _is_runsim_column(column: str) -> bool:
@@ -257,158 +292,21 @@ def _first_numeric_series(features: pd.DataFrame, columns: list[str]) -> Optiona
 
 
 def _race_grid_delta_fallback(features: pd.DataFrame) -> Optional[pd.Series]:
+    """Return the honest race-start baseline when no trained model exists.
+
+    Circuit mobility, DRS, difficulty, and chaos priors are intentionally not
+    allowed to alter the mean finish here.  Those signals require empirical
+    validation through a selected model; the no-training path stays anchored
+    to the grid or causal qualifying estimate.
+    """
+
     start = _first_numeric_series(
         features,
         ["grid_position", "qualy_context_position", "qualy_position", "qualy_pred_rank", "qualy_pred_position"],
     )
     if start is None or start.notna().sum() == 0:
         return None
-
-    n = max(1, len(features))
-    start = start.fillna(start.median(skipna=True))
-    pace_parts: list[pd.Series] = []
-    for col in [
-        "fp_race_sim_rank",
-        "event_pace_index",
-        "fp_weighted_delta",
-        "fp_race_sim_delta",
-        "fp_quali_sim_delta",
-        "team_archetype_form_3_fp_weighted_delta",
-        "driver_archetype_form_3_fp_weighted_delta",
-        "team_circuit_hist_fp_weighted_delta",
-        "driver_circuit_hist_fp_weighted_delta",
-        "circuit_fit_index",
-    ]:
-        if col in features.columns:
-            pace_parts.append(_rank_percentile(features[col]))
-    if pace_parts:
-        pace_pct = pd.concat(pace_parts, axis=1).mean(axis=1, skipna=True).fillna(0.5)
-    else:
-        pace_pct = _rank_percentile(start)
-    pace_rank = 1.0 + ((float(n) - 1.0) * pace_pct.clip(0.0, 1.0))
-
-    mobility_raw = (
-        features.get("track_finish_order_mobility")
-        if "track_finish_order_mobility" in features.columns
-        else features.get("track_overtake_propensity", pd.Series(0.35, index=features.index))
-    )
-    mobility = pd.to_numeric(
-        mobility_raw,
-        errors="coerce",
-    ).fillna(0.35).clip(0.0, 1.0)
-    drs = pd.to_numeric(
-        features.get("circuit_drs_effectiveness", pd.Series(0.45, index=features.index)),
-        errors="coerce",
-    ).fillna(0.45).clip(0.0, 1.0)
-    difficulty = pd.to_numeric(
-        features.get("circuit_overtaking_difficulty", pd.Series(0.50, index=features.index)),
-        errors="coerce",
-    ).fillna(0.50).clip(0.0, 1.0)
-    chaos = pd.to_numeric(
-        features.get("track_chaos_index", pd.Series(0.20, index=features.index)),
-        errors="coerce",
-    ).fillna(0.20).clip(0.0, 1.0)
-    safety_prior = pd.to_numeric(
-        features.get("track_safety_car_prior", pd.Series(0.25, index=features.index)),
-        errors="coerce",
-    ).fillna(0.25).clip(0.0, 1.0)
-    dnf_prior = pd.to_numeric(
-        features.get("track_dnf_prior", pd.Series(0.10, index=features.index)),
-        errors="coerce",
-    ).fillna(0.10).clip(0.0, 1.0)
-    strategy_prior = pd.to_numeric(
-        features.get("track_strategy_variance_prior", pd.Series(0.35, index=features.index)),
-        errors="coerce",
-    ).fillna(0.35).clip(0.0, 1.0)
-    weather_prior = pd.to_numeric(
-        features.get("track_weather_uncertainty_prior", pd.Series(0.15, index=features.index)),
-        errors="coerce",
-    ).fillna(0.15).clip(0.0, 1.0)
-
-    kappa = (0.04 + (0.62 * mobility) + (0.18 * drs) - (0.48 * difficulty)).clip(0.03, 0.78)
-    residual = pace_rank - start
-    score = start + (kappa * residual)
-
-    # Keep clean low-mobility races tightly grid-constrained, while allowing
-    # chaos/reliability to soften the grid prior without treating movement as overtaking data.
-    race_variance = (
-        (0.30 * chaos)
-        + (0.25 * safety_prior)
-        + (0.20 * dnf_prior)
-        + (0.15 * strategy_prior)
-        + (0.10 * weather_prior)
-    ).clip(0.0, 1.0)
-    chaos_weight = (0.05 + (0.12 * race_variance)).clip(0.05, 0.17)
-    score = ((1.0 - chaos_weight) * score) + (chaos_weight * pace_rank)
-    return pd.Series(score, index=features.index, dtype=float)
-
-
-def _race_stochastic_score_layer(features: pd.DataFrame, preds: pd.Series) -> pd.DataFrame:
-    """Build race probability scores from grid-delta mean plus stochastic race priors."""
-
-    out = pd.DataFrame(index=features.index)
-    base = _first_numeric_series(
-        features,
-        ["grid_position", "qualy_context_position", "qualy_position", "qualy_pred_rank", "qualy_pred_position"],
-    )
-    pred = pd.to_numeric(preds, errors="coerce")
-    if base is None or base.notna().sum() == 0:
-        out["race_stochastic_score"] = pred
-        out["race_stochastic_sigma"] = 1.0
-        out["race_stochastic_dnf_probability"] = 0.0
-        out["race_stochastic_layer"] = "score_only_pl_gumbel"
-        return out
-
-    field_size = max(1.0, float(len(features)))
-    base = base.reindex(features.index).fillna(base.median(skipna=True))
-    pred = pred.reindex(features.index).fillna(base)
-    delta = pred - base
-
-    if "track_finish_order_mobility" in features.columns:
-        mobility_raw = features["track_finish_order_mobility"]
-    elif "track_overtake_propensity" in features.columns:
-        mobility_raw = features["track_overtake_propensity"]
-    else:
-        mobility_raw = pd.Series(0.35, index=features.index, dtype=float)
-    mobility = pd.to_numeric(mobility_raw, errors="coerce").fillna(0.35).clip(0.03, 0.90)
-    safety = pd.to_numeric(
-        features.get("track_safety_car_prior", features.get("track_safety_car_propensity", pd.Series(0.25, index=features.index))),
-        errors="coerce",
-    ).fillna(0.25).clip(0.0, 1.0)
-    dnf = pd.to_numeric(features.get("track_dnf_prior", features.get("track_dnf_rate", pd.Series(0.08, index=features.index))), errors="coerce")
-    dnf = dnf.fillna(0.08).clip(0.0, 0.60)
-    strategy = pd.to_numeric(
-        features.get("track_strategy_variance_prior", pd.Series(0.35, index=features.index)),
-        errors="coerce",
-    ).fillna(0.35).clip(0.0, 1.0)
-    weather = pd.to_numeric(
-        features.get("track_weather_uncertainty_prior", features.get("track_weather_uncertainty", pd.Series(0.15, index=features.index))),
-        errors="coerce",
-    ).fillna(0.15).clip(0.0, 1.0)
-    variance = pd.to_numeric(
-        features.get("race_generation_variance_prior", pd.Series(0.25, index=features.index)),
-        errors="coerce",
-    ).fillna(0.25).clip(0.0, 1.0)
-    slow_lap = pd.to_numeric(features.get("fp_slow_lap_ratio", pd.Series(0.0, index=features.index)), errors="coerce")
-    slow_lap = slow_lap.fillna(0.0).clip(0.0, 1.0)
-    pace_vol = _rank_percentile(features["fp_delta_std"]) if "fp_delta_std" in features.columns else pd.Series(0.5, index=features.index)
-    pace_vol = pd.to_numeric(pace_vol, errors="coerce").fillna(0.5).clip(0.0, 1.0)
-
-    race_variance = ((0.34 * safety) + (0.26 * dnf) + (0.25 * strategy) + (0.15 * weather)).clip(0.0, 1.0)
-    race_variance = race_variance.where(variance.isna(), ((0.5 * race_variance) + (0.5 * variance)).clip(0.0, 1.0))
-    driver_dnf = (dnf * (0.75 + (0.35 * slow_lap) + (0.20 * pace_vol))).clip(0.0, 0.75)
-    expected_dnf_penalty = driver_dnf * max(1.0, field_size - 1.0)
-    stochastic_score = base + (mobility * delta) + expected_dnf_penalty
-    sigma = (0.45 + (2.25 * race_variance) + (0.75 * strategy) + (0.65 * weather)).clip(0.35, 4.50)
-    event_center = float(stochastic_score.median(skipna=True)) if stochastic_score.notna().any() else 0.0
-    pl_score = event_center + ((stochastic_score - event_center) / sigma.replace(0.0, 1.0))
-
-    out["race_stochastic_score"] = stochastic_score
-    out["race_stochastic_pl_score"] = pl_score
-    out["race_stochastic_sigma"] = sigma
-    out["race_stochastic_dnf_probability"] = driver_dnf
-    out["race_stochastic_layer"] = "grid_delta_reliability_strategy_dnf_pl_gumbel"
-    return out
+    return pd.Series(start.fillna(start.median(skipna=True)), index=features.index, dtype=float)
 
 
 def _hierarchical_fallback(
@@ -438,7 +336,6 @@ def _hierarchical_fallback(
                 "fp_race_sim_rank",
                 "fp_race_sim_delta",
                 "track_finish_order_mobility",
-                "track_overtake_propensity",
             )
         )
 
@@ -910,6 +807,11 @@ def _qualifying_feature_sets(
         "fp_quali_sim_rank",
         "fp_quali_sim_laps",
         "quali_sim_sessions_available",
+        "fp_wet_sim_laps",
+        "wet_sim_sessions_available",
+        "wet_pace_evidence_reliability",
+        "fp_wet_sim_delta_weather_adj",
+        "fp_wet_sim_rank_weather_adj",
         "fp_delta_std",
         "pace_sessions_available",
         "fp_mean_top3_delta",
@@ -947,6 +849,8 @@ def _qualifying_feature_sets(
         "fp_quali_sim_delta",
         "fp_quali_sim_rank",
         "fp_quali_sim_laps",
+        "fp_wet_sim_delta_weather_adj",
+        "fp_wet_sim_rank_weather_adj",
         "fp_delta_std",
         "pace_sessions_available",
         "fp_mean_top3_delta",
@@ -992,6 +896,11 @@ def _race_feature_sets(
         "fp_quali_sim_rank",
         "fp_quali_sim_laps",
         "quali_sim_sessions_available",
+        "fp_wet_sim_laps",
+        "wet_sim_sessions_available",
+        "wet_pace_evidence_reliability",
+        "fp_wet_sim_delta_weather_adj",
+        "fp_wet_sim_rank_weather_adj",
         "fp_race_sim_delta",
         "fp_race_sim_delta_track_adj",
         "fp_race_sim_rank",
@@ -1044,7 +953,6 @@ def _race_feature_sets(
         "event_pace_index",
         "driver_vs_team_fp_weighted_delta",
         "track_finish_order_mobility",
-        "track_overtake_propensity",
         "track_grid_stability",
         "track_safety_car_propensity",
         "track_sc_lap_ratio",
@@ -1087,6 +995,8 @@ def _race_feature_sets(
         "fp_quali_sim_delta",
         "fp_quali_sim_rank",
         "fp_quali_sim_laps",
+        "fp_wet_sim_delta_weather_adj",
+        "fp_wet_sim_rank_weather_adj",
         "fp_race_sim_delta",
         "fp_race_sim_delta_track_adj",
         "fp_race_sim_rank",
@@ -1114,7 +1024,6 @@ def _race_feature_sets(
         "driver_vs_team_fp_weighted_delta",
         "event_driver_hist_idx",
         "track_finish_order_mobility",
-        "track_overtake_propensity",
         "track_safety_car_propensity",
         "track_chaos_index",
         "track_qualy_importance",
@@ -1243,6 +1152,119 @@ def _build_oof_qualifying_signal_frame(
     return pd.concat(signals, ignore_index=True)
 
 
+def _resolve_race_information_horizon(
+    features: pd.DataFrame,
+    requested: str = "auto",
+) -> str:
+    normalized = str(requested or "auto").strip().lower().replace("-", "_")
+    aliases = {
+        "pre_fp": "pre_fp_provisional",
+        "prequal": "post_fp_pre_qualifying",
+        "pre_qualifying": "post_fp_pre_qualifying",
+        "postqual": "post_qualifying_pre_grid",
+        "post_qualifying": "post_qualifying_pre_grid",
+        "official_grid": "post_grid_pre_race",
+        "post_grid": "post_grid_pre_race",
+    }
+    normalized = aliases.get(normalized, normalized)
+    if normalized != "auto":
+        if normalized not in RACE_INFORMATION_HORIZONS:
+            allowed = ", ".join(["auto", *sorted(RACE_INFORMATION_HORIZONS)])
+            raise ValueError(f"Unknown race_information_horizon={requested!r}; expected one of: {allowed}.")
+        return normalized
+
+    if features.empty:
+        return "pre_fp_provisional"
+    grid = pd.to_numeric(
+        features.get("grid_position", pd.Series(float("nan"), index=features.index)),
+        errors="coerce",
+    )
+    source = features.get("grid_source", pd.Series("unknown", index=features.index)).fillna("unknown").astype(str)
+    if (grid.notna() & source.eq("pre_race_official_grid")).any():
+        return "post_grid_pre_race"
+    qualy = pd.to_numeric(
+        features.get("qualy_position", pd.Series(float("nan"), index=features.index)),
+        errors="coerce",
+    )
+    if qualy.notna().any():
+        return "post_qualifying_pre_grid"
+    fp_sessions = pd.to_numeric(
+        features.get("pace_sessions_available", pd.Series(0.0, index=features.index)),
+        errors="coerce",
+    ).fillna(0.0)
+    fp_laps = pd.to_numeric(
+        features.get("fp_total_laps", pd.Series(0.0, index=features.index)),
+        errors="coerce",
+    ).fillna(0.0)
+    if (fp_sessions.gt(0.0) | fp_laps.gt(0.0)).any():
+        return "post_fp_pre_qualifying"
+    return "pre_fp_provisional"
+
+
+def _apply_race_information_horizon(
+    frame: pd.DataFrame,
+    *,
+    horizon: str,
+    training: bool,
+) -> pd.DataFrame:
+    """Enforce the feature/target contract available at one race horizon."""
+
+    if frame.empty:
+        return frame
+    if horizon not in RACE_INFORMATION_HORIZONS:
+        raise ValueError(f"Unsupported race information horizon: {horizon!r}.")
+    out = frame.copy()
+    out["race_information_horizon"] = horizon
+
+    predicted_grid = pd.to_numeric(
+        out.get("qualy_pred_rank", pd.Series(float("nan"), index=out.index)),
+        errors="coerce",
+    )
+    predicted_position = pd.to_numeric(
+        out.get("qualy_pred_position", pd.Series(float("nan"), index=out.index)),
+        errors="coerce",
+    )
+    predicted_grid = predicted_grid.where(predicted_grid.notna(), predicted_position)
+    actual_qualy = pd.to_numeric(
+        out.get("qualy_position", pd.Series(float("nan"), index=out.index)),
+        errors="coerce",
+    )
+
+    if horizon in PRE_QUALIFYING_RACE_HORIZONS:
+        out["grid_position"] = predicted_grid
+        out["grid_source"] = "oof_predicted_qualifying_grid" if training else "predicted_qualifying_grid"
+        out["grid_status"] = "predicted"
+        # These columns are only observed after qualifying and must not be
+        # imputed from retrospective results in a pre-qualifying model.
+        for column in (
+            "qualy_position",
+            "qualy_gap_to_best",
+            "qualy_position_track_adj",
+            "qualy_gap_track_adj",
+            "qualy_pred_vs_actual_gap",
+            "qualy_position_circuit_importance_adj",
+        ):
+            out[column] = float("nan")
+        if horizon == "pre_fp_provisional":
+            # Historical training rows contain completed-weekend FP data. A
+            # pre-FP current forecast cannot, so scrub the same direct
+            # weekend-practice surface on both sides while retaining causal
+            # rolling driver/team history columns.
+            out = _scrub_current_weekend_practice(out)
+    elif horizon == "post_qualifying_pre_grid":
+        out["grid_position"] = actual_qualy
+        out["grid_source"] = "historical_qualifying_grid" if training else "qualifying_fallback"
+        out["grid_status"] = "qualifying"
+    # post_grid_pre_race intentionally retains the historical/current official
+    # grid, including penalties and pit-lane starts.
+
+    if training and "target" in out.columns:
+        target = pd.to_numeric(out["target"], errors="coerce")
+        grid = pd.to_numeric(out["grid_position"], errors="coerce")
+        out["race_delta_target"] = target - grid
+    return out
+
+
 def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return frame
@@ -1254,7 +1276,6 @@ def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
         "qualy_pred_rank",
         "track_qualy_importance",
         "track_finish_order_mobility",
-        "track_overtake_propensity",
         "track_safety_car_propensity",
         "track_chaos_index",
         "track_safety_car_prior",
@@ -1277,8 +1298,6 @@ def _add_race_context_interactions(frame: pd.DataFrame) -> pd.DataFrame:
     else:
         if "track_finish_order_mobility" in out.columns:
             mobility_raw = out["track_finish_order_mobility"]
-        elif "track_overtake_propensity" in out.columns:
-            mobility_raw = out["track_overtake_propensity"]
         else:
             mobility_raw = pd.Series(0.5, index=out.index, dtype=float)
         safety_raw = out["track_safety_car_propensity"] if "track_safety_car_propensity" in out.columns else pd.Series(
@@ -1385,6 +1404,11 @@ def _merge_predicted_qualifying_context(
     if race_train.empty and race_features.empty:
         return race_train, race_features
 
+    horizon = _resolve_race_information_horizon(
+        race_features,
+        getattr(config, "race_information_horizon", "auto"),
+    )
+
     qual_train, qual_notes = build_training_data(
         provider=provider,
         mode="qualifying",
@@ -1417,6 +1441,13 @@ def _merge_predicted_qualifying_context(
     if config.disable_circuit_features:
         qual_train = _drop_circuit_columns(qual_train)
         qual_features = _drop_circuit_columns(qual_features)
+    if horizon == "pre_fp_provisional":
+        qual_train = _scrub_current_weekend_practice(qual_train)
+        qual_features = _scrub_current_weekend_practice(qual_features)
+        notes.append(
+            "[Race<-Quali] Pre-FP qualifying-grid model uses rolling/history context only; "
+            "completed-weekend FP features are scrubbed in OOF training and current scoring."
+        )
 
     qual_feature_cols, qual_fallback_cols = _qualifying_feature_sets(
         disable_runsim=config.disable_runsim_features,
@@ -1489,8 +1520,23 @@ def _merge_predicted_qualifying_context(
                 how="left",
             )
 
+    race_train = _apply_race_information_horizon(race_train, horizon=horizon, training=True)
+    race_features = _apply_race_information_horizon(race_features, horizon=horizon, training=False)
+    if horizon in PRE_QUALIFYING_RACE_HORIZONS and not race_train.empty:
+        valid_predicted_grid = pd.to_numeric(race_train.get("grid_position"), errors="coerce").notna()
+        dropped = int((~valid_predicted_grid).sum())
+        if dropped:
+            notes.append(
+                "[Race<-Quali] Historical rows without a causal OOF qualifying-grid prediction "
+                f"were excluded from the {horizon} race model: rows={dropped}."
+            )
+            race_train = race_train.loc[valid_predicted_grid].copy()
     race_train = _add_race_context_interactions(race_train)
     race_features = _add_race_context_interactions(race_features)
+    notes.append(
+        "[Race horizon] Explicit information contract active: "
+        f"{horizon}; training and current rows use the same grid/qualifying availability."
+    )
     if not race_features.empty and "grid_source" in race_features.columns:
         predicted_grid_rows = race_features["grid_source"].astype(str).eq("predicted_qualifying_grid")
         if predicted_grid_rows.any():
@@ -1537,18 +1583,49 @@ def _weather_neutral_frame(frame: pd.DataFrame) -> tuple[pd.DataFrame, list[str]
             (0.34 * safety) + (0.26 * dnf) + (0.25 * strategy)
         ).clip(lower=0.0, upper=1.0)
         neutralized.append("race_generation_variance_prior")
-    return out, sorted(set(neutralized))
+    if "weather_mean_ranking_effect" in out.columns:
+        out["weather_mean_ranking_effect"] = "weather_neutralized"
+    return add_f1_wet_pace_interactions(out), sorted(set(neutralized))
 
 
 def _weather_scenario_summary(frame: pd.DataFrame) -> dict[str, object]:
     weather = _weather_uncertainty_series(frame)
+    effect_values = (
+        frame["weather_mean_ranking_effect"].dropna().astype(str).unique().tolist()
+        if "weather_mean_ranking_effect" in frame.columns
+        else []
+    )
     return {
         "rows": int(len(frame)),
         "weather_uncertainty_mean": float(weather.mean(skipna=True)) if not weather.empty else 0.0,
         "weather_uncertainty_max": float(weather.max(skipna=True)) if not weather.empty else 0.0,
         "weather_columns": [column for column in WEATHER_SCENARIO_COLUMNS if column in frame.columns],
         "source": "track_weather_uncertainty_prior",
+        "wet_pace_evidence_rows": wet_pace_evidence_rows(frame),
+        "mean_ranking_effect": effect_values[0] if len(effect_values) == 1 else "uncertainty_only",
     }
+
+
+def _model_feature_columns(model: Optional[object]) -> set[str]:
+    if model is None:
+        return set()
+    pending = [model]
+    visited: set[int] = set()
+    columns: set[str] = set()
+    while pending:
+        current = pending.pop()
+        if id(current) in visited:
+            continue
+        visited.add(id(current))
+        preprocessor = getattr(current, "preprocessor", None)
+        feature_cols = getattr(preprocessor, "feature_cols", None)
+        if isinstance(feature_cols, list):
+            columns.update(str(column) for column in feature_cols)
+        for attribute in ("base_model", "primary_model"):
+            nested = getattr(current, attribute, None)
+            if nested is not None:
+                pending.append(nested)
+    return columns
 
 
 def _score_prediction_output(
@@ -1615,8 +1692,9 @@ def _score_prediction_output(
             )
             if config.mode == "race":
                 scoring_notes.append(
-                    "Race stochastic layer active: grid-delta scores are adjusted by mobility, safety-car, "
-                    "strategy, weather, and DNF priors before PL/Gumbel probability sampling.",
+                    "Race stochastic layer active: model mean scores are adjusted by expected DNF/reliability "
+                    "and rescaled by safety-car, strategy, and weather uncertainty before PL/Gumbel sampling; "
+                    "circuit mobility is not applied a second time.",
                 )
             elif scenario_name == "weather_integrated":
                 scoring_notes.append(
@@ -1693,6 +1771,16 @@ def _numeric_feature_snapshot(frame: pd.DataFrame, columns: tuple[str, ...]) -> 
             else:
                 snapshot[column] = None
     return snapshot
+
+
+def _column_has_observed_value(frame: pd.DataFrame, column: str) -> bool:
+    if frame.empty or column not in frame.columns:
+        return False
+    raw = frame[column]
+    if pd.to_numeric(raw, errors="coerce").notna().any():
+        return True
+    clean = raw.dropna().astype(str).str.strip().str.lower()
+    return bool((~clean.isin({"", "nan", "none", "<na>"})).any())
 
 
 def _prediction_input_phase(config: PredictionConfig, features: pd.DataFrame) -> dict[str, object]:
@@ -1773,8 +1861,14 @@ def _race_input_evidence(
     fallback_cols: List[str],
     weather_summary: dict[str, object],
 ) -> dict[str, object]:
-    model_features_available = [column for column in feature_cols if column in features.columns]
-    fallback_features_available = [column for column in fallback_cols if column in features.columns]
+    model_features_present = [column for column in feature_cols if column in features.columns]
+    fallback_features_present = [column for column in fallback_cols if column in features.columns]
+    model_features_available = [
+        column for column in model_features_present if _column_has_observed_value(features, column)
+    ]
+    fallback_features_available = [
+        column for column in fallback_features_present if _column_has_observed_value(features, column)
+    ]
     context_columns = [column for column in RACE_CONTEXT_EVIDENCE_COLUMNS if column in features.columns]
     strength_columns = [column for column in RACE_STRENGTH_EVIDENCE_COLUMNS if column in features.columns]
     current_weekend_columns = [column for column in CURRENT_WEEKEND_EVIDENCE_COLUMNS if column in features.columns]
@@ -1782,6 +1876,8 @@ def _race_input_evidence(
         "race_context_columns_present": context_columns,
         "race_strength_columns_present": strength_columns,
         "current_weekend_columns_present": current_weekend_columns,
+        "model_features_present": model_features_present,
+        "fallback_features_present": fallback_features_present,
         "model_features_available": model_features_available,
         "fallback_features_available": fallback_features_available,
         "track_context_snapshot_mean": _numeric_feature_snapshot(features, RACE_CONTEXT_EVIDENCE_COLUMNS),
@@ -1791,6 +1887,7 @@ def _race_input_evidence(
         "weather_enabled": bool(getattr(config, "weather_enabled", False)),
         "weather_available": bool(weather_summary.get("weather_available", False)),
         "weather_provider": weather_summary.get("provider") or getattr(config, "weather_provider", "open_meteo"),
+        "finish_order_mobility_semantics": "observational_historical_grid_to_finish_mobility_not_causal_overtake_probability",
     }
 
 
@@ -1938,6 +2035,35 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         race_delta_constraint_mode=getattr(config, "race_delta_constraint_mode", "constrained"),
     )
     notes.extend(training_result.notes)
+    wet_training_rows = wet_pace_evidence_rows(train)
+    wet_current_rows = wet_pace_evidence_rows(features)
+    selected_feature_columns = _model_feature_columns(training_result.model)
+    learned_wet_interactions = {
+        "fp_wet_sim_delta_weather_adj",
+        "fp_wet_sim_rank_weather_adj",
+    }.intersection(selected_feature_columns)
+    if bool(getattr(config, "weather_enabled", False)):
+        if wet_training_rows > 0 and wet_current_rows > 0 and learned_wet_interactions:
+            weather_rank_effect = "learned_causal_wet_pace_interaction"
+            notes.append(
+                "Weather mean-ranking effect enabled: causal wet-practice pace x pre-event wet-risk "
+                f"features are present in training/current data (train_rows={wet_training_rows}, "
+                f"current_rows={wet_current_rows}).",
+            )
+        else:
+            weather_rank_effect = "uncertainty_only"
+            notes.append(
+                "Weather is uncertainty-only for this prediction: no selected model had both historical and "
+                "current causal wet-practice evidence, so wet risk does not claim a relative mean-pace adjustment.",
+            )
+    else:
+        weather_rank_effect = "weather_disabled"
+    weather_summary["mean_ranking_effect"] = weather_rank_effect
+    weather_summary["wet_pace_training_rows"] = int(wet_training_rows)
+    weather_summary["wet_pace_current_rows"] = int(wet_current_rows)
+    weather_summary["selected_wet_interaction_features"] = sorted(learned_wet_interactions)
+    features = features.copy()
+    features["weather_mean_ranking_effect"] = weather_rank_effect
     if training_result.model is None:
         notes.append(
             "Fallback heuristique actif: qualif=blend FP pace empirique; race=position qualif si disponible.",
@@ -2005,6 +2131,10 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             fallback_cols=fallback_cols,
             weather_summary=weather_summary,
         )
+        notes.append(
+            "Track mobility semantics: track_finish_order_mobility is an observational historical grid-to-finish "
+            "movement feature, not a causal overtake probability; track_overtake_propensity is not a model feature.",
+        )
         phase_name = str(prediction_phase.get("phase", "unknown"))
         if phase_name == "pre_fp_provisional":
             notes.append(
@@ -2053,9 +2183,15 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             "weather_feature_columns": [column for column in WEATHER_SCENARIO_COLUMNS if column in features.columns],
             "weather": weather_summary,
             "prediction_phase": prediction_phase,
+            "race_information_horizon": (
+                str(output["race_information_horizon"].iloc[0])
+                if config.mode == "race" and "race_information_horizon" in output.columns and not output.empty
+                else None
+            ),
             "race_input_evidence": race_input_evidence,
             "listwise_temperature": training_result.listwise_temperature,
             "probability_audit": training_result.probability_audit,
+            "selection_audit": training_result.selection_audit,
             "grid_source_counts": grid_source_counts,
             "grid_status_counts": grid_status_counts,
         },

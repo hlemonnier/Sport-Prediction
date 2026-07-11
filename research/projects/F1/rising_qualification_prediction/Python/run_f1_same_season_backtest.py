@@ -512,7 +512,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--round-start", type=int, default=None)
     parser.add_argument("--round-end", type=int, default=None)
     parser.add_argument("--modes", default="qualifying,race")
-    parser.add_argument("--f1-model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="baseline")
+    parser.add_argument(
+        "--f1-model",
+        choices=["auto", "baseline", "strategic_baseline", "xgb_rank", "eb_rank", "lgbm_rank"],
+        default="baseline",
+    )
     parser.add_argument("--f1-pl-samples", type=int, default=300)
     parser.add_argument("--max-workers", type=int, default=min(4, max(1, os.cpu_count() or 1)))
     parser.add_argument("--output-path", default=default_output_path())

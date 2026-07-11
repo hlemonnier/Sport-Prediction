@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 
 from run_f1_baseline_ladder import (
+    BASELINE_LADDER_SCHEMA_VERSION,
     _qualifying_ladder_specs,
     _race_ladder_specs,
     _score_grid_only,
@@ -19,9 +20,10 @@ def test_baseline_ladder_declares_required_race_variants() -> None:
         "strategic_race_delta",
     ]
     strategic = next(spec for spec in specs if spec["name"] == "strategic_race_delta")
-    assert strategic.get("f1_model") == "baseline"
+    assert strategic.get("f1_model") == "strategic_baseline"
     assert strategic.get("disable_circuit_features") is False
     assert strategic.get("race_delta_constraint_mode") == "constrained"
+    assert strategic.get("race_information_horizon") == "post_qualifying_pre_grid"
 
 
 def test_baseline_ladder_declares_required_qualifying_variants() -> None:
@@ -162,3 +164,69 @@ def test_grid_ladder_rows_preserve_grid_source_labels() -> None:
     assert [row["driver_id"] for row in rows] == ["b", "c", "a"]
     assert {row["grid_source"] for row in rows} == {"pre_race_official_grid"}
     assert {row["grid_status"] for row in rows} == {"grid"}
+
+
+def test_promotion_gate_requires_statistical_edge_and_front_accuracy() -> None:
+    rows = []
+    for round_number in range(1, 13):
+        common = {
+            "mode": "race",
+            "round": round_number,
+            "metric_available": True,
+            "top10_hit": 0.8,
+            "top3_hit": 2.0 / 3.0,
+            "winner_hit": 1.0,
+        }
+        rows.append(
+            {
+                **common,
+                "variant": "grid_only",
+                "event_key": f"race:{round_number}",
+                "field_mae": 3.0,
+            }
+        )
+        rows.append(
+            {
+                **common,
+                "variant": "strategic_race_delta",
+                "event_key": f"race:{round_number}",
+                "field_mae": 2.0,
+            }
+        )
+
+    summary = _summarize_paired_ladder(rows)
+
+    assert BASELINE_LADDER_SCHEMA_VERSION.endswith("v2")
+    assert summary["promotion_gate"]["passed"] is True
+    assert summary["variant_metrics"]["strategic_race_delta"]["winner_hit_rate"] == 1.0
+
+
+def test_paired_winner_hit_supports_boolean_metrics_on_current_numpy() -> None:
+    rows = [
+        {
+            "mode": "race",
+            "round": 1,
+            "variant": "grid_only",
+            "metric_available": True,
+            "field_mae": 2.0,
+            "top3_hit": 1.0,
+            "top10_hit": 1.0,
+            "winner_hit": False,
+        },
+        {
+            "mode": "race",
+            "round": 1,
+            "variant": "strategic_race_delta",
+            "metric_available": True,
+            "field_mae": 1.5,
+            "top3_hit": 1.0,
+            "top10_hit": 1.0,
+            "winner_hit": True,
+        },
+    ]
+
+    summary = _summarize_paired_ladder(rows)
+    comparison = summary["paired_comparisons"]["strategic_race_delta_vs_grid_only_winner_hit"]
+
+    assert comparison["mean_improvement"] == 1.0
+    assert comparison["event_deltas"][0]["raw_delta_challenger_minus_baseline"] == 1.0

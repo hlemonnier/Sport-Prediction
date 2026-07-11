@@ -20,6 +20,7 @@ from packages.f1.models.ultimate_lap_time.schemas import (
 
 
 DEFAULT_DISTANCE_BINS = 200
+DEFAULT_MINIMUM_DISTANCE_COVERAGE = 0.95
 DEFAULT_SPLIT_FIELDS: tuple[str, ...] = ("season", "event_key", "circuit_id", "session")
 DEFAULT_TELEMETRY_CHANNELS: tuple[str, ...] = (
     "Speed",
@@ -37,6 +38,12 @@ DISTANCE_COLUMNS: tuple[str, ...] = (
     "lap_distance",
     "LapDistance",
 )
+EXPECTED_LAP_DISTANCE_COLUMNS: tuple[str, ...] = (
+    "expected_lap_distance_m",
+    "expected_lap_distance",
+    "circuit_length_m",
+    "track_length_m",
+)
 TIME_COLUMNS: tuple[str, ...] = ("time", "Time", "date", "Date", "timestamp", "SessionTime")
 METADATA_COLUMNS: dict[str, tuple[str, ...]] = {
     "season": ("season", "year", "Season", "Year"),
@@ -52,6 +59,9 @@ METADATA_COLUMNS: dict[str, tuple[str, ...]] = {
 }
 TARGET_AND_PREDICTION_COLUMNS: frozenset[str] = frozenset(
     {
+        "ideal_lap_time_seconds",
+        "target_contract",
+        "target_kind",
         "lap_time_seconds",
         "lap_duration",
         "LapTime",
@@ -170,17 +180,23 @@ def build_distance_normalized_telemetry(
     channel_names: Sequence[str] | None = None,
     distance_column: str | None = None,
     already_distance_normalized: bool = False,
+    expected_lap_distance: float | None = None,
+    minimum_distance_coverage: float = DEFAULT_MINIMUM_DISTANCE_COVERAGE,
 ) -> DistanceNormalizedTelemetryTensor:
     """Build a finite channels x distance_bins telemetry tensor.
 
     DataFrame telemetry must have a distance column unless the caller explicitly
-    marks it as already distance-normalized. Raw arrays are treated as already
-    distance-normalized matrices and resampled across their existing bin axis.
+    marks it as already distance-normalized. Physical-distance payloads must
+    declare the expected lap distance so truncated laps cannot be stretched to
+    a full lap. Raw arrays are treated as already distance-normalized matrices.
     """
 
     bins = int(distance_bins)
     if bins <= 1:
         raise ValueError("distance_bins must be greater than one")
+    minimum_coverage = float(minimum_distance_coverage)
+    if not 0.5 <= minimum_coverage <= 1.0:
+        raise ValueError("minimum_distance_coverage must be between 0.5 and 1.0")
 
     if isinstance(telemetry, pd.DataFrame):
         if telemetry.empty:
@@ -202,7 +218,20 @@ def build_distance_normalized_telemetry(
             return DistanceNormalizedTelemetryTensor(
                 values=_resample_channel_matrix(channel_values.T, bins),
                 channel_names=channels,
+                distance_coverage=1.0,
             )
+
+        if expected_lap_distance is None:
+            attrs_distance = telemetry.attrs.get("expected_lap_distance_m")
+            expected_lap_distance = attrs_distance if attrs_distance is not None else None
+        try:
+            expected_distance = float(expected_lap_distance)  # type: ignore[arg-type]
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "expected_lap_distance is required to validate physical-distance telemetry coverage"
+            ) from exc
+        if not np.isfinite(expected_distance) or expected_distance <= 0.0:
+            raise ValueError("expected_lap_distance must be a positive finite distance")
 
         distance = pd.to_numeric(telemetry[distance_col], errors="coerce").to_numpy(dtype=float)
         finite_mask = np.isfinite(distance) & np.isfinite(channel_values).all(axis=1)
@@ -217,11 +246,32 @@ def build_distance_normalized_telemetry(
         if unique_distance.size < 2 or float(unique_distance[-1]) <= float(unique_distance[0]):
             raise ValueError("distance samples must span a positive lap distance")
         channel_values = channel_values[unique_indices]
-        target_distance = np.linspace(float(unique_distance[0]), float(unique_distance[-1]), num=bins, dtype=float)
+        distance_start = float(unique_distance[0])
+        distance_end = float(unique_distance[-1])
+        covered_span = float(max(0.0, min(distance_end, expected_distance) - max(distance_start, 0.0)))
+        coverage = float(covered_span / expected_distance)
+        start_limit = float((1.0 - minimum_coverage) * expected_distance)
+        if distance_start > start_limit or distance_end < minimum_coverage * expected_distance or coverage < minimum_coverage:
+            raise ValueError(
+                "incomplete lap distance coverage: "
+                f"start={distance_start:.3f}, end={distance_end:.3f}, "
+                f"expected={expected_distance:.3f}, coverage={coverage:.3f}, "
+                f"minimum={minimum_coverage:.3f}"
+            )
+        if distance_end > expected_distance * 1.05:
+            raise ValueError("telemetry distance exceeds expected lap distance by more than 5%")
+        target_distance = np.linspace(0.0, expected_distance, num=bins, dtype=float)
         values = np.vstack(
             [np.interp(target_distance, unique_distance, channel_values[:, idx]) for idx in range(channel_values.shape[1])]
         )
-        return DistanceNormalizedTelemetryTensor(values=values, channel_names=channels)
+        return DistanceNormalizedTelemetryTensor(
+            values=values,
+            channel_names=channels,
+            raw_distance_start=distance_start,
+            raw_distance_end=distance_end,
+            expected_lap_distance=expected_distance,
+            distance_coverage=coverage,
+        )
 
     values = np.asarray(telemetry, dtype=float)
     if values.ndim != 2:
@@ -236,6 +286,7 @@ def build_distance_normalized_telemetry(
     return DistanceNormalizedTelemetryTensor(
         values=_resample_channel_matrix(values, bins),
         channel_names=channels,
+        distance_coverage=1.0,
     )
 
 
@@ -312,16 +363,23 @@ def build_ultimate_lap_example(
     channel_names: Sequence[str] | None = None,
     split_fields: Sequence[str] = DEFAULT_SPLIT_FIELDS,
     already_distance_normalized: bool = False,
+    expected_lap_distance: float | None = None,
+    minimum_distance_coverage: float = DEFAULT_MINIMUM_DISTANCE_COVERAGE,
 ) -> UltimateLapTelemetryExample:
     """Build and validate one model-ready telemetry example."""
 
     row = _record_from_any(record)
+    expected_distance = expected_lap_distance
+    if expected_distance is None:
+        expected_distance = _first_present(row, EXPECTED_LAP_DISTANCE_COLUMNS)
     return UltimateLapTelemetryExample(
         telemetry=build_distance_normalized_telemetry(
             telemetry,
             distance_bins=distance_bins,
             channel_names=channel_names,
             already_distance_normalized=already_distance_normalized,
+            expected_lap_distance=expected_distance,
+            minimum_distance_coverage=minimum_distance_coverage,
         ),
         static_features=extract_static_features(row),
         targets=UltimateLapTargets.from_mapping(row),
@@ -349,6 +407,8 @@ def build_ultimate_lap_dataset(
     channel_names: Sequence[str] | None = None,
     split_fields: Sequence[str] = DEFAULT_SPLIT_FIELDS,
     already_distance_normalized: bool = False,
+    expected_lap_distance: float | None = None,
+    minimum_distance_coverage: float = DEFAULT_MINIMUM_DISTANCE_COVERAGE,
 ) -> list[UltimateLapTelemetryExample]:
     """Build examples from lap/session records and matching telemetry payloads."""
 
@@ -382,6 +442,8 @@ def build_ultimate_lap_dataset(
                 channel_names=channel_names,
                 split_fields=split_fields,
                 already_distance_normalized=already_distance_normalized,
+                expected_lap_distance=expected_lap_distance,
+                minimum_distance_coverage=minimum_distance_coverage,
             )
         )
     return examples
@@ -410,7 +472,11 @@ def dataset_summary(examples: Sequence[UltimateLapTelemetryExample]) -> dict[str
         counters["by_driver"][metadata.driver_id] += 1
         counters["by_session"][metadata.session] += 1
         for key, value in example.targets.as_dict().items():
-            if value is not None and np.isfinite(float(value)):
+            try:
+                available = value is not None and np.isfinite(float(value))
+            except (TypeError, ValueError):
+                available = value is not None
+            if available:
                 target_availability[key] += 1
 
     first_shape = examples[0].telemetry.shape if examples else (0, 0)
@@ -443,8 +509,10 @@ def leakage_issues_for_examples(examples: Sequence[UltimateLapTelemetryExample])
 
 __all__ = [
     "DEFAULT_DISTANCE_BINS",
+    "DEFAULT_MINIMUM_DISTANCE_COVERAGE",
     "DEFAULT_SPLIT_FIELDS",
     "DEFAULT_TELEMETRY_CHANNELS",
+    "EXPECTED_LAP_DISTANCE_COLUMNS",
     "build_distance_normalized_telemetry",
     "build_metadata",
     "build_split_key",

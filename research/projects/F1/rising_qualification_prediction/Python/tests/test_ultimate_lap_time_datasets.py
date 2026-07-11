@@ -14,6 +14,7 @@ from packages.f1.models.ultimate_lap_time.datasets import (
 )
 from packages.f1.models.ultimate_lap_time.schemas import (
     DistanceNormalizedTelemetryTensor,
+    IDEAL_LAP_TARGET_CONTRACT,
     UltimateLapTelemetryBatch,
 )
 
@@ -28,7 +29,8 @@ def _lap_record(**overrides: object) -> dict[str, object]:
         "session": "Q",
         "lap_number": 7,
         "split_name": "train",
-        "lap_time_seconds": 89.8,
+        "ideal_lap_time_seconds": 89.8,
+        "target_contract": IDEAL_LAP_TARGET_CONTRACT,
         "sector1_seconds": 29.8,
         "sector2_seconds": 30.0,
         "sector3_seconds": 30.0,
@@ -38,6 +40,7 @@ def _lap_record(**overrides: object) -> dict[str, object]:
         "compound": "SOFT",
         "tyre_age": 2,
         "track_temp_c": 38.0,
+        "expected_lap_distance_m": 5400.0,
     }
     record.update(overrides)
     return record
@@ -60,6 +63,7 @@ def test_distance_normalized_telemetry_resamples_channels_x_bins() -> None:
         _telemetry_frame(),
         distance_bins=16,
         channel_names=("Speed", "Throttle", "Brake"),
+        expected_lap_distance=5400.0,
     )
 
     assert isinstance(tensor, DistanceNormalizedTelemetryTensor)
@@ -67,6 +71,20 @@ def test_distance_normalized_telemetry_resamples_channels_x_bins() -> None:
     assert tensor.channel_names == ("Speed", "Throttle", "Brake")
     assert np.isfinite(tensor.values).all()
     assert tensor.values[0, -1] == pytest.approx(310.0)
+    assert tensor.distance_coverage == pytest.approx(1.0)
+
+
+def test_incomplete_physical_lap_is_rejected_instead_of_stretched() -> None:
+    incomplete = _telemetry_frame()
+    incomplete["Distance"] *= 0.70
+
+    with pytest.raises(ValueError, match="incomplete lap distance coverage"):
+        build_distance_normalized_telemetry(
+            incomplete,
+            distance_bins=16,
+            channel_names=("Speed", "Throttle", "Brake"),
+            expected_lap_distance=5400.0,
+        )
 
 
 def test_time_indexed_telemetry_is_rejected_without_distance_basis() -> None:
@@ -87,7 +105,7 @@ def test_build_example_batch_summary_and_split_leakage_checks() -> None:
         pd.DataFrame(
             [
                 _lap_record(driver_id="VER", lap_number=7, split_name="train"),
-                _lap_record(driver_id="PER", lap_number=8, split_name="train", lap_time_seconds=90.2),
+                _lap_record(driver_id="PER", lap_number=8, split_name="train", ideal_lap_time_seconds=90.2),
             ]
         ),
         telemetry=[_telemetry_frame(), _telemetry_frame()],
@@ -120,4 +138,17 @@ def test_split_fields_reject_target_leakage() -> None:
             _telemetry_frame(),
             distance_bins=12,
             split_fields=("event_key", "lap_time_seconds"),
+        )
+
+
+def test_ideal_target_contract_cannot_relabel_an_observed_raw_lap() -> None:
+    mislabeled = _lap_record()
+    mislabeled.pop("ideal_lap_time_seconds")
+    mislabeled["lap_time_seconds"] = 89.8
+
+    with pytest.raises(ValueError, match="requires an explicit ideal_lap_time_seconds"):
+        build_ultimate_lap_example(
+            mislabeled,
+            _telemetry_frame(),
+            distance_bins=12,
         )

@@ -15,6 +15,11 @@ from packages.f1.models.live_race.predict import (
     _write_trace,
     run_live_race_prediction,
 )
+from packages.f1.models.live_race.calibration import (
+    LiveRaceCalibrationBundle,
+    MonteCarloPriorConfig,
+    write_live_race_calibration,
+)
 from packages.f1.models.live_race.sources import LiveSourceResult, _build_race_time_seconds, load_live_observations
 from packages.f1.models.live_race.state import (
     BaselineModel,
@@ -278,6 +283,8 @@ def test_horizon_distribution_emits_rollout_strategy_summary() -> None:
     strategy_mix = summary.get("rollout_strategy_mix")
     assert isinstance(strategy_mix, dict)
     assert abs(sum(float(value) for value in strategy_mix.values()) - 1.0) < 1e-9
+    assert summary["mc_priors_promotion_ready"] is False
+    assert summary["mc_prior_calibration"]["calibration_mode"] == "hand_prior"
 
 
 def test_position_ranking_uses_lap_count_before_total_time() -> None:
@@ -439,6 +446,94 @@ def test_live_summary_includes_disable_reason_when_no_position_dist(monkeypatch)
     assert result.summary["position_dist_disabled_reason"] == "missing_race_time_seconds"
     assert result.snapshot["proba_top10"].isna().all()
     assert result.snapshot["proba_top3"].isna().all()
+    assert result.summary["promotion_ready"] is False
+    assert result.summary["uses_hand_tuned_priors"] is True
+    assert result.summary["filter_calibration"]["calibration_mode"] == "hand_prior"
+
+
+def test_live_runner_loads_locked_calibration_without_claiming_full_model_promotion(monkeypatch, tmp_path: Path) -> None:
+    frame = _sample_live_observations(include_race_time=True)
+
+    def _fake_loader(config: PredictionConfig) -> LiveSourceResult:
+        _ = config
+        return LiveSourceResult(frame=frame.copy(), source_used="local", notes=[])
+
+    monkeypatch.setattr("packages.f1.models.live_race.predict.load_live_observations", _fake_loader)
+    monkeypatch.setattr(
+        "packages.f1.models.live_race.predict._write_trace",
+        lambda trace, config, event_key: {
+            "trace_path": "/tmp/fake_trace.parquet",
+            "trace_path_jsonl": "/tmp/fake_trace.jsonl",
+            "trace_format_effective": "parquet",
+        },
+    )
+    filter_config = FilterConfig(
+        phi=0.82,
+        q_pace=0.12,
+        q_deg=0.03,
+        r_obs=0.20,
+        calibration_mode="locked_replay",
+        calibration_source_id="locked-2024-2025",
+        calibration_rows=240,
+    )
+    priors = MonteCarloPriorConfig(
+        green_to_sc_vsc=0.04,
+        green_to_yellow=0.06,
+        yellow_to_sc_vsc=0.20,
+        yellow_to_green=0.30,
+        sc_vsc_to_green=0.45,
+        sc_vsc_to_yellow=0.10,
+        pit_loss_green_mean=20.5,
+        pit_loss_yellow_mean=15.0,
+        pit_loss_sc_vsc_mean=10.5,
+        pit_loss_green_std=1.2,
+        pit_loss_yellow_std=1.0,
+        pit_loss_sc_vsc_std=0.8,
+        calibration_mode="locked_replay",
+        calibration_source_id="locked-2024-2025",
+        transition_rows=180,
+        pit_rows=36,
+    )
+    artifact = write_live_race_calibration(
+        LiveRaceCalibrationBundle(
+            filter_config=filter_config,
+            monte_carlo_priors=priors,
+            source_id="locked-2024-2025",
+            source_rows=500,
+        ),
+        tmp_path / "calibration.json",
+    )
+
+    result = run_live_race_prediction(
+        _base_config(f1_live_horizon_laps=4, f1_live_calibration_path=str(artifact))
+    )
+
+    assert result.summary["available"] is True
+    assert result.summary["prior_calibration_ready"] is True
+    assert result.summary["promotion_ready"] is False
+    assert "locked_model_replay_and_comparator_evidence_required" in result.summary["promotion_blockers"]
+    assert "heuristic_strategy_template_probabilities_not_calibrated" in result.summary["promotion_blockers"]
+    assert result.summary["uses_hand_tuned_priors"] is False
+    assert result.summary["filter_calibration"]["phi"] == 0.82
+    assert result.summary["mc_prior_calibration"]["calibration_mode"] == "locked_replay"
+    assert any("Loaded locked-replay" in note for note in result.notes)
+
+
+def test_live_runner_rejects_invalid_calibration_artifact(monkeypatch, tmp_path: Path) -> None:
+    frame = _sample_live_observations(include_race_time=True)
+    monkeypatch.setattr(
+        "packages.f1.models.live_race.predict.load_live_observations",
+        lambda config: LiveSourceResult(frame=frame.copy(), source_used="local", notes=[]),
+    )
+    invalid = tmp_path / "invalid.json"
+    invalid.write_text("{}", encoding="utf-8")
+
+    result = run_live_race_prediction(_base_config(f1_live_calibration_path=str(invalid)))
+
+    assert result.summary["available"] is False
+    assert result.summary["reason"] == "live_calibration_artifact_invalid"
+    assert result.summary["promotion_ready"] is False
+    assert result.snapshot.empty
 
 
 def test_live_runner_surfaces_strategy_policy_and_telemetry_features(monkeypatch) -> None:
@@ -555,10 +650,12 @@ def test_cli_help_exposes_horizon_b_flags_and_live_race_phase() -> None:
     assert "--f1_live_seed" in prediction_help
     assert "--f1_live_cache_dir" in prediction_help
     assert "--f1_live_replay_path" in prediction_help
+    assert "--f1_live_calibration_path" in prediction_help
     assert "--f1_live_replay_cutoff_lap" in prediction_help
 
     weekend_help = build_weekend_parser().format_help()
     assert "live-race" in weekend_help
     assert "--f1-mode" in weekend_help
     assert "--f1-live-source" in weekend_help
+    assert "--f1-live-calibration-path" in weekend_help
     assert "--f1-live-replay-cutoff-lap" in weekend_help

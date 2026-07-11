@@ -7,7 +7,7 @@ registry:
   model_family: ultimate_lap_time
   version: v1
   training_data_cutoff: pending_locked_walk_forward_cutoff
-  feature_schema_version: ultimate_lap_time_telemetry_schema_v1
+  feature_schema_version: ultimate_lap_time_telemetry_schema_v2_ideal_targets_normalized
   artifact_path: artifacts/models/f1/ultimate_lap_time/deep/ultimate_lap_time_distance_tcn_v1
   metrics: {}
   promotion_status: candidate
@@ -15,6 +15,10 @@ registry:
   deterministic_fallback: false
   metadata:
     architecture: distance_normalized_tcn
+    target_contract: theoretical_ideal_lap_v1
+    feature_normalization: train_fitted_persisted_stats
+    distance_coverage_policy: reject_below_95_percent
+    validation_strategy: grouped_temporal_holdout_with_early_stopping
     production_replacement_allowed_by_default: false
 fallback:
   model_id: ultimate_lap_time_deterministic_baseline_v1
@@ -36,7 +40,10 @@ promotion:
     baseline_model_id: ultimate_lap_time_deterministic_baseline_v1
     report_path: artifacts/reports/f1/ultimate_lap_time/deep/baseline_comparison.json
     metrics:
-      - p05_pinball
+      - p50_mae
+      - p50_rmse
+      - p50_pinball
+    min_relative_improvement: 0.01
   leakage_tests:
     required: true
     fail_closed_on_issues: true

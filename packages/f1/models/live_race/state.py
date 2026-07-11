@@ -40,6 +40,53 @@ class FilterConfig:
     q_deg: float = 0.02
     r_obs: float = 0.16
     huber_k: float = 2.5
+    calibration_mode: str = "hand_prior"
+    calibration_source_id: Optional[str] = None
+    calibration_rows: int = 0
+    calibration_version: str = "live_filter_calibration_v1"
+
+    def __post_init__(self) -> None:
+        self.phi = float(self.phi)
+        self.q_pace = float(self.q_pace)
+        self.q_deg = float(self.q_deg)
+        self.r_obs = float(self.r_obs)
+        self.huber_k = float(self.huber_k)
+        if not 0.0 <= self.phi < 1.0:
+            raise ValueError("phi must be between zero inclusive and one exclusive")
+        if self.q_pace <= 0.0 or self.q_deg <= 0.0 or self.r_obs <= 0.0:
+            raise ValueError("q_pace, q_deg, and r_obs must be positive")
+        mode = str(self.calibration_mode or "").strip().lower()
+        if mode not in {"hand_prior", "locked_replay"}:
+            raise ValueError("calibration_mode must be hand_prior or locked_replay")
+        self.calibration_mode = mode
+        if mode == "locked_replay":
+            if not str(self.calibration_source_id or "").strip():
+                raise ValueError("locked_replay filter calibration requires calibration_source_id")
+            if int(self.calibration_rows) <= 0:
+                raise ValueError("locked_replay filter calibration requires positive calibration_rows")
+
+    @property
+    def is_calibrated(self) -> bool:
+        return self.calibration_mode == "locked_replay"
+
+    @property
+    def promotion_ready(self) -> bool:
+        return self.is_calibrated
+
+    def diagnostics(self) -> dict[str, object]:
+        return {
+            "calibration_mode": self.calibration_mode,
+            "calibration_source_id": self.calibration_source_id,
+            "calibration_rows": int(self.calibration_rows),
+            "calibration_version": self.calibration_version,
+            "is_calibrated": self.is_calibrated,
+            "promotion_ready": self.promotion_ready,
+            "uses_hand_tuned_priors": not self.is_calibrated,
+            "phi": float(self.phi),
+            "q_pace": float(self.q_pace),
+            "q_deg": float(self.q_deg),
+            "r_obs": float(self.r_obs),
+        }
 
 
 @dataclass

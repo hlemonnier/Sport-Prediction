@@ -10,7 +10,7 @@ if "requests" not in sys.modules:
     requests_stub.RequestException = Exception
     sys.modules["requests"] = requests_stub
 
-from packages.f1.data.schemas.circuit import circuit_card_from_event
+from packages.f1.data.schemas.circuit import CIRCUIT_CARD_SCHEMA_VERSION, circuit_card_from_event
 from packages.f1.data.schemas.session import PredictionConfig
 from packages.f1.features.assembly import _attach_temporal_features_current, _attach_track_stats
 from packages.f1.orchestration.prediction import _qualifying_feature_sets, _race_feature_sets
@@ -21,6 +21,7 @@ class StubTrackProvider:
     def get_track_stats(self, year: int, round_number: int) -> dict[str, float]:
         return {
             "track_finish_order_mobility": 0.08,
+            "track_overtake_propensity": 0.08,
             "track_grid_stability": 0.92,
             "track_safety_car_propensity": 0.70,
             "track_dnf_rate": 0.20,
@@ -44,6 +45,11 @@ def test_monaco_card_encodes_high_downforce_low_overtaking_profile() -> None:
     assert card.power_sensitivity < 0.20
     assert card.overtaking_difficulty > 0.95
     assert card.qualifying_importance > 0.90
+    payload = card.to_payload()
+    assert payload["circuit_card_schema_version"] == CIRCUIT_CARD_SCHEMA_VERSION
+    assert payload["circuit_card_prior_source"] == "expert_heuristic_unvalidated"
+    assert payload["circuit_card_predictive_status"] == "quarantined_until_paired_holdout_gate_passes"
+    assert 0.0 <= float(payload["circuit_card_prior_uncertainty"]) <= 1.0
 
 
 def test_accented_event_names_match_static_cards() -> None:
@@ -89,8 +95,8 @@ def test_attach_track_stats_adds_card_features_and_interactions() -> None:
     assert float(out["track_qualy_importance"].iloc[0]) > 0.75
     assert "track_safety_car_prior" in out.columns
     assert "track_finish_order_mobility" in out.columns
-    assert "track_overtake_propensity" in out.columns
-    assert float(out["track_finish_order_mobility"].iloc[0]) == float(out["track_overtake_propensity"].iloc[0])
+    assert "track_overtake_propensity" not in out.columns
+    assert float(out["track_finish_order_mobility"].iloc[0]) == 0.08
     assert "track_dnf_prior" in out.columns
     assert "track_strategy_variance_prior" in out.columns
     assert "track_weather_uncertainty_prior" in out.columns
@@ -164,7 +170,6 @@ def test_qualifying_feature_contract_excludes_race_only_inputs() -> None:
         "driver_ewma_fp_race_sim_delta",
         "driver_form_3_fp_race_sim_delta",
         "track_finish_order_mobility",
-        "track_overtake_propensity",
         "track_safety_car_prior",
         "track_dnf_prior",
         "track_strategy_variance_prior",
@@ -190,7 +195,6 @@ def test_race_feature_contract_keeps_grid_and_race_inputs() -> None:
         "fp_race_sim_delta",
         "fp_race_sim_rank",
         "track_finish_order_mobility",
-        "track_overtake_propensity",
         "track_safety_car_prior",
         "track_dnf_prior",
         "track_strategy_variance_prior",

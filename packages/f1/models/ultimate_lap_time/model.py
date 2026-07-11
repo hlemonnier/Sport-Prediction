@@ -14,6 +14,8 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import pandas as pd
 
+from packages.f1.models.ultimate_lap_time.schemas import IDEAL_LAP_TARGET_CONTRACT
+
 
 DRIVER_COLUMNS: tuple[str, ...] = ("driver_id", "driver_number", "DriverNumber", "Driver", "driver")
 TEAM_COLUMNS: tuple[str, ...] = (
@@ -37,6 +39,9 @@ PIT_LAP_COLUMNS: tuple[str, ...] = ("is_box_lap", "is_pit_lap", "is_pit_in_lap",
 PIT_TIME_COLUMNS: tuple[str, ...] = ("PitInTime", "PitOutTime", "pit_in_time", "pit_out_time")
 ACCURACY_COLUMNS: tuple[str, ...] = ("is_accurate", "IsAccurate")
 DELETED_COLUMNS: tuple[str, ...] = ("is_deleted", "Deleted")
+SESSION_COLUMNS: tuple[str, ...] = ("session", "session_name", "SessionName", "SessionType")
+IDEAL_LAP_TARGET_COLUMN = "ideal_lap_time_seconds"
+TARGET_CONTRACT_COLUMN = "target_contract"
 
 
 @dataclass(frozen=True)
@@ -253,6 +258,92 @@ def fit_ultimate_lap_time_model(
         residual_quantiles=residual_quantiles,
         training_summary=summary,
     )
+
+
+def aggregate_ideal_lap_holdout_targets(
+    laps: pd.DataFrame,
+    *,
+    config: UltimateLapTimeConfig | None = None,
+    group_columns: Sequence[str] | None = None,
+) -> pd.DataFrame:
+    """Aggregate raw holdout laps into explicit theoretical ideal-lap targets.
+
+    One target is produced per driver/event/circuit/session group. Sector minima
+    may come from different clean laps by definition. Outcome timing columns are
+    removed from the returned prediction context so downstream evaluators cannot
+    silently compare an ideal-lap prediction with arbitrary observed lap rows.
+    """
+
+    if not isinstance(laps, pd.DataFrame):
+        raise TypeError("laps must be a pandas DataFrame")
+    if laps.empty:
+        raise ValueError("laps must contain at least one timing row")
+    cfg = config or UltimateLapTimeConfig()
+    working, column_info = _prepare_laps(laps, cfg)
+    clean = _clean_laps(working, cfg)
+    if clean.empty:
+        raise ValueError("no clean holdout laps remain after ultimate lap-time filtering")
+
+    if group_columns is None:
+        resolved = [
+            _first_existing(clean, ("season", "year", "Season", "Year")),
+            column_info.get("event"),
+            column_info.get("circuit"),
+            _first_existing(clean, SESSION_COLUMNS),
+            column_info.get("driver"),
+        ]
+        groups = [str(column) for column in resolved if column is not None]
+        required_identities = {
+            "event": column_info.get("event"),
+            "session": _first_existing(clean, SESSION_COLUMNS),
+            "driver": column_info.get("driver"),
+        }
+        missing = [name for name, column in required_identities.items() if column is None]
+        if missing:
+            raise ValueError(f"ideal-lap holdout aggregation requires identities: {tuple(missing)}")
+    else:
+        groups = [str(column) for column in group_columns]
+        missing = [column for column in groups if column not in clean.columns]
+        if missing:
+            raise ValueError(f"ideal-lap holdout group columns are missing: {tuple(missing)}")
+    if not groups:
+        raise ValueError("ideal-lap holdout aggregation requires at least one group column")
+    outcome_columns = {
+        *LAP_TIME_COLUMNS,
+        *SECTOR_1_COLUMNS,
+        *SECTOR_2_COLUMNS,
+        *SECTOR_3_COLUMNS,
+        "p05_target",
+        "p50_target",
+        "p90_target",
+        "lap_p05",
+        "lap_p50",
+        "lap_p90",
+        "prediction",
+        "predicted_lap_time_seconds",
+        "ultimate_lap_time_seconds",
+        IDEAL_LAP_TARGET_COLUMN,
+        TARGET_CONTRACT_COLUMN,
+    }
+
+    rows: list[dict[str, Any]] = []
+    for _, group in clean.groupby(groups, sort=False, dropna=False):
+        ideal = _ideal_lap_seconds(group)
+        if not np.isfinite(ideal):
+            continue
+        representative = group.iloc[0]
+        row = {
+            str(column): representative[column]
+            for column in laps.columns
+            if column in representative.index and column not in outcome_columns
+        }
+        row[IDEAL_LAP_TARGET_COLUMN] = float(ideal)
+        row[TARGET_CONTRACT_COLUMN] = IDEAL_LAP_TARGET_CONTRACT
+        row["clean_lap_count"] = int(len(group))
+        rows.append(row)
+    if not rows:
+        raise ValueError("no finite theoretical ideal-lap holdout targets could be aggregated")
+    return pd.DataFrame(rows)
 
 
 _ANCHOR_SPECS: tuple[tuple[str, tuple[str, ...], str], ...] = (
@@ -721,9 +812,11 @@ def _weighted_mean(values: pd.Series, weights: pd.Series | Sequence[float]) -> f
 
 
 __all__ = [
+    "IDEAL_LAP_TARGET_COLUMN",
     "PaceAnchor",
     "UltimateLapTimeConfig",
     "UltimateLapTimeModel",
     "UltimateLapTimeTrainingSummary",
+    "aggregate_ideal_lap_holdout_targets",
     "fit_ultimate_lap_time_model",
 ]

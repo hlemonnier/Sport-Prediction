@@ -14,9 +14,15 @@ from .evaluate import (
     write_ultimate_lap_time_baseline_backtest_report,
 )
 from .evaluate_deep import evaluate_deep_ultimate_lap_time
-from .model import UltimateLapTimeConfig, UltimateLapTimeModel, UltimateLapTimeTrainingSummary
+from .model import (
+    UltimateLapTimeConfig,
+    UltimateLapTimeModel,
+    UltimateLapTimeTrainingSummary,
+    aggregate_ideal_lap_holdout_targets,
+)
 from .predict import predict_ultimate_lap_time
 from .schemas import (
+    IDEAL_LAP_TARGET_CONTRACT,
     DistanceNormalizedTelemetryTensor,
     UltimateLapMetadata,
     UltimateLapSplitKey,
@@ -27,6 +33,7 @@ from .schemas import (
 from .tabular_quantile import TabularQuantileConfig, fit_tabular_quantile_model
 from .train import train_ultimate_lap_time
 from .train_deep import (
+    DeepFeatureNormalization,
     DeepTrainingConfig,
     DeepTrainingResult,
     DeepUltimateLapTimeModel,
@@ -36,6 +43,7 @@ from .train_deep import (
 )
 
 __all__ = [
+    "DeepFeatureNormalization",
     "DeepTrainingConfig",
     "DeepTrainingResult",
     "DeepUltimateLapTimeModel",
@@ -43,6 +51,7 @@ __all__ = [
     "DistanceTelemetryTCNConfig",
     "DistanceNormalizedTelemetryTensor",
     "DETERMINISTIC_BASELINE_MODEL_NAME",
+    "IDEAL_LAP_TARGET_CONTRACT",
     "TabularQuantileConfig",
     "UltimateLapTimeConfig",
     "UltimateLapMetadata",
@@ -53,6 +62,7 @@ __all__ = [
     "UltimateLapTelemetryBatch",
     "UltimateLapTelemetryExample",
     "build_distance_normalized_telemetry",
+    "aggregate_ideal_lap_holdout_targets",
     "build_ultimate_lap_dataset",
     "build_ultimate_lap_example",
     "dataset_summary",

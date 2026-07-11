@@ -1,1 +1,2 @@
+# Requires Python >=3.10; Python 3.12 is recommended.
 torch>=2.5

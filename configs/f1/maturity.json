@@ -1,0 +1,102 @@
+{
+  "schema_version": "f1_maturity_evidence_v1",
+  "as_of": "2026-07-11",
+  "runtime": {
+    "requires_python": ">=3.10",
+    "recommended_python": "3.12",
+    "container_python": "3.12"
+  },
+  "claim_policy": {
+    "readme_is_evidence": false,
+    "missing_required_report_fails_closed": true,
+    "production_ready_requires": [
+      "locked out-of-sample evaluation on the exact deployed score path",
+      "baseline comparison with uncertainty and predeclared acceptance gates",
+      "probability calibration audit when probabilities are exposed",
+      "leakage and information-horizon checks",
+      "registered immutable artifact with a passing promotion report"
+    ],
+    "historical_reports_must_match_current_code_and_population": true
+  },
+  "evidence_validation": {
+    "validator": "packages/f1/orchestration/evidence.py",
+    "legacy_local_reports_status": "stale_quarantined_until_regenerated_with_current_schema",
+    "required_baseline_schema": "f1_baseline_ladder_complete_field_v2",
+    "required_horizon_schema": "f1_horizon_a_vs_b_complete_field_calibration_v3",
+    "required_probability_audit_schema": "pl_gumbel_probability_audit_v4_disjoint_calibration"
+  },
+  "provider_feature_contract": {
+    "version": "f1_practice_lap_features_v2",
+    "implementation": "packages/f1/data/providers/practice_features.py",
+    "providers": [
+      "local",
+      "fastf1",
+      "openf1"
+    ],
+    "scope": "pre-qualifying practice pace, qualifying-simulation, race-simulation, wet-simulation, and lap-quality features",
+    "guarantees_identical_semantics": true,
+    "guarantees_identical_raw_coverage_or_values": false,
+    "causal_cutoff": "sessions available before the main qualifying session",
+    "contract_test": "research/projects/F1/rising_qualification_prediction/Python/tests/test_provider_feature_contract.py"
+  },
+  "stages": {
+    "pre_quali": {
+      "implementation_status": "executable_research",
+      "deployment_status": "not_promoted",
+      "predictive_edge_status": "unproven",
+      "probability_status": "claimable_only_when_the_emitted_oof_probability_audit_passes",
+      "circuit_feature_status": "quarantined_by_default_research_opt_in_only",
+      "weather_status": "scenario_and_uncertainty_prior_not_validated_relative_pace_edge",
+      "historical_evidence": [
+        "artifacts/reports/f1/reviews/same_season_walk_forward_backtest.json",
+        "artifacts/reports/f1/reviews/baseline_ladder_2025_fullfield.json",
+        "artifacts/reports/f1/reviews/circuit_card_ablation_2025_fullfield.json"
+      ]
+    },
+    "pre_race": {
+      "implementation_status": "executable_research",
+      "deployment_status": "not_promoted",
+      "predictive_edge_status": "unproven",
+      "probability_status": "claimable_only_when_the_exact_production_score_layer_oof_audit_passes",
+      "information_horizons": [
+        "pre_fp_provisional",
+        "post_fp_pre_qualifying",
+        "post_qualifying_pre_grid",
+        "post_grid_pre_race"
+      ],
+      "horizon_specific_validation_required": true,
+      "historical_evidence": [
+        "artifacts/reports/f1/reviews/same_season_walk_forward_backtest.json",
+        "artifacts/reports/f1/reviews/baseline_ladder_2025_fullfield.json"
+      ]
+    },
+    "live_race": {
+      "implementation_status": "experimental_research",
+      "deployment_status": "target_specific_untrained_snapshot_baseline",
+      "predictive_edge_status": "unproven",
+      "canonical_trace_model_promoted": false,
+      "prior_calibration_is_model_promotion": false,
+      "strategy_template_probability_status": "heuristic_unvalidated_promotion_blocker",
+      "required_evidence": [
+        "causal full-field replay benchmark",
+        "locked filter, regime, pit-loss, and strategy-template calibration",
+        "calibration on the exact deployed joint distribution",
+        "locked artifact and passing promotion report"
+      ]
+    },
+    "live_strategy_rl": {
+      "implementation_status": "experimental_research",
+      "deployment_status": "not_promotable_until_locked_reports_exist",
+      "predictive_edge_status": "unproven",
+      "registry_profile": "configs/f1/profiles/live_strategy_rl.yaml",
+      "deterministic_fallback_is_production_replacement": false
+    },
+    "ultimate_lap_time": {
+      "implementation_status": "experimental_research",
+      "deployment_status": "not_promotable_until_locked_reports_exist",
+      "predictive_edge_status": "unproven",
+      "registry_profile": "configs/f1/profiles/ultimate_lap_time_deep.yaml",
+      "deterministic_baseline_is_production_replacement": false
+    }
+  }
+}

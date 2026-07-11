@@ -3,6 +3,20 @@
 Sport Prediction is a local multi-sport prediction system. The repo is now
 organized around shared infrastructure plus domain packages for each sport.
 
+## Runtime
+
+Python components require Python `>=3.10`; Python 3.12 is the recommended and
+container runtime. The repository `.python-version` selects 3.12 for compatible
+environment managers, and each F1 service declares `requires-python` in its
+`pyproject.toml`. Check an existing environment before installing or running:
+
+```bash
+python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
+```
+
+The old repository `.venv` may still point to Python 3.9. It is not a supported
+F1 runtime and must not be used for the platform services.
+
 ## Architecture
 
 ```text
@@ -56,17 +70,25 @@ sport-prediction/
     reviews/                # review docs and external audit notes
 ```
 
-## Model Systems
+## Model Systems and Maturity
 
 ```text
 Sport Prediction System
   Shared Core
     weather, data contracts, caching, evaluation, orchestration
   F1
-    Pre-Quali, Pre-Race, Live Race, Ultimate Lap-Time
+    Executable research: Pre-Quali, Pre-Race
+    Experimental: Live Race, Live Strategy/RL, Ultimate Lap-Time
+    Deployed live fallback: target-specific untrained snapshot baselines
   Football
     Pre-Match, Scoreline, Live Match, Player/Props
 ```
+
+“Executable” does not mean “production validated.” No F1 stage should be
+described as having proven predictive edge, calibrated production probabilities,
+or a promoted model unless the exact current model path has a passing locked
+out-of-sample promotion report. The machine-readable source for these claims is
+`configs/f1/maturity.json`; README prose is not promotion evidence.
 
 ## Current Import Boundaries
 
@@ -100,10 +122,12 @@ cd apps/web && pnpm install && pnpm dev
 ## Weather
 
 Open-Meteo is the first shared weather provider. It lives in `packages/sports_core/weather`
-and is exposed to both F1 and football. F1 can integrate circuit weather into
-weather priors when enabled. Football currently attaches fixture/stadium weather
-context and keeps probability adjustment gated until historical venue-weather
-training features are available.
+and is exposed to both F1 and football. F1 currently uses weather as scenario
+context and uncertainty/variance priors when enabled. That is not the same as a
+validated wet-relative-pace model or demonstrated weather-driven predictive
+edge. Football currently attaches fixture/stadium weather context and keeps
+probability adjustment gated until historical venue-weather training features
+are available.
 
 ## Data vs Artifacts
 
@@ -111,4 +135,4 @@ training features are available.
 - Keep generated predictions, backtests, and reports in `artifacts/`.
 - Generated caches, old zips, local envs, and build folders should not be committed.
 
-Suggested commit name: `route-generated-artifacts-to-apps-architecture`
+Suggested commit name: `docs: define F1 model maturity and supported Python runtime`

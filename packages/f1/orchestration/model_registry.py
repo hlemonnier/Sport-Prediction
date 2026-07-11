@@ -8,6 +8,8 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
+from packages.sports_core.paths import find_repo_root
+
 from .model_promotion import (
     PromotionDecision,
     PromotionGateConfig,
@@ -282,6 +284,7 @@ class ModelRegistry:
         evidence: PromotionEvidence,
         *,
         config: Optional[PromotionGateConfig] = None,
+        artifact_root: str | Path | None = None,
     ) -> RegistryPromotionEvaluation:
         candidate = self.require(candidate_model_id)
         baseline = self.get(evidence.baseline_model_id)
@@ -294,6 +297,7 @@ class ModelRegistry:
             baseline=baseline,
             fallback_model_id=fallback_model_id,
             fallback=fallback,
+            artifact_root=Path(artifact_root).expanduser() if artifact_root is not None else find_repo_root(__file__),
         )
         baseline_metrics = evidence.baseline_metrics
         if baseline_metrics is None and baseline is not None:
@@ -347,8 +351,14 @@ class ModelRegistry:
         evidence: PromotionEvidence,
         *,
         config: Optional[PromotionGateConfig] = None,
+        artifact_root: str | Path | None = None,
     ) -> RegistryPromotionResult:
-        evaluation = self.evaluate_promotion(candidate_model_id, evidence, config=config)
+        evaluation = self.evaluate_promotion(
+            candidate_model_id,
+            evidence,
+            config=config,
+            artifact_root=artifact_root,
+        )
         candidate = evaluation.candidate
         if not evaluation.promotion_gate_passed:
             return RegistryPromotionResult(
@@ -429,6 +439,7 @@ class ModelRegistry:
         baseline: Optional[F1ModelRegistryEntry],
         fallback_model_id: Optional[str],
         fallback: Optional[F1ModelRegistryEntry],
+        artifact_root: Path,
     ) -> tuple[str, ...]:
         reasons: list[str] = []
         if not evidence.split_strategy:
@@ -437,6 +448,18 @@ class ModelRegistry:
             reasons.append("random_split_not_allowed")
         if evidence.calibration_report_path is None:
             reasons.append("calibration_report_missing")
+        if candidate.model_family.strip().lower() in {"live_strategy", "live_strategy_rl", "live_race"}:
+            prior_mode = str(evidence.diagnostics.get("prior_calibration_mode") or "").strip().lower()
+            strategy_template_mode = str(
+                evidence.diagnostics.get("strategy_template_calibration_mode") or ""
+            ).strip().lower()
+            uses_hand_priors = evidence.diagnostics.get("uses_hand_tuned_priors")
+            if prior_mode != "locked_replay":
+                reasons.append("locked_replay_prior_calibration_required")
+            if strategy_template_mode != "locked_replay":
+                reasons.append("locked_replay_strategy_template_calibration_required")
+            if uses_hand_priors is not False:
+                reasons.append("hand_tuned_priors_not_promotable")
         if baseline is None:
             reasons.append("baseline_model_not_registered")
         if fallback_model_id is None:
@@ -448,6 +471,43 @@ class ModelRegistry:
                 reasons.append("deterministic_fallback_family_mismatch")
             if not fallback.deterministic_fallback:
                 reasons.append("fallback_model_not_deterministic")
+        artifact_entries = (
+            ("candidate_artifact", candidate.artifact_path),
+            ("baseline_artifact", baseline.artifact_path if baseline is not None else None),
+            ("fallback_artifact", fallback.artifact_path if fallback is not None else None),
+        )
+        for label, relative_path in artifact_entries:
+            if relative_path is None:
+                continue
+            if not _material_artifact_exists(artifact_root / relative_path):
+                reasons.append(f"{label}_missing_or_empty")
+
+        report_specs = (
+            ("calibration_report", evidence.calibration_report_path),
+            ("baseline_comparison_report", evidence.baseline_comparison_report_path),
+        )
+        for label, relative_path in report_specs:
+            if relative_path is None:
+                if label == "baseline_comparison_report":
+                    reasons.append("baseline_comparison_report_missing")
+                continue
+            report_reason = _validate_evidence_report(
+                artifact_root / relative_path,
+                label=label,
+                candidate_model_id=candidate.model_id,
+                baseline_model_id=evidence.baseline_model_id,
+            )
+            if report_reason is not None:
+                reasons.append(report_reason)
+        if candidate.model_family.strip().lower() in {"live_strategy", "live_strategy_rl", "live_race"}:
+            live_calibration_reason = _validate_live_prior_calibration_report(
+                artifact_root / evidence.calibration_report_path
+                if evidence.calibration_report_path is not None
+                else Path(),
+                candidate_model_id=candidate.model_id,
+            )
+            if live_calibration_reason is not None:
+                reasons.append(live_calibration_reason)
         return tuple(reasons)
 
 
@@ -548,6 +608,84 @@ def _is_random_split(split_strategy: str) -> bool:
         "random_train_test",
     )
     return any(fragment in normalized for fragment in blocked_fragments)
+
+
+def _material_artifact_exists(path: Path) -> bool:
+    """Require an actual non-empty file or directory containing one."""
+
+    if path.is_file():
+        return path.stat().st_size > 0
+    if not path.is_dir():
+        return False
+    return any(item.is_file() and item.stat().st_size > 0 for item in path.rglob("*"))
+
+
+def _validate_evidence_report(
+    path: Path,
+    *,
+    label: str,
+    candidate_model_id: str,
+    baseline_model_id: str,
+) -> str | None:
+    """Validate report existence, JSON shape, and model identity binding."""
+
+    if not path.is_file() or path.stat().st_size <= 0:
+        return f"{label}_missing_or_empty"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return f"{label}_invalid_json"
+    if not isinstance(payload, Mapping) or not payload:
+        return f"{label}_invalid_payload"
+    report_candidate = payload.get("candidate_model_id", payload.get("model_id"))
+    if str(report_candidate or "").strip() != candidate_model_id:
+        return f"{label}_candidate_model_mismatch"
+    if label == "baseline_comparison_report":
+        if str(payload.get("baseline_model_id") or "").strip() != baseline_model_id:
+            return "baseline_comparison_report_baseline_model_mismatch"
+        comparisons = payload.get("metric_comparisons", payload.get("metrics"))
+        if not isinstance(comparisons, Mapping) or not comparisons:
+            return "baseline_comparison_report_metrics_missing"
+    else:
+        calibration = payload.get("calibration_curve", payload.get("metrics"))
+        if not isinstance(calibration, (Mapping, Sequence)) or isinstance(calibration, (str, bytes)) or not calibration:
+            return "calibration_report_evidence_missing"
+    return None
+
+
+def _validate_live_prior_calibration_report(path: Path, *, candidate_model_id: str) -> str | None:
+    """Require every stochastic live-race prior, including strategy choice, to be locked."""
+
+    if not path.is_file() or path.stat().st_size <= 0:
+        return "live_prior_calibration_report_missing_or_empty"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return "live_prior_calibration_report_invalid_json"
+    if not isinstance(payload, Mapping):
+        return "live_prior_calibration_report_invalid_payload"
+    if str(payload.get("candidate_model_id", payload.get("model_id")) or "").strip() != candidate_model_id:
+        return "live_prior_calibration_report_candidate_model_mismatch"
+    calibration = payload.get("prior_calibration")
+    if not isinstance(calibration, Mapping):
+        return "live_prior_calibration_components_missing"
+    required_modes = {
+        "filter_mode": "locked_replay",
+        "monte_carlo_mode": "locked_replay",
+        "strategy_template_mode": "locked_replay",
+    }
+    for field_name, expected in required_modes.items():
+        if str(calibration.get(field_name) or "").strip().lower() != expected:
+            return f"live_prior_{field_name}_not_locked_replay"
+    if not str(calibration.get("source_id") or "").strip():
+        return "live_prior_calibration_source_missing"
+    try:
+        source_rows = int(calibration.get("source_rows", 0))
+    except Exception:
+        source_rows = 0
+    if source_rows <= 0:
+        return "live_prior_calibration_rows_missing"
+    return None
 
 
 __all__ = [

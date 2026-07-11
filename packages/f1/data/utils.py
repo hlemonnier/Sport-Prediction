@@ -108,6 +108,7 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         and not c.endswith("_median_delta")
         and not c.endswith("_quali_sim_delta")
         and not c.endswith("_race_sim_delta")
+        and not c.endswith("_wet_sim_delta")
     ]
     rank_cols = [
         c
@@ -115,6 +116,7 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         if c.endswith("_rank")
         and not c.endswith("_quali_sim_rank")
         and not c.endswith("_race_sim_rank")
+        and not c.endswith("_wet_sim_rank")
     ]
     if delta_cols:
         delta_frame = merged[delta_cols].apply(pd.to_numeric, errors="coerce")
@@ -141,7 +143,11 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         merged["fp_mean_lap_std"] = (
             merged[lap_std_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
         )
-    lap_count_cols = [c for c in merged.columns if c.endswith("_lap_count")]
+    lap_count_cols = [
+        c
+        for c in merged.columns
+        if c.endswith("_lap_count") and not c.endswith("_sim_lap_count")
+    ]
     if lap_count_cols:
         merged["fp_total_laps"] = (
             merged[lap_count_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
@@ -181,6 +187,21 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
     else:
         merged["fp_race_sim_rank"] = float("nan")
 
+    wet_sim_delta_cols = [c for c in merged.columns if c.endswith("_wet_sim_delta")]
+    if wet_sim_delta_cols:
+        wet_delta = merged[wet_sim_delta_cols].apply(pd.to_numeric, errors="coerce")
+        merged["fp_wet_sim_delta"] = wet_delta.mean(axis=1, skipna=True)
+        merged["wet_sim_sessions_available"] = wet_delta.notna().sum(axis=1)
+    else:
+        merged["fp_wet_sim_delta"] = float("nan")
+        merged["wet_sim_sessions_available"] = 0
+
+    wet_sim_rank_cols = [c for c in merged.columns if c.endswith("_wet_sim_rank")]
+    if wet_sim_rank_cols:
+        merged["fp_wet_sim_rank"] = merged[wet_sim_rank_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+    else:
+        merged["fp_wet_sim_rank"] = float("nan")
+
     quali_sim_lap_count_cols = [c for c in merged.columns if c.endswith("_quali_sim_lap_count")]
     if quali_sim_lap_count_cols:
         merged["fp_quali_sim_laps"] = (
@@ -196,6 +217,12 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         )
     else:
         merged["fp_race_sim_laps"] = 0.0
+
+    wet_sim_lap_count_cols = [c for c in merged.columns if c.endswith("_wet_sim_lap_count")]
+    if wet_sim_lap_count_cols:
+        merged["fp_wet_sim_laps"] = merged[wet_sim_lap_count_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
+    else:
+        merged["fp_wet_sim_laps"] = 0.0
 
     slow_lap_ratio_cols = [c for c in merged.columns if c.endswith("_slow_lap_ratio")]
     if slow_lap_ratio_cols:

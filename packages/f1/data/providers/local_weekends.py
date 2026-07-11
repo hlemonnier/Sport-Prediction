@@ -25,6 +25,7 @@ from .base import (
     requests,
     time,
 )
+from .practice_features import FP_FEATURE_CONTRACT_VERSION, PracticeFeatureConfig, build_session_pace_features
 
 class LocalWeekendProvider(BaseProvider):
     SLOW_LAP_DELTA_SEC = 5.0
@@ -217,215 +218,19 @@ class LocalWeekendProvider(BaseProvider):
         return "Session"
 
     def _session_pace_features(self, laps: pd.DataFrame, label: str) -> pd.DataFrame:
-        if laps.empty:
-            return pd.DataFrame()
-        driver_col = first_available(laps, ["DriverNumber", "driver_number", "Driver", "driver_id"])
-        lap_col = first_available(laps, ["LapTime", "lap_time", "duration"])
-        if driver_col is None or lap_col is None:
-            return pd.DataFrame()
-
-        work = laps.copy()
-        work["driver_id"] = work[driver_col].map(self._normalize_driver_id)
-        work = work[work["driver_id"] != ""]
-        if work.empty:
-            return pd.DataFrame()
-
-        name_col = first_available(work, ["Driver", "Abbreviation", "BroadcastName", "driver_name"])
-        team_col = first_available(work, ["Team", "TeamName", "team_name"])
-        lap_number_col = first_available(work, ["LapNumber", "lap_number"])
-        stint_col = first_available(work, ["Stint", "stint"])
-        tyre_life_col = first_available(work, ["TyreLife", "tyre_life"])
-        fresh_tyre_col = first_available(work, ["FreshTyre", "fresh_tyre"])
-        pit_out_col = first_available(work, ["PitOutTime", "pit_out_time", "pit_out"])
-        if name_col:
-            work["driver_name"] = work[name_col].astype(str)
-        else:
-            work["driver_name"] = work["driver_id"]
-        if team_col:
-            work["team_name"] = work[team_col]
-        else:
-            work["team_name"] = pd.NA
-
-        work["lap_time"] = pd.to_numeric(work[lap_col], errors="coerce")
-        work = work[work["lap_time"].notna() & (work["lap_time"] > 0.0)]
-        if work.empty:
-            return pd.DataFrame()
-
-        if "IsAccurate" in work.columns:
-            accurate = work["IsAccurate"]
-            if accurate.dtype == bool:
-                accurate_mask = accurate
-            else:
-                accurate_mask = (
-                    accurate.astype(str).str.strip().str.lower().isin({"1", "true", "yes"})
-                )
-            if accurate_mask.any():
-                work = work[accurate_mask]
-        if work.empty:
-            return pd.DataFrame()
-
-        if lap_number_col:
-            work["lap_order"] = pd.to_numeric(work[lap_number_col], errors="coerce")
-        else:
-            work["lap_order"] = range(1, len(work) + 1)
-        work["lap_order"] = pd.to_numeric(work["lap_order"], errors="coerce").fillna(9999.0)
-
-        rows: list[dict[str, object]] = []
-        for driver_id, group in work.groupby("driver_id", sort=False):
-            group = group.sort_values("lap_order", kind="mergesort").copy()
-            lap_times = pd.to_numeric(group["lap_time"], errors="coerce").dropna().sort_values()
-            if lap_times.empty:
-                continue
-            top_count = min(3, len(lap_times))
-            best_lap = float(lap_times.iloc[0])
-            top3_lap = float(lap_times.iloc[:top_count].mean())
-            median_lap = float(lap_times.median())
-            lap_std = float(lap_times.std(ddof=0)) if len(lap_times) > 1 else 0.0
-
-            if stint_col:
-                stint_id = pd.to_numeric(group[stint_col], errors="coerce")
-            else:
-                stint_id = pd.Series(float("nan"), index=group.index, dtype=float)
-            if stint_id.notna().sum() == 0:
-                if pit_out_col:
-                    pit_out = group[pit_out_col].notna()
-                    stint_id = pit_out.cumsum() + 1
-                else:
-                    stint_id = pd.Series(1, index=group.index, dtype=float)
-            group["stint_id"] = stint_id.ffill().bfill().fillna(1).astype(int)
-            stint_sizes = group.groupby("stint_id", sort=False)["lap_time"].transform("size").astype(float)
-
-            if tyre_life_col:
-                tyre_life = pd.to_numeric(group[tyre_life_col], errors="coerce")
-            else:
-                tyre_life = pd.Series(float("nan"), index=group.index, dtype=float)
-            if fresh_tyre_col:
-                fresh_raw = group[fresh_tyre_col]
-                if fresh_raw.dtype == bool:
-                    fresh_tyre = fresh_raw.fillna(False)
-                else:
-                    fresh_tyre = (
-                        fresh_raw.astype(str).str.strip().str.lower().isin({"1", "true", "yes", "y", "t"})
-                    )
-            else:
-                fresh_tyre = pd.Series(False, index=group.index, dtype=bool)
-
-            driver_lap_time = pd.to_numeric(group["lap_time"], errors="coerce")
-            lap_delta = driver_lap_time - best_lap
-            slow_mask = lap_delta > self.SLOW_LAP_DELTA_SEC
-            usable_mask = (~slow_mask) & driver_lap_time.notna()
-
-            quali_mask = (
-                usable_mask
-                & (lap_delta <= self.QUALI_SIM_DELTA_SEC)
-                & (
-                    (tyre_life <= self.QUALI_SIM_TYRE_LIFE_MAX)
-                    | fresh_tyre
-                    | (stint_sizes <= 3)
-                )
-            )
-            quali_laps = driver_lap_time[quali_mask].dropna().sort_values()
-            if quali_laps.empty:
-                fallback_quali = driver_lap_time[usable_mask].dropna().sort_values()
-                quali_laps = fallback_quali.head(min(2, len(fallback_quali)))
-            if not quali_laps.empty:
-                quali_sim_lap = float(quali_laps.mean())
-                quali_sim_lap_count = int(len(quali_laps))
-            else:
-                quali_sim_lap = float("nan")
-                quali_sim_lap_count = 0
-
-            race_mask = (
-                usable_mask
-                & (stint_sizes >= self.RACE_SIM_MIN_STINT_LAPS)
-                & (lap_delta >= self.RACE_SIM_MIN_DELTA_SEC)
-                & (lap_delta <= self.RACE_SIM_MAX_DELTA_SEC)
-            )
-            race_laps = driver_lap_time[race_mask].dropna()
-            if race_laps.empty:
-                long_stint_laps = driver_lap_time[usable_mask & (stint_sizes >= self.RACE_SIM_MIN_STINT_LAPS)].dropna()
-                if not long_stint_laps.empty:
-                    race_laps = long_stint_laps
-            if race_laps.empty:
-                fallback_race = driver_lap_time[usable_mask].dropna().sort_values()
-                if len(fallback_race) > 4:
-                    race_laps = fallback_race.iloc[2:]
-                else:
-                    race_laps = fallback_race
-            if not race_laps.empty:
-                race_sim_lap = float(race_laps.mean())
-                race_sim_lap_count = int(len(race_laps))
-            else:
-                race_sim_lap = float("nan")
-                race_sim_lap_count = 0
-
-            slow_lap_ratio = float(slow_mask.mean()) if len(slow_mask) > 0 else 0.0
-            if pd.notna(quali_sim_lap) and pd.notna(race_sim_lap):
-                quali_vs_race_gap = float(race_sim_lap - quali_sim_lap)
-            else:
-                quali_vs_race_gap = float("nan")
-
-            rows.append(
-                {
-                    "driver_id": str(driver_id),
-                    "driver_name": self._mode_or_first(group["driver_name"], fallback=str(driver_id)),
-                    "team_name": self._mode_or_first(group["team_name"], fallback=""),
-                    "best_lap": best_lap,
-                    "top3_lap": top3_lap,
-                    "median_lap": median_lap,
-                    "lap_std": lap_std,
-                    "lap_count": int(len(lap_times)),
-                    "slow_lap_ratio": slow_lap_ratio,
-                    "quali_sim_lap": quali_sim_lap,
-                    "quali_sim_lap_count": quali_sim_lap_count,
-                    "race_sim_lap": race_sim_lap,
-                    "race_sim_lap_count": race_sim_lap_count,
-                    "quali_vs_race_gap": quali_vs_race_gap,
-                },
-            )
-        if not rows:
-            return pd.DataFrame()
-
-        frame = pd.DataFrame(rows)
-        frame["delta"] = frame["best_lap"] - frame["best_lap"].min()
-        frame["rank"] = frame["best_lap"].rank(method="min").astype(int)
-        frame["top3_delta"] = frame["top3_lap"] - frame["top3_lap"].min()
-        frame["median_delta"] = frame["median_lap"] - frame["median_lap"].min()
-        if frame["quali_sim_lap"].notna().sum() > 0:
-            frame["quali_sim_delta"] = frame["quali_sim_lap"] - frame["quali_sim_lap"].min(skipna=True)
-            frame["quali_sim_rank"] = frame["quali_sim_lap"].rank(method="min")
-        else:
-            frame["quali_sim_delta"] = float("nan")
-            frame["quali_sim_rank"] = float("nan")
-        if frame["race_sim_lap"].notna().sum() > 0:
-            frame["race_sim_delta"] = frame["race_sim_lap"] - frame["race_sim_lap"].min(skipna=True)
-            frame["race_sim_rank"] = frame["race_sim_lap"].rank(method="min")
-        else:
-            frame["race_sim_delta"] = float("nan")
-            frame["race_sim_rank"] = float("nan")
-        frame["session"] = label
-        return frame[
-            [
-                "driver_id",
-                "driver_name",
-                "team_name",
-                "delta",
-                "rank",
-                "top3_delta",
-                "median_delta",
-                "lap_std",
-                "lap_count",
-                "slow_lap_ratio",
-                "quali_sim_delta",
-                "quali_sim_rank",
-                "quali_sim_lap_count",
-                "race_sim_delta",
-                "race_sim_rank",
-                "race_sim_lap_count",
-                "quali_vs_race_gap",
-                "session",
-            ]
-        ]
+        return build_session_pace_features(
+            laps,
+            label,
+            provider="local_weekends",
+            config=PracticeFeatureConfig(
+                slow_lap_delta_seconds=self.SLOW_LAP_DELTA_SEC,
+                qualifying_sim_delta_seconds=self.QUALI_SIM_DELTA_SEC,
+                qualifying_sim_tyre_life_max=self.QUALI_SIM_TYRE_LIFE_MAX,
+                race_sim_min_stint_laps=self.RACE_SIM_MIN_STINT_LAPS,
+                race_sim_min_delta_seconds=self.RACE_SIM_MIN_DELTA_SEC,
+                race_sim_max_delta_seconds=self.RACE_SIM_MAX_DELTA_SEC,
+            ),
+        )
 
     def _find_session_entry(
         self,
@@ -678,7 +483,6 @@ class LocalWeekendProvider(BaseProvider):
 
         return {
             "track_finish_order_mobility": float(finish_order_mobility.mean(skipna=True)),
-            "track_overtake_propensity": float(finish_order_mobility.mean(skipna=True)),
             "track_grid_stability": float(grid_stability.mean(skipna=True)),
             "track_safety_car_propensity": float(sc_presence.mean(skipna=True)),
             "track_sc_lap_ratio": float(sc_lap_ratio.mean(skipna=True)),
@@ -725,7 +529,11 @@ class LocalWeekendProvider(BaseProvider):
             if session_frame.empty:
                 continue
             frames.append(session_frame)
-        return merge_fp_frames(frames)
+        merged = merge_fp_frames(frames)
+        if not merged.empty:
+            merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
+            merged["fp_feature_source"] = "local_weekends"
+        return merged
 
     def get_qualifying_results(self, year: int, round_number: int) -> pd.DataFrame:
         weekend_dir, sessions = self._session_entries(year, round_number)

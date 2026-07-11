@@ -174,6 +174,7 @@ def _run_race_prediction(
     f1_live_seed: int = 42,
     f1_live_cache_dir: Optional[str] = None,
     f1_live_replay_path: Optional[str] = None,
+    f1_live_calibration_path: Optional[str] = None,
     f1_live_replay_cutoff_lap: Optional[int] = None,
 ) -> dict[str, Any]:
     config = PredictionConfig(
@@ -203,6 +204,7 @@ def _run_race_prediction(
         f1_live_seed=f1_live_seed,
         f1_live_cache_dir=f1_live_cache_dir,
         f1_live_replay_path=f1_live_replay_path,
+        f1_live_calibration_path=f1_live_calibration_path,
         f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
     )
     return _prediction_payload(config)
@@ -441,6 +443,7 @@ def _run_live_race(
     f1_live_seed: int,
     f1_live_cache_dir: Optional[str],
     f1_live_replay_path: Optional[str],
+    f1_live_calibration_path: Optional[str],
     f1_live_replay_cutoff_lap: Optional[int],
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
@@ -469,6 +472,7 @@ def _run_live_race(
         f1_live_seed=f1_live_seed,
         f1_live_cache_dir=f1_live_cache_dir,
         f1_live_replay_path=f1_live_replay_path,
+        f1_live_calibration_path=f1_live_calibration_path,
         f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
     )
     snapshot_path = output_dir / "live_race_snapshot.json"
@@ -560,6 +564,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--f1-live-seed", type=int, default=42)
     parser.add_argument("--f1-live-cache-dir", default=None)
     parser.add_argument("--f1-live-replay-path", default=None)
+    parser.add_argument("--f1-live-calibration-path", default=None)
     parser.add_argument("--f1-live-replay-cutoff-lap", type=int, default=None)
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
@@ -688,6 +693,7 @@ def main() -> None:
             f1_live_seed=args.f1_live_seed,
             f1_live_cache_dir=args.f1_live_cache_dir,
             f1_live_replay_path=args.f1_live_replay_path,
+            f1_live_calibration_path=args.f1_live_calibration_path,
             f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
         )
         executed.append("live-race")
@@ -729,6 +735,7 @@ def main() -> None:
         "f1_live_seed": int(args.f1_live_seed),
         "f1_live_cache_dir": args.f1_live_cache_dir,
         "f1_live_replay_path": args.f1_live_replay_path,
+        "f1_live_calibration_path": args.f1_live_calibration_path,
         "f1_live_replay_cutoff_lap": args.f1_live_replay_cutoff_lap,
         "output_dir": str(output_dir),
         "artifacts": artifacts,

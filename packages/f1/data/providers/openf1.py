@@ -25,6 +25,7 @@ from .base import (
     requests,
     time,
 )
+from .practice_features import FP_FEATURE_CONTRACT_VERSION, build_session_pace_features
 
 class OpenF1Provider(BaseProvider):
     def __init__(
@@ -148,38 +149,74 @@ class OpenF1Provider(BaseProvider):
             mapping[number] = acronym
         return mapping
 
+    def _driver_metadata_for_session(self, session_key: int) -> Dict[str, Dict[str, str]]:
+        rows = self._get_json("drivers", {"session_key": session_key})
+        return {
+            str(row.get("driver_number")): {
+                "driver_name": str(row.get("name_acronym") or row.get("full_name") or row.get("driver_number")),
+                "team_name": str(row.get("team_name") or ""),
+            }
+            for row in rows
+            if row.get("driver_number") is not None
+        }
+
+    def _pre_qualifying_sessions(self, meeting_key: int) -> list[tuple[int, str]]:
+        sessions = self._get_json("sessions", {"meeting_key": meeting_key})
+        sessions = sorted(sessions, key=lambda row: str(row.get("date_start") or ""))
+        qualifying_index = next(
+            (
+                idx
+                for idx, row in enumerate(sessions)
+                if str(row.get("session_name") or "").strip().lower() == "qualifying"
+            ),
+            len(sessions),
+        )
+        selected: list[tuple[int, str]] = []
+        practice_number = 0
+        for row in sessions[:qualifying_index]:
+            name = str(row.get("session_name") or "").strip()
+            normalized = name.lower()
+            session_key = row.get("session_key")
+            if session_key is None or not ("practice" in normalized or "sprint" in normalized):
+                continue
+            if "practice" in normalized:
+                practice_number += 1
+                label = f"FP{practice_number}"
+            elif "qualifying" in normalized or "shootout" in normalized:
+                label = "SQ"
+            else:
+                label = "Sprint"
+            selected.append((int(session_key), label))
+        return selected
+
     def get_fp_features(self, year: int, round_number: int) -> pd.DataFrame:
         meeting_name, country_name = self._meeting_filters(round_number)
         meeting = self._meeting_for_round(year, round_number, meeting_name, country_name)
         meeting_key = meeting.get("meeting_key")
         frames: List[pd.DataFrame] = []
-        for sess_name, label in [("Practice 1", "FP1"), ("Practice 2", "FP2"), ("Practice 3", "FP3")]:
-            session_key = self._session_key(meeting_key, sess_name)
-            if not session_key:
+        for session_key, label in self._pre_qualifying_sessions(int(meeting_key)):
+            lap_rows = self._get_json("laps", {"session_key": session_key})
+            if not lap_rows:
                 continue
-            results = self._get_json("session_result", {"session_key": session_key})
-            if not results:
-                continue
-            driver_map = self._drivers_for_session(session_key)
-            rows = []
-            for r in results:
-                duration = r.get("duration")
-                if duration is None:
-                    continue
-                driver_number = str(r.get("driver_number"))
-                rows.append({
-                    "driver_id": driver_number,
-                    "driver_name": driver_map.get(driver_number, driver_number),
-                    "best_lap": float(duration),
-                })
-            if not rows:
-                continue
-            df = pd.DataFrame(rows)
-            df["delta"] = df["best_lap"] - df["best_lap"].min()
-            df["rank"] = df["best_lap"].rank(method="min").astype(int)
-            df["session"] = label
-            frames.append(df[["driver_id", "driver_name", "delta", "rank", "session"]])
-        return merge_fp_frames(frames)
+            laps = pd.DataFrame(lap_rows)
+            metadata = self._driver_metadata_for_session(session_key)
+            numbers = laps.get("driver_number", pd.Series(index=laps.index, dtype=object)).astype(str)
+            laps["driver_name"] = numbers.map(lambda value: metadata.get(value, {}).get("driver_name", value))
+            laps["team_name"] = numbers.map(lambda value: metadata.get(value, {}).get("team_name", ""))
+            stints = pd.DataFrame(self._get_json("stints", {"session_key": session_key}))
+            feature_rows = build_session_pace_features(
+                laps,
+                label,
+                provider="openf1",
+                stints=stints,
+            )
+            if not feature_rows.empty:
+                frames.append(feature_rows)
+        merged = merge_fp_frames(frames)
+        if not merged.empty:
+            merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
+            merged["fp_feature_source"] = "openf1"
+        return merged
 
     def get_qualifying_results(self, year: int, round_number: int) -> pd.DataFrame:
         meeting_name, country_name = self._meeting_filters(round_number)

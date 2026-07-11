@@ -1,10 +1,10 @@
-"""MAPPO-style centralized-training/decentralized-execution policy.
+"""Centralized pit-schedule search with masked decentralized execution.
 
-This is intentionally pragmatic: centralized training evaluates deterministic
-staggered schedules in the multi-agent simulator, then exports a lightweight
-masked policy that can select actions from a single car's public observation.
-It gives Phase 8 the MAPPO shape without pretending the repo has a full neural
-RL stack or enough online data.
+This module does not implement MAPPO or any policy-gradient algorithm. It
+enumerates deterministic staggered schedules in the multi-agent simulator and
+exports the best schedule as a lightweight masked policy. Legacy MAPPO-named
+aliases remain only to avoid breaking callers and must not be used as model
+metadata or evidence of reinforcement learning.
 """
 
 from __future__ import annotations
@@ -31,10 +31,10 @@ from packages.f1.models.live_race.rl.multi_agent_env import (
 
 
 @dataclass(frozen=True)
-class MAPPOConfig:
-    """Configuration for the dependency-light MAPPO-style learner."""
+class CentralizedScheduleSearchConfig:
+    """Configuration for deterministic centralized schedule enumeration."""
 
-    model_id: str = "mappo_style_staggered_strategy_v1"
+    model_id: str = "centralized_pit_schedule_search_v1"
     pit_compound: str = "HARD"
     candidate_pit_laps: tuple[int, ...] = ()
     max_stagger_laps: int = 3
@@ -48,25 +48,29 @@ class MAPPOConfig:
 
 
 @dataclass
-class MAPPOStylePolicy:
-    """Masked policy trained with centralized schedule scoring."""
+class CentralizedSchedulePolicy:
+    """Masked policy selected by centralized schedule scoring."""
 
     pit_schedule_by_driver: dict[str, int]
-    config: MAPPOConfig = field(default_factory=MAPPOConfig)
+    config: CentralizedScheduleSearchConfig = field(default_factory=CentralizedScheduleSearchConfig)
     action_space: tuple[StrategyAction, ...] = field(default_factory=tuple)
     action_mask_config: ActionMaskConfig = field(default_factory=lambda: MultiAgentRaceConfig().action_mask)
     training_diagnostics: dict[str, object] = field(default_factory=dict)
-    model_id: str = "mappo_style_staggered_strategy_v1"
+    model_id: str = "centralized_pit_schedule_search_v1"
 
     @property
     def diagnostics(self) -> dict[str, object]:
         return {
             **self.training_diagnostics,
-            "policy_family": "mappo_style_tabular_ctde",
-            "centralized_training": True,
+            "policy_family": "centralized_schedule_search",
+            "algorithm": "deterministic_schedule_enumeration",
+            "centralized_training": False,
+            "centralized_search": True,
             "decentralized_execution": True,
             "legal_mask_aware": True,
             "neural_stack_required": False,
+            "reinforcement_learning": False,
+            "policy_gradient": False,
         }
 
     def select_action(self, state: StrategyState) -> StrategyAction:
@@ -123,31 +127,33 @@ class MAPPOStylePolicy:
         allowed = set(scored[:cap])
         return tuple(action if idx in allowed or action.action_type != ACTION_PIT_NOW else StrategyAction(ACTION_STAY_OUT) for idx, action in enumerate(proposed))
 
-    def plan(self, state: StrategyState | MultiAgentRaceState) -> "MAPPOPlan":
+    def plan(self, state: StrategyState | MultiAgentRaceState) -> "CentralizedSchedulePlan":
         """Return a plan-style payload for planner/simulator adapters."""
 
         if isinstance(state, MultiAgentRaceState):
             actions = self.select_actions(state)
             scores = self.centralized_action_scores(state)
-            return MAPPOPlan(
+            return CentralizedSchedulePlan(
                 action=actions[0],
                 actions=actions,
                 value=float(sum(max(driver_scores.values()) for driver_scores in scores.values())),
                 diagnostics={
                     "planner": self.config.model_id,
-                    "centralized_training": True,
+                    "centralized_search": True,
+                    "reinforcement_learning": False,
                     "decentralized_execution": True,
                     "centralized_scores": scores,
                 },
             )
         action = self.select_action(state)
-        return MAPPOPlan(
+        return CentralizedSchedulePlan(
             action=action,
             actions=(action,),
             value=0.0,
             diagnostics={
                 "planner": self.config.model_id,
-                "centralized_training": True,
+                "centralized_search": True,
+                "reinforcement_learning": False,
                 "decentralized_execution": True,
             },
         )
@@ -186,26 +192,26 @@ class MAPPOStylePolicy:
 
 
 @dataclass(frozen=True)
-class MAPPOPlan:
+class CentralizedSchedulePlan:
     action: StrategyAction
     actions: tuple[StrategyAction, ...]
     value: float
     diagnostics: Mapping[str, object] = field(default_factory=dict)
 
 
-def fit_mappo_style_policy(
+def fit_centralized_schedule_search(
     env: MultiAgentLiveRaceEnv | MultiAgentRaceState | None = None,
     start_states: MultiAgentRaceState | Sequence[MultiAgentRaceState] | None = None,
     *,
-    config: MAPPOConfig | None = None,
-) -> MAPPOStylePolicy:
-    """Fit a deterministic centralized schedule critic and return a policy."""
+    config: CentralizedScheduleSearchConfig | None = None,
+) -> CentralizedSchedulePolicy:
+    """Enumerate schedules in the simulator and return the best masked policy."""
 
     if isinstance(env, MultiAgentRaceState):
         start_states = env
         env = None
     race_env = env if isinstance(env, MultiAgentLiveRaceEnv) else MultiAgentLiveRaceEnv()
-    cfg = config or MAPPOConfig()
+    cfg = config or CentralizedScheduleSearchConfig()
     states = _normalise_start_states(start_states)
     if not states:
         states = (build_traffic_heavy_scenario(seed=int(race_env.config.seed)),)
@@ -252,7 +258,7 @@ def fit_mappo_style_policy(
     scored.sort(key=lambda item: item[0], reverse=True)
     best_value, best_schedule, best_metrics = scored[0]
     all_values = np.asarray([item[0] for item in scored], dtype=float)
-    return MAPPOStylePolicy(
+    return CentralizedSchedulePolicy(
         pit_schedule_by_driver=dict(best_schedule),
         config=cfg,
         action_space=tuple(race_env.action_space),
@@ -260,7 +266,8 @@ def fit_mappo_style_policy(
         model_id=cfg.model_id,
         training_diagnostics={
             "algorithm": "centralized_schedule_search_with_decentralized_masked_policy",
-            "centralized_training": True,
+            "centralized_training": False,
+            "centralized_search": True,
             "decentralized_execution": True,
             "candidate_schedules": int(len(scored)),
             "training_scenarios": int(len(states)),
@@ -270,7 +277,7 @@ def fit_mappo_style_policy(
             "value_min": float(np.min(all_values)) if all_values.size else None,
             "value_max": float(np.max(all_values)) if all_values.size else None,
             "value_mean": float(np.mean(all_values)) if all_values.size else None,
-            "centralized_critic_features": (
+            "schedule_objective_terms": (
                 "team_time_seconds",
                 "coordination_penalty_seconds",
                 "max_same_lap_pit_count",
@@ -305,7 +312,7 @@ def _normalise_start_states(
     return tuple(start_states)
 
 
-def _candidate_laps(state: MultiAgentRaceState, config: MAPPOConfig) -> tuple[int, ...]:
+def _candidate_laps(state: MultiAgentRaceState, config: CentralizedScheduleSearchConfig) -> tuple[int, ...]:
     if config.candidate_pit_laps:
         return tuple(int(lap) for lap in config.candidate_pit_laps)
     first = int(state.lap_number)
@@ -328,7 +335,7 @@ def _unique_schedules(candidates: Sequence[Mapping[str, int]]) -> list[dict[str,
 def _schedule_regularization(
     schedule: Mapping[str, int],
     states: Sequence[MultiAgentRaceState],
-    config: MAPPOConfig,
+    config: CentralizedScheduleSearchConfig,
 ) -> float:
     penalty = 0.0
     for state in states:
@@ -350,4 +357,21 @@ def _finite(value: object, default: float) -> float:
         return float(default)
 
 
-__all__ = ["MAPPOConfig", "MAPPOPlan", "MAPPOStylePolicy", "fit_mappo_style_policy"]
+# Compatibility aliases for older imports. They intentionally resolve to the
+# honest schedule-search implementation and no longer emit MAPPO metadata.
+MAPPOConfig = CentralizedScheduleSearchConfig
+MAPPOPlan = CentralizedSchedulePlan
+MAPPOStylePolicy = CentralizedSchedulePolicy
+fit_mappo_style_policy = fit_centralized_schedule_search
+
+
+__all__ = [
+    "CentralizedSchedulePlan",
+    "CentralizedSchedulePolicy",
+    "CentralizedScheduleSearchConfig",
+    "fit_centralized_schedule_search",
+    "MAPPOConfig",
+    "MAPPOPlan",
+    "MAPPOStylePolicy",
+    "fit_mappo_style_policy",
+]

@@ -32,7 +32,9 @@ This service owns the near-live contract described in the implementation plan:
   `F1_PLATFORM_DATABASE_URL` enables PostgreSQL.
 - OpenF1 live credentials stay server-side behind `OpenF1TokenManager`.
 - Prediction snapshots can come from a separate model service through
-  `F1_PLATFORM_PREDICTION_URL`, with deterministic local fallback.
+  `F1_PLATFORM_PREDICTION_URL`, with target-specific deterministic local
+  fallback. The fallback is explicitly versioned as an untrained snapshot
+  baseline and must not be presented as a promoted `packages/f1` model.
 
 The service starts with an in-memory event stream plus a local SQLite projection
 store so development works without PostgreSQL or Redis. `infra/docker-compose.yml`
@@ -40,8 +42,12 @@ adds PostgreSQL and Redis for the production storage boundary.
 
 ## Local Run
 
+Python `>=3.10` is required; Python 3.12 is recommended and used by the
+container. Refuse a legacy Python 3.9 environment before installation:
+
 ```bash
 cd services/f1-platform
+python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r requirements.txt
@@ -260,4 +266,4 @@ cd services/f1-platform
 PYTHONPATH=. pytest -q
 ```
 
-Suggested commit name: `build-f1-platform-live-infra`
+Suggested commit name: `docs: declare F1 platform runtime and fallback maturity`

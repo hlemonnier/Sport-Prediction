@@ -1,9 +1,19 @@
-"""Model-service mapping from platform snapshots to prediction snapshots."""
+"""Target-specific snapshot baselines for the live F1 platform.
+
+The full ``packages.f1`` live-race model consumes a causal lap-history trace.
+The platform contract currently supplies only the latest state per driver, so
+claiming that the package model produced these forecasts would be incorrect.
+This module instead exposes honest, deterministic snapshot baselines and uses
+the canonical package strategy adapter where its input contract is satisfied.
+
+All position outputs are joint marginals: a Sinkhorn-balanced positive matrix
+ensures that every driver row and every finishing-position column sums to one.
+"""
 
 from __future__ import annotations
 
-import math
 import importlib.util
+import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,78 +21,279 @@ from typing import Any
 
 JsonObject = dict[str, Any]
 
-MODEL_VERSION = "packages_f1_live_strategy_v1"
-FEATURES_VERSION = "platform_live_snapshot_strategy_v1"
+MODEL_VERSION = "f1_snapshot_target_dispatch_v2"
+FEATURES_VERSION = "platform_target_specific_snapshot_v2"
+
+TARGET_MODELS: dict[str, dict[str, str]] = {
+    "race": {
+        "model_version": "live_race_snapshot_joint_baseline_v2",
+        "features_version": "platform_live_race_snapshot_v2",
+        "target_definition": "finishing-order marginals conditional on the latest race snapshot",
+    },
+    "qualifying": {
+        "model_version": "qualifying_snapshot_pace_baseline_v1",
+        "features_version": "platform_qualifying_pace_snapshot_v1",
+        "target_definition": "qualifying-order marginals from observed best-lap pace",
+    },
+    "next-lap": {
+        "model_version": "next_lap_snapshot_pace_baseline_v1",
+        "features_version": "platform_next_lap_pace_snapshot_v1",
+        "target_definition": "next-lap relative-order marginals from recent pace and tyre state",
+    },
+    "strategy": {
+        "model_version": "live_strategy_policy_context_baseline_v1",
+        "features_version": "platform_live_strategy_snapshot_v1",
+        "target_definition": "strategy recommendations with current-order context, not a finish forecast",
+    },
+}
 
 
 def predict_from_snapshot(snapshot: JsonObject, *, prediction_kind: str = "race") -> JsonObject:
+    prediction_kind = str(prediction_kind).strip().lower().replace("_", "-")
+    target = TARGET_MODELS.get(prediction_kind)
+    if target is None:
+        supported = ", ".join(sorted(TARGET_MODELS))
+        raise ValueError(f"unsupported prediction_kind {prediction_kind!r}; expected one of: {supported}")
+
     drivers = _drivers(snapshot)
+    driver_numbers = [int(driver["driver_number"]) for driver in drivers]
+    if len(set(driver_numbers)) != len(driver_numbers):
+        raise ValueError("snapshot contains duplicate driver_number values")
     generated_at = _utc_now()
     if not drivers:
         return {
-            "modelVersion": MODEL_VERSION,
-            "featuresVersion": FEATURES_VERSION,
+            "modelVersion": target["model_version"],
+            "featuresVersion": target["features_version"],
             "generatedAt": generated_at,
             "predictionKind": prediction_kind,
             "predictions": [],
-            "diagnostics": {"driverCount": 0, "strategyPolicyEnabled": False},
+            "diagnostics": {
+                "driverCount": 0,
+                "targetDefinition": target["target_definition"],
+                "strategyPolicyEnabled": False,
+                "forecastAvailable": False,
+                "unavailableReason": "snapshot_has_no_drivers",
+                "provenance": {
+                    "modelType": "deterministic_untrained_snapshot_baseline",
+                    "canonicalLiveRaceModelUsed": False,
+                    "canonicalLiveRaceUnavailableReason": "snapshot_has_no_drivers",
+                },
+            },
         }
 
-    strategy_rows, strategy_enabled, strategy_error = _strategy_policy_rows(drivers)
-    scored = []
-    for driver in drivers:
-        number = int(driver["driver_number"])
-        policy = strategy_rows.get(number, {})
-        score = _driver_score(driver, policy)
-        scored.append((score, driver, policy))
+    strategy_requested = prediction_kind in {"race", "next-lap", "strategy"}
+    if strategy_requested:
+        strategy_rows, strategy_enabled, strategy_error = _strategy_policy_rows(drivers)
+    else:
+        strategy_rows, strategy_enabled, strategy_error = {}, False, None
 
-    scored.sort(key=lambda item: (item[0], item[1]["driver_number"]))
-    predicted_rank = {int(driver["driver_number"]): rank for rank, (_, driver, _) in enumerate(scored, start=1)}
+    scored = _score_drivers(drivers, strategy_rows, prediction_kind=prediction_kind)
     total = len(scored)
+    distributions, joint_diagnostics = _joint_position_distributions(
+        scored,
+        prediction_kind=prediction_kind,
+        strategy_enabled=strategy_enabled,
+    )
     predictions = []
     for score, driver, policy in scored:
         driver_number = int(driver["driver_number"])
-        rank = predicted_rank[driver_number]
-        distribution = _position_distribution(rank, total, uncertainty=_uncertainty(driver, policy, strategy_enabled))
+        distribution = distributions[driver_number]
         position_p10 = _position_percentile(distribution, 0.10)
         position_p90 = _position_percentile(distribution, 0.90)
         win_probability = distribution.get("1", 0.0)
         podium_probability = sum(distribution.get(str(pos), 0.0) for pos in range(1, min(3, total) + 1))
         points_probability = sum(distribution.get(str(pos), 0.0) for pos in range(1, min(10, total) + 1))
-        confidence = _confidence(driver, policy, strategy_enabled)
+        expected_position = sum(float(position) * probability for position, probability in distribution.items())
+        confidence = _confidence(driver, policy, strategy_enabled, prediction_kind=prediction_kind)
+        strategy_payload = _strategy_payload(policy) if strategy_requested else None
         predictions.append(
             {
-                "model_version": MODEL_VERSION,
+                "model_version": target["model_version"],
                 "prediction_time": generated_at,
                 "source_event_sequence": _optional_int(snapshot.get("seq")) or 0,
-                "features_version": FEATURES_VERSION,
+                "features_version": target["features_version"],
                 "driver_number": driver_number,
-                "expected_position": round(float(rank), 6),
+                "expected_position": round(expected_position, 6),
                 "position_p10": position_p10,
                 "position_p90": position_p90,
                 "position_distribution": distribution,
-                "win_probability": round(win_probability, 6),
-                "podium_probability": round(podium_probability, 6),
-                "points_probability": round(points_probability, 6),
-                "dnf_probability": round(_dnf_probability(driver, policy), 6),
+                "win_probability": round(win_probability, 12),
+                "podium_probability": round(podium_probability, 12),
+                "points_probability": round(points_probability, 12),
+                "dnf_probability": round(_dnf_probability(driver, policy), 6)
+                if prediction_kind in {"race", "strategy"}
+                else 0.0,
                 "confidence": round(confidence, 6),
-                "strategy": _strategy_payload(policy),
+                "strategy": strategy_payload,
                 "score": round(score, 6),
             }
         )
 
     return {
-        "modelVersion": MODEL_VERSION,
-        "featuresVersion": FEATURES_VERSION,
+        "modelVersion": target["model_version"],
+        "featuresVersion": target["features_version"],
         "generatedAt": generated_at,
         "predictionKind": prediction_kind,
         "predictions": predictions,
         "diagnostics": {
             "driverCount": total,
+            "targetDefinition": target["target_definition"],
+            "forecastAvailable": True,
             "strategyPolicyEnabled": strategy_enabled,
             "strategyPolicyError": strategy_error,
             "sourceEventSequence": _optional_int(snapshot.get("seq")) or 0,
+            "jointDistribution": joint_diagnostics,
+            "provenance": {
+                "modelType": "deterministic_untrained_snapshot_baseline",
+                "canonicalPackageComponents": (
+                    ["packages.f1.models.live_race.strategy.BaselineStrategyPolicyAdapter"]
+                    if strategy_enabled
+                    else []
+                ),
+                "canonicalLiveRaceModelUsed": False,
+                "canonicalLiveRaceUnavailableReason": (
+                    "run_live_race_prediction_requires_a_causal_lap_history_trace; "
+                    "the_platform_request_contains_only_the_latest_driver_state"
+                ),
+                "fallbackStrategyPolicyUsed": bool(strategy_requested and not strategy_enabled),
+            },
         },
+    }
+
+
+def _score_drivers(
+    drivers: list[JsonObject],
+    strategy_rows: dict[int, JsonObject],
+    *,
+    prediction_kind: str,
+) -> list[tuple[float, JsonObject, JsonObject]]:
+    lap_values = [
+        value
+        for driver in drivers
+        for value in [_lap_signal(driver, prefer_best=prediction_kind == "qualifying")]
+        if value is not None
+    ]
+    slow_lap = max(lap_values, default=120.0) + 5.0
+    scored: list[tuple[float, JsonObject, JsonObject]] = []
+    for driver in drivers:
+        number = int(driver["driver_number"])
+        policy = strategy_rows.get(number, {})
+        if prediction_kind == "race":
+            score = _race_score(driver, policy)
+        elif prediction_kind == "qualifying":
+            lap = _lap_signal(driver, prefer_best=True)
+            score = lap if lap is not None else slow_lap + (0.01 * float(driver.get("position") or 20.0))
+        elif prediction_kind == "next-lap":
+            lap = _lap_signal(driver, prefer_best=False)
+            score = (lap if lap is not None else slow_lap) + _next_lap_adjustment(driver, policy)
+        else:  # strategy: position is context, not a finishing-order forecast.
+            score = float(driver.get("position") or 20.0)
+        scored.append((float(score), driver, policy))
+    scored.sort(key=lambda item: (item[0], int(item[1]["driver_number"])))
+    return scored
+
+
+def _lap_signal(driver: JsonObject, *, prefer_best: bool) -> float | None:
+    first = "best_lap_time" if prefer_best else "last_lap_time"
+    second = "last_lap_time" if prefer_best else "best_lap_time"
+    return _optional_float(driver.get(first)) or _optional_float(driver.get(second))
+
+
+def _race_score(driver: JsonObject, policy: JsonObject) -> float:
+    """Latest-state race baseline; deliberately not presented as a trained model."""
+
+    position = _optional_float(driver.get("position")) or 20.0
+    gap = _optional_float(driver.get("gap_to_leader_seconds")) or 0.0
+    tyre_used = _optional_float(policy.get("tyre_life_used_ratio")) or 0.0
+    pit_urgency = _optional_float(policy.get("pit_urgency")) or 0.0
+    return (
+        float(position)
+        + min(2.5, max(0.0, gap) * 0.02)
+        + min(0.8, tyre_used * 0.30)
+        + min(1.2, pit_urgency * 0.65)
+        + (0.35 if str(policy.get("recommended_action")) == "pit_now" else 0.0)
+    )
+
+
+def _next_lap_adjustment(driver: JsonObject, policy: JsonObject) -> float:
+    compound = str(driver.get("compound") or "UNKNOWN").upper()
+    tyre_age = max(0.0, _optional_float(driver.get("tyre_age")) or 0.0)
+    degradation = {
+        "SOFT": 0.050,
+        "MEDIUM": 0.040,
+        "HARD": 0.030,
+        "INTERMEDIATE": 0.060,
+        "WET": 0.065,
+    }.get(compound, 0.040)
+    adjustment = degradation * min(50.0, tyre_age)
+    action = str(policy.get("recommended_action") or "")
+    if action == "pit_now":
+        adjustment += 20.0
+    elif action == "pit_next_lap":
+        adjustment += 0.2
+    return float(adjustment)
+
+
+def _joint_position_distributions(
+    scored: list[tuple[float, JsonObject, JsonObject]],
+    *,
+    prediction_kind: str,
+    strategy_enabled: bool,
+) -> tuple[dict[int, dict[str, float]], JsonObject]:
+    """Return approximately doubly-stochastic position marginals.
+
+    A strictly-positive rank kernel is alternately normalized over driver rows
+    and position columns.  The resulting matrix is a coherent set of assignment
+    marginals, unlike independently normalized per-driver curves.
+    """
+
+    total = len(scored)
+    matrix: list[list[float]] = []
+    for rank, (_, driver, policy) in enumerate(scored, start=1):
+        sigma = _uncertainty(driver, policy, strategy_enabled, prediction_kind=prediction_kind)
+        row = []
+        for position in range(1, total + 1):
+            distance = float(position - rank)
+            row.append(max(1e-15, math.exp(-(distance * distance) / (2.0 * sigma * sigma))))
+        matrix.append(row)
+
+    iterations = 0
+    for iterations in range(1, 1001):
+        for row_index in range(total):
+            row_sum = sum(matrix[row_index]) or 1.0
+            matrix[row_index] = [value / row_sum for value in matrix[row_index]]
+        for column_index in range(total):
+            column_sum = sum(matrix[row][column_index] for row in range(total)) or 1.0
+            for row_index in range(total):
+                matrix[row_index][column_index] /= column_sum
+        row_error = max(abs(sum(row) - 1.0) for row in matrix)
+        column_error = max(
+            abs(sum(matrix[row][column] for row in range(total)) - 1.0)
+            for column in range(total)
+        )
+        if max(row_error, column_error) <= 1e-12:
+            break
+
+    distributions: dict[int, dict[str, float]] = {}
+    for row_index, (_, driver, _) in enumerate(scored):
+        distributions[int(driver["driver_number"])] = {
+            str(position): round(matrix[row_index][position - 1], 12)
+            for position in range(1, total + 1)
+        }
+
+    row_sums = [sum(row.values()) for row in distributions.values()]
+    column_sums = [
+        sum(row[str(position)] for row in distributions.values())
+        for position in range(1, total + 1)
+    ]
+    return distributions, {
+        "method": "sinkhorn_balanced_gaussian_rank_kernel",
+        "iterations": iterations,
+        "rowMaxAbsError": max(abs(value - 1.0) for value in row_sums),
+        "columnMaxAbsError": max(abs(value - 1.0) for value in column_sums),
+        "winProbabilitySum": column_sums[0],
+        "podiumProbabilitySum": sum(column_sums[: min(3, total)]),
+        "pointsProbabilitySum": sum(column_sums[: min(10, total)]),
     }
 
 
@@ -206,39 +417,6 @@ def _fallback_strategy_rows(drivers: list[JsonObject]) -> dict[int, JsonObject]:
     return rows
 
 
-def _driver_score(driver: JsonObject, policy: JsonObject) -> float:
-    position = _optional_float(driver.get("position")) or 20.0
-    last_lap = _optional_float(driver.get("last_lap_time"))
-    best_lap = _optional_float(driver.get("best_lap_time"))
-    lap_signal = last_lap if last_lap is not None else best_lap
-    tyre_used = _optional_float(policy.get("tyre_life_used_ratio")) or 0.0
-    pit_urgency = _optional_float(policy.get("pit_urgency")) or 0.0
-    speed = _optional_float(driver.get("last_speed")) or 0.0
-    gap = _optional_float(driver.get("gap_to_leader_seconds")) or 0.0
-
-    score = float(position)
-    if lap_signal is not None:
-        score += lap_signal * 0.018
-    score += min(8.0, max(0.0, gap) * 0.035)
-    score += min(2.5, tyre_used * 0.55)
-    score += min(2.0, pit_urgency * 0.95)
-    if speed > 0:
-        score -= min(0.45, speed / 900.0)
-    if str(policy.get("recommended_action")) == "pit_now":
-        score += 0.45
-    return score
-
-
-def _position_distribution(rank: int, total: int, *, uncertainty: float) -> dict[str, float]:
-    sigma = max(0.75, min(4.0, uncertainty))
-    weights = {}
-    for position in range(1, total + 1):
-        distance = float(position - rank)
-        weights[position] = math.exp(-(distance * distance) / (2.0 * sigma * sigma))
-    normalizer = sum(weights.values()) or 1.0
-    return {str(position): round(weight / normalizer, 6) for position, weight in weights.items()}
-
-
 def _position_percentile(distribution: dict[str, float], percentile: float) -> float | None:
     if not distribution:
         return None
@@ -263,25 +441,43 @@ def _position_percentile(distribution: dict[str, float], percentile: float) -> f
     return round(parsed[-1][0], 6)
 
 
-def _uncertainty(driver: JsonObject, policy: JsonObject, strategy_enabled: bool) -> float:
-    base = 1.05 if strategy_enabled else 1.45
+def _uncertainty(
+    driver: JsonObject,
+    policy: JsonObject,
+    strategy_enabled: bool,
+    *,
+    prediction_kind: str,
+) -> float:
+    base = {
+        "race": 1.20 if strategy_enabled else 1.55,
+        "qualifying": 1.35,
+        "next-lap": 1.20 if strategy_enabled else 1.50,
+        "strategy": 0.85,
+    }[prediction_kind]
     if driver.get("last_lap_time") is None and driver.get("best_lap_time") is None:
         base += 0.55
-    base += 0.5 * (_optional_float(policy.get("track_risk_score")) or 0.0)
-    base += 0.35 * (_optional_float(policy.get("pit_urgency")) or 0.0)
-    return base
+    if prediction_kind in {"race", "next-lap"}:
+        base += 0.5 * (_optional_float(policy.get("track_risk_score")) or 0.0)
+        base += 0.35 * (_optional_float(policy.get("pit_urgency")) or 0.0)
+    return max(0.75, min(4.0, base))
 
 
-def _confidence(driver: JsonObject, policy: JsonObject, strategy_enabled: bool) -> float:
-    confidence = 0.52 if strategy_enabled else 0.42
-    if driver.get("position") is not None:
+def _confidence(
+    driver: JsonObject,
+    policy: JsonObject,
+    strategy_enabled: bool,
+    *,
+    prediction_kind: str,
+) -> float:
+    confidence = 0.48 if strategy_enabled else 0.38
+    if prediction_kind in {"race", "strategy"} and driver.get("position") is not None:
         confidence += 0.12
     if driver.get("last_lap_time") is not None or driver.get("best_lap_time") is not None:
         confidence += 0.10
-    policy_conf = _optional_float(policy.get("recommendation_confidence"))
-    if policy_conf is not None:
+    policy_conf = _optional_float(policy.get("recommendation_confidence")) if strategy_enabled else None
+    if policy_conf is not None and prediction_kind in {"race", "next-lap", "strategy"}:
         confidence += min(0.12, policy_conf * 0.12)
-    return max(0.0, min(0.92, confidence))
+    return max(0.0, min(0.80, confidence))
 
 
 def _dnf_probability(driver: JsonObject, policy: JsonObject) -> float:

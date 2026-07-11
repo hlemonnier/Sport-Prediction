@@ -1,6 +1,7 @@
 """Live-race model package."""
 
 from .action_space import *  # noqa: F403
+from .calibration import *  # noqa: F403
 from .environment import *  # noqa: F403
 from .evaluate_policy import *  # noqa: F403
 from .mpc import *  # noqa: F403

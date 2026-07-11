@@ -16,6 +16,10 @@ from packages.sports_core.paths import find_repo_root
 
 from packages.f1.data.schemas.session import PredictionConfig
 from packages.f1.models.live_race.evaluate import evaluate_live_replay
+from packages.f1.models.live_race.calibration import (
+    MonteCarloPriorConfig,
+    load_live_race_calibration,
+)
 from packages.f1.models.live_race.strategy import (
     NoopStrategyPolicyAdapter,
     NoopTelemetryFeatureAdapter,
@@ -357,25 +361,19 @@ def _infer_rollout_regime(snapshot: pd.DataFrame) -> str:
     return "green"
 
 
-def _advance_rollout_regime(current: str, rng: np.random.Generator) -> str:
+def _advance_rollout_regime(
+    current: str,
+    rng: np.random.Generator,
+    priors: MonteCarloPriorConfig,
+) -> str:
     regime = str(current or "green")
+    probabilities = priors.transition_probabilities(regime)
     u = float(rng.random())
-    if regime == "sc_vsc":
-        if u < 0.38:
-            return "green"
-        if u < 0.52:
-            return "yellow"
-        return "sc_vsc"
-    if regime == "yellow":
-        if u < 0.22:
-            return "sc_vsc"
-        if u < 0.47:
-            return "green"
-        return "yellow"
-    if u < 0.035:
-        return "sc_vsc"
-    if u < 0.085:
-        return "yellow"
+    cumulative = 0.0
+    for target in ("sc_vsc", "yellow", "green"):
+        cumulative += float(probabilities[target])
+        if u < cumulative:
+            return target
     return "green"
 
 
@@ -387,13 +385,14 @@ def _regime_lap_factors(regime: str) -> tuple[float, float, float]:
     return 0.0, 1.0, 1.0
 
 
-def _sample_pit_loss_seconds(regime: str, rng: np.random.Generator) -> float:
-    mean_loss = 21.0
-    if regime == "yellow":
-        mean_loss = 15.5
-    elif regime == "sc_vsc":
-        mean_loss = 11.0
-    sampled = float(rng.normal(loc=mean_loss, scale=1.4))
+def _sample_pit_loss_seconds(
+    regime: str,
+    rng: np.random.Generator,
+    priors: MonteCarloPriorConfig | None = None,
+) -> float:
+    rollout_priors = priors or MonteCarloPriorConfig()
+    mean_loss, std_loss = rollout_priors.pit_loss_parameters(regime)
+    sampled = float(rng.normal(loc=mean_loss, scale=std_loss))
     return max(5.0, sampled)
 
 
@@ -481,7 +480,9 @@ def _mc_position_distribution(
     emit_observability: bool = False,
     observability_top_drivers: Optional[int] = None,
     observability_max_position: Optional[int] = None,
+    mc_priors: MonteCarloPriorConfig | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
+    rollout_priors = mc_priors or MonteCarloPriorConfig()
     requested = max(50, int(requested_samples))
     max_work_limit = max(1000, int(max_mc_work))
     observability_stub = {
@@ -642,7 +643,7 @@ def _mc_position_distribution(
             strategy_assignments_total += 1
 
         for step in range(1, horizon + 1):
-            regime = _advance_rollout_regime(regime, rng)
+            regime = _advance_rollout_regime(regime, rng, rollout_priors)
             regime_offset, regime_pace_scale, regime_noise_scale = _regime_lap_factors(regime)
             if regime == "sc_vsc":
                 regime_sc_vsc_steps += 1
@@ -669,7 +670,7 @@ def _mc_position_distribution(
 
                 if pit_now:
                     pit_events_total += 1
-                    final_times[driver_idx] += _sample_pit_loss_seconds(regime, rng)
+                    final_times[driver_idx] += _sample_pit_loss_seconds(regime, rng, rollout_priors)
                     compounds[driver_idx] = _sample_next_compound(compounds[driver_idx], rng)
                     pit_prior = initialize_filter_state(compounds[driver_idx], cfg)
                     mean = pit_prior.mean.astype(float).copy()
@@ -753,6 +754,8 @@ def _mc_position_distribution(
         "rollout_pit_events_mean": float(pit_events_total / max(1, int(effective_samples))),
         "rollout_strategy_mix": strategy_mix,
         "rollout_strategy_assignments": int(strategy_assignments_total),
+        "mc_prior_calibration": rollout_priors.diagnostics(),
+        "mc_priors_promotion_ready": rollout_priors.promotion_ready,
     }
     if emit_observability:
         summary.update(
@@ -881,7 +884,39 @@ def run_live_race_prediction(
             baseline_cache[lap_key] = build_event_lap_baseline(prior_observations, min_clean_obs_per_lap=8)
         return baseline_cache[lap_key]
 
-    filter_cfg = FilterConfig()
+    calibration_path = getattr(config, "f1_live_calibration_path", None)
+    if calibration_path:
+        try:
+            calibration_bundle = load_live_race_calibration(calibration_path)
+        except Exception as exc:
+            calibration_error = f"{type(exc).__name__}: {exc}"
+            notes.append(f"Live-race calibration artifact rejected: {calibration_error}.")
+            return LiveRunResult(
+                snapshot=pd.DataFrame(),
+                trace=pd.DataFrame(),
+                summary={
+                    "available": False,
+                    "reason": "live_calibration_artifact_invalid",
+                    "calibration_path": str(calibration_path),
+                    "calibration_error": calibration_error,
+                    "promotion_ready": False,
+                    "uses_hand_tuned_priors": True,
+                    "generated_at": _utc_now(),
+                },
+                notes=notes,
+            )
+        filter_cfg = calibration_bundle.filter_config
+        mc_priors = calibration_bundle.monte_carlo_priors
+        notes.append(
+            "Loaded locked-replay live-race calibration "
+            f"source={calibration_bundle.source_id}."
+        )
+    else:
+        filter_cfg = FilterConfig()
+        mc_priors = MonteCarloPriorConfig()
+        notes.append(
+            "Live-race filter and Monte Carlo use hand priors; outputs are research-only and not promotable."
+        )
 
     telemetry_trace_columns: list[str] = []
     telemetry_strategy_columns: list[str] = []
@@ -1053,6 +1088,7 @@ def run_live_race_prediction(
         states=states,
         baseline=baseline,
         cfg=filter_cfg,
+        mc_priors=mc_priors,
         horizon_laps=horizon,
         seed=seed,
     )
@@ -1087,6 +1123,21 @@ def run_live_race_prediction(
         "round_number": int(config.round_number),
         "f1_live_model": str(config.f1_live_model),
         "f1_live_source": str(config.f1_live_source),
+        "calibration_path": str(calibration_path) if calibration_path else None,
+        "filter_calibration": filter_cfg.diagnostics(),
+        "mc_prior_calibration": mc_priors.diagnostics(),
+        "prior_calibration_ready": bool(filter_cfg.promotion_ready and mc_priors.promotion_ready),
+        "promotion_ready": False,
+        "promotion_blockers": [
+            "locked_model_replay_and_comparator_evidence_required",
+            "heuristic_strategy_template_probabilities_not_calibrated",
+            *(
+                []
+                if filter_cfg.promotion_ready and mc_priors.promotion_ready
+                else ["locked_replay_prior_calibration_required"]
+            ),
+        ],
+        "uses_hand_tuned_priors": bool(not filter_cfg.promotion_ready or not mc_priors.promotion_ready),
         "horizon_laps": int(horizon),
         "replay_cutoff_lap": int(cutoff_lap) if cutoff_lap is not None else None,
         "drivers_processed": int(snapshot_final["driver_id"].nunique()) if not snapshot_final.empty else 0,

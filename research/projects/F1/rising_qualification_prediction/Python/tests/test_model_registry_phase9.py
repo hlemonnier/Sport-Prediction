@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -48,7 +49,7 @@ def _ultimate_baseline(metrics: dict[str, float] | None = None) -> F1ModelRegist
         model_family="ultimate_lap_time",
         version="v1",
         training_data_cutoff="2026-06-01",
-        feature_schema_version="ultimate_lap_time_telemetry_schema_v1",
+        feature_schema_version="ultimate_lap_time_telemetry_schema_v2_ideal_targets_normalized",
         artifact_path="artifacts/models/f1/ultimate_lap_time/deterministic_baseline_v1",
         metrics=_ultimate_metrics() if metrics is None else metrics,
         promotion_status=PRODUCTION_STATUS,
@@ -62,7 +63,7 @@ def _ultimate_candidate(**metric_overrides: float) -> F1ModelRegistryEntry:
         model_family="ultimate_lap_time",
         version="v1",
         training_data_cutoff="2026-06-01",
-        feature_schema_version="ultimate_lap_time_telemetry_schema_v1",
+        feature_schema_version="ultimate_lap_time_telemetry_schema_v2_ideal_targets_normalized",
         artifact_path="artifacts/models/f1/ultimate_lap_time/deep/ultimate_lap_time_distance_tcn_v1",
         metrics=_ultimate_metrics(**metric_overrides),
         promotion_status=CANDIDATE_STATUS,
@@ -98,13 +99,69 @@ def _live_candidate(*, fallback_model_id: str = "deterministic_baseline_v1") -> 
     )
 
 
-def _live_evidence(*, simulator_validation_passed: bool | None) -> PromotionEvidence:
+def _live_evidence(
+    *,
+    simulator_validation_passed: bool | None,
+    locked_priors: bool = True,
+    locked_strategy_templates: bool = True,
+) -> PromotionEvidence:
     return PromotionEvidence(
         baseline_model_id="deterministic_baseline_v1",
         split_strategy="historical_replay_prefix_walk_forward",
         calibration_report_path="artifacts/reports/f1/live_strategy/rl/calibration_report.json",
         simulator_validation_passed=simulator_validation_passed,
         baseline_comparison_report_path="artifacts/reports/f1/live_strategy/rl/baseline_comparison.json",
+        diagnostics={
+            "prior_calibration_mode": "locked_replay" if locked_priors else "hand_prior",
+            "strategy_template_calibration_mode": (
+                "locked_replay" if locked_strategy_templates else "heuristic"
+            ),
+            "uses_hand_tuned_priors": not locked_priors,
+        },
+    )
+
+
+def _materialize_promotion_artifacts(
+    root: Path,
+    baseline: F1ModelRegistryEntry,
+    candidate: F1ModelRegistryEntry,
+    evidence: PromotionEvidence,
+) -> None:
+    for entry in (baseline, candidate):
+        artifact_dir = root / entry.artifact_path
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        (artifact_dir / "manifest.json").write_text(json.dumps({"model_id": entry.model_id}), encoding="utf-8")
+    assert evidence.calibration_report_path is not None
+    calibration_path = root / evidence.calibration_report_path
+    calibration_path.parent.mkdir(parents=True, exist_ok=True)
+    calibration_path.write_text(
+        json.dumps(
+            {
+                "candidate_model_id": candidate.model_id,
+                "metrics": {"calibration_error": 0.1},
+                "prior_calibration": {
+                    "filter_mode": "locked_replay",
+                    "monte_carlo_mode": "locked_replay",
+                    "strategy_template_mode": "locked_replay",
+                    "source_id": "locked-replay-test",
+                    "source_rows": 500,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert evidence.baseline_comparison_report_path is not None
+    comparison_path = root / evidence.baseline_comparison_report_path
+    comparison_path.parent.mkdir(parents=True, exist_ok=True)
+    comparison_path.write_text(
+        json.dumps(
+            {
+                "candidate_model_id": candidate.model_id,
+                "baseline_model_id": baseline.model_id,
+                "metric_comparisons": {"policy_value": 2.0},
+            }
+        ),
+        encoding="utf-8",
     )
 
 
@@ -187,18 +244,56 @@ def test_production_replacement_requires_registered_deterministic_fallback() -> 
     assert "fallback_model_not_deterministic" in evaluation.decision.reasons
 
 
-def test_live_strategy_rl_requires_simulator_validation_then_promotes_and_rolls_back() -> None:
+def test_live_promotion_rejects_hand_tuned_filter_and_mc_priors() -> None:
     baseline = _live_baseline()
     candidate = _live_candidate()
     registry = ModelRegistry([baseline, candidate])
 
+    evaluation = registry.evaluate_promotion(
+        candidate.model_id,
+        _live_evidence(simulator_validation_passed=True, locked_priors=False),
+    )
+
+    assert evaluation.promotion_gate_passed is False
+    assert "locked_replay_prior_calibration_required" in evaluation.decision.reasons
+    assert "hand_tuned_priors_not_promotable" in evaluation.decision.reasons
+
+
+def test_live_promotion_rejects_uncalibrated_strategy_template_probabilities() -> None:
+    baseline = _live_baseline()
+    candidate = _live_candidate()
+    registry = ModelRegistry([baseline, candidate])
+
+    evaluation = registry.evaluate_promotion(
+        candidate.model_id,
+        _live_evidence(
+            simulator_validation_passed=True,
+            locked_priors=True,
+            locked_strategy_templates=False,
+        ),
+    )
+
+    assert evaluation.promotion_gate_passed is False
+    assert "locked_replay_strategy_template_calibration_required" in evaluation.decision.reasons
+
+
+def test_live_strategy_rl_requires_simulator_validation_then_promotes_and_rolls_back(tmp_path: Path) -> None:
+    baseline = _live_baseline()
+    candidate = _live_candidate()
+    registry = ModelRegistry([baseline, candidate])
+    missing_evidence = _live_evidence(simulator_validation_passed=None)
+    valid_evidence = _live_evidence(simulator_validation_passed=True)
+    _materialize_promotion_artifacts(tmp_path, baseline, candidate, valid_evidence)
+
     missing_simulator = registry.evaluate_promotion(
         candidate.model_id,
-        _live_evidence(simulator_validation_passed=None),
+        missing_evidence,
+        artifact_root=tmp_path,
     )
     promoted = registry.promote_to_production(
         candidate.model_id,
-        _live_evidence(simulator_validation_passed=True),
+        valid_evidence,
+        artifact_root=tmp_path,
     )
 
     assert missing_simulator.promotion_gate_passed is False

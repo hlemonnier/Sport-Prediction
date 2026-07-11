@@ -10,6 +10,7 @@ from typing import Any
 import pandas as pd
 
 from packages.f1.data.schemas.circuit import circuit_card_from_event
+from packages.f1.features.wet import add_f1_wet_pace_interactions
 
 
 def _ensure_shared_weather_path() -> None:
@@ -140,7 +141,7 @@ def apply_f1_weather_to_features(
         out["race_generation_variance_prior"] = (
             variance + (0.18 * wet_risk)
         ).clip(lower=0.0, upper=1.0)
-    return out
+    return add_f1_wet_pace_interactions(out)
 
 
 def _optional_float(value: Any) -> float | None:

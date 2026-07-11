@@ -23,15 +23,37 @@ confidence
 strategy
 ```
 
-It uses the existing `packages/f1/models/live_race/strategy.py`
-`BaselineStrategyPolicyAdapter` when pandas/numpy are available. If the package
-adapter cannot be imported, it falls back to a deterministic local policy and
-marks `diagnostics.strategyPolicyEnabled=false`.
+The service does **not** claim that a latest-state request ran the full
+`packages/f1` live-race model. That model requires a causal lap-history trace,
+which is not present in this request contract. Instead, each endpoint exposes
+an explicitly named deterministic snapshot baseline:
+
+- race: latest-state finishing-order baseline;
+- qualifying: observed best-lap pace baseline;
+- next lap: recent pace plus tyre-state baseline;
+- strategy: strategy recommendations with current-order context.
+
+The race, qualifying, and next-lap scores are target-specific. Position
+probabilities are emitted as a jointly balanced assignment matrix: every
+driver distribution sums to one and every position column sums to one. This
+also guarantees one unit of win probability, three units of podium
+probability, and ten units of points probability for a normal 20-driver field.
+
+Where its input contract is satisfied, the service uses the canonical
+`packages/f1/models/live_race/strategy.py`
+`BaselineStrategyPolicyAdapter`. If the package adapter cannot be imported, it
+falls back to a deterministic local strategy policy and records that fallback
+under response diagnostics. Diagnostics also state why the canonical full
+live-race runner was unavailable.
 
 ## Local Run
 
+Python `>=3.10` is required; Python 3.12 is recommended and used by the
+container. Refuse a legacy Python 3.9 environment before installation:
+
 ```bash
 cd services/f1-prediction-service
+python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r requirements.txt
@@ -58,4 +80,4 @@ In Docker Compose, `f1-platform-api` is wired to:
 http://f1-prediction-service:8002
 ```
 
-Suggested commit name: `add-f1-prediction-model-service`
+Suggested commit name: `docs: declare F1 prediction-service runtime and evidence boundary`

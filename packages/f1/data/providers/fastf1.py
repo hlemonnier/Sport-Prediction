@@ -26,6 +26,7 @@ from .base import (
     requests,
     time,
 )
+from .practice_features import FP_FEATURE_CONTRACT_VERSION, build_session_pace_features, normalize_driver_id
 
 class FastF1Provider(BaseProvider):
     def __init__(self, cache_dir: Optional[str]) -> None:
@@ -47,32 +48,53 @@ class FastF1Provider(BaseProvider):
             })
         return rounds
 
-    def _session_best_laps(self, year: int, round_number: int, session_name: str) -> pd.DataFrame:
+    def _pre_qualifying_sessions(self, year: int, round_number: int) -> list[tuple[str, str]]:
+        schedule = fastf1.get_event_schedule(year)
+        round_values = pd.to_numeric(schedule.get("RoundNumber"), errors="coerce")
+        matches = schedule.loc[round_values == int(round_number)]
+        if matches.empty:
+            return [("FP1", "FP1"), ("FP2", "FP2"), ("FP3", "FP3")]
+        event = matches.iloc[0]
+        ordered_names = [str(event.get(f"Session{idx}") or "").strip() for idx in range(1, 6)]
+        qualifying_index = next(
+            (idx for idx, name in enumerate(ordered_names) if name.lower() == "qualifying"),
+            len(ordered_names),
+        )
+        selected: list[tuple[str, str]] = []
+        practice_number = 0
+        for name in ordered_names[:qualifying_index]:
+            normalized = name.lower()
+            if not name or not ("practice" in normalized or "sprint" in normalized):
+                continue
+            if "practice" in normalized:
+                practice_number += 1
+                label = f"FP{practice_number}"
+            elif "qualifying" in normalized or "shootout" in normalized:
+                label = "SQ"
+            else:
+                label = "Sprint"
+            selected.append((name, label))
+        return selected or [("FP1", "FP1"), ("FP2", "FP2"), ("FP3", "FP3")]
+
+    def _session_pace_features(self, year: int, round_number: int, session_name: str) -> pd.DataFrame:
         session = fastf1.get_session(year, round_number, session_name)
         session.load()
-        laps = session.laps
-        laps = laps[["Driver", "LapTime"]].dropna()
-        if laps.empty:
-            return pd.DataFrame(columns=["driver_id", "driver_name", "best_lap"])
-        best = laps.groupby("Driver")["LapTime"].min()
-        best_seconds = best.dt.total_seconds()
-        df = best_seconds.reset_index().rename(columns={"Driver": "driver_id", "LapTime": "best_lap"})
-        df["driver_name"] = df["driver_id"]
-        return df
+        laps = session.laps.copy()
+        return build_session_pace_features(laps, session_name, provider="fastf1")
 
     def get_fp_features(self, year: int, round_number: int) -> pd.DataFrame:
-        fp_sessions = ["FP1", "FP2", "FP3"]
         frames: List[pd.DataFrame] = []
-        for sess in fp_sessions:
-            df = self._session_best_laps(year, round_number, sess)
+        for session_name, label in self._pre_qualifying_sessions(year, round_number):
+            df = self._session_pace_features(year, round_number, session_name)
             if df.empty:
                 continue
-            df = df.copy()
-            df["delta"] = df["best_lap"] - df["best_lap"].min()
-            df["rank"] = df["best_lap"].rank(method="min").astype(int)
-            df["session"] = sess
-            frames.append(df[["driver_id", "driver_name", "delta", "rank", "session"]])
-        return merge_fp_frames(frames)
+            df["session"] = label
+            frames.append(df)
+        merged = merge_fp_frames(frames)
+        if not merged.empty:
+            merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
+            merged["fp_feature_source"] = "fastf1"
+        return merged
 
     def get_qualifying_results(self, year: int, round_number: int) -> pd.DataFrame:
         session = fastf1.get_session(year, round_number, "Q")
@@ -80,14 +102,19 @@ class FastF1Provider(BaseProvider):
         results = session.results.copy()
         if results.empty:
             return pd.DataFrame()
-        driver_col = first_available(results, ["Abbreviation", "Driver", "DriverNumber", "FullName"])
+        driver_col = first_available(results, ["DriverNumber", "Abbreviation", "Driver", "FullName"])
+        name_col = first_available(results, ["Abbreviation", "Driver", "BroadcastName", "FullName"])
         pos_col = first_available(results, ["Position", "GridPosition"])
         q3_col = "Q3" if "Q3" in results.columns else None
         if driver_col is None:
             return pd.DataFrame()
-        df = results[[driver_col]].copy()
-        df = df.rename(columns={driver_col: "driver_id"})
-        df["driver_name"] = df["driver_id"].astype(str)
+        df = pd.DataFrame(index=results.index)
+        df["driver_id"] = results[driver_col].map(normalize_driver_id)
+        df["driver_name"] = (
+            results[name_col].fillna(df["driver_id"]).astype(str)
+            if name_col
+            else df["driver_id"]
+        )
         if pos_col:
             df["position"] = pd.to_numeric(results[pos_col], errors="coerce")
         if q3_col:
@@ -101,15 +128,20 @@ class FastF1Provider(BaseProvider):
         results = session.results.copy()
         if results.empty:
             return pd.DataFrame()
-        driver_col = first_available(results, ["Abbreviation", "Driver", "DriverNumber", "FullName"])
+        driver_col = first_available(results, ["DriverNumber", "Abbreviation", "Driver", "FullName"])
+        name_col = first_available(results, ["Abbreviation", "Driver", "BroadcastName", "FullName"])
         pos_col = first_available(results, ["Position", "ClassifiedPosition"])
         grid_col = first_available(results, ["GridPosition", "Grid", "StartingGridPosition"])
         if driver_col is None or pos_col is None:
             return pd.DataFrame()
-        df = results[[driver_col, pos_col]].copy()
-        df = df.rename(columns={driver_col: "driver_id", pos_col: "position"})
-        df["driver_name"] = df["driver_id"].astype(str)
-        df["position"] = pd.to_numeric(df["position"], errors="coerce")
+        df = pd.DataFrame(index=results.index)
+        df["driver_id"] = results[driver_col].map(normalize_driver_id)
+        df["driver_name"] = (
+            results[name_col].fillna(df["driver_id"]).astype(str)
+            if name_col
+            else df["driver_id"]
+        )
+        df["position"] = pd.to_numeric(results[pos_col], errors="coerce")
         if grid_col:
             df["grid_position"] = pd.to_numeric(results[grid_col], errors="coerce")
         return df

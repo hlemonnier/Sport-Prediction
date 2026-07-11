@@ -9,7 +9,11 @@ import numpy as np
 
 from packages.f1.models.live_race.action_space import ACTION_PIT_NOW, ACTION_STAY_OUT, StrategyAction
 from packages.f1.models.live_race.environment import StrategyState
-from packages.f1.models.live_race.rl.mappo import MAPPOConfig, MAPPOStylePolicy, fit_mappo_style_policy
+from packages.f1.models.live_race.rl.schedule_search import (
+    CentralizedSchedulePolicy,
+    CentralizedScheduleSearchConfig,
+    fit_centralized_schedule_search,
+)
 from packages.f1.models.live_race.rl.multi_agent_env import (
     MultiAgentLiveRaceEnv,
     MultiAgentRaceConfig,
@@ -74,23 +78,27 @@ def evaluate_phase8_self_play(
     *,
     env: MultiAgentLiveRaceEnv | None = None,
     start_state: MultiAgentRaceState | None = None,
-    multi_agent_policy: MAPPOStylePolicy | None = None,
+    multi_agent_policy: CentralizedSchedulePolicy | None = None,
     single_agent_policy: SingleAgentTyreThresholdPolicy | None = None,
     stay_out_policy: StayOutPolicy | None = None,
     config: SelfPlayEvaluationConfig | None = None,
-    mappo_config: MAPPOConfig | None = None,
+    schedule_search_config: CentralizedScheduleSearchConfig | None = None,
 ) -> SelfPlayComparisonResult:
     """Train if needed, then compare policies under identical seeded scenarios."""
 
     cfg = config or SelfPlayEvaluationConfig()
     race_env = env or MultiAgentLiveRaceEnv(config=MultiAgentRaceConfig(seed=int(cfg.seeds[0])))
     initial = start_state or build_traffic_heavy_scenario(car_count=int(cfg.car_count), seed=int(cfg.seeds[0]))
-    mappo_policy = multi_agent_policy or fit_mappo_style_policy(race_env, initial, config=mappo_config)
+    schedule_policy = multi_agent_policy or fit_centralized_schedule_search(
+        race_env,
+        initial,
+        config=schedule_search_config,
+    )
     single_policy = single_agent_policy or SingleAgentTyreThresholdPolicy()
     stay_policy = stay_out_policy or StayOutPolicy()
 
     policies: dict[str, object] = {
-        "multi_agent": mappo_policy,
+        "multi_agent": schedule_policy,
         "single_agent": single_policy,
         "stay_out": stay_policy,
     }
@@ -136,7 +144,7 @@ def evaluate_phase8_self_play(
         metrics=metrics,
         rollouts={name: tuple(policy_rollouts) for name, policy_rollouts in rollouts.items()},
         diagnostics={
-            "mappo_policy": mappo_policy.diagnostics,
+            "schedule_search_policy": schedule_policy.diagnostics,
             "baseline_policy": single_policy.model_id,
             "stay_out_policy": stay_policy.model_id,
             "replay_fingerprints": replay_fingerprints,
@@ -149,13 +157,13 @@ def compare_multi_agent_to_single_agent(
     env: MultiAgentLiveRaceEnv | None = None,
     start_state: MultiAgentRaceState | None = None,
     config: SelfPlayEvaluationConfig | None = None,
-    mappo_config: MAPPOConfig | None = None,
+    schedule_search_config: CentralizedScheduleSearchConfig | None = None,
 ) -> SelfPlayComparisonResult:
     return evaluate_phase8_self_play(
         env=env,
         start_state=start_state,
         config=config,
-        mappo_config=mappo_config,
+        schedule_search_config=schedule_search_config,
     )
 
 

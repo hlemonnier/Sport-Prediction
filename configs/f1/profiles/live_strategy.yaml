@@ -133,3 +133,12 @@ rl:
     comparisons:
       - behavior_cloning
       - dp_mpc
+coordination:
+  model_id: centralized_pit_schedule_search_v1
+  algorithm: deterministic_schedule_enumeration
+  reinforcement_learning: false
+  policy_gradient: false
+  centralized_search: true
+  decentralized_masked_execution: true
+  role: experimental_multi_car_coordination_baseline
+  promotion_allowed: false

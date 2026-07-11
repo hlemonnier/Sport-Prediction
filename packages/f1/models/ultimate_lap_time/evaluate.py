@@ -12,10 +12,15 @@ import numpy as np
 import pandas as pd
 
 from packages.f1.models.ultimate_lap_time.model import (
+    IDEAL_LAP_TARGET_COLUMN,
     UltimateLapTimeConfig,
+    aggregate_ideal_lap_holdout_targets,
     fit_ultimate_lap_time_model,
 )
-from packages.f1.models.ultimate_lap_time.schemas import UltimateLapTelemetryExample
+from packages.f1.models.ultimate_lap_time.schemas import (
+    IDEAL_LAP_TARGET_CONTRACT,
+    UltimateLapTelemetryExample,
+)
 from packages.sports_core.paths import find_repo_root
 
 
@@ -26,7 +31,8 @@ DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH = Path(
 )
 DEFAULT_REPORT_PATH = find_repo_root(__file__) / DEFAULT_REPORT_RELATIVE_PATH
 DEFAULT_BASELINE_BACKTEST_PATH = find_repo_root(__file__) / DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH
-ACTUAL_COLUMNS: tuple[str, ...] = ("lap_time_seconds", "lap_duration", "LapTime", "lap_time", "duration")
+ACTUAL_COLUMNS: tuple[str, ...] = (IDEAL_LAP_TARGET_COLUMN,)
+TARGET_CONTRACT_COLUMN = "target_contract"
 P05_COLUMNS: tuple[str, ...] = ("lap_p05", "p05_prediction", "predicted_p05", "p05", "pace_floor_seconds")
 P50_COLUMNS: tuple[str, ...] = (
     "lap_p50",
@@ -228,6 +234,7 @@ class UltimateLapTimeEvaluationResult:
     calibration_curve: list[dict[str, Any]]
     leakage_issues: tuple[str, ...]
     required_metrics: tuple[str, ...] = REQUIRED_METRICS
+    target_contract: str = IDEAL_LAP_TARGET_CONTRACT
 
     @property
     def missing_metrics(self) -> tuple[str, ...]:
@@ -239,8 +246,14 @@ class UltimateLapTimeEvaluationResult:
         return tuple(missing)
 
     @property
-    def promotion_gate_passed(self) -> bool:
+    def evaluation_contract_passed(self) -> bool:
         return not self.missing_metrics and not self.leakage_issues
+
+    @property
+    def promotion_gate_passed(self) -> bool:
+        """A standalone evaluation can never authorize production promotion."""
+
+        return False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -251,7 +264,10 @@ class UltimateLapTimeEvaluationResult:
             "leakage_issues": list(self.leakage_issues),
             "required_metrics": list(self.required_metrics),
             "missing_metrics": list(self.missing_metrics),
+            "evaluation_contract_passed": self.evaluation_contract_passed,
             "promotion_gate_passed": self.promotion_gate_passed,
+            "promotion_blockers": ["registry_baseline_comparison_and_artifact_evidence_required"],
+            "target_contract": self.target_contract,
         }
 
 
@@ -285,6 +301,19 @@ def normalize_evaluation_frame(
     if actual_frame.empty:
         return pd.DataFrame(
             columns=["actual_lap_time", "predicted_p05", "predicted_p50", "predicted_p90"]
+        )
+    contract_column = _find_column(actual_frame, (TARGET_CONTRACT_COLUMN, "target_kind"))
+    if contract_column is None:
+        raise ValueError(
+            "ultimate lap-time evaluation requires an explicit theoretical ideal-lap target contract; "
+            "aggregate raw holdout laps first"
+        )
+    contracts = actual_frame[contract_column].astype(str).str.strip().str.lower()
+    invalid_contracts = sorted(set(contracts[contracts != IDEAL_LAP_TARGET_CONTRACT].tolist()))
+    if invalid_contracts:
+        raise ValueError(
+            "ultimate lap-time evaluation only accepts theoretical ideal-lap targets; "
+            f"invalid contracts={invalid_contracts}"
         )
     actual_lap = _numeric_series(actual_frame, ACTUAL_COLUMNS, required=True)
 
@@ -392,16 +421,25 @@ def evaluate_ultimate_lap_time_baseline_backtest(
         raise ValueError("evaluation_laps must contain at least one timing row")
 
     model = fit_ultimate_lap_time_model(train_laps, config=config)
-    predictions = model.predict_details(evaluation_laps)
-    evaluation = evaluate_ultimate_lap_time_predictions(
+    ideal_holdout = aggregate_ideal_lap_holdout_targets(
         evaluation_laps,
+        config=config,
+    )
+    predictions = model.predict_details(ideal_holdout)
+    evaluation = evaluate_ultimate_lap_time_predictions(
+        ideal_holdout,
         predictions,
         model_name=DETERMINISTIC_BASELINE_MODEL_NAME,
         group_columns=group_columns,
     )
     return UltimateLapTimeBaselineBacktestResult(
         model_name=DETERMINISTIC_BASELINE_MODEL_NAME,
-        training_summary=asdict(model.training_summary),
+        training_summary={
+            **asdict(model.training_summary),
+            "holdout_raw_lap_rows": int(len(evaluation_laps)),
+            "holdout_ideal_target_rows": int(len(ideal_holdout)),
+            "holdout_target_contract": IDEAL_LAP_TARGET_CONTRACT,
+        },
         evaluation=evaluation,
     )
 

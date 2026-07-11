@@ -8,7 +8,11 @@ from packages.f1.models.live_race.action_space import (
     StrategyAction,
     build_legal_action_mask,
 )
-from packages.f1.models.live_race.rl.mappo import MAPPOConfig, MAPPOStylePolicy, fit_mappo_style_policy
+from packages.f1.models.live_race.rl.schedule_search import (
+    CentralizedSchedulePolicy,
+    CentralizedScheduleSearchConfig,
+    fit_centralized_schedule_search,
+)
 from packages.f1.models.live_race.rl.multi_agent_env import (
     MultiAgentLiveRaceEnv,
     build_traffic_heavy_scenario,
@@ -37,17 +41,22 @@ def test_multi_agent_env_is_seed_deterministic_and_penalizes_synchronized_pits()
     assert all(mask.is_legal(action) for mask, action in zip(left.legal_action_masks, all_pit))
 
 
-def test_mappo_style_training_returns_decentralized_policy_with_centralized_diagnostics() -> None:
+def test_schedule_search_returns_decentralized_policy_with_honest_diagnostics() -> None:
     env = MultiAgentLiveRaceEnv()
     state = env.reset(build_traffic_heavy_scenario(car_count=6, seed=7))
-    policy = fit_mappo_style_policy(
+    policy = fit_centralized_schedule_search(
         env,
         state,
-        config=MAPPOConfig(candidate_pit_laps=(5, 6), max_stagger_laps=3),
+        config=CentralizedScheduleSearchConfig(candidate_pit_laps=(5, 6), max_stagger_laps=3),
     )
 
-    assert isinstance(policy, MAPPOStylePolicy)
-    assert policy.diagnostics["centralized_training"] is True
+    assert isinstance(policy, CentralizedSchedulePolicy)
+    assert policy.diagnostics["centralized_training"] is False
+    assert policy.diagnostics["centralized_search"] is True
+    assert policy.diagnostics["reinforcement_learning"] is False
+    assert policy.diagnostics["policy_gradient"] is False
+    assert "mappo" not in policy.model_id.lower()
+    assert "mappo" not in str(policy.diagnostics).lower()
     assert policy.diagnostics["decentralized_execution"] is True
     assert policy.diagnostics["candidate_schedules"] >= 3
     assert set(policy.pit_schedule_by_driver) == set(state.driver_ids)
@@ -58,12 +67,12 @@ def test_mappo_style_training_returns_decentralized_policy_with_centralized_diag
     assert all(policy.select_action(car).action_type in {"stay_out", "pit_now"} for car in state.cars)
 
 
-def test_mappo_style_policy_masks_illegal_decentralized_pit_actions() -> None:
+def test_schedule_policy_masks_illegal_decentralized_pit_actions() -> None:
     env = MultiAgentLiveRaceEnv()
     state = env.reset(build_traffic_heavy_scenario(car_count=6, seed=7))
-    policy = MAPPOStylePolicy(
+    policy = CentralizedSchedulePolicy(
         pit_schedule_by_driver={driver_id: int(state.lap_number) for driver_id in state.driver_ids},
-        config=MAPPOConfig(candidate_pit_laps=(5,), max_stagger_laps=1),
+        config=CentralizedScheduleSearchConfig(candidate_pit_laps=(5,), max_stagger_laps=1),
         action_space=env.action_space,
         action_mask_config=env.config.action_mask,
     )
@@ -84,10 +93,10 @@ def test_mappo_style_policy_masks_illegal_decentralized_pit_actions() -> None:
 def test_phase8_self_play_beats_single_agent_baseline_and_avoids_sync_pattern() -> None:
     env = MultiAgentLiveRaceEnv()
     state = build_traffic_heavy_scenario(car_count=6, seed=7)
-    policy = fit_mappo_style_policy(
+    policy = fit_centralized_schedule_search(
         env,
         state,
-        config=MAPPOConfig(candidate_pit_laps=(5, 6), max_stagger_laps=3),
+        config=CentralizedScheduleSearchConfig(candidate_pit_laps=(5, 6), max_stagger_laps=3),
     )
 
     result = evaluate_phase8_self_play(

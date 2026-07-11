@@ -28,11 +28,13 @@ SPORT = "F1"
 PROJECT_NAME = "Rising Qualification Prediction"
 ENTRYPOINT = "run_experiment.py"
 SCHEMA_VERSION = "1.0"
-PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v2"
+PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v4_disjoint_calibration"
 REQUIRED_PROBABILITY_AUDIT_FIELDS = {
     "schema_version",
     "probability_layer",
+    "score_layer",
     "same_probability_layer_as_production",
+    "evaluation_disjoint_from_temperature_fit",
     "samples",
     "event_total_audit",
     "metrics",
@@ -295,6 +297,11 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
             if getattr(args, "f1_model", None) is not None
             else f1.get("model", "auto"),
         ).strip().lower(),
+        "race_information_horizon": str(
+            getattr(args, "race_information_horizon", None)
+            if getattr(args, "race_information_horizon", None) is not None
+            else f1.get("race_information_horizon", "auto"),
+        ).strip().lower(),
         "f1_listwise": str(
             args.f1_listwise
             if getattr(args, "f1_listwise", None) is not None
@@ -361,6 +368,11 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
             getattr(args, "f1_live_replay_path", None)
             if getattr(args, "f1_live_replay_path", None) is not None
             else f1_live.get("replay_path")
+        ),
+        "f1_live_calibration_path": _resolve_project_path(
+            getattr(args, "f1_live_calibration_path", None)
+            if getattr(args, "f1_live_calibration_path", None) is not None
+            else f1_live.get("calibration_path")
         ),
         "f1_live_replay_cutoff_lap": (
             _as_int(getattr(args, "f1_live_replay_cutoff_lap", None), 0)
@@ -474,6 +486,7 @@ def _build_prediction_config(
         disable_runsim_features=bool(disable_runsim_features),
         disable_circuit_features=bool(disable_circuit_features),
         f1_model=str(base.get("f1_model", "auto")),
+        race_information_horizon=str(base.get("race_information_horizon", "auto")),
         f1_listwise=str(base.get("f1_listwise", "pl_gumbel")),
         f1_pl_samples=int(base.get("f1_pl_samples", 2000)),
         f1_pl_temperature=float(base.get("f1_pl_temperature", 1.0)),
@@ -486,6 +499,7 @@ def _build_prediction_config(
         f1_live_seed=int(base.get("f1_live_seed", 42)),
         f1_live_cache_dir=base.get("f1_live_cache_dir"),
         f1_live_replay_path=base.get("f1_live_replay_path"),
+        f1_live_calibration_path=base.get("f1_live_calibration_path"),
         f1_live_replay_cutoff_lap=base.get("f1_live_replay_cutoff_lap"),
         weather_enabled=bool(base.get("weather_enabled", False)),
         weather_provider=str(base.get("weather_provider", "open_meteo")),
@@ -703,6 +717,8 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
         cmd.extend(["--f1-live-cache-dir", str(base["f1_live_cache_dir"])])
     if base.get("f1_live_replay_path"):
         cmd.extend(["--f1-live-replay-path", str(base["f1_live_replay_path"])])
+    if base.get("f1_live_calibration_path"):
+        cmd.extend(["--f1-live-calibration-path", str(base["f1_live_calibration_path"])])
     if base.get("f1_live_replay_cutoff_lap") is not None:
         cmd.extend(["--f1-live-replay-cutoff-lap", str(base["f1_live_replay_cutoff_lap"])])
 
@@ -739,6 +755,7 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
             "f1_live_seed": int(base["f1_live_seed"]),
             "f1_live_cache_dir": base.get("f1_live_cache_dir"),
             "f1_live_replay_path": base.get("f1_live_replay_path"),
+            "f1_live_calibration_path": base.get("f1_live_calibration_path"),
             "f1_live_replay_cutoff_lap": base.get("f1_live_replay_cutoff_lap"),
             "output_dir": str(output_dir),
         },
@@ -961,7 +978,12 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--weekends-dir", default=None)
         parser.add_argument("--cache-dir", default=None)
         parser.add_argument("--output-dir", default=None)
-        parser.add_argument("--f1_model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default=None)
+        parser.add_argument("--f1_model", choices=["auto", "baseline", "strategic_baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default=None)
+        parser.add_argument(
+            "--race-information-horizon",
+            choices=["auto", "pre_fp_provisional", "post_fp_pre_qualifying", "post_qualifying_pre_grid", "post_grid_pre_race"],
+            default=None,
+        )
         parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default=None)
         parser.add_argument("--f1_pl_samples", type=int, default=None)
         parser.add_argument("--f1_pl_temperature", type=float, default=None)
@@ -973,6 +995,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_seed", type=int, default=None)
         parser.add_argument("--f1_live_cache_dir", default=None)
         parser.add_argument("--f1_live_replay_path", default=None)
+        parser.add_argument("--f1_live_calibration_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default=None)
         parser.add_argument("--weather", choices=["on", "off"], default=None)
@@ -1017,7 +1040,12 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--disable-runsim-features", action="store_true")
         parser.add_argument("--disable-circuit-features", dest="disable_circuit_features", action="store_true", default=None)
         parser.add_argument("--enable-circuit-features", dest="disable_circuit_features", action="store_false")
-        parser.add_argument("--f1_model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
+        parser.add_argument("--f1_model", choices=["auto", "baseline", "strategic_baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
+        parser.add_argument(
+            "--race-information-horizon",
+            choices=["auto", "pre_fp_provisional", "post_fp_pre_qualifying", "post_qualifying_pre_grid", "post_grid_pre_race"],
+            default="auto",
+        )
         parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default="pl_gumbel")
         parser.add_argument("--f1_pl_samples", type=int, default=2000)
         parser.add_argument("--f1_pl_temperature", type=float, default=1.0)
@@ -1029,6 +1057,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_seed", type=int, default=42)
         parser.add_argument("--f1_live_cache_dir", default=None)
         parser.add_argument("--f1_live_replay_path", default=None)
+        parser.add_argument("--f1_live_calibration_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
         parser.add_argument("--weather", choices=["on", "off"], default="off")
@@ -1118,6 +1147,7 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         disable_runsim_features=args.disable_runsim_features,
         disable_circuit_features=True if args.disable_circuit_features is None else bool(args.disable_circuit_features),
         f1_model=args.f1_model,
+        race_information_horizon=args.race_information_horizon,
         f1_listwise=args.f1_listwise,
         f1_pl_samples=args.f1_pl_samples,
         f1_pl_temperature=args.f1_pl_temperature,
@@ -1130,6 +1160,7 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         f1_live_seed=args.f1_live_seed,
         f1_live_cache_dir=args.f1_live_cache_dir,
         f1_live_replay_path=args.f1_live_replay_path,
+        f1_live_calibration_path=args.f1_live_calibration_path,
         f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
         weather_enabled=(str(args.weather).strip().lower() == "on"),
         weather_provider=args.weather_provider,

@@ -36,11 +36,13 @@ MARKET_PROBABILITY_COLUMNS = {
     "top10": ["proba_top10", "p_top10"],
 }
 
-PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v2"
+PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v4_disjoint_calibration"
 REQUIRED_PROBABILITY_AUDIT_FIELDS = {
     "schema_version",
     "probability_layer",
+    "score_layer",
     "same_probability_layer_as_production",
+    "evaluation_disjoint_from_temperature_fit",
     "samples",
     "event_total_audit",
     "metrics",
@@ -346,6 +348,8 @@ def _probability_audit_gate(predictions: pd.DataFrame, config: BettingConfig) ->
         return False, f"probability_audit_layer_{audit.get('probability_layer', 'missing')}"
     if not bool(audit.get("same_probability_layer_as_production", False)):
         return False, "probability_audit_not_production_layer"
+    if not bool(audit.get("evaluation_disjoint_from_temperature_fit", False)):
+        return False, "probability_audit_temperature_fit_not_disjoint"
     total_audit = audit.get("event_total_audit")
     if not isinstance(total_audit, dict) or not bool(total_audit.get("passed", False)):
         return False, "probability_audit_event_totals_failed"

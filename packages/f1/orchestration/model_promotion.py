@@ -105,8 +105,9 @@ def ultimate_lap_time_promotion_config() -> PromotionGateConfig:
             "fastest_lap_winner_hit_rate",
             "top3_fastest_lap_accuracy",
         ),
-        baseline_comparison_metrics=("p05_pinball",),
+        baseline_comparison_metrics=("p50_mae", "p50_rmse", "p50_pinball"),
         fail_closed_on_leakage_issues=True,
+        min_relative_improvement=0.01,
     )
 
 

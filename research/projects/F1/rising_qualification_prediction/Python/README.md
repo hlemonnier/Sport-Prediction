@@ -10,9 +10,28 @@ Lifecycle:
 - live 2026 operations (`artifacts/predictions/f1/live`)
 - shared raw weekends (`data/f1/raw/weekends`)
 
+Runtime: Python `>=3.10` is required; Python 3.12 is recommended. Do not use
+the repository's legacy Python 3.9 virtual environment. Before running:
+
+```bash
+python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
+```
+
+Create a supported environment and install the executable core plus tests:
+
+```bash
+python3.12 -m venv .venv-f1
+source .venv-f1/bin/activate
+python -m pip install -e '.[test]'
+```
+
+Add `fastf1`, `plots`, or `deep` extras only when those paths are needed, for
+example `python -m pip install -e '.[fastf1,plots]'`. The local/offline
+prediction and benchmark paths do not require those optional dependencies.
+
 ## Model Architecture
 
-Current architecture:
+Architectural target:
 
 ```text
 F1 Prediction System
@@ -26,20 +45,27 @@ F1 Prediction System
     `-- predicts theoretical best lap pace
 ```
 
-Active now:
-- `Pre-Quali Model`: predicts qualifying from FP pace, team/driver form,
-  circuit-card features, and available weather uncertainty priors.
+Executable research now:
+- `Pre-Quali Model`: predicts qualifying from FP pace and team/driver form.
+  Circuit features are quarantined by default; weather is scenario/uncertainty
+  context. Neither is a proven source of predictive edge.
 - `Pre-Race Model`: predicts the race from the official grid when available,
   qualifying fallback when only qualifying is available, or the Pre-Quali
-  predicted rank when the weekend is still before qualifying.
+  predicted rank when the weekend is still before qualifying. These information
+  horizons are not interchangeable and require separate evaluation evidence.
 
-Planned:
-- `Live Race Model`: starts from grid/race state and updates finishing order and
-  strategy from live events, lap-time degradation, tyre age, pit stops, and
-  weather changes.
-- `Ultimate Lap-Time Model`: estimates theoretical best lap pace for the
-  upcoming weekend from car/team pace, circuit demands, track evolution, and
-  weather/session context.
+Experimental, not promoted:
+- `Live Race Model`: state-space, replay, simulation, strategy, and RL code
+  exists, but no canonical trace model is promoted. The live platform uses
+  explicitly named target-specific untrained snapshot baselines when a promoted
+  model is unavailable.
+- `Ultimate Lap-Time Model`: deterministic and deep candidate code exists, but
+  the deep candidate is fail-closed until locked grouped validation, leakage,
+  baseline-comparison, and promotion reports exist and pass.
+
+“Executable” means the path runs; it does not mean that it beats its baseline,
+has production-calibrated probabilities, or is safe for betting. See
+`configs/f1/maturity.json` for the machine-readable evidence status.
 
 Pre-quali race flow:
 - Run the Pre-Quali model first.
@@ -48,6 +74,8 @@ Pre-quali race flow:
 - If real `grid_position` and `qualy_position` are missing, use
   `qualy_pred_rank` as the provisional race grid and label rows with
   `grid_source=predicted_qualifying_grid`.
+- Evaluate that pre-qualifying race horizon separately from post-qualifying and
+  official-grid forecasts; results from one horizon are not evidence for another.
 
 Weather outputs:
 - Every qualifying/race prediction emits two scenario payloads under
@@ -58,6 +86,9 @@ Weather outputs:
 - Current weather integration can use Open-Meteo through the shared
   `packages/sports_core` weather layer when `--weather on` is supplied;
   otherwise it falls back to local historical/track weather uncertainty priors.
+- These scenarios are sensitivity views. They do not currently constitute a
+  driver-specific wet-relative-pace model or prove that weather improves rank
+  accuracy.
 
 ## Quick Start
 
@@ -114,6 +145,10 @@ python run_experiment.py profile \
 
 ### Horizon A vs B crossover benchmark (distance % + chaos segmentation)
 
+Only compare rows drawn from the same driver population and information
+cutoff. The current runner rejects incomplete fields; do not reuse older
+top-10-only Horizon A artifacts as a full-field baseline.
+
 ```bash
 python run_horizon_a_vs_b_lap_snapshots.py \
   --year 2025 \
@@ -139,6 +174,19 @@ Key artifacts include:
   - horizon distribution + MC health diagnostics (D block)
   - pit/strategy and chaos diagnostics (E/F blocks)
   - comparative delta + crossover heatmaps (G block)
+
+Audit regenerated benchmark JSON before using it as evidence:
+
+```bash
+python -m packages.f1.orchestration.evidence path/to/summary.json --root ../../../../../
+```
+
+The audit binds the report to the current F1 source tree, Python/package
+versions, hashed weekend inputs, complete requested round/cutoff population,
+and hashed upstream artifacts. A baseline-ladder artifact may be structurally
+valid while its `promotion_gate.passed` remains false. Horizon evidence only
+passes the auditor with locked prior calibration; hand-prior runs remain useful
+research diagnostics but are deliberately non-promotable.
 
 ## Raw Data Download
 
@@ -184,21 +232,30 @@ Prediction JSON now includes:
   active pre-quali-to-race contract.
 - `prediction_scenarios`: `base_no_weather` and `weather_integrated` tables for
   both qualifying and race modes.
-- `circuit_card`: the target event circuit profile used by the model, including
+- `circuit_card`: the target event static research profile, including
   downforce demand, power sensitivity, corner-speed demands, tyre degradation,
   overtaking difficulty, qualifying importance, safety-car risk, strategy
-  variance, and reliability.
-- `circuit_feature_columns`: circuit-card and circuit-interaction feature names
-  consumed by the qualifying/race models.
-- `proba_win`, `proba_top3`, `proba_top10`: calibrated model probabilities. When walk-forward folds are available, calibration uses out-of-fold predictions; otherwise it falls back to in-sample calibration.
-- When no historical training seasons are available, fallback ranking uses the empirically stronger local formulas validated on the 2025 holdout: qualifying = `2*event_pace_index + 2*fp_mean_rank + fp_quali_sim_rank`; race = `qualy_position`.
+  variance, and reliability. Its presence in JSON does not mean circuit
+  features were enabled.
+- `circuit_feature_columns`: candidate circuit-card and interaction names. Check
+  `circuit_feature_state`; the default is `quarantined`.
+- `proba_win`, `proba_top3`, `proba_top10`: model probability outputs. Treat
+  them as calibrated only when `probability_audit.passed=true`, the audit source
+  is out-of-fold, its later audit events are disjoint from the events used to
+  fit PL temperature, and it covers the exact deployed score transformation
+  and information horizon. In-sample, same-event calibration, or rank-based
+  fallback probabilities are not validation evidence.
+- When training data is unavailable, fallback ranking is a deterministic
+  continuity mechanism, not a proven model and not a basis for an edge claim.
 
 ## Circuit Cards
 
 Every known F1 event name is mapped to a numeric circuit card in `packages/f1/data/schemas/circuit.py`.
 Cards are static priors for the circuit archetype, then local historical track
-stats refine them when available. The feature builder attaches the card to both
-training rows and current-event rows, so predictions can account for circuit fit:
+stats can refine them when available. Circuit features are quarantined by
+default because the stored ablation did not demonstrate reliable improvement.
+Enable them only for an explicit, current-code research ablation. When enabled,
+the candidate feature surface includes:
 
 - low-overtaking/high-grid-stability tracks increase qualifying/grid importance
 - high-downforce, power-sensitive, traction/braking, tyre-degradation, and
@@ -206,8 +263,10 @@ training rows and current-event rows, so predictions can account for circuit fit
 - driver/team history on the same circuit archetype and exact circuit becomes
   additional form signal
 
-This is the layer that lets Monaco, Monza, Singapore, Spa, Bahrain, etc. behave
-as different prediction contexts instead of just different event names.
+These variables describe different circuit contexts, but description is not
+predictive evidence. Static event-wide values do not differentiate drivers
+unless a validated interaction or historical feature uses them, and all such
+benefit must be demonstrated out of sample.
 
 Horizon B live flags:
 - `--f1_mode` (`offline` by default, `live` opt-in)
@@ -217,6 +276,12 @@ Horizon B live flags:
 - `--f1_live_seed` (default `42`)
 - `--f1_live_cache_dir`
 - `--f1_live_replay_path`
+- `--f1_live_calibration_path` (locked filter/MC prior artifact only; this
+  makes prior calibration ready, not the full live model promotion-ready)
+
+The rollout strategy-template probabilities remain a declared heuristic.
+Registry promotion fails closed until a bound calibration report also proves
+those probabilities from locked replay and all simulator/baseline gates pass.
 
 ## Optional Deep Learning Dependency
 
@@ -231,6 +296,11 @@ Without torch, the pipeline still works and DL candidates are skipped with expli
 ## Betting Recommendation Engine
 
 The betting layer consumes model prediction JSON plus market odds and outputs stake recommendations using expected ROI, fractional Kelly, and event exposure caps.
+
+It is a research calculator, not evidence that the upstream probabilities have
+edge. Do not interpret a positive calculated ROI or Kelly stake as actionable
+unless the exact model/horizon has a passing probability audit, forward-test
+record, and predeclared promotion gate.
 
 Example odds CSV:
 
@@ -276,3 +346,5 @@ python run_forward_bet_logger.py \
 ```
 
 The forward logger appends a hash-chained JSONL record containing prediction artifact hash, odds file hash, model probabilities, odds, Kelly/cap stake outputs, skipped rows, and the previous record hash. It refuses to create evidence records after market close unless `--allow-after-close` is explicitly provided for a dry-run/backfill.
+
+Suggested commit name: `docs: correct F1 research model and evidence claims`

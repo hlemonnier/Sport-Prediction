@@ -523,7 +523,7 @@ def test_real_circuit_summary_uses_finish_order_mobility_not_overtake_metric() -
     assert 0.0 <= float(summary["finish_order_mobility"]) <= 1.0
 
 
-def test_race_fallback_is_grid_constrained_at_monaco_but_allows_monza_comeback() -> None:
+def test_untrained_race_fallback_is_honest_grid_baseline_across_circuits() -> None:
     base = {
         "driver_id": ["grid_p1_slow", "grid_p4_fast", "mid_a", "mid_b"],
         "grid_position": [1.0, 4.0, 2.0, 3.0],
@@ -552,8 +552,8 @@ def test_race_fallback_is_grid_constrained_at_monaco_but_allows_monza_comeback()
     monaco_score = _hierarchical_fallback(monaco, fallback_cols=["event_pace_index"])
     monza_score = _hierarchical_fallback(monza, fallback_cols=["event_pace_index"])
 
-    assert monaco_score.iloc[0] < monaco_score.iloc[1]
-    assert monza_score.iloc[1] < monza_score.iloc[0]
+    assert monaco_score.tolist() == [1.0, 4.0, 2.0, 3.0]
+    assert monza_score.tolist() == [1.0, 4.0, 2.0, 3.0]
 
 
 def test_rank_based_probabilities_preserve_event_totals_and_monotonicity() -> None:
@@ -887,7 +887,7 @@ def test_strategic_race_delta_model_uses_race_features_not_grid_clone() -> None:
     assert pred.tolist() != current["grid_position"].tolist()
 
 
-def test_race_baseline_request_selects_unified_strategic_model() -> None:
+def test_race_baseline_request_selects_grid_only_and_strategic_requires_explicit_override() -> None:
     train = pd.DataFrame(
         {
             "driver_id": ["a", "b", "a", "b", "a", "b"],
@@ -909,8 +909,15 @@ def test_race_baseline_request_selects_unified_strategic_model() -> None:
         f1_model="baseline",
     )
 
-    assert result.model_name == "strategic_race_delta"
-    assert any("unified strategic_race_delta" in note for note in result.notes)
+    assert result.model_name == "grid_only_baseline"
+
+    strategic = train_model(
+        train,
+        ["grid_position", "fp_race_sim_rank", "fp_mean_rank", "track_finish_order_mobility"],
+        f1_model="strategic_baseline",
+    )
+    assert strategic.model_name == "strategic_race_delta"
+    assert any("explicit versioned strategic heuristic baseline" in note for note in strategic.notes)
 
 
 def test_trained_race_delta_wrapper_is_circuit_mobility_constrained() -> None:
@@ -1029,14 +1036,22 @@ def test_oof_probability_audit_uses_deployed_pl_gumbel_layer() -> None:
         actual,
         event_key,
         temperature=1.0,
-        temperature_audit={"available": True, "source": "walk_forward_oof"},
+        temperature_audit={
+            "available": True,
+            "source": "walk_forward_oof",
+            "evaluation_disjoint_from_temperature_fit": True,
+            "fit_event_keys": [-1, 0],
+            "audit_event_keys": [1, 2],
+        },
         samples=1600,
         seed=17,
     )
 
-    assert audit["schema_version"] == "pl_gumbel_probability_audit_v2"
+    assert audit["schema_version"] == "pl_gumbel_probability_audit_v4_disjoint_calibration"
     assert audit["probability_layer"] == "pl_gumbel"
+    assert audit["score_layer"] == "raw_model_score"
     assert audit["same_probability_layer_as_production"] is True
+    assert audit["evaluation_disjoint_from_temperature_fit"] is True
     assert audit["samples"] == 1600
     assert audit["seed"] == 17
     assert audit["event_total_audit"]["passed"] is True
@@ -1108,7 +1123,13 @@ def test_oof_probability_audit_fails_without_usable_calibration_slope() -> None:
         actual,
         event_key,
         temperature=1.0,
-        temperature_audit={"available": True, "source": "walk_forward_oof"},
+        temperature_audit={
+            "available": True,
+            "source": "walk_forward_oof",
+            "evaluation_disjoint_from_temperature_fit": True,
+            "fit_event_keys": [-1, 0],
+            "audit_event_keys": [1, 2],
+        },
     )
 
     assert audit["available"] is True

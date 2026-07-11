@@ -41,6 +41,7 @@ from packages.f1.models.deep_learning import (
     torch_available,
 )
 from packages.f1.models.probability import pl_gumbel_probabilities
+from packages.f1.models.race_probability import RACE_PROBABILITY_SCORE_LAYER, race_stochastic_score_layer
 from packages.f1.data.utils import team_column
 
 SAMPLE_WEIGHT_COL = "_sample_weight"
@@ -48,7 +49,7 @@ DEFAULT_PL_SAMPLES = 2000
 DEFAULT_PL_SEED = 42
 DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS = 5
 DEFAULT_PROBABILITY_AUDIT_BOOTSTRAP_SAMPLES = 200
-PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v2"
+PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v4_disjoint_calibration"
 
 
 @dataclass
@@ -62,6 +63,7 @@ class TrainingResult:
     notes: List[str]
     listwise_temperature: Optional[float] = None
     probability_audit: dict[str, Any] = field(default_factory=dict)
+    selection_audit: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -82,6 +84,10 @@ class CandidateScore:
     spearman: float
     ndcg10: float
     hit10: float
+    pole_hit: float
+    top3_hit: float
+    win_brier: float
+    top3_brier: float
     composite: float
     device_used: Optional[str] = None
 
@@ -279,10 +285,11 @@ TEAM_CAR_ARCHETYPE_PROFILES: dict[str, dict[str, float]] = {
     "sauber": {"power": 0.76, "downforce": 0.56, "low_speed": 0.54, "high_speed": 0.58, "traction": 0.58, "braking": 0.60, "tyre": 0.56},
     "kick sauber": {"power": 0.76, "downforce": 0.56, "low_speed": 0.54, "high_speed": 0.58, "traction": 0.58, "braking": 0.60, "tyre": 0.56},
 }
+STRATEGIC_RACE_BASELINE_VERSION = "strategic_race_heuristic_v1_legacy_profiles_2025"
 
 
 class StrategicRaceDeltaModel:
-    """Single race scorer combining grid, history, FP, and circuit features."""
+    """Versioned heuristic race baseline, never a privileged production model."""
 
     def __init__(
         self,
@@ -305,6 +312,7 @@ class StrategicRaceDeltaModel:
         self.circuit_col: Optional[str] = None
         self.archetype_col: Optional[str] = None
         self.calibrators: dict[str, ProbabilityCalibrator] = {}
+        self.baseline_version = STRATEGIC_RACE_BASELINE_VERSION
 
     @staticmethod
     def _clean_key(value: object, fallback: str) -> str:
@@ -421,11 +429,7 @@ class StrategicRaceDeltaModel:
         return pd.Series(values, index=frame.index, dtype=float)
 
     def _mobility(self, frame: pd.DataFrame) -> pd.Series:
-        mobility = (
-            self._numeric(frame, "track_finish_order_mobility", 0.35)
-            if "track_finish_order_mobility" in frame.columns
-            else self._numeric(frame, "track_overtake_propensity", 0.35)
-        ).clip(0.0, 1.0)
+        mobility = self._numeric(frame, "track_finish_order_mobility", 0.35).clip(0.0, 1.0)
         drs = self._numeric(frame, "circuit_drs_effectiveness", 0.45).clip(0.0, 1.0)
         difficulty = self._numeric(frame, "circuit_overtaking_difficulty", 0.50).clip(0.0, 1.0)
         safety = self._numeric(frame, "track_safety_car_prior", 0.25).clip(0.0, 1.0)
@@ -812,7 +816,6 @@ class TargetOffsetModel:
     def _circuit_mobility(self, frame: pd.DataFrame) -> pd.Series:
         circuit_cols = {
             "track_finish_order_mobility",
-            "track_overtake_propensity",
             "circuit_drs_effectiveness",
             "circuit_overtaking_difficulty",
             "track_chaos_index",
@@ -821,11 +824,7 @@ class TargetOffsetModel:
         }
         if not any(col in frame.columns for col in circuit_cols):
             return pd.Series(1.0, index=frame.index, dtype=float)
-        mobility = (
-            self._series(frame, "track_finish_order_mobility", 0.35)
-            if "track_finish_order_mobility" in frame.columns
-            else self._series(frame, "track_overtake_propensity", 0.35)
-        ).clip(0.0, 1.0)
+        mobility = self._series(frame, "track_finish_order_mobility", 0.35).clip(0.0, 1.0)
         drs = self._series(frame, "circuit_drs_effectiveness", 0.45).clip(0.0, 1.0)
         difficulty = self._series(frame, "circuit_overtaking_difficulty", 0.50).clip(0.0, 1.0)
         variance = self._series(frame, "race_generation_variance_prior", 0.20).clip(0.0, 1.0)
@@ -1284,11 +1283,40 @@ def _topk_hit_rate(actual_rank: pd.Series, pred_score: pd.Series, k: int) -> flo
     return float(len(actual_top.intersection(pred_top)) / denom)
 
 
+def _selection_probability_metrics(actual_rank: pd.Series, pred_score: pd.Series) -> tuple[float, float]:
+    if actual_rank.empty:
+        return 1.0, 1.0
+    numeric = pd.to_numeric(pred_score, errors="coerce")
+    fill = float(numeric.median(skipna=True)) if numeric.notna().any() else 0.0
+    numeric = numeric.fillna(fill)
+    scale = float(numeric.std(ddof=0))
+    if not np.isfinite(scale) or scale < 1e-6:
+        scale = 1.0
+    standardized = (numeric - float(numeric.median(skipna=True))) / scale
+    event = pd.Series("selection_event", index=standardized.index, dtype=object)
+    probabilities = pl_gumbel_probabilities(
+        scores=standardized,
+        event_key=event,
+        samples=512,
+        temperature=1.0,
+        seed=1729,
+    )
+    win_label = (actual_rank <= 1).astype(float)
+    top3_label = (actual_rank <= min(3, len(actual_rank))).astype(float)
+    win_brier = float(((probabilities["p_win"] - win_label) ** 2).mean())
+    top3_brier = float(((probabilities["p_top3"] - top3_label) ** 2).mean())
+    return win_brier, top3_brier
+
+
 def _fold_metrics(y_true: pd.Series, pred: pd.Series, event_key: pd.Series) -> dict[str, float]:
     mae_values: list[float] = []
     spearman_values: list[float] = []
     ndcg_values: list[float] = []
     hit_values: list[float] = []
+    pole_hit_values: list[float] = []
+    top3_hit_values: list[float] = []
+    win_brier_values: list[float] = []
+    top3_brier_values: list[float] = []
     for idx in _event_groups(event_key, y_true.index):
         y_event = y_true.loc[idx]
         p_event = pred.loc[idx]
@@ -1300,15 +1328,28 @@ def _fold_metrics(y_true: pd.Series, pred: pd.Series, event_key: pd.Series) -> d
         spearman_values.append(_safe_spearman(actual_rank, pred_rank))
         ndcg_values.append(_ndcg_at_k(actual_rank, p_event, k=10))
         hit_values.append(_topk_hit_rate(actual_rank, p_event, k=10))
+        pole_hit_values.append(_topk_hit_rate(actual_rank, p_event, k=1))
+        top3_hit_values.append(_topk_hit_rate(actual_rank, p_event, k=3))
+        win_brier, top3_brier = _selection_probability_metrics(actual_rank, p_event)
+        win_brier_values.append(win_brier)
+        top3_brier_values.append(top3_brier)
     mae = float(sum(mae_values) / len(mae_values)) if mae_values else float("inf")
     spearman = float(sum(spearman_values) / len(spearman_values)) if spearman_values else 0.0
     ndcg10 = float(sum(ndcg_values) / len(ndcg_values)) if ndcg_values else 0.0
     hit10 = float(sum(hit_values) / len(hit_values)) if hit_values else 0.0
+    pole_hit = float(sum(pole_hit_values) / len(pole_hit_values)) if pole_hit_values else 0.0
+    top3_hit = float(sum(top3_hit_values) / len(top3_hit_values)) if top3_hit_values else 0.0
+    win_brier = float(sum(win_brier_values) / len(win_brier_values)) if win_brier_values else 1.0
+    top3_brier = float(sum(top3_brier_values) / len(top3_brier_values)) if top3_brier_values else 1.0
     return {
         "mae": mae,
         "spearman": spearman,
         "ndcg10": ndcg10,
         "hit10": hit10,
+        "pole_hit": pole_hit,
+        "top3_hit": top3_hit,
+        "win_brier": win_brier,
+        "top3_brier": top3_brier,
     }
 
 
@@ -1334,10 +1375,28 @@ def _weighted_metric_mean(items: list[tuple[dict[str, float], float]], key: str,
     return float(np.average(np.asarray(values, dtype=float), weights=np.asarray(weights, dtype=float)))
 
 
-def _composite_score(mae: float, spearman: float, ndcg10: float, hit10: float) -> float:
+def _composite_score(
+    mae: float,
+    spearman: float,
+    ndcg10: float,
+    hit10: float,
+    pole_hit: float,
+    top3_hit: float,
+    win_brier: float,
+    top3_brier: float,
+) -> float:
     mae_score = 1.0 / (1.0 + max(mae, 0.0))
     spearman_norm = (max(-1.0, min(1.0, spearman)) + 1.0) / 2.0
-    return float((0.35 * mae_score) + (0.25 * spearman_norm) + (0.25 * ndcg10) + (0.15 * hit10))
+    probability_score = 1.0 - min(1.0, max(0.0, 0.5 * (win_brier + top3_brier)))
+    return float(
+        (0.30 * mae_score)
+        + (0.20 * spearman_norm)
+        + (0.10 * ndcg10)
+        + (0.05 * hit10)
+        + (0.10 * pole_hit)
+        + (0.10 * top3_hit)
+        + (0.15 * probability_score)
+    )
 
 
 def _walk_forward_folds(train: pd.DataFrame) -> list[tuple[set[int], int]]:
@@ -1352,6 +1411,16 @@ def _walk_forward_folds(train: pd.DataFrame) -> list[tuple[set[int], int]]:
     for idx in range(min_train_events, len(ordered_keys)):
         folds.append((set(ordered_keys[:idx]), ordered_keys[idx]))
     return folds
+
+
+def _split_selection_and_holdout_folds(
+    folds: list[tuple[set[int], int]],
+) -> tuple[list[tuple[set[int], int]], list[tuple[set[int], int]]]:
+    """Reserve the latest event as a locked audit, never as a selector."""
+
+    if len(folds) < 2:
+        return list(folds), []
+    return list(folds[:-1]), [folds[-1]]
 
 
 def _evaluate_candidate(
@@ -1385,7 +1454,20 @@ def _evaluate_candidate(
     spearman = _weighted_metric_mean(fold_metrics, "spearman", 0.0)
     ndcg10 = _weighted_metric_mean(fold_metrics, "ndcg10", 0.0)
     hit10 = _weighted_metric_mean(fold_metrics, "hit10", 0.0)
-    composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
+    pole_hit = _weighted_metric_mean(fold_metrics, "pole_hit", 0.0)
+    top3_hit = _weighted_metric_mean(fold_metrics, "top3_hit", 0.0)
+    win_brier = _weighted_metric_mean(fold_metrics, "win_brier", 1.0)
+    top3_brier = _weighted_metric_mean(fold_metrics, "top3_brier", 1.0)
+    composite = _composite_score(
+        mae=mae,
+        spearman=spearman,
+        ndcg10=ndcg10,
+        hit10=hit10,
+        pole_hit=pole_hit,
+        top3_hit=top3_hit,
+        win_brier=win_brier,
+        top3_brier=top3_brier,
+    )
     return CandidateScore(
         name=candidate.name,
         family=candidate.family,
@@ -1393,6 +1475,10 @@ def _evaluate_candidate(
         spearman=spearman,
         ndcg10=ndcg10,
         hit10=hit10,
+        pole_hit=pole_hit,
+        top3_hit=top3_hit,
+        win_brier=win_brier,
+        top3_brier=top3_brier,
         composite=composite,
         device_used=candidate.device_hint if candidate.family == "dl" else None,
     )
@@ -1437,7 +1523,20 @@ def _evaluate_column_baseline(
     spearman = _weighted_metric_mean(fold_metrics, "spearman", 0.0)
     ndcg10 = _weighted_metric_mean(fold_metrics, "ndcg10", 0.0)
     hit10 = _weighted_metric_mean(fold_metrics, "hit10", 0.0)
-    composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
+    pole_hit = _weighted_metric_mean(fold_metrics, "pole_hit", 0.0)
+    top3_hit = _weighted_metric_mean(fold_metrics, "top3_hit", 0.0)
+    win_brier = _weighted_metric_mean(fold_metrics, "win_brier", 1.0)
+    top3_brier = _weighted_metric_mean(fold_metrics, "top3_brier", 1.0)
+    composite = _composite_score(
+        mae=mae,
+        spearman=spearman,
+        ndcg10=ndcg10,
+        hit10=hit10,
+        pole_hit=pole_hit,
+        top3_hit=top3_hit,
+        win_brier=win_brier,
+        top3_brier=top3_brier,
+    )
     return CandidateScore(
         name=name,
         family="baseline",
@@ -1445,6 +1544,10 @@ def _evaluate_column_baseline(
         spearman=spearman,
         ndcg10=ndcg10,
         hit10=hit10,
+        pole_hit=pole_hit,
+        top3_hit=top3_hit,
+        win_brier=win_brier,
+        top3_brier=top3_brier,
         composite=composite,
     )
 
@@ -1507,7 +1610,20 @@ def _evaluate_blend_candidates(
         spearman = _weighted_metric_mean(fold_metrics, "spearman", 0.0)
         ndcg10 = _weighted_metric_mean(fold_metrics, "ndcg10", 0.0)
         hit10 = _weighted_metric_mean(fold_metrics, "hit10", 0.0)
-        composite = _composite_score(mae=mae, spearman=spearman, ndcg10=ndcg10, hit10=hit10)
+        pole_hit = _weighted_metric_mean(fold_metrics, "pole_hit", 0.0)
+        top3_hit = _weighted_metric_mean(fold_metrics, "top3_hit", 0.0)
+        win_brier = _weighted_metric_mean(fold_metrics, "win_brier", 1.0)
+        top3_brier = _weighted_metric_mean(fold_metrics, "top3_brier", 1.0)
+        composite = _composite_score(
+            mae=mae,
+            spearman=spearman,
+            ndcg10=ndcg10,
+            hit10=hit10,
+            pole_hit=pole_hit,
+            top3_hit=top3_hit,
+            win_brier=win_brier,
+            top3_brier=top3_brier,
+        )
         output.append(
             CandidateScore(
                 name=f"pace_blend::{candidate.name}::{baseline_col}::{model_weight:.2f}",
@@ -1516,6 +1632,10 @@ def _evaluate_blend_candidates(
                 spearman=spearman,
                 ndcg10=ndcg10,
                 hit10=hit10,
+                pole_hit=pole_hit,
+                top3_hit=top3_hit,
+                win_brier=win_brier,
+                top3_brier=top3_brier,
                 composite=composite,
                 device_used=candidate.device_hint if candidate.family == "dl" else None,
             )
@@ -1662,6 +1782,37 @@ def _fit_pl_temperature_from_oof(
     }
 
 
+def _probability_calibration_audit_event_split(event_key: pd.Series) -> dict[str, Any]:
+    """Reserve the latest OOF events for a calibration-layer holdout audit."""
+
+    numeric = pd.to_numeric(event_key, errors="coerce").dropna()
+    event_keys = sorted({int(value) for value in numeric.tolist()})
+    minimum_fit_events = 2
+    minimum_audit_events = int(DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS)
+    if len(event_keys) < minimum_fit_events + minimum_audit_events:
+        return {
+            "available": False,
+            "reason": "insufficient_events_for_disjoint_probability_audit",
+            "event_count": int(len(event_keys)),
+            "minimum_fit_events": minimum_fit_events,
+            "minimum_audit_events": minimum_audit_events,
+            "fit_event_keys": [],
+            "audit_event_keys": [],
+        }
+    audit_count = max(minimum_audit_events, int(math.ceil(0.25 * len(event_keys))))
+    audit_count = min(audit_count, len(event_keys) - minimum_fit_events)
+    return {
+        "available": True,
+        "reason": "latest_oof_events_locked_for_probability_audit",
+        "event_count": int(len(event_keys)),
+        "fit_event_keys": event_keys[:-audit_count],
+        "audit_event_keys": event_keys[-audit_count:],
+        "fit_event_count": int(len(event_keys) - audit_count),
+        "audit_event_count": int(audit_count),
+        "evaluation_disjoint_from_temperature_fit": True,
+    }
+
+
 def _pl_probabilities_for_oof_audit(
     scores: pd.Series,
     event_key: pd.Series,
@@ -1803,6 +1954,7 @@ def _probability_audit_from_oof(
     *,
     samples: int = DEFAULT_PL_SAMPLES,
     seed: int = DEFAULT_PL_SEED,
+    score_layer: str = "raw_model_score",
 ) -> dict[str, Any]:
     if temperature is None:
         return {
@@ -1830,6 +1982,9 @@ def _probability_audit_from_oof(
         seed=int(seed),
     )
     total_audit = _probability_event_total_audit(probabilities, event_key)
+    evaluation_disjoint = bool(
+        temperature_audit.get("evaluation_disjoint_from_temperature_fit", False)
+    )
     thresholds = {
         "max_brier": 0.30,
         "max_log_loss": 1.25,
@@ -1842,8 +1997,13 @@ def _probability_audit_from_oof(
         "bootstrap_samples": DEFAULT_PROBABILITY_AUDIT_BOOTSTRAP_SAMPLES,
     }
     metrics: dict[str, dict[str, Any]] = {}
-    passed = bool(total_audit.get("passed", False))
+    passed = bool(total_audit.get("passed", False) and evaluation_disjoint)
     reasons: list[str] = [] if passed else ["event_total_failed"]
+    if not evaluation_disjoint:
+        reasons = [reason for reason in reasons if reason != "event_total_failed"]
+        reasons.append("temperature_fit_and_audit_events_not_disjoint")
+    elif not bool(total_audit.get("passed", False)):
+        reasons = ["event_total_failed"]
     audit_event_count = int(pd.to_numeric(event_key, errors="coerce").nunique(dropna=True))
     if audit_event_count < int(thresholds["min_oof_events"]):
         passed = False
@@ -1927,7 +2087,11 @@ def _probability_audit_from_oof(
         "schema_version": PROBABILITY_AUDIT_SCHEMA_VERSION,
         "source": "walk_forward_oof",
         "probability_layer": "pl_gumbel",
+        "score_layer": str(score_layer),
         "same_probability_layer_as_production": True,
+        "evaluation_disjoint_from_temperature_fit": evaluation_disjoint,
+        "temperature_fit_event_keys": list(temperature_audit.get("fit_event_keys", [])),
+        "audit_event_keys": list(temperature_audit.get("audit_event_keys", [])),
         "samples": int(max(1, samples)),
         "seed": int(seed),
         "temperature": float(temperature),
@@ -1949,6 +2113,7 @@ def _oof_scores_for_selection(
     folds: list[tuple[set[int], int]],
     race_baseline_col: str,
     target_spec: Optional[TargetSpec] = None,
+    apply_race_probability_layer: bool = False,
 ) -> tuple[pd.Series, pd.Series, pd.Series]:
     spec = target_spec or TargetSpec()
     event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
@@ -1979,7 +2144,7 @@ def _oof_scores_for_selection(
             continue
 
         model: Optional[object] = None
-        if selected_name == "qualifying_baseline":
+        if selected_name in {"qualifying_baseline", "grid_only_baseline"}:
             model = QualifyingPositionBaseline(
                 fill_value=_median_fill(train_df, race_baseline_col, 10.0),
                 primary_column=race_baseline_col,
@@ -2023,6 +2188,12 @@ def _oof_scores_for_selection(
             scores = pd.Series(model.predict(val_rows), index=val_rows.index, dtype=float)
         except Exception:
             continue
+        if apply_race_probability_layer and spec.uses_offset:
+            transformed = race_stochastic_score_layer(val_rows, scores)
+            scores = pd.to_numeric(
+                transformed["race_stochastic_pl_score"],
+                errors="coerce",
+            ).fillna(scores)
         score_parts.append(scores)
         target_parts.append(pd.Series(y_val, index=val_rows.index, dtype=float))
         event_parts.append(pd.Series(event_val, index=val_rows.index, dtype=float))
@@ -2038,7 +2209,7 @@ def _oof_scores_for_selection(
 
 def _normalize_requested_model(value: str) -> str:
     normalized = str(value or "auto").strip().lower()
-    allowed = {"auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"}
+    allowed = {"auto", "baseline", "strategic_baseline", "xgb_rank", "eb_rank", "lgbm_rank"}
     if normalized in allowed:
         return normalized
     return "auto"
@@ -2121,17 +2292,21 @@ def train_model(
             "validation/calibration score reconstructed finish_position=grid_position+predicted_delta.",
         )
         if strategic_race_supported:
-            candidates = [
-                CandidateSpec(
-                    name="strategic_race_delta",
-                    task="strategic_race",
-                    family="baseline",
-                    build_model=lambda: StrategicRaceDeltaModel(),
-                ),
-            ]
+            candidates = [candidate for candidate in candidates if candidate.task != "ranking"]
+            strategic_candidate = CandidateSpec(
+                name="strategic_race_delta",
+                task="strategic_race",
+                family="baseline",
+                build_model=lambda: StrategicRaceDeltaModel(),
+            )
+            if requested_model in {"auto", "strategic_baseline"}:
+                candidates.append(strategic_candidate)
+            if requested_model == "strategic_baseline":
+                candidates = [strategic_candidate]
             notes.append(
-                "Race model policy: unified strategic_race_delta active "
-                "(grid anchor + FP race pace + driver/team/circuit deltas + circuit-card/car-fit features).",
+                "Race candidate policy: regression models, grid-only, and the versioned "
+                f"{STRATEGIC_RACE_BASELINE_VERSION} heuristic compete on causal walk-forward folds; "
+                "the strategic heuristic has no selection privilege.",
             )
         if any(candidate.task == "ranking" for candidate in candidates):
             notes.append(
@@ -2143,6 +2318,7 @@ def train_model(
         else ("qualy_context_position" if "qualy_context_position" in feature_cols else "qualy_position")
     )
     race_baseline_supported = race_baseline_col in feature_cols
+    race_baseline_name = "grid_only_baseline" if race_baseline_col == "grid_position" else "qualifying_baseline"
     race_pace_baseline_cols = [
         col for col in ["fp_race_sim_rank", "fp_race_sim_delta", "event_pace_index"] if col in feature_cols
     ]
@@ -2191,15 +2367,21 @@ def train_model(
         )
 
     notes.append(
-        "Score composite model selection: 0.35*MAE_score + 0.25*Spearman_norm + "
-        "0.25*NDCG@10 + 0.15*Top10Hit (MAE_score=1/(1+MAE), Spearman_norm=(rho+1)/2).",
+        "Score composite model selection: 0.30*MAE_score + 0.20*Spearman_norm + "
+        "0.10*NDCG@10 + 0.05*Top10Hit + 0.10*PoleHit + 0.10*Top3Hit + "
+        "0.15*PLCalibrationScore; winner/top3 quality is explicit rather than hidden by top10 overlap.",
     )
 
     score_lookup: dict[str, CandidateScore] = {}
     candidate_lookup: dict[str, CandidateSpec] = {c.name: c for c in candidates}
     selected_from_cv: Optional[str] = None
 
-    folds = _walk_forward_folds(train)
+    all_folds = _walk_forward_folds(train)
+    folds, locked_holdout_folds = _split_selection_and_holdout_folds(all_folds)
+    if locked_holdout_folds:
+        notes.append(
+            "Model selection uses earlier walk-forward folds; the latest event is locked for post-selection audit only.",
+        )
     if folds:
         if not small_history_qualifying:
             for candidate in candidates:
@@ -2212,7 +2394,7 @@ def train_model(
                 train=train,
                 folds=folds,
                 column=race_baseline_col,
-                name="qualifying_baseline",
+                name=race_baseline_name,
                 default_fill=10.0,
                 target_spec=target_spec,
             )
@@ -2264,7 +2446,12 @@ def train_model(
         if score_lookup:
             ranking = sorted(
                 score_lookup.values(),
-                key=lambda s: (-s.composite, s.mae),
+                key=lambda s: (
+                    -s.composite,
+                    s.mae,
+                    0 if s.name in {"grid_only_baseline", "qualifying_baseline"} else 1,
+                    s.name,
+                ),
             )
             leaderboard_data = [
                 {
@@ -2276,26 +2463,25 @@ def train_model(
                     "spearman": float(s.spearman),
                     "ndcg10": float(s.ndcg10),
                     "hit10": float(s.hit10),
+                    "pole_hit": float(s.pole_hit),
+                    "top3_hit": float(s.top3_hit),
+                    "win_brier": float(s.win_brier),
+                    "top3_brier": float(s.top3_brier),
+                    "evaluation_scope": "selection_walk_forward",
                 }
                 for s in ranking
             ]
             leaderboard = ", ".join(
                 (
                     f"{s.name}[{s.family}](C={s.composite:.3f}, MAE={s.mae:.3f}, "
-                    f"rho={s.spearman:.3f}, NDCG10={s.ndcg10:.3f}, Hit10={s.hit10:.3f})"
+                    f"rho={s.spearman:.3f}, Pole={s.pole_hit:.3f}, Top3={s.top3_hit:.3f}, "
+                    f"WinBrier={s.win_brier:.3f}, Top3Brier={s.top3_brier:.3f})"
                 )
                 for s in ranking
             )
             notes.append(f"Model selection walk-forward: {leaderboard}.")
             eligible_ranking = [score for score in ranking if score.family != "dl"]
-            if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
-                selected_from_cv = "strategic_race_delta"
-                if "strategic_race_delta" in score_lookup:
-                    notes.append(
-                        "Race policy kept the unified strategic race model as production model; "
-                        "grid/pace baselines remain audit comparators only.",
-                    )
-            elif eligible_ranking:
+            if eligible_ranking:
                 selected_from_cv = eligible_ranking[0].name
                 if ranking[0].family == "dl":
                     notes.append(
@@ -2304,7 +2490,7 @@ def train_model(
             else:
                 notes.append("Only DL candidates were ranked; DL shadow-only policy blocks selection.")
                 if race_baseline_supported:
-                    selected_from_cv = "qualifying_baseline"
+                    selected_from_cv = race_baseline_name
                 elif qualifying_baseline_supported:
                     default_col = (
                         "event_pace_index"
@@ -2325,12 +2511,12 @@ def train_model(
             notes.append("Aucun score walk-forward exploitable; selection par priorite.")
     else:
         notes.append("Historique insuffisant pour validation walk-forward, selection par priorite.")
-        if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
+        if requested_model == "strategic_baseline" and "strategic_race_delta" in candidate_lookup:
             selected_from_cv = "strategic_race_delta"
-            notes.append("Mode race: modele strategique unifie prioritaire sans folds.")
+            notes.append("Versioned strategic heuristic explicitly requested without validation folds.")
         elif race_baseline_supported:
-            selected_from_cv = "qualifying_baseline"
-            notes.append("Mode conservateur: baseline qualif prioritaire sans folds.")
+            selected_from_cv = race_baseline_name
+            notes.append("Mode conservateur: grid-only baseline selected without validation folds.")
         elif qualifying_baseline_supported:
             default_col = (
                 "event_pace_index"
@@ -2341,10 +2527,8 @@ def train_model(
             notes.append("Mode conservateur: baseline pace prioritaire sans folds.")
 
     if requested_model == "baseline":
-        if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
-            selected_from_cv = "strategic_race_delta"
-        elif race_baseline_supported:
-            selected_from_cv = "qualifying_baseline"
+        if race_baseline_supported:
+            selected_from_cv = race_baseline_name
         elif qualifying_baseline_supported:
             default_col = (
                 "event_pace_index"
@@ -2354,6 +2538,11 @@ def train_model(
             selected_from_cv = f"pace_baseline::{default_col}"
         else:
             notes.append("f1_model=baseline demande mais aucune baseline exploitable n'est disponible.")
+    elif requested_model == "strategic_baseline":
+        if "strategic_race_delta" in candidate_lookup:
+            selected_from_cv = "strategic_race_delta"
+        else:
+            notes.append("f1_model=strategic_baseline requested but the race-delta contract is unavailable.")
     elif requested_model == "xgb_rank":
         selected_from_cv = "xgboost_pairwise"
     elif requested_model == "eb_rank":
@@ -2378,14 +2567,14 @@ def train_model(
             return float(default_fill)
         return fill
 
-    if selected_from_cv == "qualifying_baseline":
+    if selected_from_cv in {"qualifying_baseline", "grid_only_baseline"}:
         fill_value = _median_fill(race_baseline_col, 10.0)
         selected_model = QualifyingPositionBaseline(
             fill_value=fill_value,
             primary_column=race_baseline_col,
             fallback_column="qualy_position",
         )
-        selected_name = "qualifying_baseline"
+        selected_name = selected_from_cv
         selected_family = "baseline"
     elif selected_from_cv and selected_from_cv.startswith("pace_baseline::"):
         _, _, baseline_col = selected_from_cv.partition("::")
@@ -2436,26 +2625,13 @@ def train_model(
             break
 
     if selected_model is None and race_baseline_supported:
-        if strategic_race_supported and "strategic_race_delta" in candidate_lookup:
-            fitted = _fit_candidate(
-                train,
-                feature_cols,
-                candidate_lookup["strategic_race_delta"],
-                target_spec=target_spec,
-            )
-            if fitted is not None:
-                selected_model = fitted
-                selected_name = "strategic_race_delta"
-                selected_family = "baseline"
-                notes.append("Fallback race: modele strategique unifie ajuste sur tout l'historique.")
-    if selected_model is None and race_baseline_supported:
         fill_value = _median_fill(race_baseline_col, 10.0)
         selected_model = QualifyingPositionBaseline(
             fill_value=fill_value,
             primary_column=race_baseline_col,
             fallback_column="qualy_position",
         )
-        selected_name = "qualifying_baseline"
+        selected_name = race_baseline_name
         selected_family = "baseline"
         notes.append("Fallback prioritaire active: baseline qualif.")
     if selected_model is None and qualifying_baseline_supported:
@@ -2487,6 +2663,39 @@ def train_model(
     if selected_from_cv is None and selected_name is not None:
         notes.append(f"Modele retenu par defaut: {selected_name}.")
 
+    selection_audit: dict[str, Any] = {
+        "available": False,
+        "reason": "locked_holdout_unavailable",
+        "selection_fold_count": int(len(folds)),
+        "locked_holdout_fold_count": int(len(locked_holdout_folds)),
+    }
+    if locked_holdout_folds and selected_name is not None:
+        holdout_scores, holdout_y, holdout_event = _oof_scores_for_selection(
+            train=train,
+            feature_cols=feature_cols,
+            selected_name=selected_name,
+            candidate_lookup=candidate_lookup,
+            folds=locked_holdout_folds,
+            race_baseline_col=race_baseline_col,
+            target_spec=target_spec,
+        )
+        if not holdout_scores.empty:
+            holdout_metrics = _fold_metrics(holdout_y, holdout_scores, holdout_event)
+            selection_audit = {
+                "available": True,
+                "reason": "locked_latest_event",
+                "selected_model": selected_name,
+                "selection_fold_count": int(len(folds)),
+                "locked_holdout_fold_count": int(len(locked_holdout_folds)),
+                "locked_event_keys": [int(item[1]) for item in locked_holdout_folds],
+                "metrics": {key: float(value) for key, value in holdout_metrics.items()},
+            }
+            notes.append(
+                "Locked post-selection audit: "
+                f"event={selection_audit['locked_event_keys']}, MAE={holdout_metrics['mae']:.3f}, "
+                f"PoleHit={holdout_metrics['pole_hit']:.3f}, Top3Hit={holdout_metrics['top3_hit']:.3f}.",
+            )
+
     rows, y_train, event_train = _prepare_training_rows(train, target_col=target_spec.actual_col)
     calibration_scores = pd.Series(dtype=float)
     calibration_y = pd.Series(dtype=float)
@@ -2498,15 +2707,22 @@ def train_model(
             feature_cols=feature_cols,
             selected_name=selected_name or "",
             candidate_lookup=candidate_lookup,
-            folds=folds,
+            folds=all_folds,
             race_baseline_col=race_baseline_col,
             target_spec=target_spec,
+            apply_race_probability_layer=target_spec.uses_offset,
         )
         calibration_source = "walk-forward_oof"
     if calibration_scores.empty or calibration_event.nunique(dropna=True) < 2:
         if not rows.empty:
             try:
                 calibration_scores = pd.Series(selected_model.predict(rows), index=rows.index, dtype=float)
+                if target_spec.uses_offset:
+                    transformed = race_stochastic_score_layer(rows, calibration_scores)
+                    calibration_scores = pd.to_numeric(
+                        transformed["race_stochastic_pl_score"],
+                        errors="coerce",
+                    ).fillna(calibration_scores)
                 calibration_y = y_train
                 calibration_event = event_train
                 calibration_source = "in_sample"
@@ -2519,26 +2735,60 @@ def train_model(
     listwise_temperature: Optional[float] = None
     probability_audit: dict[str, Any] = {}
     if calibration_source == "walk-forward_oof":
-        listwise_temperature, temperature_audit = _fit_pl_temperature_from_oof(
-            calibration_scores,
-            calibration_y,
-            calibration_event,
-        )
-        probability_audit = _probability_audit_from_oof(
-            calibration_scores,
-            calibration_y,
-            calibration_event,
-            listwise_temperature,
-            temperature_audit,
-            samples=int(f1_pl_samples),
-            seed=int(f1_listwise_seed),
-        )
+        probability_partition = _probability_calibration_audit_event_split(calibration_event)
+        if bool(probability_partition.get("available", False)):
+            fit_event_keys = set(int(value) for value in probability_partition["fit_event_keys"])
+            audit_event_keys = set(int(value) for value in probability_partition["audit_event_keys"])
+            numeric_event = pd.to_numeric(calibration_event, errors="coerce")
+            fit_mask = numeric_event.isin(fit_event_keys)
+            audit_mask = numeric_event.isin(audit_event_keys)
+            listwise_temperature, temperature_audit = _fit_pl_temperature_from_oof(
+                calibration_scores.loc[fit_mask],
+                calibration_y.loc[fit_mask],
+                calibration_event.loc[fit_mask],
+            )
+            temperature_audit = {**temperature_audit, **probability_partition}
+            probability_audit = _probability_audit_from_oof(
+                calibration_scores.loc[audit_mask],
+                calibration_y.loc[audit_mask],
+                calibration_event.loc[audit_mask],
+                listwise_temperature,
+                temperature_audit,
+                samples=int(f1_pl_samples),
+                seed=int(f1_listwise_seed),
+                score_layer=RACE_PROBABILITY_SCORE_LAYER if target_spec.uses_offset else "raw_model_score",
+            )
+        else:
+            # A temperature may still be fit for research continuity, but no
+            # calibration claim is allowed without a disjoint audit partition.
+            listwise_temperature, temperature_audit = _fit_pl_temperature_from_oof(
+                calibration_scores,
+                calibration_y,
+                calibration_event,
+            )
+            temperature_audit = {**temperature_audit, **probability_partition}
+            probability_audit = {
+                "available": False,
+                "passed": False,
+                "reason": str(probability_partition.get("reason")),
+                "schema_version": PROBABILITY_AUDIT_SCHEMA_VERSION,
+                "source": "walk_forward_oof",
+                "probability_layer": "pl_gumbel",
+                "score_layer": RACE_PROBABILITY_SCORE_LAYER if target_spec.uses_offset else "raw_model_score",
+                "same_probability_layer_as_production": True,
+                "evaluation_disjoint_from_temperature_fit": False,
+                "temperature_fit": dict(temperature_audit),
+                "event_total_audit": {"passed": False, "reason": "audit_partition_unavailable"},
+                "metrics": {},
+                "samples": int(max(1, f1_pl_samples)),
+            }
         if listwise_temperature is not None:
             nll_value = temperature_audit.get("nll")
             nll_text = f"{float(nll_value):.4f}" if isinstance(nll_value, (int, float)) else "nan"
             notes.append(
                 "Listwise PL temperature fitted on walk-forward OOF likelihood: "
-                f"temperature={listwise_temperature:.3f}, nll={nll_text}.",
+                f"temperature={listwise_temperature:.3f}, nll={nll_text}; "
+                "probability audit uses disjoint locked later OOF events when available.",
             )
         else:
             notes.append(
@@ -2576,12 +2826,14 @@ def train_model(
         except Exception:
             pass
 
-    if selected_name == "qualifying_baseline":
+    if selected_name == "grid_only_baseline":
+        notes.append("Prediction race: grid-only baseline selected by causal walk-forward CV.")
+    elif selected_name == "qualifying_baseline":
         notes.append("Prediction race: baseline qualif contextuelle (qualif + signal predit).")
     elif selected_name == "strategic_race_delta":
         notes.append(
-            "Prediction race: modele strategique unifie (grid anchor, FP race pace, "
-            "historique pilote/team/circuit, circuit cards, safety-car/DNF/mobility, car-fit).",
+            "Prediction race: explicit versioned strategic heuristic baseline "
+            f"({STRATEGIC_RACE_BASELINE_VERSION}); selected only through CV or an explicit override.",
         )
     elif selected_name and selected_name.startswith("pace_baseline::"):
         notes.append("Prediction qualif: baseline pace local (FP/sprint).")
@@ -2605,4 +2857,5 @@ def train_model(
         notes=notes,
         listwise_temperature=listwise_temperature,
         probability_audit=probability_audit,
+        selection_audit=selection_audit,
     )

@@ -5,6 +5,8 @@ from __future__ import annotations
 import repo_bootstrap  # noqa: F401
 
 import argparse
+from datetime import datetime, timezone
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -16,7 +18,88 @@ import pandas as pd
 from packages.f1 import PredictionConfig, run_prediction
 from packages.f1.orchestration.backtest import evaluate_prediction_rows
 from packages.f1.data.providers import LocalWeekendProvider
+from packages.f1.orchestration.evidence import f1_runtime_manifest
 from packages.f1.orchestration.runtime import parse_train_seasons
+
+
+BASELINE_LADDER_SCHEMA_VERSION = "f1_baseline_ladder_complete_field_v2"
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[5]
+
+
+def _portable_path(path: Path, *, project_root: Path) -> str:
+    resolved = path.expanduser().resolve()
+    try:
+        return resolved.relative_to(project_root.resolve()).as_posix()
+    except ValueError:
+        return resolved.as_posix()
+
+
+def _manifest_digest(files: list[dict[str, str]]) -> str:
+    canonical = json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _file_manifest(paths: Sequence[Path], *, project_root: Path, version: str) -> dict[str, Any]:
+    files = [
+        {
+            "path": _portable_path(path, project_root=project_root),
+            "sha256": _sha256_file(path),
+        }
+        for path in sorted({path.expanduser().resolve() for path in paths}, key=lambda item: item.as_posix())
+        if path.is_file()
+    ]
+    return {
+        "manifest_version": version,
+        "aggregate_sha256": _manifest_digest(files),
+        "file_count": int(len(files)),
+        "files": files,
+    }
+
+
+def _implementation_manifest() -> dict[str, Any]:
+    project_root = _project_root()
+    implementation_paths = [
+        Path(__file__).resolve(),
+        project_root / ".python-version",
+        Path(__file__).resolve().with_name("pyproject.toml"),
+        *sorted((project_root / "packages" / "f1").rglob("*.py")),
+    ]
+    return _file_manifest(
+        implementation_paths,
+        project_root=project_root,
+        version="f1_source_tree_manifest_v1",
+    )
+
+
+def _input_data_manifest(*, weekends_dir: str, seasons: Sequence[int]) -> dict[str, Any]:
+    project_root = _project_root()
+    root = Path(weekends_dir).expanduser()
+    if not root.is_absolute():
+        root = project_root / root
+    season_paths: list[Path] = []
+    for season in sorted({int(value) for value in seasons}):
+        season_dir = root / str(season)
+        if season_dir.exists():
+            season_paths.extend(path for path in season_dir.rglob("*") if path.is_file())
+    manifest = _file_manifest(
+        season_paths,
+        project_root=project_root,
+        version="f1_weekend_input_manifest_v1",
+    )
+    manifest["weekends_root"] = _portable_path(root, project_root=project_root)
+    manifest["seasons"] = sorted({int(value) for value in seasons})
+    return manifest
 
 
 def _race_ladder_specs() -> list[dict[str, Any]]:
@@ -25,9 +108,10 @@ def _race_ladder_specs() -> list[dict[str, Any]]:
         {
             "name": "strategic_race_delta",
             "kind": "model",
-            "f1_model": "baseline",
+            "f1_model": "strategic_baseline",
             "disable_circuit_features": False,
             "race_delta_constraint_mode": "constrained",
+            "race_information_horizon": "post_qualifying_pre_grid",
         },
     ]
 
@@ -63,6 +147,7 @@ def _prediction_config(
     f1_pl_samples: int,
     disable_circuit_features: bool,
     race_delta_constraint_mode: str,
+    race_information_horizon: str = "auto",
 ) -> PredictionConfig:
     return PredictionConfig(
         source="local",
@@ -79,6 +164,7 @@ def _prediction_config(
         f1_pl_samples=int(f1_pl_samples),
         disable_circuit_features=bool(disable_circuit_features),
         race_delta_constraint_mode=str(race_delta_constraint_mode),
+        race_information_horizon=str(race_information_horizon),
         shadow_eval=True,
     )
 
@@ -185,6 +271,7 @@ def _evaluate_variant(
     actual = provider.get_race_results(year, round_number) if mode == "race" else provider.get_qualifying_results(year, round_number)
     effective_model = str(spec.get("f1_model", f1_model))
     race_delta_constraint_mode = str(spec.get("race_delta_constraint_mode", "constrained"))
+    race_information_horizon = str(spec.get("race_information_horizon", "auto"))
     disable_circuit_features = bool(spec.get("disable_circuit_features", False))
     if spec["kind"] == "baseline":
         rows = _baseline_rows(provider, mode, str(spec["name"]), year, round_number)
@@ -200,6 +287,7 @@ def _evaluate_variant(
             f1_pl_samples=int(f1_pl_samples),
             disable_circuit_features=disable_circuit_features,
             race_delta_constraint_mode=race_delta_constraint_mode,
+            race_information_horizon=race_information_horizon,
         )
         result = run_prediction(config)
         rows = _records(result)
@@ -210,6 +298,7 @@ def _evaluate_variant(
         "f1_model": effective_model if spec["kind"] != "baseline" else str(spec["name"]),
         "disable_circuit_features": disable_circuit_features if spec["kind"] != "baseline" else None,
         "race_delta_constraint_mode": race_delta_constraint_mode if mode == "race" and spec["kind"] != "baseline" else None,
+        "race_information_horizon": race_information_horizon if mode == "race" and spec["kind"] != "baseline" else None,
     }
     return {
         "mode": mode,
@@ -224,6 +313,7 @@ def _evaluate_variant(
         "field_mae": evaluation.get("field_mae"),
         "mae_on_common": evaluation.get("mae_on_common"),
         "field_coverage": evaluation.get("field_coverage"),
+        "top3_hit": evaluation.get("top3_hit"),
         "top10_hit": evaluation.get("top10_hit"),
         "podium_hit_count": evaluation.get("podium_hit_count"),
         "winner_hit": evaluation.get("winner_hit"),
@@ -266,7 +356,9 @@ def _paired_delta_summary(
     if pair.empty:
         return {"available": False, "reason": "empty_pair"}
 
-    raw_delta = pd.to_numeric(pair[challenger], errors="coerce") - pd.to_numeric(pair[baseline], errors="coerce")
+    challenger_values = pd.to_numeric(pair[challenger], errors="coerce").astype(float)
+    baseline_values = pd.to_numeric(pair[baseline], errors="coerce").astype(float)
+    raw_delta = challenger_values - baseline_values
     raw_delta = raw_delta.dropna()
     if raw_delta.empty:
         return {"available": False, "reason": "empty_delta"}
@@ -317,7 +409,9 @@ def _paired_comparison_specs(mode: str) -> list[dict[str, Any]]:
     if mode == "race":
         return [
             {"baseline": "grid_only", "challenger": "strategic_race_delta", "metric": "field_mae", "lower_is_better": True},
+            {"baseline": "grid_only", "challenger": "strategic_race_delta", "metric": "top3_hit", "lower_is_better": False},
             {"baseline": "grid_only", "challenger": "strategic_race_delta", "metric": "top10_hit", "lower_is_better": False},
+            {"baseline": "grid_only", "challenger": "strategic_race_delta", "metric": "winner_hit", "lower_is_better": False},
         ]
     if mode == "qualifying":
         return [
@@ -336,7 +430,19 @@ def _paired_comparison_specs(mode: str) -> list[dict[str, Any]]:
             {
                 "baseline": "fp_weighted_rank_baseline",
                 "challenger": "current_full_model",
+                "metric": "top3_hit",
+                "lower_is_better": False,
+            },
+            {
+                "baseline": "fp_weighted_rank_baseline",
+                "challenger": "current_full_model",
                 "metric": "top10_hit",
+                "lower_is_better": False,
+            },
+            {
+                "baseline": "fp_weighted_rank_baseline",
+                "challenger": "current_full_model",
+                "metric": "winner_hit",
                 "lower_is_better": False,
             },
             {
@@ -387,11 +493,21 @@ def _summarize_variant_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
     for variant in variants:
         part = common_frame[common_frame["variant"] == variant]
         mae = pd.to_numeric(part["field_mae"], errors="coerce")
+        top3 = pd.to_numeric(
+            part.get("top3_hit", pd.Series(float("nan"), index=part.index, dtype=float)),
+            errors="coerce",
+        )
         top10 = pd.to_numeric(part["top10_hit"], errors="coerce")
+        winner = pd.to_numeric(
+            part.get("winner_hit", pd.Series(float("nan"), index=part.index, dtype=float)),
+            errors="coerce",
+        )
         summary["variant_metrics"][variant] = {
             "events": int(len(part)),
             "field_mae_avg": float(mae.mean()) if mae.notna().any() else None,
+            "top3_hit_avg": float(top3.mean()) if top3.notna().any() else None,
             "top10_hit_avg": float(top10.mean()) if top10.notna().any() else None,
+            "winner_hit_rate": float(winner.mean()) if winner.notna().any() else None,
         }
     mode_values = sorted(frame["mode"].dropna().astype(str).unique().tolist()) if "mode" in frame.columns else []
     mode = mode_values[0] if len(mode_values) == 1 else ""
@@ -408,6 +524,36 @@ def _summarize_variant_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
         )
     if paired:
         summary["paired_comparisons"] = paired
+        primary_baseline = "grid_only" if mode == "race" else "fp_weighted_rank_baseline"
+        primary_challenger = "strategic_race_delta" if mode == "race" else "current_full_model"
+        mae_key = f"{primary_challenger}_vs_{primary_baseline}_field_mae"
+        top3_key = f"{primary_challenger}_vs_{primary_baseline}_top3_hit"
+        winner_key = f"{primary_challenger}_vs_{primary_baseline}_winner_hit"
+        mae_comparison = paired.get(mae_key, {})
+        top3_comparison = paired.get(top3_key, {})
+        winner_comparison = paired.get(winner_key, {})
+        ci = mae_comparison.get("improvement_ci95") if isinstance(mae_comparison, dict) else None
+        reasons: list[str] = []
+        if int(mae_comparison.get("event_count", 0)) < 12:
+            reasons.append("insufficient_paired_events")
+        if not isinstance(ci, list) or len(ci) != 2 or float(ci[0]) <= 0.0:
+            reasons.append("mae_improvement_ci_includes_zero")
+        if float(mae_comparison.get("sign_test_p_value_two_sided", 1.0)) > 0.05:
+            reasons.append("mae_sign_test_not_significant")
+        if float(top3_comparison.get("mean_improvement", -1.0)) < 0.0:
+            reasons.append("top3_degraded")
+        if float(winner_comparison.get("mean_improvement", -1.0)) < 0.0:
+            reasons.append("winner_accuracy_degraded")
+        summary["promotion_gate"] = {
+            "passed": not reasons,
+            "baseline": primary_baseline,
+            "challenger": primary_challenger,
+            "minimum_paired_events": 12,
+            "requires_positive_mae_ci95_lower_bound": True,
+            "requires_mae_sign_test_p_lte": 0.05,
+            "requires_no_top3_or_winner_degradation": True,
+            "reasons": reasons,
+        }
     return summary
 
 
@@ -446,7 +592,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["same_season", "same_season_walk_forward", "strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
         default="legacy_auto",
     )
-    parser.add_argument("--f1-model", choices=["auto", "baseline", "xgb_rank", "eb_rank", "lgbm_rank"], default="auto")
+    parser.add_argument(
+        "--f1-model",
+        choices=["auto", "baseline", "strategic_baseline", "xgb_rank", "eb_rank", "lgbm_rank"],
+        default="auto",
+    )
     parser.add_argument("--f1-pl-samples", type=int, default=300)
     parser.add_argument("--output-path", default=None)
     return parser
@@ -476,7 +626,21 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     )
                 )
     payload = {
+        "schema_version": BASELINE_LADDER_SCHEMA_VERSION,
         "workflow": "f1_baseline_ladder",
+        "generated_at": _utc_now(),
+        "validation_contract": {
+            "headline_metrics_require_complete_field": True,
+            "minimum_field_coverage": 0.95,
+            "paired_events_only": True,
+            "promotion_requires_positive_mae_ci_and_no_top3_or_winner_degradation": True,
+        },
+        "implementation": _implementation_manifest(),
+        "runtime": f1_runtime_manifest(),
+        "input_data": _input_data_manifest(
+            weekends_dir=str(args.weekends_dir),
+            seasons=[int(args.year), *train_seasons],
+        ),
         "config": {**vars(args), "train_seasons_effective": train_seasons},
         "summary": _summarize_paired_ladder(rows),
         "rows": rows,

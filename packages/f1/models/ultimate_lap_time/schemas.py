@@ -12,6 +12,11 @@ import numpy as np
 ALLOWED_SPLIT_NAMES: frozenset[str] = frozenset(
     {"train", "validation", "val", "test", "holdout", "live", "backtest"}
 )
+IDEAL_LAP_TARGET_CONTRACT = "theoretical_ideal_lap_v1"
+OBSERVED_LAP_TARGET_CONTRACT = "observed_lap_v1"
+ALLOWED_TARGET_CONTRACTS: frozenset[str] = frozenset(
+    {IDEAL_LAP_TARGET_CONTRACT, OBSERVED_LAP_TARGET_CONTRACT}
+)
 TARGET_VECTOR_COLUMNS: tuple[str, ...] = (
     "lap_p05",
     "lap_p50",
@@ -139,6 +144,7 @@ class UltimateLapTargets:
     p05_target: float | None = None
     p50_target: float | None = None
     p90_target: float | None = None
+    target_contract: str = OBSERVED_LAP_TARGET_CONTRACT
 
     def __post_init__(self) -> None:
         lap = _finite_positive(self.lap_time_seconds, field_name="lap_time_seconds", required=True)
@@ -169,13 +175,30 @@ class UltimateLapTargets:
         object.__setattr__(self, "p05_target", p05)
         object.__setattr__(self, "p50_target", p50)
         object.__setattr__(self, "p90_target", p90)
+        contract = _as_clean_string(self.target_contract, field_name="target_contract").lower()
+        if contract not in ALLOWED_TARGET_CONTRACTS:
+            raise ValueError(f"target_contract must be one of {sorted(ALLOWED_TARGET_CONTRACTS)}")
+        object.__setattr__(self, "target_contract", contract)
 
     @classmethod
     def from_mapping(cls, mapping: Mapping[str, Any]) -> "UltimateLapTargets":
-        lap_time = _mapping_get_first(
-            mapping,
-            ("lap_time_seconds", "lap_duration", "LapTime", "lap_time", "duration"),
-        )
+        contract = _mapping_get_first(mapping, ("target_contract", "target_kind"))
+        explicit_contract = str(contract).strip().lower() if contract is not None else None
+        ideal_lap_time = _mapping_get_first(mapping, ("ideal_lap_time_seconds",))
+        if explicit_contract == IDEAL_LAP_TARGET_CONTRACT and ideal_lap_time is None:
+            raise ValueError(
+                "theoretical ideal-lap target requires an explicit ideal_lap_time_seconds value"
+            )
+        if ideal_lap_time is not None and explicit_contract == OBSERVED_LAP_TARGET_CONTRACT:
+            raise ValueError("ideal_lap_time_seconds cannot use the observed-lap target contract")
+        lap_time = ideal_lap_time
+        if lap_time is not None:
+            contract = explicit_contract or IDEAL_LAP_TARGET_CONTRACT
+        else:
+            lap_time = _mapping_get_first(
+                mapping,
+                ("lap_time_seconds", "lap_duration", "LapTime", "lap_time", "duration"),
+            )
         return cls(
             lap_time_seconds=lap_time,
             sector1_seconds=_mapping_get_first(
@@ -193,10 +216,11 @@ class UltimateLapTargets:
             p05_target=_mapping_get_first(mapping, ("p05_target", "lap_p05", "p05", "target_p05")),
             p50_target=_mapping_get_first(mapping, ("p50_target", "lap_p50", "p50", "target_p50")),
             p90_target=_mapping_get_first(mapping, ("p90_target", "lap_p90", "p90", "target_p90")),
+            target_contract=contract or OBSERVED_LAP_TARGET_CONTRACT,
         )
 
-    def as_dict(self) -> dict[str, float | None]:
-        return {
+    def as_dict(self) -> dict[str, float | str | None]:
+        payload: dict[str, float | str | None] = {
             "lap_time_seconds": self.lap_time_seconds,
             "sector1_seconds": self.sector1_seconds,
             "sector2_seconds": self.sector2_seconds,
@@ -204,7 +228,11 @@ class UltimateLapTargets:
             "p05_target": self.p05_target,
             "p50_target": self.p50_target,
             "p90_target": self.p90_target,
+            "target_contract": self.target_contract,
         }
+        if self.target_contract == IDEAL_LAP_TARGET_CONTRACT:
+            payload["ideal_lap_time_seconds"] = self.lap_time_seconds
+        return payload
 
     def target_vector(self) -> np.ndarray:
         values = [
@@ -271,6 +299,10 @@ class DistanceNormalizedTelemetryTensor:
 
     values: np.ndarray
     channel_names: tuple[str, ...]
+    raw_distance_start: float | None = None
+    raw_distance_end: float | None = None
+    expected_lap_distance: float | None = None
+    distance_coverage: float | None = None
 
     def __post_init__(self) -> None:
         values = np.asarray(self.values, dtype=float)
@@ -285,6 +317,18 @@ class DistanceNormalizedTelemetryTensor:
         cleaned_channels = tuple(_as_clean_string(name, field_name="channel_name") for name in self.channel_names)
         object.__setattr__(self, "values", values.astype(np.float32, copy=False))
         object.__setattr__(self, "channel_names", cleaned_channels)
+        for name in ("raw_distance_start", "raw_distance_end", "expected_lap_distance", "distance_coverage"):
+            raw = getattr(self, name)
+            if raw is None:
+                continue
+            numeric = float(raw)
+            if not np.isfinite(numeric):
+                raise ValueError(f"{name} must be finite when provided")
+            object.__setattr__(self, name, numeric)
+        if self.expected_lap_distance is not None and self.expected_lap_distance <= 0.0:
+            raise ValueError("expected_lap_distance must be positive")
+        if self.distance_coverage is not None and not 0.0 <= self.distance_coverage <= 1.05:
+            raise ValueError("distance_coverage must be between 0 and 1.05")
 
     @property
     def channels(self) -> int:
@@ -416,7 +460,10 @@ def assert_split_fields_are_leakage_safe(fields: Sequence[str]) -> None:
 
 
 __all__ = [
+    "ALLOWED_TARGET_CONTRACTS",
     "ALLOWED_SPLIT_NAMES",
+    "IDEAL_LAP_TARGET_CONTRACT",
+    "OBSERVED_LAP_TARGET_CONTRACT",
     "TARGET_VECTOR_COLUMNS",
     "DistanceNormalizedTelemetryTensor",
     "UltimateLapMetadata",

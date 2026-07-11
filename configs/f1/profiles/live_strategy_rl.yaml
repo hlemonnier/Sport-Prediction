@@ -48,6 +48,15 @@ promotion:
     required: true
     simulator_id: live_race_simulator_v1
     report_path: artifacts/reports/f1/live_strategy/rl/locked_simulator_validation.json
+  prior_calibration:
+    required: true
+    mode: locked_replay
+    hand_tuned_priors_allowed: false
+    required_components:
+      - filter_phi_q_pace_q_deg_r_obs
+      - mc_regime_transition_probabilities
+      - regime_specific_pit_loss_distributions
+      - strategy_template_selection_probabilities
   required_metrics:
     - policy_value
     - illegal_action_rate

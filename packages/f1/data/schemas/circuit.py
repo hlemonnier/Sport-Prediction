@@ -18,6 +18,9 @@ import pandas as pd
 from packages.f1.data.utils import normalize_event_name
 
 
+CIRCUIT_CARD_SCHEMA_VERSION = "f1_circuit_card_priors_v2"
+
+
 def _clip01(value: object, default: float) -> float:
     numeric = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
     if pd.isna(numeric):
@@ -59,6 +62,8 @@ class CircuitCard:
     strategy_variance: float
     safety_car_probability: float
     data_reliability: float = 0.55
+    prior_source: str = "expert_heuristic_unvalidated"
+    schema_version: str = CIRCUIT_CARD_SCHEMA_VERSION
 
     def numeric_features(self) -> dict[str, float]:
         return {
@@ -78,11 +83,15 @@ class CircuitCard:
             "circuit_card_reliability": self.data_reliability,
         }
 
-    def metadata(self) -> dict[str, str]:
+    def metadata(self) -> dict[str, object]:
         return {
             "circuit_card_id": self.card_id,
             "circuit_name": self.canonical_name,
             "circuit_archetype": self.archetype,
+            "circuit_card_schema_version": self.schema_version,
+            "circuit_card_prior_source": self.prior_source,
+            "circuit_card_prior_uncertainty": float(1.0 - _clip01(self.data_reliability, default=0.0)),
+            "circuit_card_predictive_status": "quarantined_until_paired_holdout_gate_passes",
         }
 
     def to_payload(self) -> dict[str, object]:
@@ -285,6 +294,10 @@ def circuit_card_payload_from_frame(frame: pd.DataFrame) -> dict[str, object]:
         "circuit_card_id",
         "circuit_name",
         "circuit_archetype",
+        "circuit_card_schema_version",
+        "circuit_card_prior_source",
+        "circuit_card_prior_uncertainty",
+        "circuit_card_predictive_status",
         *CIRCUIT_NUMERIC_FEATURES,
     ]
     payload: dict[str, object] = {}
@@ -294,7 +307,7 @@ def circuit_card_payload_from_frame(frame: pd.DataFrame) -> dict[str, object]:
         value = first.get(key)
         if pd.isna(value):
             continue
-        if key in CIRCUIT_NUMERIC_FEATURES:
+        if key in CIRCUIT_NUMERIC_FEATURES or key == "circuit_card_prior_uncertainty":
             payload[key] = float(value)
         else:
             payload[key] = str(value)

@@ -122,6 +122,8 @@ def _run_qualifying_prediction(
     disable_runsim_features: bool,
     disable_circuit_features: bool,
     weather_config: dict[str, Any],
+    qualifying_information_horizon: str,
+    prediction_as_of: Optional[str],
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -142,6 +144,8 @@ def _run_qualifying_prediction(
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
+        qualifying_information_horizon=qualifying_information_horizon,
+        prediction_as_of=prediction_as_of,
         **weather_config,
     )
     return _prediction_payload(config)
@@ -167,6 +171,9 @@ def _run_race_prediction(
     disable_runsim_features: bool,
     disable_circuit_features: bool,
     weather_config: dict[str, Any],
+    qualifying_information_horizon: str,
+    race_information_horizon: str,
+    prediction_as_of: Optional[str],
     f1_mode: str = "offline",
     f1_live_source: str = "auto",
     f1_live_model: str = "ssm_v1",
@@ -176,6 +183,7 @@ def _run_race_prediction(
     f1_live_replay_path: Optional[str] = None,
     f1_live_calibration_path: Optional[str] = None,
     f1_live_replay_cutoff_lap: Optional[int] = None,
+    f1_live_replay_cutoff_time_seconds: Optional[float] = None,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -196,6 +204,9 @@ def _run_race_prediction(
         dl_seed=dl_seed,
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
+        qualifying_information_horizon=qualifying_information_horizon,
+        race_information_horizon=race_information_horizon,
+        prediction_as_of=prediction_as_of,
         **weather_config,
         f1_mode=f1_mode,
         f1_live_source=f1_live_source,
@@ -206,6 +217,7 @@ def _run_race_prediction(
         f1_live_replay_path=f1_live_replay_path,
         f1_live_calibration_path=f1_live_calibration_path,
         f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
+        f1_live_replay_cutoff_time_seconds=f1_live_replay_cutoff_time_seconds,
     )
     return _prediction_payload(config)
 
@@ -231,6 +243,7 @@ def _run_pre_qualifying(
     disable_runsim_features: bool,
     disable_circuit_features: bool,
     weather_config: dict[str, Any],
+    prediction_as_of: Optional[str],
 ) -> dict[str, str]:
     qualifying_payload = _run_qualifying_prediction(
         source=source,
@@ -250,6 +263,8 @@ def _run_pre_qualifying(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
+        qualifying_information_horizon="pre_qualifying",
+        prediction_as_of=prediction_as_of,
     )
     qualifying_path = output_dir / "prequal_qualifying_prediction.json"
     _write_json(qualifying_path, qualifying_payload)
@@ -273,6 +288,9 @@ def _run_pre_qualifying(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
+        qualifying_information_horizon="pre_qualifying",
+        race_information_horizon="post_fp_pre_qualifying",
+        prediction_as_of=prediction_as_of,
         f1_mode="offline",
     )
     race_path = output_dir / "prequal_race_prediction.json"
@@ -305,6 +323,7 @@ def _run_post_qualifying(
     disable_runsim_features: bool,
     disable_circuit_features: bool,
     weather_config: dict[str, Any],
+    prediction_as_of: Optional[str],
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
         source=source,
@@ -325,6 +344,9 @@ def _run_post_qualifying(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
+        qualifying_information_horizon="post_qualifying",
+        race_information_horizon="post_qualifying_pre_grid",
+        prediction_as_of=prediction_as_of,
         f1_mode="offline",
     )
     race_path = output_dir / "postqual_race_prediction.json"
@@ -445,6 +467,8 @@ def _run_live_race(
     f1_live_replay_path: Optional[str],
     f1_live_calibration_path: Optional[str],
     f1_live_replay_cutoff_lap: Optional[int],
+    f1_live_replay_cutoff_time_seconds: Optional[float],
+    prediction_as_of: Optional[str],
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
         source=source,
@@ -465,6 +489,9 @@ def _run_live_race(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
+        qualifying_information_horizon="pre_race",
+        race_information_horizon="post_grid_pre_race",
+        prediction_as_of=prediction_as_of,
         f1_mode="live",
         f1_live_source=f1_live_source,
         f1_live_model=f1_live_model,
@@ -474,6 +501,7 @@ def _run_live_race(
         f1_live_replay_path=f1_live_replay_path,
         f1_live_calibration_path=f1_live_calibration_path,
         f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
+        f1_live_replay_cutoff_time_seconds=f1_live_replay_cutoff_time_seconds,
     )
     snapshot_path = output_dir / "live_race_snapshot.json"
     _write_json(snapshot_path, race_payload)
@@ -516,17 +544,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--train-seasons", default="auto")
     parser.add_argument(
         "--train-policy",
-            choices=["same_season", "same_season_walk_forward", "strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
-        default="strict_transfer",
+        choices=["same_season", "same_season_walk_forward", "strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
+        default="same_season_walk_forward",
         help=(
-            "auto train-season policy. "
-            "strict_transfer uses distant prior seasons plus target-year prior rounds, "
-            "and excludes target_year-1 (ex: excludes 2025 for 2026)."
+            "auto train-season policy. same_season_walk_forward is the default for the 2026 reset; "
+            "cross-regime transfer policies must be requested explicitly and evaluated separately."
         ),
     )
     parser.add_argument("--include-standings", action="store_true")
     parser.add_argument("--cache-dir", default=None)
     parser.add_argument("--weekends-dir", default="data/f1/raw/weekends")
+    parser.add_argument(
+        "--prediction-as-of",
+        default=None,
+        help=(
+            "Optional ISO-8601 point-in-time cutoff. Local snapshots must carry an available_at or "
+            "first_published_at timestamp no later than this value; mutable retrospective providers fail closed."
+        ),
+    )
     parser.add_argument("--meeting-name", default=None)
     parser.add_argument("--country-name", default=None)
     parser.add_argument("--enable-dl-candidates", action="store_true")
@@ -566,6 +601,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--f1-live-replay-path", default=None)
     parser.add_argument("--f1-live-calibration-path", default=None)
     parser.add_argument("--f1-live-replay-cutoff-lap", type=int, default=None)
+    parser.add_argument(
+        "--f1-live-replay-cutoff-time-seconds",
+        type=float,
+        default=None,
+        help="Global session timestamp cutoff for causal replay; preferred over lap-only truncation.",
+    )
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
     parser.add_argument("--output-path", default=None)
@@ -629,6 +670,7 @@ def main() -> None:
             disable_runsim_features=args.disable_runsim_features,
             disable_circuit_features=disable_circuit_features,
             weather_config=weather_config,
+            prediction_as_of=args.prediction_as_of,
         )
         executed.append("pre-qualifying")
 
@@ -654,6 +696,7 @@ def main() -> None:
             disable_runsim_features=args.disable_runsim_features,
             disable_circuit_features=disable_circuit_features,
             weather_config=weather_config,
+            prediction_as_of=args.prediction_as_of,
         )
         executed.append("post-qualifying")
 
@@ -695,6 +738,8 @@ def main() -> None:
             f1_live_replay_path=args.f1_live_replay_path,
             f1_live_calibration_path=args.f1_live_calibration_path,
             f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
+            f1_live_replay_cutoff_time_seconds=args.f1_live_replay_cutoff_time_seconds,
+            prediction_as_of=args.prediction_as_of,
         )
         executed.append("live-race")
 
@@ -707,6 +752,24 @@ def main() -> None:
                 live_snapshot_payload = _load_json(Path(snapshot_path))
 
     f1_mode_effective = "live" if args.phase == "live-race" else str(args.f1_mode)
+    phase_information_contracts = {
+        "pre-qualifying": {
+            "session_cutoff": "pre_qualifying",
+            "race_horizon": "post_fp_pre_qualifying",
+        },
+        "post-qualifying": {
+            "session_cutoff": "post_qualifying",
+            "race_horizon": "post_qualifying_pre_grid",
+        },
+        "post-race": {
+            "prediction_generated": False,
+            "outcomes_role": "evaluation_only",
+        },
+        "live-race": {
+            "session_cutoff": "pre_race",
+            "race_horizon": "post_grid_pre_race",
+        },
+    }
 
     payload = {
         "sport": "F1",
@@ -718,6 +781,16 @@ def main() -> None:
         "phases_executed": executed,
         "train_seasons": train_seasons,
         "train_policy": args.train_policy,
+        "prediction_as_of": args.prediction_as_of,
+        "phase_information_contract": (
+            {
+                phase_name: phase_information_contracts[phase_name]
+                for phase_name in executed
+                if phase_name in phase_information_contracts
+            }
+            if args.phase == "full"
+            else phase_information_contracts.get(args.phase)
+        ),
         "enable_dl_candidates": bool(args.enable_dl_candidates),
         "compare_families": compare_families,
         "dl_device": args.dl_device,
@@ -737,6 +810,7 @@ def main() -> None:
         "f1_live_replay_path": args.f1_live_replay_path,
         "f1_live_calibration_path": args.f1_live_calibration_path,
         "f1_live_replay_cutoff_lap": args.f1_live_replay_cutoff_lap,
+        "f1_live_replay_cutoff_time_seconds": args.f1_live_replay_cutoff_time_seconds,
         "output_dir": str(output_dir),
         "artifacts": artifacts,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),

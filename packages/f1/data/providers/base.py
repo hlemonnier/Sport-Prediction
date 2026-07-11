@@ -16,7 +16,22 @@ import requests
 from packages.sports_core.paths import find_repo_root
 
 from packages.f1.data.constants import POINTS_TABLE
-from packages.f1.data.utils import first_available, merge_fp_frames, normalize_event_name
+from packages.f1.data.utils import (
+    complete_classification_positions,
+    first_available,
+    merge_fp_frames,
+    normalize_event_name,
+)
+from packages.f1.domain import (
+    PredictionTarget,
+    Session,
+    SessionCutoff,
+    WeekendFormat,
+    build_weekend_contract,
+    canonicalize_session_sequence,
+    infer_weekend_contract,
+    parse_session_cutoff,
+)
 
 try:
     import fastf1
@@ -88,11 +103,84 @@ def _standardize_grid_columns(frame: pd.DataFrame, *, source: str) -> pd.DataFra
     return out
 
 
+PACE_EVIDENCE_SESSIONS = frozenset(
+    {Session.FP1, Session.FP2, Session.FP3, Session.SPRINT_QUALIFYING, Session.SPRINT},
+)
+
+
+def _prediction_target(value: str | PredictionTarget) -> PredictionTarget:
+    if isinstance(value, PredictionTarget):
+        return value
+    normalized = str(value).strip().lower().replace("-", "_")
+    aliases = {
+        "qualifying": PredictionTarget.GRAND_PRIX_QUALIFYING,
+        "pre_quali": PredictionTarget.GRAND_PRIX_QUALIFYING,
+        "grand_prix_qualifying": PredictionTarget.GRAND_PRIX_QUALIFYING,
+        "race": PredictionTarget.RACE,
+        "pre_race": PredictionTarget.RACE,
+    }
+    try:
+        return aliases[normalized]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported prediction target for pace sessions: {value!r}") from exc
+
+
+def _contract_for_provider_sessions(
+    year: int,
+    session_names: List[str],
+    *,
+    event_format_hint: Optional[str] = None,
+):
+    hint = str(event_format_hint or "").strip().lower()
+    if "sprint" in hint or "alternative" in hint:
+        if year in {2021, 2022}:
+            weekend_format = WeekendFormat.SPRINT_2021_2022
+        elif year == 2023:
+            weekend_format = WeekendFormat.SPRINT_2023
+        elif year >= 2024:
+            weekend_format = WeekendFormat.SPRINT_2024_PLUS
+        else:
+            raise ValueError(f"Sprint format hint is unsupported for season {year}")
+        return build_weekend_contract(year, weekend_format)
+    return infer_weekend_contract(year, session_names)
+
+
+def _eligible_pace_session_indices(
+    *,
+    year: int,
+    session_names: List[str],
+    prediction_target: str | PredictionTarget,
+    session_cutoff: str | SessionCutoff | None,
+    event_format_hint: Optional[str] = None,
+) -> tuple[List[int], str, str]:
+    if not session_names:
+        return [], "before_weekend", WeekendFormat.STANDARD.value
+    contract = _contract_for_provider_sessions(
+        year,
+        session_names,
+        event_format_hint=event_format_hint,
+    )
+    target = _prediction_target(prediction_target)
+    cutoff = parse_session_cutoff(contract, session_cutoff, target=target)
+    eligible = set(contract.eligible_sessions(target, cutoff)).intersection(PACE_EVIDENCE_SESSIONS)
+    canonical = canonicalize_session_sequence(year, session_names)
+    indices = [index for index, session in enumerate(canonical) if session in eligible]
+    return indices, cutoff.label, contract.format.value
+
+
 class BaseProvider:
     def list_rounds(self, year: int) -> List[Dict[str, object]]:
         raise NotImplementedError
 
-    def get_fp_features(self, year: int, round_number: int) -> pd.DataFrame:
+    def get_fp_features(
+        self,
+        year: int,
+        round_number: int,
+        *,
+        session_cutoff: str | SessionCutoff | None = None,
+        prediction_target: str | PredictionTarget = "qualifying",
+        prediction_as_of: Optional[str] = None,
+    ) -> pd.DataFrame:
         raise NotImplementedError
 
     def get_qualifying_results(self, year: int, round_number: int) -> pd.DataFrame:

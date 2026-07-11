@@ -18,7 +18,14 @@ import pandas as pd
 from packages.f1.data.utils import first_available
 
 
-FP_FEATURE_CONTRACT_VERSION = "f1_practice_lap_features_v2"
+FP_FEATURE_CONTRACT_VERSION = "f1_practice_lap_features_v3_quality_weighted"
+
+
+# FastF1 track-status digits: 1=all clear, 2=yellow, 4=Safety Car,
+# 5=red flag, 6=VSC deployed, 7=VSC ending.  Status strings can contain
+# multiple digits, so any neutralisation digit makes a lap unsuitable for a
+# clean pace/degradation observation.  We retain the count as quality context.
+NEUTRALISED_TRACK_STATUS_CODES = frozenset({"2", "4", "5", "6", "7"})
 
 
 @dataclass(frozen=True)
@@ -72,6 +79,61 @@ def _truthy(values: pd.Series, *, default: bool = False) -> pd.Series:
     out = normalized.isin({"1", "true", "yes", "y", "t"})
     missing = values.isna() | normalized.isin({"", "nan", "none", "<na>"})
     return out.where(~missing, default).astype(bool)
+
+
+def _track_status_codes(value: object) -> set[str]:
+    if value is None:
+        return set()
+    try:
+        if pd.isna(value):
+            return set()
+    except Exception:
+        pass
+    return {character for character in str(value).strip() if character.isdigit()}
+
+
+def _neutralised_track_status(values: pd.Series) -> pd.Series:
+    return values.map(
+        lambda value: bool(_track_status_codes(value).intersection(NEUTRALISED_TRACK_STATUS_CODES)),
+    ).astype(bool)
+
+
+def _robust_pairwise_slope(
+    x: pd.Series,
+    y: pd.Series,
+) -> tuple[float, float, int]:
+    """Return a Theil-Sen-style slope and pairwise MAD uncertainty.
+
+    The value is deliberately labelled as a *raw* stint slope.  It still
+    contains fuel-burn, traffic and track-evolution effects and must not be
+    interpreted as pure tyre degradation.
+    """
+
+    clean = pd.DataFrame(
+        {
+            "x": pd.to_numeric(x, errors="coerce"),
+            "y": pd.to_numeric(y, errors="coerce"),
+        },
+    ).dropna()
+    clean = clean.sort_values("x", kind="mergesort").drop_duplicates(subset=["x"], keep="last")
+    if len(clean) < 3:
+        return float("nan"), float("nan"), 0
+    x_values = clean["x"].to_numpy(dtype=float)
+    y_values = clean["y"].to_numpy(dtype=float)
+    slopes: list[float] = []
+    for left in range(len(clean) - 1):
+        dx = x_values[left + 1 :] - x_values[left]
+        valid = np.abs(dx) > 1e-12
+        if not valid.any():
+            continue
+        dy = y_values[left + 1 :] - y_values[left]
+        slopes.extend((dy[valid] / dx[valid]).astype(float).tolist())
+    if not slopes:
+        return float("nan"), float("nan"), 0
+    slope_values = np.asarray(slopes, dtype=float)
+    median = float(np.median(slope_values))
+    mad = float(np.median(np.abs(slope_values - median)))
+    return median, mad, int(len(slope_values))
 
 
 def _stint_metadata_from_ranges(laps: pd.DataFrame, stints: Optional[pd.DataFrame]) -> pd.DataFrame:
@@ -151,31 +213,72 @@ def build_session_pace_features(
         else pd.Series(range(1, len(work) + 1), index=work.index, dtype=float)
     )
     work = work[work["lap_time"].notna() & (work["lap_time"] > 0.0) & work["lap_order"].notna()].copy()
+    if work.empty:
+        return pd.DataFrame()
 
     accurate_col = first_available(work, ["IsAccurate", "is_accurate"])
-    if accurate_col:
-        accurate = _truthy(work[accurate_col], default=True)
-        work = work[accurate].copy()
+    accurate = (
+        _truthy(work[accurate_col], default=True)
+        if accurate_col
+        else pd.Series(True, index=work.index, dtype=bool)
+    )
     deleted_col = first_available(work, ["Deleted", "deleted"])
-    if deleted_col:
-        work = work[~_truthy(work[deleted_col], default=False)].copy()
+    deleted = (
+        _truthy(work[deleted_col], default=False)
+        if deleted_col
+        else pd.Series(False, index=work.index, dtype=bool)
+    )
     if pit_out_col:
         pit_out = (
             _truthy(work[pit_out_col], default=False)
             if str(pit_out_col).lower().startswith("is_") or pd.api.types.is_bool_dtype(work[pit_out_col])
             else work[pit_out_col].notna()
         )
-        work = work[~pit_out].copy()
+    else:
+        pit_out = pd.Series(False, index=work.index, dtype=bool)
     if pit_in_col:
         pit_in = (
             _truthy(work[pit_in_col], default=False)
             if str(pit_in_col).lower().startswith("is_") or pd.api.types.is_bool_dtype(work[pit_in_col])
             else work[pit_in_col].notna()
         )
-        work = work[~pit_in].copy()
-    if work.empty:
-        return pd.DataFrame()
+    else:
+        pit_in = pd.Series(False, index=work.index, dtype=bool)
 
+    track_status_col = first_available(work, ["TrackStatus", "track_status"])
+    neutralised = (
+        _neutralised_track_status(work[track_status_col])
+        if track_status_col
+        else pd.Series(False, index=work.index, dtype=bool)
+    )
+    work["_quality_accurate"] = accurate
+    work["_quality_deleted"] = deleted
+    work["_quality_pit_out"] = pit_out
+    work["_quality_pit_in"] = pit_in
+    work["_quality_neutralised"] = neutralised
+    work["_quality_clean"] = accurate & ~deleted & ~pit_out & ~pit_in & ~neutralised
+
+    quality_rows: dict[str, dict[str, float]] = {}
+    identity_rows: dict[str, dict[str, str]] = {}
+    for driver, quality_group in work.groupby("driver_id", sort=False):
+        raw_count = int(len(quality_group))
+        clean_count = int(quality_group["_quality_clean"].sum())
+        identity_rows[str(driver)] = {
+            "driver_name": _mode_or_first(quality_group["driver_name"], str(driver)),
+            "team_name": _mode_or_first(quality_group["team_name"], ""),
+        }
+        quality_rows[str(driver)] = {
+            "raw_timed_lap_count": raw_count,
+            "invalid_lap_count": int((~quality_group["_quality_accurate"]).sum()),
+            "deleted_lap_count": int(quality_group["_quality_deleted"].sum()),
+            "neutralised_lap_count": int(quality_group["_quality_neutralised"].sum()),
+            "pit_out_lap_count": int(quality_group["_quality_pit_out"].sum()),
+            "pit_in_lap_count": int(quality_group["_quality_pit_in"].sum()),
+            "representative_lap_count": clean_count,
+            "lap_quality_ratio": float(clean_count / raw_count) if raw_count else 0.0,
+        }
+
+    work = work[work["_quality_clean"]].copy()
     work = _stint_metadata_from_ranges(work, stints)
     rows: list[dict[str, object]] = []
     for driver, group in work.groupby("driver_id", sort=False):
@@ -213,33 +316,57 @@ def build_session_pace_features(
 
         driver_lap_time = pd.to_numeric(group["lap_time"], errors="coerce")
         lap_delta = driver_lap_time - best_lap
-        slow_mask = lap_delta > float(cfg.slow_lap_delta_seconds)
+        threshold_epsilon = 1e-9
+        slow_mask = lap_delta > (float(cfg.slow_lap_delta_seconds) + threshold_epsilon)
         usable = (~slow_mask) & driver_lap_time.notna()
         qualifying_mask = (
             usable
-            & (lap_delta <= float(cfg.qualifying_sim_delta_seconds))
+            & (lap_delta <= (float(cfg.qualifying_sim_delta_seconds) + threshold_epsilon))
+            & (stint_sizes <= 3)
             & (
                 (tyre_life <= float(cfg.qualifying_sim_tyre_life_max))
                 | fresh_tyre
-                | (stint_sizes <= 3)
+                | tyre_life.isna()
             )
         )
         qualifying_laps = driver_lap_time[qualifying_mask].dropna().sort_values()
-        if qualifying_laps.empty:
-            qualifying_laps = driver_lap_time[usable].dropna().sort_values().head(2)
 
         race_mask = (
             usable
             & (stint_sizes >= int(cfg.race_sim_min_stint_laps))
-            & (lap_delta >= float(cfg.race_sim_min_delta_seconds))
-            & (lap_delta <= float(cfg.race_sim_max_delta_seconds))
+            & (lap_delta >= (float(cfg.race_sim_min_delta_seconds) - threshold_epsilon))
+            & (lap_delta <= (float(cfg.race_sim_max_delta_seconds) + threshold_epsilon))
         )
         race_laps = driver_lap_time[race_mask].dropna()
-        if race_laps.empty:
-            race_laps = driver_lap_time[usable & (stint_sizes >= int(cfg.race_sim_min_stint_laps))].dropna()
-        if race_laps.empty:
-            fallback = driver_lap_time[usable].dropna().sort_values()
-            race_laps = fallback.iloc[2:] if len(fallback) > 4 else fallback
+
+        degradation_slopes: list[tuple[float, float, int]] = []
+        for _, stint_group in group.loc[race_mask].groupby("_stint_id", sort=False):
+            if len(stint_group) < 3:
+                continue
+            stint_tyre_life = (
+                pd.to_numeric(stint_group[resolved_tyre_life_col], errors="coerce")
+                if resolved_tyre_life_col
+                else pd.to_numeric(stint_group["lap_order"], errors="coerce")
+            )
+            slope, slope_mad, pair_count = _robust_pairwise_slope(
+                stint_tyre_life,
+                pd.to_numeric(stint_group["lap_time"], errors="coerce"),
+            )
+            if np.isfinite(slope):
+                degradation_slopes.append((slope, slope_mad, pair_count))
+        if degradation_slopes:
+            pair_weights = np.asarray([max(1, item[2]) for item in degradation_slopes], dtype=float)
+            raw_degradation_slope = float(
+                np.average(np.asarray([item[0] for item in degradation_slopes], dtype=float), weights=pair_weights),
+            )
+            raw_degradation_mad = float(
+                np.average(np.asarray([item[1] for item in degradation_slopes], dtype=float), weights=pair_weights),
+            )
+            degradation_stint_count = int(len(degradation_slopes))
+        else:
+            raw_degradation_slope = float("nan")
+            raw_degradation_mad = float("nan")
+            degradation_stint_count = 0
 
         qualifying_lap = float(qualifying_laps.mean()) if not qualifying_laps.empty else float("nan")
         race_lap = float(race_laps.mean()) if not race_laps.empty else float("nan")
@@ -250,6 +377,8 @@ def build_session_pace_features(
         else:
             wet_laps = pd.Series(dtype=float)
         wet_lap = float(wet_laps.mean()) if not wet_laps.empty else float("nan")
+        usable_count = int(usable.sum())
+        quality = quality_rows.get(str(driver), {})
         rows.append(
             {
                 "driver_id": str(driver),
@@ -263,19 +392,71 @@ def build_session_pace_features(
                 "slow_lap_ratio": float(slow_mask.mean()),
                 "quali_sim_lap": qualifying_lap,
                 "quali_sim_lap_count": int(len(qualifying_laps)),
+                "quali_sim_evidence_share": (
+                    float(len(qualifying_laps) / usable_count) if usable_count else 0.0
+                ),
                 "race_sim_lap": race_lap,
                 "race_sim_lap_count": int(len(race_laps)),
+                "race_sim_evidence_share": float(len(race_laps) / usable_count) if usable_count else 0.0,
+                "run_intent_unclassified_share": (
+                    float((usable & ~qualifying_mask & ~race_mask).sum() / usable_count)
+                    if usable_count
+                    else 0.0
+                ),
+                "race_sim_raw_degradation_sec_per_lap": raw_degradation_slope,
+                "race_sim_raw_degradation_mad": raw_degradation_mad,
+                "race_sim_degradation_stint_count": degradation_stint_count,
+                "race_sim_degradation_is_fuel_corrected": False,
                 "wet_sim_lap": wet_lap,
                 "wet_sim_lap_count": int(len(wet_laps)),
                 "quali_vs_race_gap": race_lap - qualifying_lap if np.isfinite(race_lap) and np.isfinite(qualifying_lap) else float("nan"),
+                **quality,
             }
+        )
+
+    represented_drivers = {str(row["driver_id"]) for row in rows}
+    for driver, quality in quality_rows.items():
+        if driver in represented_drivers:
+            continue
+        identity = identity_rows.get(driver, {})
+        rows.append(
+            {
+                "driver_id": driver,
+                "driver_name": identity.get("driver_name", driver),
+                "team_name": identity.get("team_name", ""),
+                "lap_count": 0,
+                "slow_lap_ratio": float("nan"),
+                "quali_sim_lap_count": 0,
+                "quali_sim_evidence_share": 0.0,
+                "race_sim_lap_count": 0,
+                "race_sim_evidence_share": 0.0,
+                "run_intent_unclassified_share": 0.0,
+                "race_sim_degradation_stint_count": 0,
+                "race_sim_degradation_is_fuel_corrected": False,
+                "wet_sim_lap_count": 0,
+                **quality,
+            },
         )
 
     if not rows:
         return pd.DataFrame()
     frame = pd.DataFrame(rows)
+    for column in (
+        "best_lap",
+        "top3_lap",
+        "median_lap",
+        "lap_std",
+        "quali_sim_lap",
+        "race_sim_lap",
+        "race_sim_raw_degradation_sec_per_lap",
+        "race_sim_raw_degradation_mad",
+        "wet_sim_lap",
+        "quali_vs_race_gap",
+    ):
+        if column not in frame.columns:
+            frame[column] = float("nan")
     frame["delta"] = frame["best_lap"] - frame["best_lap"].min()
-    frame["rank"] = frame["best_lap"].rank(method="min").astype(int)
+    frame["rank"] = frame["best_lap"].rank(method="min").astype("Int64")
     frame["top3_delta"] = frame["top3_lap"] - frame["top3_lap"].min()
     frame["median_delta"] = frame["median_lap"] - frame["median_lap"].min()
     for prefix in ("quali", "race"):
@@ -295,6 +476,7 @@ def build_session_pace_features(
     frame["session"] = str(label)
     frame["feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
     frame["feature_source"] = str(provider)
+    frame["run_intent_labels_calibrated"] = False
     return frame
 
 

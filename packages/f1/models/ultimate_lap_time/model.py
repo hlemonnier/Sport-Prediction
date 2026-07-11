@@ -40,6 +40,12 @@ PIT_TIME_COLUMNS: tuple[str, ...] = ("PitInTime", "PitOutTime", "pit_in_time", "
 ACCURACY_COLUMNS: tuple[str, ...] = ("is_accurate", "IsAccurate")
 DELETED_COLUMNS: tuple[str, ...] = ("is_deleted", "Deleted")
 SESSION_COLUMNS: tuple[str, ...] = ("session", "session_name", "SessionName", "SessionType")
+SECTOR_COMPATIBILITY_FIELDS: dict[str, tuple[str, ...]] = {
+    "session": SESSION_COLUMNS,
+    "compound": COMPOUND_COLUMNS,
+    "weather": ("weather", "weather_condition", "Rainfall", "rainfall"),
+    "setup": ("setup_version", "car_specification", "upgrade_specification"),
+}
 IDEAL_LAP_TARGET_COLUMN = "ideal_lap_time_seconds"
 TARGET_CONTRACT_COLUMN = "target_contract"
 
@@ -55,6 +61,9 @@ class UltimateLapTimeConfig:
     exclude_non_accurate_laps: bool = True
     exclude_deleted_laps: bool = True
     exclude_non_green_status: bool = True
+    require_compatible_sector_context: bool = True
+    sector_compatibility_fields: tuple[str, ...] = ("session", "compound")
+    min_laps_per_sector_stratum: int = 1
     min_context_observations: int = 6
     context_adjustment_clip_seconds: float = 12.0
     driver_event_weight: float = 30.0
@@ -328,7 +337,8 @@ def aggregate_ideal_lap_holdout_targets(
 
     rows: list[dict[str, Any]] = []
     for _, group in clean.groupby(groups, sort=False, dropna=False):
-        ideal = _ideal_lap_seconds(group)
+        ideal_details = _ideal_lap_details(group, cfg)
+        ideal = float(ideal_details["seconds"])
         if not np.isfinite(ideal):
             continue
         representative = group.iloc[0]
@@ -340,6 +350,10 @@ def aggregate_ideal_lap_holdout_targets(
         row[IDEAL_LAP_TARGET_COLUMN] = float(ideal)
         row[TARGET_CONTRACT_COLUMN] = IDEAL_LAP_TARGET_CONTRACT
         row["clean_lap_count"] = int(len(group))
+        row["ideal_lap_construction"] = str(ideal_details["construction"])
+        row["sector_compatibility_columns"] = list(ideal_details["compatibility_columns"])
+        row["sector_compatibility_stratum"] = ideal_details["compatibility_stratum"]
+        row["sector_compatibility_candidate_count"] = int(ideal_details["candidate_count"])
         rows.append(row)
     if not rows:
         raise ValueError("no finite theoretical ideal-lap holdout targets could be aggregated")
@@ -471,13 +485,18 @@ def _build_anchor_rows(
     for group_key, group in grouped:
         if len(group) < min_clean:
             continue
-        ideal = _ideal_lap_seconds(group)
+        ideal_details = _ideal_lap_details(group, cfg)
+        ideal = float(ideal_details["seconds"])
         if not np.isfinite(ideal):
             continue
         row: dict[str, Any] = {
             "anchor_group_key": str(group_key),
             "ideal_lap_seconds": float(ideal),
             "clean_lap_count": float(len(group)),
+            "ideal_lap_construction": str(ideal_details["construction"]),
+            "sector_compatibility_columns": "|".join(ideal_details["compatibility_columns"]),
+            "sector_compatibility_stratum": ideal_details["compatibility_stratum"],
+            "sector_compatibility_candidate_count": int(ideal_details["candidate_count"]),
         }
         for name, col in id_cols.items():
             row[name] = _first_non_missing(group[col])
@@ -489,16 +508,83 @@ def _build_anchor_rows(
     return pd.DataFrame(rows)
 
 
-def _ideal_lap_seconds(group: pd.DataFrame) -> float:
+def _sector_compatibility_columns(
+    group: pd.DataFrame,
+    cfg: UltimateLapTimeConfig,
+) -> list[str]:
+    columns: list[str] = []
+    for field in cfg.sector_compatibility_fields:
+        aliases = SECTOR_COMPATIBILITY_FIELDS.get(str(field), (str(field),))
+        column = _first_existing(group, aliases)
+        if column is not None and column not in columns:
+            columns.append(column)
+    return columns
+
+
+def _ideal_lap_details(
+    group: pd.DataFrame,
+    cfg: UltimateLapTimeConfig,
+) -> dict[str, Any]:
     sector_cols = ["_ultimate_sector1_seconds", "_ultimate_sector2_seconds", "_ultimate_sector3_seconds"]
     sector_valid = group["_ultimate_sector_sum_valid"].fillna(False)
     if sector_valid.any():
         sector_group = group.loc[sector_valid, sector_cols]
-        sector_mins = [float(pd.to_numeric(sector_group[col], errors="coerce").min()) for col in sector_cols]
-        if all(np.isfinite(value) and value > 0.0 for value in sector_mins):
-            return float(sum(sector_mins))
+        compatibility_columns = _sector_compatibility_columns(group, cfg)
+        if not cfg.require_compatible_sector_context:
+            sector_mins = [float(pd.to_numeric(sector_group[col], errors="coerce").min()) for col in sector_cols]
+            if all(np.isfinite(value) and value > 0.0 for value in sector_mins):
+                return {
+                    "seconds": float(sum(sector_mins)),
+                    "construction": "unconstrained_sector_lower_bound_research_only",
+                    "compatibility_columns": (),
+                    "compatibility_stratum": None,
+                    "candidate_count": 1,
+                }
+        elif compatibility_columns:
+            candidate_rows: list[tuple[float, str]] = []
+            eligible = group.loc[sector_valid, [*compatibility_columns, *sector_cols]].copy()
+            eligible = eligible.dropna(subset=compatibility_columns)
+            groupby_key: str | list[str] = (
+                compatibility_columns[0]
+                if len(compatibility_columns) == 1
+                else compatibility_columns
+            )
+            for stratum_key, stratum in eligible.groupby(groupby_key, sort=False, dropna=False):
+                if len(stratum) < int(max(1, cfg.min_laps_per_sector_stratum)):
+                    continue
+                sector_mins = [
+                    float(pd.to_numeric(stratum[col], errors="coerce").min())
+                    for col in sector_cols
+                ]
+                if not all(np.isfinite(value) and value > 0.0 for value in sector_mins):
+                    continue
+                key_values = stratum_key if isinstance(stratum_key, tuple) else (stratum_key,)
+                key_label = "|".join(
+                    f"{column}={value}"
+                    for column, value in zip(compatibility_columns, key_values)
+                )
+                candidate_rows.append((float(sum(sector_mins)), key_label))
+            if candidate_rows:
+                seconds, stratum = min(candidate_rows, key=lambda item: item[0])
+                return {
+                    "seconds": float(seconds),
+                    "construction": "compatible_sector_lower_bound_v2",
+                    "compatibility_columns": tuple(compatibility_columns),
+                    "compatibility_stratum": stratum,
+                    "candidate_count": int(len(candidate_rows)),
+                }
     lap_values = pd.to_numeric(group["_ultimate_lap_seconds"], errors="coerce").dropna()
-    return float(lap_values.min()) if not lap_values.empty else float("nan")
+    return {
+        "seconds": float(lap_values.min()) if not lap_values.empty else float("nan"),
+        "construction": (
+            "fastest_clean_lap_fallback_missing_compatibility_context"
+            if sector_valid.any() and cfg.require_compatible_sector_context
+            else "fastest_clean_lap_fallback"
+        ),
+        "compatibility_columns": tuple(_sector_compatibility_columns(group, cfg)),
+        "compatibility_stratum": None,
+        "candidate_count": 0,
+    }
 
 
 def _build_anchor_stores(anchor_rows: pd.DataFrame) -> dict[str, dict[str, PaceAnchor]]:
@@ -630,6 +716,16 @@ def _training_notes(
         notes.append("lap time column missing: sector sums were used as observed lap times")
     if len(anchor_rows) < len(clean):
         notes.append("clean laps were aggregated into lower-envelope anchor groups")
+    constructions = set(anchor_rows.get("ideal_lap_construction", pd.Series(dtype=str)).dropna().astype(str))
+    if "compatible_sector_lower_bound_v2" in constructions:
+        notes.append(
+            "sector minima were combined only inside declared compatible session/compound strata; "
+            "the result remains a theoretical lower bound, not an achievable expected lap"
+        )
+    if "fastest_clean_lap_fallback_missing_compatibility_context" in constructions:
+        notes.append(
+            "sector compatibility context was unavailable for some anchors; fastest clean lap fallback used"
+        )
     return notes
 
 

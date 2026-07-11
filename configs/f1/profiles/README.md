@@ -5,8 +5,11 @@ under the research runner path until all backend discovery is migrated.
 
 Current maturity:
 
-- `pre_quali.yaml` and `pre_race.yaml` configure executable research paths; they
-  are not promoted production models and have no generally proven baseline edge.
+- `pre_quali.yaml` records the ranking policy promoted by the locked 2026
+  same-season walk-forward comparison. `pre_race.yaml` records the retained
+  grid-only baseline after the automatic ML candidate regressed. These are
+  evidence-backed research policies, not blanket production or calibrated-
+  probability claims.
 - `live_race.yaml` and `live_strategy.yaml` define experimental state,
   simulator, planner, and deterministic-policy contracts.
 - `live_strategy_rl.yaml` is a candidate registry profile with empty metrics and
@@ -17,7 +20,8 @@ Current maturity:
 
 Provider names in a profile do not imply interchangeable raw data. Practice
 features are comparable only after normalization through
-`f1_practice_lap_features_v2`; source coverage and missingness must still be
+`f1_practice_lap_features_v3_quality_weighted`; source coverage, lap-quality
+counts, run-intent evidence, and missingness must still be
 reported.
 
 See `../maturity.json` for the machine-readable claim policy.

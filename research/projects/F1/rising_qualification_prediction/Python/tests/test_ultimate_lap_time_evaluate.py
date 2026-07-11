@@ -139,6 +139,32 @@ def test_holdout_target_is_explicit_sector_minimum_aggregation() -> None:
     assert "lap_time_seconds" not in targets.columns
 
 
+def test_holdout_sector_lower_bound_never_mixes_incompatible_compounds() -> None:
+    laps = pd.DataFrame(
+        {
+            "event_key": ["e1", "e1"],
+            "session": ["Q", "Q"],
+            "circuit_id": ["silverstone", "silverstone"],
+            "driver_id": ["LEC", "LEC"],
+            "team_id": ["ferrari", "ferrari"],
+            "compound": ["SOFT", "HARD"],
+            "lap_time_seconds": [90.0, 90.2],
+            "sector1_seconds": [29.0, 31.0],
+            "sector2_seconds": [31.0, 29.0],
+            "sector3_seconds": [30.0, 30.2],
+        }
+    )
+
+    targets = aggregate_ideal_lap_holdout_targets(laps)
+
+    # Unconstrained cherry-picking would report 88.0s (29 + 29 + 30), a lap
+    # that no compatible tyre/session state supports.
+    assert targets.loc[0, "ideal_lap_time_seconds"] == pytest.approx(90.0)
+    assert targets.loc[0, "ideal_lap_construction"] == "compatible_sector_lower_bound_v2"
+    assert targets.loc[0, "sector_compatibility_columns"] == ["session", "compound"]
+    assert targets.loc[0, "sector_compatibility_candidate_count"] == 2
+
+
 def test_default_report_path_is_repo_rooted(monkeypatch, tmp_path) -> None:
     result = ultimate_evaluate.UltimateLapTimeEvaluationResult(
         model_name="unit_test_model",

@@ -41,10 +41,13 @@ class PredictionConfig:
     f1_live_replay_path: Optional[str] = None
     f1_live_calibration_path: Optional[str] = None
     f1_live_replay_cutoff_lap: Optional[int] = None
+    f1_live_replay_cutoff_time_seconds: Optional[float] = None
     season_weight_year: Optional[int] = None
     season_weight_multiplier: float = 1.0
     race_delta_constraint_mode: str = "constrained"
     race_information_horizon: str = "auto"
+    qualifying_information_horizon: str = "auto"
+    prediction_as_of: Optional[str] = None
     weather_enabled: bool = False
     weather_provider: str = "open_meteo"
     weather_latitude: Optional[float] = None

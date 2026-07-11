@@ -1,11 +1,41 @@
+profile_name: pre_race_2026_post_qualifying
+profile_version: pre_race_2026_walk_forward_v1
 model_family: pre_race
 source: local
+target: race_classification
+information_horizon: post_qualifying_pre_grid
+field_size: 22
+training:
+  protocol: same_season_walk_forward
+  seasons:
+    - 2026
+  historical_transfer_enabled: false
+model:
+  requested: baseline
+  point_ranking: grid_only_baseline
 features:
-  - qualifying_or_predicted_grid
-  - practice
-  - standings
-  - circuit
-  - race_strategy
-  - weather
-target: race_order
-same_season_training: true
+  qualifying_classification: true
+  practice_quality_weighted: true
+  run_simulation_features: true
+  standings: false
+  circuit_identity: false
+  weather: false
+promotion:
+  point_ranking_status: retained_frozen_baseline
+  probability_status: not_promoted_insufficient_disjoint_calibration_history
+  rejected_candidate: automatic_ml_selector
+  evidence_run_id: 2026_promoted_policy_20260711c
+  frozen_rounds:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+  mean_field_mae: 3.737373737373737
+  mean_kendall_tau_b: 0.5257335257335257
+  rejected_candidate_mean_field_mae: 3.818181818181818
+  rejected_candidate_mae_delta: 0.08080808080808083

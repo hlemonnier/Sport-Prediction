@@ -243,6 +243,8 @@ def evaluate_strategy_policy(
         missing_metrics.append("illegal_action_rate")
     if oracle_planner is not None and not regrets:
         missing_metrics.append("regret_vs_oracle")
+    if not bool(invariance.get("available", False)):
+        missing_metrics.append("replay_prefix_invariance")
     if cfg.fail_closed_on_missing_metrics and missing_metrics:
         promotion_gate_pass = False
     else:
@@ -251,7 +253,8 @@ def evaluate_strategy_policy(
             and illegal_count == 0
             and consistency_error_count == 0
             and bool(invariance.get("metadata_available_through_lap_ok", False))
-            and (invariance.get("prefix_invariant") in {None, True})
+            and bool(invariance.get("available", False))
+            and invariance.get("prefix_invariant") is True
         )
 
     metrics: dict[str, object] = {

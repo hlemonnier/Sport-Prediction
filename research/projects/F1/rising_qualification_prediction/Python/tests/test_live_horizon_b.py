@@ -610,6 +610,58 @@ def test_live_replay_predictions_are_truncation_invariant_through_lap(monkeypatc
         atol=1e-12,
     )
     assert full.summary["replay_cutoff_lap"] == 2
+    assert full.summary["replay_cutoff_scope"] == "lap_number_only_not_global_event_time"
+    assert "global_event_time_cutoff_required_for_point_in_time_replay" in full.summary["promotion_blockers"]
+
+
+def test_live_replay_global_time_cutoff_is_invariant_to_later_same_lap_rows(monkeypatch) -> None:
+    full_frame = _sample_live_observations(include_race_time=True)
+    timestamp_map = {
+        ("1", 1): 1.0,
+        ("2", 1): 1.4,
+        ("1", 2): 2.0,
+        ("2", 2): 2.6,
+        ("1", 3): 3.0,
+        ("2", 3): 3.7,
+    }
+    full_frame["timestamp"] = [
+        timestamp_map[(str(row.driver_id), int(row.lap_number))]
+        for row in full_frame.itertuples()
+    ]
+    truncated_frame = full_frame[pd.to_numeric(full_frame["timestamp"], errors="coerce") <= 2.1].copy()
+    frames = [full_frame, truncated_frame]
+
+    def _fake_loader(config: PredictionConfig) -> LiveSourceResult:
+        _ = config
+        return LiveSourceResult(frame=frames.pop(0).copy(), source_used="local", notes=[])
+
+    monkeypatch.setattr("packages.f1.models.live_race.predict.load_live_observations", _fake_loader)
+    monkeypatch.setattr(
+        "packages.f1.models.live_race.predict._write_trace",
+        lambda trace, config, event_key: {
+            "trace_path": "/tmp/fake_trace.parquet",
+            "trace_path_jsonl": "/tmp/fake_trace.jsonl",
+            "trace_format_effective": "parquet",
+        },
+    )
+
+    filtered = run_live_race_prediction(
+        _base_config(f1_live_replay_cutoff_time_seconds=2.1),
+    )
+    physically_truncated = run_live_race_prediction(_base_config())
+
+    columns = ["driver_id", "lap_number", "timestamp", "one_step_pred_mean", "next_lap_mean"]
+    pd.testing.assert_frame_equal(
+        filtered.trace.sort_values(["driver_id", "lap_number"])[columns].reset_index(drop=True),
+        physically_truncated.trace.sort_values(["driver_id", "lap_number"])[columns].reset_index(drop=True),
+        check_exact=False,
+        rtol=1e-12,
+        atol=1e-12,
+    )
+    assert filtered.summary["replay_cutoff_time_seconds"] == 2.1
+    assert filtered.summary["replay_cutoff_scope"] == "global_event_time"
+    assert filtered.summary["global_event_time_cutoff_applied"] is True
+    assert "global_event_time_cutoff_required_for_point_in_time_replay" not in filtered.summary["promotion_blockers"]
 
 
 def test_trace_writer_falls_back_to_jsonl_when_parquet_unavailable(monkeypatch, tmp_path: Path) -> None:
@@ -652,6 +704,7 @@ def test_cli_help_exposes_horizon_b_flags_and_live_race_phase() -> None:
     assert "--f1_live_replay_path" in prediction_help
     assert "--f1_live_calibration_path" in prediction_help
     assert "--f1_live_replay_cutoff_lap" in prediction_help
+    assert "--f1_live_replay_cutoff_time_seconds" in prediction_help
 
     weekend_help = build_weekend_parser().format_help()
     assert "live-race" in weekend_help
@@ -659,3 +712,4 @@ def test_cli_help_exposes_horizon_b_flags_and_live_race_phase() -> None:
     assert "--f1-live-source" in weekend_help
     assert "--f1-live-calibration-path" in weekend_help
     assert "--f1-live-replay-cutoff-lap" in weekend_help
+    assert "--f1-live-replay-cutoff-time-seconds" in weekend_help

@@ -229,7 +229,7 @@ def test_race_oof_calibration_scores_are_the_exact_deployed_transformation() -> 
 
 def test_race_auto_selection_allows_grid_only_to_win_and_locks_latest_event() -> None:
     rows = []
-    for event in range(1, 7):
+    for event in range(1, 15):
         for grid in range(1, 5):
             rows.append(
                 {
@@ -255,8 +255,52 @@ def test_race_auto_selection_allows_grid_only_to_win_and_locks_latest_event() ->
     assert result.model_name == "grid_only_baseline"
     assert any(row["name"] == "strategic_race_delta" for row in result.candidate_leaderboard)
     assert result.selection_audit["available"] is True
-    assert result.selection_audit["locked_event_keys"] == [6]
+    assert result.selection_audit["selection_event_keys"] == [5, 6, 7]
+    assert result.selection_audit["probability_calibration_event_keys"] == [8, 9]
+    assert result.selection_audit["locked_event_keys"] == [10, 11, 12, 13, 14]
+    assert result.selection_audit["evaluation_event_disjoint"] is True
+    assert result.selection_audit["chronological"] is True
+    assert result.selection_audit["event_partition"]["final_audit_model_training_event_keys"] == list(range(1, 10))
+    assert result.selection_audit["event_partition"]["final_audit_model_refit_within_block"] is False
     assert all(row["evaluation_scope"] == "selection_walk_forward" for row in result.candidate_leaderboard)
+    assert result.probability_audit["selection_event_keys"] == [5, 6, 7]
+    assert result.probability_audit["calibration_event_keys"] == [8, 9]
+    assert result.probability_audit["audit_event_keys"] == [10, 11, 12, 13, 14]
+    assert result.probability_audit["three_way_temporal_partition_available"] is True
+    assert result.probability_audit["evaluation_event_disjoint"] is True
+    assert result.probability_audit["final_audit_event_block_complete"] is True
+
+
+def test_training_disables_probability_claims_when_three_way_history_is_too_short() -> None:
+    train = pd.DataFrame(
+        [
+            {
+                "event_key": event,
+                "driver_id": f"d{grid}",
+                "grid_position": float(grid),
+                "target": float(grid),
+                "race_delta_target": 0.0,
+                "fp_race_sim_rank": float(grid),
+            }
+            for event in range(1, 9)
+            for grid in range(1, 5)
+        ],
+    )
+
+    result = train_model(
+        train,
+        ["grid_position", "fp_race_sim_rank"],
+        f1_model="baseline",
+        f1_pl_samples=100,
+    )
+
+    assert result.listwise_temperature is None
+    assert result.selection_audit["available"] is False
+    assert result.selection_audit["probability_calibration_event_keys"] == []
+    assert result.selection_audit["locked_event_keys"] == []
+    assert result.probability_audit["available"] is False
+    assert result.probability_audit["passed"] is False
+    assert result.probability_audit["reason"] == "insufficient_events_for_three_way_temporal_validation"
 
 
 def test_candidate_metrics_explicitly_score_pole_top3_and_probability_quality() -> None:
@@ -298,14 +342,31 @@ def test_probability_audit_records_the_score_layer_contract() -> None:
 
 
 def test_probability_temperature_fit_and_audit_events_are_disjoint_and_temporal() -> None:
-    event = pd.Series(np.repeat(range(202501, 202509), 2), dtype=float)
+    event = pd.Series(np.repeat(range(202501, 202513), 2), dtype=float)
 
     split = _probability_calibration_audit_event_split(event)
 
     assert split["available"] is True
+    assert set(split["selection_event_keys"]).isdisjoint(split["fit_event_keys"])
+    assert set(split["selection_event_keys"]).isdisjoint(split["audit_event_keys"])
     assert set(split["fit_event_keys"]).isdisjoint(split["audit_event_keys"])
+    assert max(split["selection_event_keys"]) < min(split["fit_event_keys"])
     assert max(split["fit_event_keys"]) < min(split["audit_event_keys"])
     assert split["audit_event_count"] >= 5
+
+
+def test_probability_three_way_split_fails_closed_below_minimum_event_count() -> None:
+    event = pd.Series(np.repeat(range(202501, 202509), 2), dtype=float)
+
+    split = _probability_calibration_audit_event_split(event)
+
+    assert split["available"] is False
+    assert split["reason"] == "insufficient_events_for_three_way_temporal_validation"
+    assert split["required_event_count"] == 9
+    assert split["minimum_event_counts"] == {"selection": 2, "calibration": 2, "audit": 5}
+    assert split["selection_event_keys"] == list(range(202501, 202509))
+    assert split["calibration_event_keys"] == []
+    assert split["audit_event_keys"] == []
 
 
 def test_probability_audit_fails_closed_when_temperature_used_same_events() -> None:

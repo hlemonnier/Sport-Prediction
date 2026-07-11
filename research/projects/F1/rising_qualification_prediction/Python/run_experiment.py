@@ -271,9 +271,9 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
     round_number = _as_int(args.round_number if args.round_number is not None else defaults.get("round_number"), 1)
     source = str(args.source or defaults.get("source") or "local").strip().lower()
     include_standings = _as_bool(defaults.get("include_standings", False), False)
-    train_seasons = training.get("train_seasons", [year - 3, year - 2, year - 1])
+    train_seasons = training.get("train_seasons", [year])
     if not isinstance(train_seasons, list):
-        train_seasons = [year - 3, year - 2, year - 1]
+        train_seasons = [year]
     train_seasons = sorted({int(v) for v in train_seasons})
     shadow_eval_raw: Any = args.shadow_eval if getattr(args, "shadow_eval", None) is not None else profile.get("shadow_eval", True)
     return {
@@ -302,6 +302,16 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
             if getattr(args, "race_information_horizon", None) is not None
             else f1.get("race_information_horizon", "auto"),
         ).strip().lower(),
+        "qualifying_information_horizon": str(
+            getattr(args, "qualifying_information_horizon", None)
+            if getattr(args, "qualifying_information_horizon", None) is not None
+            else f1.get("qualifying_information_horizon", "auto"),
+        ).strip().lower(),
+        "prediction_as_of": (
+            str(getattr(args, "prediction_as_of", None)).strip()
+            if getattr(args, "prediction_as_of", None) is not None
+            else f1.get("prediction_as_of")
+        ),
         "f1_listwise": str(
             args.f1_listwise
             if getattr(args, "f1_listwise", None) is not None
@@ -380,6 +390,15 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
             else (
                 _as_int(f1_live.get("replay_cutoff_lap"), 0)
                 if f1_live.get("replay_cutoff_lap") is not None
+                else None
+            )
+        ),
+        "f1_live_replay_cutoff_time_seconds": (
+            _as_float(getattr(args, "f1_live_replay_cutoff_time_seconds", None), 0.0)
+            if getattr(args, "f1_live_replay_cutoff_time_seconds", None) is not None
+            else (
+                _as_float(f1_live.get("replay_cutoff_time_seconds"), 0.0)
+                if f1_live.get("replay_cutoff_time_seconds") is not None
                 else None
             )
         ),
@@ -487,6 +506,8 @@ def _build_prediction_config(
         disable_circuit_features=bool(disable_circuit_features),
         f1_model=str(base.get("f1_model", "auto")),
         race_information_horizon=str(base.get("race_information_horizon", "auto")),
+        qualifying_information_horizon=str(base.get("qualifying_information_horizon", "auto")),
+        prediction_as_of=base.get("prediction_as_of"),
         f1_listwise=str(base.get("f1_listwise", "pl_gumbel")),
         f1_pl_samples=int(base.get("f1_pl_samples", 2000)),
         f1_pl_temperature=float(base.get("f1_pl_temperature", 1.0)),
@@ -501,6 +522,7 @@ def _build_prediction_config(
         f1_live_replay_path=base.get("f1_live_replay_path"),
         f1_live_calibration_path=base.get("f1_live_calibration_path"),
         f1_live_replay_cutoff_lap=base.get("f1_live_replay_cutoff_lap"),
+        f1_live_replay_cutoff_time_seconds=base.get("f1_live_replay_cutoff_time_seconds"),
         weather_enabled=bool(base.get("weather_enabled", False)),
         weather_provider=str(base.get("weather_provider", "open_meteo")),
         weather_latitude=base.get("weather_latitude"),
@@ -721,6 +743,13 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
         cmd.extend(["--f1-live-calibration-path", str(base["f1_live_calibration_path"])])
     if base.get("f1_live_replay_cutoff_lap") is not None:
         cmd.extend(["--f1-live-replay-cutoff-lap", str(base["f1_live_replay_cutoff_lap"])])
+    if base.get("f1_live_replay_cutoff_time_seconds") is not None:
+        cmd.extend(
+            [
+                "--f1-live-replay-cutoff-time-seconds",
+                str(base["f1_live_replay_cutoff_time_seconds"]),
+            ]
+        )
 
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -757,6 +786,7 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
             "f1_live_replay_path": base.get("f1_live_replay_path"),
             "f1_live_calibration_path": base.get("f1_live_calibration_path"),
             "f1_live_replay_cutoff_lap": base.get("f1_live_replay_cutoff_lap"),
+            "f1_live_replay_cutoff_time_seconds": base.get("f1_live_replay_cutoff_time_seconds"),
             "output_dir": str(output_dir),
         },
         rows=rows,
@@ -984,6 +1014,8 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
             choices=["auto", "pre_fp_provisional", "post_fp_pre_qualifying", "post_qualifying_pre_grid", "post_grid_pre_race"],
             default=None,
         )
+        parser.add_argument("--qualifying-information-horizon", default=None)
+        parser.add_argument("--prediction-as-of", default=None)
         parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default=None)
         parser.add_argument("--f1_pl_samples", type=int, default=None)
         parser.add_argument("--f1_pl_temperature", type=float, default=None)
@@ -997,6 +1029,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_replay_path", default=None)
         parser.add_argument("--f1_live_calibration_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
+        parser.add_argument("--f1_live_replay_cutoff_time_seconds", type=float, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default=None)
         parser.add_argument("--weather", choices=["on", "off"], default=None)
         parser.add_argument("--weather-provider", choices=["open_meteo"], default=None)
@@ -1023,7 +1056,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument(
             "--train-policy",
             choices=["same_season", "same_season_walk_forward", "strict_transfer", "rolling", "frozen_preseason", "legacy_auto"],
-            default="legacy_auto",
+            default="same_season_walk_forward",
             help="Policy used only when --train-seasons=auto.",
         )
         parser.add_argument("--include-standings", action="store_true")
@@ -1046,6 +1079,8 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
             choices=["auto", "pre_fp_provisional", "post_fp_pre_qualifying", "post_qualifying_pre_grid", "post_grid_pre_race"],
             default="auto",
         )
+        parser.add_argument("--qualifying-information-horizon", default="auto")
+        parser.add_argument("--prediction-as-of", default=None)
         parser.add_argument("--f1_listwise", choices=["off", "pl_gumbel"], default="pl_gumbel")
         parser.add_argument("--f1_pl_samples", type=int, default=2000)
         parser.add_argument("--f1_pl_temperature", type=float, default=1.0)
@@ -1059,6 +1094,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_replay_path", default=None)
         parser.add_argument("--f1_live_calibration_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
+        parser.add_argument("--f1_live_replay_cutoff_time_seconds", type=float, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
         parser.add_argument("--weather", choices=["on", "off"], default="off")
         parser.add_argument("--weather-provider", choices=["open_meteo"], default="open_meteo")
@@ -1148,6 +1184,8 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         disable_circuit_features=True if args.disable_circuit_features is None else bool(args.disable_circuit_features),
         f1_model=args.f1_model,
         race_information_horizon=args.race_information_horizon,
+        qualifying_information_horizon=args.qualifying_information_horizon,
+        prediction_as_of=args.prediction_as_of,
         f1_listwise=args.f1_listwise,
         f1_pl_samples=args.f1_pl_samples,
         f1_pl_temperature=args.f1_pl_temperature,
@@ -1162,6 +1200,7 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         f1_live_replay_path=args.f1_live_replay_path,
         f1_live_calibration_path=args.f1_live_calibration_path,
         f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
+        f1_live_replay_cutoff_time_seconds=args.f1_live_replay_cutoff_time_seconds,
         weather_enabled=(str(args.weather).strip().lower() == "on"),
         weather_provider=args.weather_provider,
         weather_latitude=args.weather_latitude,

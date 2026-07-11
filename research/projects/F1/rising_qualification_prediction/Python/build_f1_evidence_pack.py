@@ -6,15 +6,18 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Mapping, Optional, Sequence
 
 import pandas as pd
 
 
 SOURCE_FILES = [
+    "research/projects/F1/rising_qualification_prediction/Python/build_f1_evidence_pack.py",
     "research/projects/F1/rising_qualification_prediction/Python/run_rolling_2026_backtest.py",
     "packages/f1/data/schemas/session.py",
     "packages/f1/data/schemas/result.py",
@@ -35,6 +38,25 @@ FORWARD_STAKE_RULE = (
     "edge = model_probability - implied_probability >= 3%; expected_roi >= 2%; "
     "stake = min(0.25 Kelly, 1% bankroll per selection, 3% per market, 5% per event)."
 )
+ROLLING_BACKTEST_SCHEMA_VERSION = "f1_rolling_2026_point_in_time_v2"
+RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+class EvidenceDiscoveryError(ValueError):
+    """Raised when evidence inputs cannot be selected without ambiguity."""
+
+
+@dataclass(frozen=True)
+class EvidenceSource:
+    source_kind: str
+    run_id: str
+    selections_path: Path
+    summary_path: Path
+    prediction_paths: Mapping[tuple[int, int, str], Path]
+    manifest_path: Optional[Path]
+    manifest_sha256: Optional[str]
+    manifest: Mapping[str, Any]
+    frozen_complete: bool
 
 
 def _utc_now() -> str:
@@ -79,29 +101,471 @@ def _load_json(path: Path) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def _canonical_json_sha256(value: object) -> str:
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _resolve_reference(repo: Path, reference: object) -> Optional[Path]:
+    if not isinstance(reference, str) or not reference.strip():
+        return None
+    path = Path(reference).expanduser()
+    return path.resolve() if path.is_absolute() else (repo / path).resolve()
+
+
+def _validate_file_manifest(repo: Path, manifest: object, label: str) -> list[str]:
+    if not isinstance(manifest, Mapping):
+        return [f"{label}_manifest_missing"]
+    files = manifest.get("files")
+    if not isinstance(files, list) or not files:
+        return [f"{label}_files_missing"]
+    reasons: list[str] = []
+    if manifest.get("file_count") != len(files):
+        reasons.append(f"{label}_file_count_mismatch")
+    if manifest.get("aggregate_sha256") != _canonical_json_sha256(files):
+        reasons.append(f"{label}_aggregate_hash_mismatch")
+    seen_paths: set[str] = set()
+    for item in files:
+        if not isinstance(item, Mapping):
+            reasons.append(f"{label}_file_entry_invalid")
+            continue
+        reference = item.get("path")
+        path = _resolve_reference(repo, reference)
+        if path is None:
+            reasons.append(f"{label}_file_path_missing")
+            continue
+        normalized = str(path)
+        if normalized in seen_paths:
+            reasons.append(f"{label}_duplicate_file_path")
+        seen_paths.add(normalized)
+        if not path.is_file():
+            reasons.append(f"{label}_file_missing")
+            continue
+        if item.get("sha256") != _sha256(path):
+            reasons.append(f"{label}_file_hash_mismatch")
+        byte_size = item.get("byte_size")
+        if byte_size is not None and byte_size != path.stat().st_size:
+            reasons.append(f"{label}_file_size_mismatch")
+    return reasons
+
+
+def _read_csv_keys(path: Path, label: str) -> tuple[pd.DataFrame, list[str]]:
+    try:
+        frame = pd.read_csv(path)
+    except Exception as exc:
+        return pd.DataFrame(), [f"{label}_csv_unreadable:{type(exc).__name__}"]
+    required = {"season", "round", "target"}
+    missing = sorted(required.difference(frame.columns))
+    if missing:
+        return frame, [f"{label}_columns_missing:{','.join(missing)}"]
+    if frame.empty:
+        return frame, [f"{label}_empty"]
+    return frame, []
+
+
+def _validate_run_manifest(repo: Path, manifest_path: Path) -> tuple[Optional[EvidenceSource], list[str]]:
+    payload = _load_json(manifest_path)
+    reasons: list[str] = []
+    run_id = payload.get("run_id")
+    if payload.get("schema_version") != ROLLING_BACKTEST_SCHEMA_VERSION:
+        reasons.append("schema_version_invalid")
+    if not isinstance(run_id, str) or not RUN_ID_PATTERN.fullmatch(run_id) or run_id in {".", ".."}:
+        reasons.append("run_id_invalid")
+        run_id = manifest_path.parent.name
+    elif run_id != manifest_path.parent.name:
+        reasons.append("run_id_directory_mismatch")
+    if not payload.get("started_at") or not payload.get("completed_at"):
+        reasons.append("run_completion_timestamps_missing")
+
+    artifact_contract = payload.get("artifact_contract")
+    if not isinstance(artifact_contract, Mapping):
+        reasons.append("artifact_contract_missing")
+    else:
+        if artifact_contract.get("immutable_paths") is not True:
+            reasons.append("immutable_artifact_contract_missing")
+        if artifact_contract.get("write_mode") != "exclusive_create":
+            reasons.append("exclusive_write_contract_missing")
+        declared_root = _resolve_reference(repo, artifact_contract.get("run_root"))
+        if declared_root != manifest_path.parent.resolve():
+            reasons.append("run_root_mismatch")
+
+    git = payload.get("git")
+    if not isinstance(git, Mapping) or not git.get("head_sha") or not isinstance(git.get("dirty"), bool):
+        reasons.append("git_provenance_incomplete")
+    runtime = payload.get("runtime")
+    if not isinstance(runtime, Mapping) or not runtime.get("python_version") or not runtime.get("packages"):
+        reasons.append("runtime_provenance_incomplete")
+    training_protocol = payload.get("training_protocol")
+    if not isinstance(training_protocol, Mapping):
+        reasons.append("training_protocol_missing")
+    elif training_protocol.get("target_round_allowed_in_training") is not False:
+        reasons.append("target_round_training_guard_missing")
+
+    reasons.extend(_validate_file_manifest(repo, payload.get("implementation"), "implementation"))
+    reasons.extend(_validate_file_manifest(repo, payload.get("configuration_files"), "configuration"))
+    run_configuration = payload.get("run_configuration")
+    if not isinstance(run_configuration, Mapping):
+        reasons.append("run_configuration_missing")
+        run_config_payload: Mapping[str, Any] = {}
+    else:
+        run_config_payload_raw = run_configuration.get("payload")
+        run_config_payload = run_config_payload_raw if isinstance(run_config_payload_raw, Mapping) else {}
+        if not run_config_payload:
+            reasons.append("run_configuration_payload_missing")
+        if run_configuration.get("sha256") != _canonical_json_sha256(run_config_payload):
+            reasons.append("run_configuration_hash_mismatch")
+
+    try:
+        season = int(run_config_payload.get("year"))
+        rounds = sorted({int(value) for value in run_config_payload.get("rounds", [])})
+    except (TypeError, ValueError):
+        season, rounds = 0, []
+    if season <= 0 or not rounds:
+        reasons.append("run_round_scope_missing")
+    expected_keys = {(season, round_number, target) for round_number in rounds for target in ("qualifying", "race")}
+
+    point_records = payload.get("point_in_time_by_round")
+    point_keys: set[tuple[int, int, str]] = set()
+    if not isinstance(point_records, list):
+        reasons.append("point_in_time_matrix_missing")
+    else:
+        for item in point_records:
+            if not isinstance(item, Mapping):
+                reasons.append("point_in_time_entry_invalid")
+                continue
+            try:
+                key = (int(item.get("target_season")), int(item.get("target_round")), str(item.get("target")))
+            except (TypeError, ValueError):
+                reasons.append("point_in_time_key_invalid")
+                continue
+            if key in point_keys:
+                reasons.append("point_in_time_duplicate")
+            point_keys.add(key)
+            if item.get("horizon_evidence_complete") is not True:
+                reasons.append("point_in_time_horizon_incomplete")
+            if item.get("target_round_allowed_in_training") is not False:
+                reasons.append("point_in_time_training_guard_missing")
+        if point_keys != expected_keys:
+            reasons.append("point_in_time_scope_mismatch")
+
+    data_by_round = payload.get("input_data_by_round")
+    if not isinstance(data_by_round, Mapping) or set(data_by_round) != {str(value) for value in rounds}:
+        reasons.append("input_data_round_scope_mismatch")
+    else:
+        for round_number in rounds:
+            reasons.extend(
+                _validate_file_manifest(
+                    repo,
+                    data_by_round.get(str(round_number)),
+                    f"input_data_round_{round_number}",
+                )
+            )
+
+    artifacts = payload.get("artifacts")
+    prediction_paths: dict[tuple[int, int, str], Path] = {}
+    selections_path: Optional[Path] = None
+    summary_path: Optional[Path] = None
+    seen_artifacts: set[str] = set()
+    if not isinstance(artifacts, list) or not artifacts:
+        reasons.append("artifacts_missing")
+    else:
+        for item in artifacts:
+            if not isinstance(item, Mapping):
+                reasons.append("artifact_entry_invalid")
+                continue
+            path = _resolve_reference(repo, item.get("path"))
+            if path is None:
+                reasons.append("artifact_path_missing")
+                continue
+            if str(path) in seen_artifacts:
+                reasons.append("artifact_path_duplicate")
+            seen_artifacts.add(str(path))
+            if not path.is_file():
+                reasons.append("artifact_file_missing")
+                continue
+            if item.get("sha256") != _sha256(path):
+                reasons.append("artifact_hash_mismatch")
+            if item.get("byte_size") != path.stat().st_size:
+                reasons.append("artifact_size_mismatch")
+            artifact_type = item.get("artifact_type")
+            if artifact_type == "rolling_backtest_selections":
+                if selections_path is not None:
+                    reasons.append("selection_artifact_ambiguous")
+                selections_path = path
+            elif artifact_type == "rolling_backtest_summary":
+                if summary_path is not None:
+                    reasons.append("summary_artifact_ambiguous")
+                summary_path = path
+            elif artifact_type in {"qualifying_prediction", "race_prediction"}:
+                prediction = _load_json(path)
+                config = prediction.get("config")
+                point_in_time = prediction.get("point_in_time")
+                if prediction.get("schema_version") != ROLLING_BACKTEST_SCHEMA_VERSION:
+                    reasons.append("prediction_schema_invalid")
+                if prediction.get("run_id") != run_id:
+                    reasons.append("prediction_run_id_mismatch")
+                if not isinstance(prediction.get("rows"), list) or not prediction.get("rows"):
+                    reasons.append("prediction_rows_missing")
+                if not isinstance(prediction.get("all_prediction_rows"), list) or not prediction.get("all_prediction_rows"):
+                    reasons.append("prediction_full_field_rows_missing")
+                if not isinstance(config, Mapping):
+                    reasons.append("prediction_config_missing")
+                    continue
+                if prediction.get("config_sha256") != _canonical_json_sha256(config):
+                    reasons.append("prediction_config_hash_mismatch")
+                if item.get("config_sha256") != prediction.get("config_sha256"):
+                    reasons.append("prediction_manifest_config_hash_mismatch")
+                if not isinstance(point_in_time, Mapping) or point_in_time.get("horizon_evidence_complete") is not True:
+                    reasons.append("prediction_horizon_incomplete")
+                if item.get("point_in_time") != point_in_time:
+                    reasons.append("prediction_point_in_time_mismatch")
+                try:
+                    key = (int(config.get("year")), int(config.get("round_number")), str(config.get("mode")))
+                except (TypeError, ValueError):
+                    reasons.append("prediction_key_invalid")
+                    continue
+                if isinstance(point_in_time, Mapping):
+                    try:
+                        point_key = (
+                            int(point_in_time.get("target_season")),
+                            int(point_in_time.get("target_round")),
+                            str(point_in_time.get("target")),
+                        )
+                    except (TypeError, ValueError):
+                        point_key = (0, 0, "")
+                    if point_key != key:
+                        reasons.append("prediction_point_in_time_key_mismatch")
+                if key in prediction_paths:
+                    reasons.append("prediction_key_duplicate")
+                prediction_paths[key] = path
+    if selections_path is None:
+        reasons.append("selection_artifact_missing")
+    if summary_path is None:
+        reasons.append("summary_artifact_missing")
+    if set(prediction_paths) != expected_keys:
+        reasons.append("prediction_artifact_scope_mismatch")
+
+    if selections_path is not None:
+        selections, csv_reasons = _read_csv_keys(selections_path, "selections")
+        reasons.extend(csv_reasons)
+        if not csv_reasons:
+            required_selection_columns = {
+                "information_cutoff",
+                "market",
+                "selection",
+                "model_rank",
+                "model_probability_pct",
+                "result",
+                "train_seasons_used",
+                "rolling_2026_rounds_used",
+                "experiment_arm",
+            }
+            missing_selection_columns = sorted(required_selection_columns.difference(selections.columns))
+            if missing_selection_columns:
+                reasons.append(f"selection_columns_incomplete:{','.join(missing_selection_columns)}")
+            actual_keys = {
+                (int(row["season"]), int(row["round"]), str(row["target"]))
+                for _, row in selections[["season", "round", "target"]].drop_duplicates().iterrows()
+            }
+            if actual_keys != expected_keys:
+                reasons.append("selection_scope_mismatch")
+            declared_arm = training_protocol.get("experiment_arm") if isinstance(training_protocol, Mapping) else None
+            if (
+                declared_arm
+                and "experiment_arm" in selections.columns
+                and set(selections["experiment_arm"].dropna().astype(str)) != {str(declared_arm)}
+            ):
+                reasons.append("selection_experiment_arm_mismatch")
+    if summary_path is not None:
+        summary, csv_reasons = _read_csv_keys(summary_path, "summary")
+        reasons.extend(csv_reasons)
+        if not csv_reasons:
+            required_summary_columns = {
+                "information_cutoff",
+                "rows_predicted",
+                "rows_actual",
+                "field_coverage",
+                "experiment_arm",
+            }
+            missing_summary_columns = sorted(required_summary_columns.difference(summary.columns))
+            if missing_summary_columns:
+                reasons.append(f"summary_columns_incomplete:{','.join(missing_summary_columns)}")
+            actual_keys = {
+                (int(row["season"]), int(row["round"]), str(row["target"]))
+                for _, row in summary[["season", "round", "target"]].drop_duplicates().iterrows()
+            }
+            if actual_keys != expected_keys:
+                reasons.append("summary_scope_mismatch")
+            declared_arm = training_protocol.get("experiment_arm") if isinstance(training_protocol, Mapping) else None
+            if (
+                declared_arm
+                and "experiment_arm" in summary.columns
+                and set(summary["experiment_arm"].dropna().astype(str)) != {str(declared_arm)}
+            ):
+                reasons.append("summary_experiment_arm_mismatch")
+
+    reasons = list(dict.fromkeys(reasons))
+    if reasons or selections_path is None or summary_path is None:
+        return None, reasons
+    return (
+        EvidenceSource(
+            source_kind="run_manifest",
+            run_id=str(run_id),
+            selections_path=selections_path,
+            summary_path=summary_path,
+            prediction_paths=prediction_paths,
+            manifest_path=manifest_path.resolve(),
+            manifest_sha256=_sha256(manifest_path),
+            manifest=payload,
+            frozen_complete=True,
+        ),
+        [],
+    )
+
+
 def _artifact_path(repo: Path, season: int, round_number: int, target: str) -> Path:
     name = "qualifying_prediction.json" if target == "qualifying" else "postqual_race_prediction.json"
     return repo / "artifacts" / "backtests" / "f1" / "rolling_2026" / str(season) / f"round_{round_number:02d}" / name
 
 
-def _artifact_index(repo: Path, selections: pd.DataFrame) -> dict[tuple[int, int, str], dict[str, Any]]:
+def _display_path(repo: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(repo.resolve()).as_posix()
+    except ValueError:
+        return path.resolve().as_posix()
+
+
+def _legacy_evidence_source(repo: Path) -> EvidenceSource:
+    selections_path = repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv"
+    summary_path = repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv"
+    selections, selection_reasons = _read_csv_keys(selections_path, "legacy_selections")
+    _, summary_reasons = _read_csv_keys(summary_path, "legacy_summary")
+    reasons = [*selection_reasons, *summary_reasons]
+    prediction_paths: dict[tuple[int, int, str], Path] = {}
+    if not selection_reasons:
+        for _, row in selections[["season", "round", "target"]].drop_duplicates().iterrows():
+            key = (int(row["season"]), int(row["round"]), str(row["target"]))
+            path = _artifact_path(repo, *key)
+            if not path.is_file() or not _load_json(path):
+                reasons.append(f"legacy_prediction_missing:{key[0]}:{key[1]}:{key[2]}")
+            else:
+                prediction_paths[key] = path.resolve()
+    if reasons:
+        raise EvidenceDiscoveryError("Legacy read-only evidence is incomplete: " + "; ".join(reasons))
+    return EvidenceSource(
+        source_kind="legacy_read_only_unmanifested",
+        run_id="legacy_flat_unmanifested",
+        selections_path=selections_path.resolve(),
+        summary_path=summary_path.resolve(),
+        prediction_paths=prediction_paths,
+        manifest_path=None,
+        manifest_sha256=None,
+        manifest={},
+        frozen_complete=False,
+    )
+
+
+def _discover_evidence_source(
+    repo: Path,
+    *,
+    run_id: Optional[str] = None,
+    legacy_read_only: bool = False,
+) -> EvidenceSource:
+    if run_id and legacy_read_only:
+        raise EvidenceDiscoveryError("--run-id and --legacy-read-only are mutually exclusive")
+    if legacy_read_only:
+        return _legacy_evidence_source(repo)
+
+    runs_root = repo / "artifacts" / "backtests" / "f1" / "rolling_2026" / "runs"
+    if run_id is not None:
+        if run_id in {"", ".", ".."} or not RUN_ID_PATTERN.fullmatch(run_id):
+            raise EvidenceDiscoveryError("Invalid --run-id")
+        run_dir = runs_root / run_id
+        manifest_path = run_dir / "run_manifest.json"
+        if not run_dir.is_dir() or not manifest_path.is_file():
+            raise EvidenceDiscoveryError(f"Run {run_id!r} has no complete run_manifest.json")
+        source, reasons = _validate_run_manifest(repo, manifest_path)
+        if source is None:
+            raise EvidenceDiscoveryError(f"Run {run_id!r} is incomplete or invalid: {'; '.join(reasons)}")
+        return source
+
+    if not runs_root.is_dir():
+        raise EvidenceDiscoveryError(
+            "No run-scoped rolling artifacts found. Use --legacy-read-only only for explicit inspection of the unmanifested layout.",
+        )
+    run_dirs = sorted(path for path in runs_root.iterdir() if path.is_dir())
+    if not run_dirs:
+        raise EvidenceDiscoveryError(
+            "No run-scoped rolling artifacts found. Use --legacy-read-only only for explicit inspection of the unmanifested layout.",
+        )
+    valid: list[EvidenceSource] = []
+    invalid: list[str] = []
+    for run_dir in run_dirs:
+        manifest_path = run_dir / "run_manifest.json"
+        if not manifest_path.is_file():
+            invalid.append(f"{run_dir.name}:missing_run_manifest")
+            continue
+        source, reasons = _validate_run_manifest(repo, manifest_path)
+        if source is None:
+            invalid.append(f"{run_dir.name}:{','.join(reasons)}")
+        else:
+            valid.append(source)
+    if invalid:
+        raise EvidenceDiscoveryError(
+            "Incomplete or invalid run directories prevent automatic selection: " + "; ".join(invalid),
+        )
+    if len(valid) != 1:
+        available = ", ".join(source.run_id for source in valid) or "none"
+        raise EvidenceDiscoveryError(
+            f"Expected exactly one complete frozen run, found {len(valid)} ({available}); select one with --run-id.",
+        )
+    return valid[0]
+
+
+def _assert_source_still_frozen(repo: Path, source: EvidenceSource) -> None:
+    if not source.frozen_complete:
+        return
+    if source.manifest_path is None or source.manifest_sha256 is None:
+        raise EvidenceDiscoveryError("Frozen evidence source is missing manifest provenance")
+    if not source.manifest_path.is_file() or _sha256(source.manifest_path) != source.manifest_sha256:
+        raise EvidenceDiscoveryError("Run manifest changed after discovery")
+    validated, reasons = _validate_run_manifest(repo, source.manifest_path)
+    if validated is None:
+        raise EvidenceDiscoveryError("Frozen evidence changed after discovery: " + "; ".join(reasons))
+    if validated.run_id != source.run_id or validated.manifest_sha256 != source.manifest_sha256:
+        raise EvidenceDiscoveryError("Frozen evidence identity changed after discovery")
+
+
+def _artifact_index(
+    repo: Path,
+    selections: pd.DataFrame,
+    source: EvidenceSource,
+) -> dict[tuple[int, int, str], dict[str, Any]]:
     out: dict[tuple[int, int, str], dict[str, Any]] = {}
     keys = selections[["season", "round", "target"]].drop_duplicates()
     for _, row in keys.iterrows():
         season = int(row["season"])
         round_number = int(row["round"])
         target = str(row["target"])
-        path = _artifact_path(repo, season, round_number, target)
+        path = source.prediction_paths.get((season, round_number, target))
+        if path is None:
+            raise EvidenceDiscoveryError(
+                f"Selected evidence source has no prediction artifact for {(season, round_number, target)}",
+            )
         payload = _load_json(path)
         out[(season, round_number, target)] = {
-            "path": str(path.relative_to(repo)) if path.exists() else str(path),
+            "path": _display_path(repo, path),
             "exists": path.exists(),
             "sha256": _sha256(path) if path.exists() else "",
             "generated_at_utc": payload.get("generated_at"),
             "model_name_artifact": payload.get("model_name"),
             "model_family_artifact": payload.get("model_family"),
             "config": payload.get("config", {}),
+            "config_sha256": payload.get("config_sha256"),
+            "point_in_time": payload.get("point_in_time", {}),
             "notes": payload.get("notes", []),
+            "run_id": source.run_id,
+            "run_manifest_sha256": source.manifest_sha256,
         }
     return out
 
@@ -120,11 +584,35 @@ def _build_selection_log(
     repo: Path,
     selections: pd.DataFrame,
     summary: pd.DataFrame,
+    source: EvidenceSource,
     git_head: str,
     git_dirty: bool,
     code_hash: str,
 ) -> pd.DataFrame:
-    artifacts = _artifact_index(repo, selections)
+    artifacts = _artifact_index(repo, selections, source)
+    run_git = source.manifest.get("git") if isinstance(source.manifest.get("git"), Mapping) else {}
+    implementation = (
+        source.manifest.get("implementation")
+        if isinstance(source.manifest.get("implementation"), Mapping)
+        else {}
+    )
+    training_protocol = (
+        source.manifest.get("training_protocol")
+        if isinstance(source.manifest.get("training_protocol"), Mapping)
+        else {}
+    )
+    if training_protocol.get("same_season_only") is True:
+        split_description = (
+            "Same-season walk-forward: each target event trains only on completed target-season rounds "
+            "strictly before the target round."
+        )
+    elif training_protocol:
+        split_description = (
+            "Explicit non-primary transfer arm plus target-season walk-forward updates; see run manifest "
+            "training_protocol and per-round input manifests."
+        )
+    else:
+        split_description = "Legacy unmanifested training split; inspect artifact config per selection."
     summary_lookup = {
         (int(row["season"]), int(row["round"]), str(row["target"])): row
         for _, row in summary.iterrows()
@@ -148,6 +636,7 @@ def _build_selection_log(
                 "selection_id": hashlib.sha256(
                     "|".join(
                         [
+                            source.run_id,
                             str(season),
                             str(round_number),
                             target,
@@ -180,6 +669,20 @@ def _build_selection_log(
                 "cv_top_composite": summary_row.get("cv_top_composite") if isinstance(summary_row, pd.Series) else None,
                 "prediction_artifact": artifact.get("path"),
                 "prediction_artifact_sha256": artifact.get("sha256"),
+                "prediction_config_sha256": artifact.get("config_sha256"),
+                "prediction_point_in_time": json.dumps(
+                    artifact.get("point_in_time", {}),
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+                "evidence_source_kind": source.source_kind,
+                "evidence_run_id": source.run_id,
+                "evidence_run_frozen_complete": source.frozen_complete,
+                "run_manifest": _display_path(repo, source.manifest_path) if source.manifest_path else None,
+                "run_manifest_sha256": source.manifest_sha256,
+                "prediction_run_git_head": run_git.get("head_sha"),
+                "prediction_run_git_dirty": run_git.get("dirty"),
+                "prediction_source_tree_sha256": implementation.get("aggregate_sha256"),
                 "selection_generated_at_utc": artifact.get("generated_at_utc"),
                 "selection_timestamp_status": "post_hoc_rerun_timestamp_not_pre_market",
                 "pre_market_timestamp_verified": False,
@@ -197,10 +700,11 @@ def _build_selection_log(
                 "train_seasons_used": row.get("train_seasons_used"),
                 "rolling_2026_rounds_used": rolling_rounds,
                 "current_year_weight_multiplier": row.get("current_year_weight_multiplier"),
-                "train_validation_holdout_split": (
-                    "2022-2025 historical seasons used in model selection/fitting; "
-                    "2026 is holdout evaluated walk-forward, with only prior completed 2026 rounds used as weighted rolling updates."
-                ),
+                "experiment_arm": row.get("experiment_arm") or training_protocol.get("experiment_arm"),
+                "train_validation_holdout_split": split_description,
+                "evidence_pack_git_head": git_head,
+                "evidence_pack_git_dirty": git_dirty,
+                "evidence_pack_source_code_sha256": code_hash,
                 "git_head": git_head,
                 "git_dirty": git_dirty,
                 "source_code_sha256": code_hash,
@@ -221,43 +725,100 @@ def _build_checklist() -> pd.DataFrame:
         ("result and settled P&L", "partial", "selection_log", "Hit/miss settled against race/qualifying results; P&L unavailable without market odds and stake."),
         ("all skipped/excluded/edited selections", "yes", "skipped_excluded_edited", "Exporter rows are unedited; betting rows are not accepted because odds are missing."),
         ("raw data/features available at prediction time", "partial", "raw_data_manifest", "Raw local session files are listed. The artifacts were generated post-hoc and are not immutable pre-cutoff feature snapshots."),
-        ("clear train/validation/holdout split", "yes", "methodology", "2022-2025 fit/selection history, 2026 walk-forward holdout with prior 2026 rolling updates only."),
+        ("clear train/validation/holdout split", "yes", "methodology", "Selected run manifest records the experiment arm, train seasons, strict prior-round guard, and point-in-time matrix."),
         ("reconcile five paper-traded email selections", "partial", "paper_trade_reconciliation", "The prior email's five picks are not present in local artifacts; canonical top race selections are listed."),
     ]
     return pd.DataFrame(rows, columns=["jordan_request", "status", "sheet", "evidence_or_gap"])
 
 
-def _build_methodology(repo: Path, git_head: str, git_dirty: bool, code_hash: str) -> pd.DataFrame:
+def _build_methodology(
+    repo: Path,
+    source: EvidenceSource,
+    git_head: str,
+    git_dirty: bool,
+    code_hash: str,
+) -> pd.DataFrame:
+    run_configuration = (
+        source.manifest.get("run_configuration")
+        if isinstance(source.manifest.get("run_configuration"), Mapping)
+        else {}
+    )
+    run_config_payload = (
+        run_configuration.get("payload")
+        if isinstance(run_configuration.get("payload"), Mapping)
+        else {}
+    )
+    training_protocol = (
+        source.manifest.get("training_protocol")
+        if isinstance(source.manifest.get("training_protocol"), Mapping)
+        else {}
+    )
+    run_git = source.manifest.get("git") if isinstance(source.manifest.get("git"), Mapping) else {}
+    implementation = (
+        source.manifest.get("implementation")
+        if isinstance(source.manifest.get("implementation"), Mapping)
+        else {}
+    )
     return pd.DataFrame(
         [
             ("pack_generated_at_utc", _utc_now()),
             ("repo", str(repo)),
-            ("git_head", git_head),
-            ("git_dirty", str(git_dirty)),
-            ("source_code_sha256", code_hash),
-            ("selection_artifacts", "artifacts/backtests/f1/rolling_2026/2026/round_XX/*.json"),
-            ("selection_csv_source", "artifacts/reports/f1/docs/F1_2026_Rolling_Backtest_Selections.csv"),
-            ("summary_csv_source", "artifacts/reports/f1/docs/F1_2026_Rolling_Backtest_Summary.csv"),
-            ("base_train_seasons", "2022, 2023, 2024, 2025"),
-            ("holdout_protocol", "2026 walk-forward: R1 uses 2022-2025 only; Rn uses 2022-2025 plus prior 2026 rounds < n."),
-            ("current_year_weighting", "Prior 2026 rows are weighted 3.0x in the verified rolling run."),
-            ("model_mode", "f1_model=eb_rank forced for the rolling evidence export; boosted auto model selection was too slow for this pack."),
-            ("ranking_evidence_summary", "Qualifying avg MAE 3.214 / Top10 78%; race avg MAE 5.164 / Top10 66%; one race winner hit in five races."),
+            ("evidence_source_kind", source.source_kind),
+            ("evidence_run_id", source.run_id),
+            ("evidence_run_frozen_complete", str(source.frozen_complete)),
+            ("run_manifest", _display_path(repo, source.manifest_path) if source.manifest_path else "unavailable_legacy"),
+            ("run_manifest_sha256", source.manifest_sha256 or "unavailable_legacy"),
+            ("prediction_run_git_head", run_git.get("head_sha")),
+            ("prediction_run_git_dirty", run_git.get("dirty")),
+            ("prediction_source_tree_sha256", implementation.get("aggregate_sha256")),
+            ("evidence_pack_git_head", git_head),
+            ("evidence_pack_git_dirty", str(git_dirty)),
+            ("evidence_pack_source_code_sha256", code_hash),
+            ("selection_csv_source", _display_path(repo, source.selections_path)),
+            ("summary_csv_source", _display_path(repo, source.summary_path)),
+            ("experiment_arm", training_protocol.get("experiment_arm") or "legacy_unmanifested"),
+            ("same_season_only", training_protocol.get("same_season_only")),
+            ("train_seasons_used", json.dumps(training_protocol.get("train_seasons_used", []))),
+            ("transfer_train_seasons", json.dumps(training_protocol.get("transfer_train_seasons", []))),
+            ("current_year_weighting", training_protocol.get("current_season_weight_multiplier")),
+            ("target_round_allowed_in_training", training_protocol.get("target_round_allowed_in_training")),
+            ("rounds", json.dumps(run_config_payload.get("rounds", []))),
+            ("qualifying_information_horizon", run_config_payload.get("qualifying_information_horizon")),
+            ("race_information_horizon", run_config_payload.get("race_information_horizon")),
+            ("ranking_evidence_summary", "See round_summary and policy_summary; no stale fixed-round headline is embedded."),
             ("betting_edge_status", "Not proven by the current historical pack because odds, odds timestamps, stake, and settled P&L were not captured before market close."),
         ],
         columns=["field", "value"],
     )
 
 
-def _raw_manifest(repo: Path) -> pd.DataFrame:
-    root = repo / "data" / "f1" / "raw" / "weekends" / "2026"
+def _raw_manifest(repo: Path, source: EvidenceSource) -> pd.DataFrame:
+    declared_by_path: dict[str, Mapping[str, Any]] = {}
+    if source.frozen_complete:
+        input_data = source.manifest.get("input_data_by_round")
+        if isinstance(input_data, Mapping):
+            for round_manifest in input_data.values():
+                files = round_manifest.get("files") if isinstance(round_manifest, Mapping) else None
+                if not isinstance(files, list):
+                    continue
+                for item in files:
+                    if not isinstance(item, Mapping):
+                        continue
+                    path = _resolve_reference(repo, item.get("path"))
+                    if path is not None:
+                        declared_by_path[str(path)] = item
+        paths = sorted(
+            (Path(value) for value in declared_by_path),
+            key=lambda item: item.as_posix(),
+        )
+    else:
+        root = repo / "data" / "f1" / "raw" / "weekends" / "2026"
+        paths = sorted(root.glob("round_*/*")) if root.exists() else []
     rows: list[dict[str, Any]] = []
-    if not root.exists():
-        return pd.DataFrame()
-    for path in sorted(root.glob("round_*/*")):
+    for path in paths:
         if not path.is_file():
             continue
-        rel = str(path.relative_to(repo))
+        rel = _display_path(repo, path)
         filename = path.name
         if "practice" in filename:
             cutoff_role = "feature_input_for_post_practice_and_post_qualifying"
@@ -271,29 +832,61 @@ def _raw_manifest(repo: Path) -> pd.DataFrame:
             cutoff_role = "unknown"
         rows.append(
             {
+                "evidence_source_kind": source.source_kind,
+                "evidence_run_id": source.run_id,
+                "run_manifest_sha256": source.manifest_sha256,
                 "file": rel,
                 "size_bytes": path.stat().st_size,
                 "sha256": _sha256(path),
+                "declared_sha256": declared_by_path.get(str(path), {}).get("sha256"),
+                "hash_verified": (
+                    declared_by_path[str(path)].get("sha256") == _sha256(path)
+                    if str(path) in declared_by_path
+                    else False
+                ),
                 "cutoff_role": cutoff_role,
-                "timestamp_status": "local_file_timestamp_not_pre_market_evidence",
+                "timestamp_status": (
+                    "frozen_run_manifest_input"
+                    if source.frozen_complete
+                    else "legacy_local_file_timestamp_not_pre_market_evidence"
+                ),
             }
         )
     return pd.DataFrame(rows)
 
 
-def _artifact_manifest(repo: Path) -> pd.DataFrame:
-    paths = list((repo / "artifacts" / "backtests" / "f1" / "rolling_2026").glob("2026/round_*/*.json"))
-    paths += [
-        repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv",
-        repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv",
-    ]
+def _artifact_manifest(repo: Path, source: EvidenceSource) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
-    for path in sorted(p for p in paths if p.exists()):
+    declared_artifacts = source.manifest.get("artifacts") if isinstance(source.manifest, Mapping) else None
+    declared_by_path: dict[str, Mapping[str, Any]] = {}
+    if isinstance(declared_artifacts, list):
+        for item in declared_artifacts:
+            if not isinstance(item, Mapping):
+                continue
+            path = _resolve_reference(repo, item.get("path"))
+            if path is not None:
+                declared_by_path[str(path)] = item
+    paths = [*source.prediction_paths.values(), source.selections_path, source.summary_path]
+    if source.manifest_path is not None:
+        paths.append(source.manifest_path)
+    for path in sorted({item.resolve() for item in paths if item.exists()}, key=lambda item: item.as_posix()):
+        declared = declared_by_path.get(str(path), {})
+        current_hash = _sha256(path)
         rows.append(
             {
-                "artifact": str(path.relative_to(repo)),
+                "evidence_source_kind": source.source_kind,
+                "evidence_run_id": source.run_id,
+                "run_manifest_sha256": source.manifest_sha256,
+                "artifact": _display_path(repo, path),
+                "artifact_type": (
+                    "run_manifest" if source.manifest_path is not None and path == source.manifest_path else declared.get("artifact_type")
+                ),
                 "size_bytes": path.stat().st_size,
-                "sha256": _sha256(path),
+                "sha256": current_hash,
+                "declared_sha256": source.manifest_sha256 if path == source.manifest_path else declared.get("sha256"),
+                "hash_verified": (
+                    True if path == source.manifest_path else declared.get("sha256") == current_hash if declared else False
+                ),
                 "modified_at_local": datetime.fromtimestamp(path.stat().st_mtime).isoformat(),
             }
         )
@@ -550,7 +1143,12 @@ def _odds_research() -> pd.DataFrame:
     )
 
 
-def _write_readme(path: Path, workbook_path: Path, selection_log: pd.DataFrame) -> None:
+def _write_readme(
+    path: Path,
+    workbook_path: Path,
+    selection_log: pd.DataFrame,
+    source: EvidenceSource,
+) -> None:
     policy = _policy_summary(selection_log)
     strategy = _strategy_v2_summary(_strategy_v2_selected(selection_log))
     conservative = strategy[strategy["strategy_name"] == "conservative_one_race_top10_per_gp"].iloc[0]
@@ -562,6 +1160,12 @@ def _write_readme(path: Path, workbook_path: Path, selection_log: pd.DataFrame) 
 Generated at: {_utc_now()}
 
 Workbook: `{workbook_path.name}`
+
+Evidence run: `{source.run_id}`
+
+Run manifest SHA-256: `{source.manifest_sha256 or 'legacy_unavailable'}`
+
+Evidence source: `{source.source_kind}`
 
 ## Strongest result
 
@@ -595,10 +1199,16 @@ The clean five-selection reconciliation now uses a race top-10 rule instead of t
 
 Send this as a corrected evidence pack and state plainly that the previous file should be treated as ranking evidence, not an odds-backed betting log. The next serious step is the forward-test log: timestamp selections before market close, attach odds and stake, hash the record, then settle P&L.
 """
-    path.write_text(text, encoding="utf-8")
+    with path.open("x", encoding="utf-8") as handle:
+        handle.write(text)
 
 
-def _write_email(path: Path, workbook_path: Path, selection_log: pd.DataFrame) -> None:
+def _write_email(
+    path: Path,
+    workbook_path: Path,
+    selection_log: pd.DataFrame,
+    source: EvidenceSource,
+) -> None:
     policy = _policy_summary(selection_log)
     strategy = _strategy_v2_summary(_strategy_v2_selected(selection_log))
     conservative = strategy[strategy["strategy_name"] == "conservative_one_race_top10_per_gp"].iloc[0]
@@ -610,6 +1220,8 @@ def _write_email(path: Path, workbook_path: Path, selection_log: pd.DataFrame) -
 Thanks for the clear feedback. I agree with the distinction: the first CSV is ranking/prediction evidence, not yet an odds-backed betting log.
 
 I have attached a cleaner evidence pack: {workbook_path.name}.
+
+The source run is `{source.run_id}` and its frozen run-manifest SHA-256 is `{source.manifest_sha256 or 'legacy_unavailable'}`.
 
 The stronger, cleaner result is not the winner market. It is the high-confidence top-10 policy:
 
@@ -627,51 +1239,74 @@ I am not claiming historical betting P&L from this file because bookmaker/exchan
 Best,
 Hugo
 """
-    path.write_text(text, encoding="utf-8")
+    with path.open("x", encoding="utf-8") as handle:
+        handle.write(text)
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Build F1 evidence workbook for betting-diligence review.")
     parser.add_argument("--output-dir", default=None)
-    args = parser.parse_args()
+    parser.add_argument("--run-id", default=None, help="Select one complete frozen rolling run explicitly.")
+    parser.add_argument(
+        "--legacy-read-only",
+        action="store_true",
+        help="Explicitly inspect the old unmanifested flat layout without treating it as frozen evidence.",
+    )
+    return parser
+
+
+def main(argv: Optional[Sequence[str]] = None) -> None:
+    parser = build_parser()
+    args = parser.parse_args(argv)
 
     repo = _repo_root()
-    output_dir = Path(args.output_dir) if args.output_dir else repo / "artifacts" / "reports" / "f1" / "evidence_pack_v3"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    source = _discover_evidence_source(
+        repo,
+        run_id=args.run_id,
+        legacy_read_only=bool(args.legacy_read_only),
+    )
+    output_dir = (
+        Path(args.output_dir)
+        if args.output_dir
+        else repo / "artifacts" / "reports" / "f1" / "evidence_packs" / source.run_id
+    )
+    if output_dir.exists():
+        raise FileExistsError(f"Refusing to write into existing evidence-pack directory: {output_dir}")
 
-    selections_path = repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Selections.csv"
-    summary_path = repo / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv"
-    selections = pd.read_csv(selections_path)
-    summary = pd.read_csv(summary_path)
+    selections = pd.read_csv(source.selections_path)
+    summary = pd.read_csv(source.summary_path)
 
     git_head = _run_git(repo, ["rev-parse", "HEAD"])
     git_dirty = bool(_run_git(repo, ["status", "--short"]))
     code_hash = _combined_hash(repo, SOURCE_FILES)
-    selection_log = _build_selection_log(repo, selections, summary, git_head, git_dirty, code_hash)
+    selection_log = _build_selection_log(repo, selections, summary, source, git_head, git_dirty, code_hash)
     strategy_v2 = _strategy_v2_selected(selection_log)
+    _assert_source_still_frozen(repo, source)
+    output_dir.mkdir(parents=True, exist_ok=False)
 
     workbook_path = output_dir / "F1_Evidence_Pack_v3_Jordan.xlsx"
     readme_path = output_dir / "README_F1_Evidence_Pack_v3.md"
     email_path = output_dir / "EMAIL_TO_JORDAN.md"
-    with pd.ExcelWriter(workbook_path, engine="openpyxl") as writer:
-        _executive_summary(selection_log).to_excel(writer, sheet_name="executive_summary", index=False)
-        _policy_summary(selection_log).to_excel(writer, sheet_name="policy_summary", index=False)
-        _high_confidence_top10(selection_log).to_excel(writer, sheet_name="high_conf_top10", index=False)
-        strategy_v2.to_excel(writer, sheet_name="strategy_v2_selected", index=False)
-        _strategy_v2_summary(strategy_v2).to_excel(writer, sheet_name="strategy_v2_summary", index=False)
-        _build_methodology(repo, git_head, git_dirty, code_hash).to_excel(writer, sheet_name="methodology", index=False)
-        _build_checklist().to_excel(writer, sheet_name="jordan_checklist", index=False)
-        selection_log.to_excel(writer, sheet_name="selection_log", index=False)
-        summary.to_excel(writer, sheet_name="round_summary", index=False)
-        _reconciliation(selection_log).to_excel(writer, sheet_name="paper_trade_reconcile", index=False)
-        _skipped_sheet(selection_log).to_excel(writer, sheet_name="skipped_excluded_edited", index=False)
-        _raw_manifest(repo).to_excel(writer, sheet_name="raw_data_manifest", index=False)
-        _artifact_manifest(repo).to_excel(writer, sheet_name="artifact_manifest", index=False)
-        _source_manifest(repo).to_excel(writer, sheet_name="source_manifest", index=False)
-        _forward_schema().to_excel(writer, sheet_name="forward_test_schema", index=False)
-        _odds_research().to_excel(writer, sheet_name="odds_data_options", index=False)
-    _write_readme(readme_path, workbook_path, selection_log)
-    _write_email(email_path, workbook_path, selection_log)
+    with workbook_path.open("xb") as workbook_handle:
+        with pd.ExcelWriter(workbook_handle, engine="openpyxl") as writer:
+            _executive_summary(selection_log).to_excel(writer, sheet_name="executive_summary", index=False)
+            _policy_summary(selection_log).to_excel(writer, sheet_name="policy_summary", index=False)
+            _high_confidence_top10(selection_log).to_excel(writer, sheet_name="high_conf_top10", index=False)
+            strategy_v2.to_excel(writer, sheet_name="strategy_v2_selected", index=False)
+            _strategy_v2_summary(strategy_v2).to_excel(writer, sheet_name="strategy_v2_summary", index=False)
+            _build_methodology(repo, source, git_head, git_dirty, code_hash).to_excel(writer, sheet_name="methodology", index=False)
+            _build_checklist().to_excel(writer, sheet_name="jordan_checklist", index=False)
+            selection_log.to_excel(writer, sheet_name="selection_log", index=False)
+            summary.to_excel(writer, sheet_name="round_summary", index=False)
+            _reconciliation(selection_log).to_excel(writer, sheet_name="paper_trade_reconcile", index=False)
+            _skipped_sheet(selection_log).to_excel(writer, sheet_name="skipped_excluded_edited", index=False)
+            _raw_manifest(repo, source).to_excel(writer, sheet_name="raw_data_manifest", index=False)
+            _artifact_manifest(repo, source).to_excel(writer, sheet_name="artifact_manifest", index=False)
+            _source_manifest(repo).to_excel(writer, sheet_name="source_manifest", index=False)
+            _forward_schema().to_excel(writer, sheet_name="forward_test_schema", index=False)
+            _odds_research().to_excel(writer, sheet_name="odds_data_options", index=False)
+    _write_readme(readme_path, workbook_path, selection_log, source)
+    _write_email(email_path, workbook_path, selection_log, source)
 
     print(
         json.dumps(
@@ -679,6 +1314,11 @@ def main() -> None:
                 "workbook": str(workbook_path),
                 "readme": str(readme_path),
                 "email": str(email_path),
+                "evidence_source_kind": source.source_kind,
+                "evidence_run_id": source.run_id,
+                "evidence_run_frozen_complete": source.frozen_complete,
+                "run_manifest": str(source.manifest_path) if source.manifest_path else None,
+                "run_manifest_sha256": source.manifest_sha256,
                 "selection_rows": int(len(selection_log)),
                 "strategy_v2_rows": int(len(strategy_v2)),
                 "summary_rows": int(len(summary)),

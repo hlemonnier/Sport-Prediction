@@ -1,8 +1,47 @@
+profile_name: pre_quali_2026_same_season
+profile_version: pre_quali_2026_walk_forward_v1
 model_family: pre_quali
 source: local
+target: qualifying_classification
+information_horizon: pre_qualifying
+field_size: 22
+training:
+  protocol: same_season_walk_forward
+  seasons:
+    - 2026
+  historical_transfer_enabled: false
+model:
+  requested: auto
+  compare_families:
+    - baseline
+    - ml
 features:
-  - practice
-  - standings
-  - circuit
-  - weather
-target: qualifying_order
+  practice_quality_weighted: true
+  run_simulation_features: false
+  standings: false
+  circuit_identity: false
+  weather: false
+promotion:
+  point_ranking_status: promoted_research_policy
+  probability_status: not_promoted_insufficient_disjoint_calibration_history
+  uncertainty_status: not_promoted_interval_coverage_regressed
+  evidence_run_id: 2026_promoted_policy_20260711c
+  frozen_rounds:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+  mean_field_mae: 2.2323232323232323
+  baseline_mean_field_mae: 2.8585858585858586
+  paired_mae_delta: -0.6262626262626262
+  paired_event_bootstrap_ci95:
+    - -1.131313131313131
+    - -0.1818181818181818
+  mean_kendall_tau_b: 0.7287157287157288
+  mean_interval_coverage: 0.8131313131313131
+  baseline_mean_interval_coverage: 0.8888888888888888

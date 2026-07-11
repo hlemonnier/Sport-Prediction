@@ -75,7 +75,9 @@ def test_policy_evaluator_reports_replay_metrics_without_planner() -> None:
     assert result.metrics["illegal_action_rate"] == 0.0
     assert result.metrics["transition_consistency"]["ok"] is True
     assert result.metrics["no_leakage_replay_invariance"]["metadata_available_through_lap_ok"] is True
-    assert result.metrics["promotion_gate_pass"] is True
+    assert result.metrics["no_leakage_replay_invariance"]["available"] is False
+    assert "replay_prefix_invariance" in result.metrics["missing_metrics"]
+    assert result.metrics["promotion_gate_pass"] is False
 
 
 def test_policy_evaluator_fails_closed_on_empty_replay() -> None:

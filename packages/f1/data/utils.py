@@ -46,6 +46,34 @@ def team_column(df: pd.DataFrame) -> Optional[str]:
     return None
 
 
+def complete_classification_positions(
+    frame: pd.DataFrame,
+    position_column: str = "position",
+) -> pd.DataFrame:
+    """Assign stable tail ranks to unclassified result rows.
+
+    Official result feeds commonly leave Position empty for unclassified,
+    disqualified, or no-time entrants while retaining them in authoritative
+    classification order. Ranking targets still require one total order, so
+    append those rows after the largest numeric position without reordering
+    the source classification.
+    """
+
+    if frame.empty or position_column not in frame.columns:
+        return frame
+    out = frame.copy()
+    positions = pd.to_numeric(out[position_column], errors="coerce").astype(float)
+    missing = positions.isna() | positions.le(0.0)
+    maximum = positions.loc[~missing].max(skipna=True)
+    next_position = int(maximum) if pd.notna(maximum) else 0
+    for index in out.index[missing]:
+        next_position += 1
+        positions.at[index] = float(next_position)
+    out[position_column] = positions
+    out["classification_position_imputed_tail"] = missing.astype(bool)
+    return out
+
+
 def _slug_token(value: object) -> str:
     text = str(value).strip().lower()
     text = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
@@ -56,12 +84,27 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
     if not frames:
         return pd.DataFrame()
     merged = None
+    latest_roster_ids: set[str] = set()
+    all_roster_ids: set[str] = set()
+    roster_snapshots: list[dict[str, str]] = []
     for frame in frames:
         if frame is None or frame.empty or "driver_id" not in frame.columns:
             continue
         label = _slug_token(frame["session"].iloc[0] if "session" in frame.columns else "session")
         frame = frame.copy()
         frame["driver_id"] = frame["driver_id"].astype(str)
+        session_roster_ids = set(frame.loc[frame["driver_id"].str.strip().ne(""), "driver_id"])
+        if session_roster_ids:
+            latest_roster_ids = session_roster_ids
+            all_roster_ids.update(session_roster_ids)
+            team_col = team_column(frame)
+            snapshot: dict[str, str] = {}
+            for _, roster_row in frame.loc[frame["driver_id"].isin(session_roster_ids)].iterrows():
+                team = str(roster_row.get(team_col, "") if team_col else "").strip()
+                if team.lower() in {"", "nan", "none", "<na>"}:
+                    team = ""
+                snapshot[str(roster_row["driver_id"])] = team
+            roster_snapshots.append(snapshot)
         if "driver_name" not in frame.columns:
             frame["driver_name"] = frame["driver_id"]
         frame["driver_name"] = frame["driver_name"].fillna(frame["driver_id"]).astype(str)
@@ -86,6 +129,34 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
                 merged = merged.drop(columns=["driver_name_r"])
     if merged is None:
         return pd.DataFrame()
+
+    active_roster_ids = set(latest_roster_ids)
+    latest_snapshot = roster_snapshots[-1] if roster_snapshots else {}
+    active_team_counts: dict[str, int] = {}
+    for driver_id in active_roster_ids:
+        team = latest_snapshot.get(driver_id, "")
+        if team:
+            active_team_counts[team] = active_team_counts.get(team, 0) + 1
+    # A car may miss every lap in the latest session after an accident or
+    # mechanical failure. Carry the most recent earlier participant only when
+    # that constructor has an unfilled two-car seat; earlier reserve drivers
+    # remain excluded once both current seats are represented.
+    for snapshot in reversed(roster_snapshots[:-1]):
+        for driver_id, team in snapshot.items():
+            if driver_id in active_roster_ids or not team:
+                continue
+            if active_team_counts.get(team, 0) >= 2:
+                continue
+            active_roster_ids.add(driver_id)
+            active_team_counts[team] = active_team_counts.get(team, 0) + 1
+
+    if active_roster_ids:
+        merged = merged.loc[merged["driver_id"].isin(active_roster_ids)].copy()
+    merged["fp_roster_policy"] = "latest_session_plus_team_seat_continuity"
+    merged["fp_roster_latest_session_driver_count"] = int(len(latest_roster_ids))
+    merged["fp_roster_active_driver_count"] = int(len(active_roster_ids))
+    merged["fp_roster_carried_forward_driver_count"] = int(len(active_roster_ids - latest_roster_ids))
+    merged["fp_roster_superseded_driver_count"] = int(len(all_roster_ids - active_roster_ids))
 
     team_candidates = [
         c
@@ -143,10 +214,21 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         merged["fp_mean_lap_std"] = (
             merged[lap_std_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
         )
+    quality_count_tokens = (
+        "raw_timed_",
+        "invalid_",
+        "deleted_",
+        "neutralised_",
+        "pit_out_",
+        "pit_in_",
+        "representative_",
+    )
     lap_count_cols = [
         c
         for c in merged.columns
-        if c.endswith("_lap_count") and not c.endswith("_sim_lap_count")
+        if c.endswith("_lap_count")
+        and not c.endswith("_sim_lap_count")
+        and not any(token in c for token in quality_count_tokens)
     ]
     if lap_count_cols:
         merged["fp_total_laps"] = (
@@ -223,6 +305,62 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
         merged["fp_wet_sim_laps"] = merged[wet_sim_lap_count_cols].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
     else:
         merged["fp_wet_sim_laps"] = 0.0
+
+    def _sum_session_metric(metric_suffix: str, output_column: str) -> None:
+        columns = [c for c in merged.columns if c.endswith(metric_suffix)]
+        if columns:
+            merged[output_column] = (
+                merged[columns].apply(pd.to_numeric, errors="coerce").sum(axis=1, skipna=True)
+            )
+        else:
+            merged[output_column] = 0.0
+
+    _sum_session_metric("_raw_timed_lap_count", "fp_raw_timed_laps")
+    _sum_session_metric("_invalid_lap_count", "fp_invalid_laps")
+    _sum_session_metric("_deleted_lap_count", "fp_deleted_laps")
+    _sum_session_metric("_neutralised_lap_count", "fp_neutralised_laps")
+    _sum_session_metric("_pit_out_lap_count", "fp_pit_out_laps")
+    _sum_session_metric("_pit_in_lap_count", "fp_pit_in_laps")
+    _sum_session_metric("_representative_lap_count", "fp_representative_laps")
+    raw_laps = pd.to_numeric(merged["fp_raw_timed_laps"], errors="coerce")
+    representative_laps = pd.to_numeric(merged["fp_representative_laps"], errors="coerce")
+    merged["fp_lap_quality_ratio"] = representative_laps.div(raw_laps.where(raw_laps > 0.0))
+
+    for metric_suffix, output_column in (
+        ("_quali_sim_evidence_share", "fp_quali_sim_evidence_share"),
+        ("_race_sim_evidence_share", "fp_race_sim_evidence_share"),
+        ("_run_intent_unclassified_share", "fp_run_intent_unclassified_share"),
+    ):
+        columns = [c for c in merged.columns if c.endswith(metric_suffix)]
+        if columns:
+            merged[output_column] = (
+                merged[columns].apply(pd.to_numeric, errors="coerce").mean(axis=1, skipna=True)
+            )
+        else:
+            merged[output_column] = float("nan")
+
+    degradation_columns = [
+        c for c in merged.columns if c.endswith("_race_sim_raw_degradation_sec_per_lap")
+    ]
+    if degradation_columns:
+        degradation = merged[degradation_columns].apply(pd.to_numeric, errors="coerce")
+        merged["fp_race_sim_raw_degradation_sec_per_lap"] = degradation.mean(axis=1, skipna=True)
+        merged["fp_race_sim_degradation_sessions_available"] = degradation.notna().sum(axis=1)
+    else:
+        merged["fp_race_sim_raw_degradation_sec_per_lap"] = float("nan")
+        merged["fp_race_sim_degradation_sessions_available"] = 0
+
+    degradation_mad_columns = [
+        c for c in merged.columns if c.endswith("_race_sim_raw_degradation_mad")
+    ]
+    if degradation_mad_columns:
+        merged["fp_race_sim_raw_degradation_mad"] = (
+            merged[degradation_mad_columns]
+            .apply(pd.to_numeric, errors="coerce")
+            .mean(axis=1, skipna=True)
+        )
+    else:
+        merged["fp_race_sim_raw_degradation_mad"] = float("nan")
 
     slow_lap_ratio_cols = [c for c in merged.columns if c.endswith("_slow_lap_ratio")]
     if slow_lap_ratio_cols:

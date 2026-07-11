@@ -47,9 +47,12 @@ from packages.f1.data.utils import team_column
 SAMPLE_WEIGHT_COL = "_sample_weight"
 DEFAULT_PL_SAMPLES = 2000
 DEFAULT_PL_SEED = 42
+DEFAULT_MODEL_SELECTION_MIN_EVENTS = 2
+DEFAULT_PROBABILITY_CALIBRATION_MIN_EVENTS = 2
 DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS = 5
 DEFAULT_PROBABILITY_AUDIT_BOOTSTRAP_SAMPLES = 200
 PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v4_disjoint_calibration"
+TEMPORAL_VALIDATION_PARTITION_VERSION = "f1_temporal_selection_calibration_audit_v1"
 
 
 @dataclass
@@ -1413,14 +1416,133 @@ def _walk_forward_folds(train: pd.DataFrame) -> list[tuple[set[int], int]]:
     return folds
 
 
+def _three_way_temporal_event_split(event_keys: list[int]) -> dict[str, Any]:
+    """Build chronological, event-disjoint selection/calibration/audit blocks.
+
+    These are *evaluation* roles.  A walk-forward model evaluated in a later
+    block may train on earlier events, but an event can never be scored in more
+    than one role.  The split fails closed unless all three minimum block sizes
+    can be satisfied.
+    """
+
+    ordered_keys = sorted({int(value) for value in event_keys})
+    minimums = {
+        "selection": int(DEFAULT_MODEL_SELECTION_MIN_EVENTS),
+        "calibration": int(DEFAULT_PROBABILITY_CALIBRATION_MIN_EVENTS),
+        "audit": int(DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS),
+    }
+    required_count = int(sum(minimums.values()))
+    base: dict[str, Any] = {
+        "partition_contract_version": TEMPORAL_VALIDATION_PARTITION_VERSION,
+        "event_count": int(len(ordered_keys)),
+        "all_event_keys": ordered_keys,
+        "minimum_event_counts": minimums,
+        "required_event_count": required_count,
+    }
+    if len(ordered_keys) < required_count:
+        return {
+            **base,
+            "available": False,
+            "reason": "insufficient_events_for_three_way_temporal_validation",
+            # Without a complete contract, all usable folds remain selection
+            # evidence only.  No calibration or untouched-audit claim is made.
+            "selection_event_keys": ordered_keys,
+            "calibration_event_keys": [],
+            "fit_event_keys": [],
+            "audit_event_keys": [],
+            "selection_event_count": int(len(ordered_keys)),
+            "calibration_event_count": 0,
+            "fit_event_count": 0,
+            "audit_event_count": 0,
+            "evaluation_event_disjoint": False,
+            "chronological": False,
+            "evaluation_disjoint_from_temperature_fit": False,
+            "selection_disjoint_from_probability_calibration_and_audit": False,
+            "final_audit_untouched_by_selection_and_calibration": False,
+        }
+
+    audit_count = max(
+        int(DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS),
+        int(math.ceil(0.25 * len(ordered_keys))),
+    )
+    calibration_count = max(
+        int(DEFAULT_PROBABILITY_CALIBRATION_MIN_EVENTS),
+        int(math.ceil(0.20 * len(ordered_keys))),
+    )
+    max_reserved = len(ordered_keys) - int(DEFAULT_MODEL_SELECTION_MIN_EVENTS)
+    if audit_count + calibration_count > max_reserved:
+        # The minimum total check above guarantees the minima fit.  Prefer the
+        # locked audit minimum, then give the remaining reserved events to
+        # calibration without consuming the selection minimum.
+        audit_count = int(DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS)
+        calibration_count = max_reserved - audit_count
+
+    selection_end = len(ordered_keys) - audit_count - calibration_count
+    calibration_end = len(ordered_keys) - audit_count
+    selection_keys = ordered_keys[:selection_end]
+    calibration_keys = ordered_keys[selection_end:calibration_end]
+    audit_keys = ordered_keys[calibration_end:]
+    selection_set = set(selection_keys)
+    calibration_set = set(calibration_keys)
+    audit_set = set(audit_keys)
+    event_disjoint = bool(
+        selection_set.isdisjoint(calibration_set)
+        and selection_set.isdisjoint(audit_set)
+        and calibration_set.isdisjoint(audit_set)
+    )
+    chronological = bool(
+        selection_keys
+        and calibration_keys
+        and audit_keys
+        and max(selection_keys) < min(calibration_keys)
+        and max(calibration_keys) < min(audit_keys)
+    )
+    available = bool(event_disjoint and chronological)
+    return {
+        **base,
+        "available": available,
+        "reason": (
+            "chronological_selection_calibration_final_audit"
+            if available
+            else "invalid_three_way_temporal_validation_partition"
+        ),
+        "selection_event_keys": selection_keys,
+        "calibration_event_keys": calibration_keys,
+        # Backward-compatible alias: temperature fitting is calibration.
+        "fit_event_keys": calibration_keys,
+        "audit_event_keys": audit_keys,
+        "selection_event_count": int(len(selection_keys)),
+        "calibration_event_count": int(len(calibration_keys)),
+        "fit_event_count": int(len(calibration_keys)),
+        "audit_event_count": int(len(audit_keys)),
+        "evaluation_event_disjoint": event_disjoint,
+        "chronological": chronological,
+        "evaluation_disjoint_from_temperature_fit": event_disjoint,
+        "selection_disjoint_from_probability_calibration_and_audit": event_disjoint,
+        "final_audit_untouched_by_selection_and_calibration": event_disjoint,
+    }
+
+
+def _folds_for_validation_events(
+    folds: list[tuple[set[int], int]],
+    event_keys: list[int],
+) -> list[tuple[set[int], int]]:
+    wanted = {int(value) for value in event_keys}
+    return [fold for fold in folds if int(fold[1]) in wanted]
+
+
 def _split_selection_and_holdout_folds(
     folds: list[tuple[set[int], int]],
 ) -> tuple[list[tuple[set[int], int]], list[tuple[set[int], int]]]:
-    """Reserve the latest event as a locked audit, never as a selector."""
+    """Compatibility wrapper around the three-way temporal contract."""
 
-    if len(folds) < 2:
+    partition = _three_way_temporal_event_split([int(item[1]) for item in folds])
+    if not bool(partition.get("available", False)):
         return list(folds), []
-    return list(folds[:-1]), [folds[-1]]
+    return (
+        _folds_for_validation_events(folds, partition["selection_event_keys"]),
+        _folds_for_validation_events(folds, partition["audit_event_keys"]),
+    )
 
 
 def _evaluate_candidate(
@@ -1783,33 +1905,21 @@ def _fit_pl_temperature_from_oof(
 
 
 def _probability_calibration_audit_event_split(event_key: pd.Series) -> dict[str, Any]:
-    """Reserve the latest OOF events for a calibration-layer holdout audit."""
+    """Return the authoritative three-way OOF evaluation partition.
+
+    ``fit_event_keys`` remains as an alias for callers of the previous API,
+    but now refers only to the middle probability-calibration block.  Earlier
+    model-selection events are never reused for calibration.
+    """
 
     numeric = pd.to_numeric(event_key, errors="coerce").dropna()
-    event_keys = sorted({int(value) for value in numeric.tolist()})
-    minimum_fit_events = 2
-    minimum_audit_events = int(DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS)
-    if len(event_keys) < minimum_fit_events + minimum_audit_events:
-        return {
-            "available": False,
-            "reason": "insufficient_events_for_disjoint_probability_audit",
-            "event_count": int(len(event_keys)),
-            "minimum_fit_events": minimum_fit_events,
-            "minimum_audit_events": minimum_audit_events,
-            "fit_event_keys": [],
-            "audit_event_keys": [],
-        }
-    audit_count = max(minimum_audit_events, int(math.ceil(0.25 * len(event_keys))))
-    audit_count = min(audit_count, len(event_keys) - minimum_fit_events)
+    partition = _three_way_temporal_event_split(
+        sorted({int(value) for value in numeric.tolist()}),
+    )
     return {
-        "available": True,
-        "reason": "latest_oof_events_locked_for_probability_audit",
-        "event_count": int(len(event_keys)),
-        "fit_event_keys": event_keys[:-audit_count],
-        "audit_event_keys": event_keys[-audit_count:],
-        "fit_event_count": int(len(event_keys) - audit_count),
-        "audit_event_count": int(audit_count),
-        "evaluation_disjoint_from_temperature_fit": True,
+        **partition,
+        "minimum_fit_events": int(DEFAULT_PROBABILITY_CALIBRATION_MIN_EVENTS),
+        "minimum_audit_events": int(DEFAULT_PROBABILITY_AUDIT_MIN_EVENTS),
     }
 
 
@@ -1956,23 +2066,107 @@ def _probability_audit_from_oof(
     seed: int = DEFAULT_PL_SEED,
     score_layer: str = "raw_model_score",
 ) -> dict[str, Any]:
-    if temperature is None:
-        return {
-            "available": False,
-            "passed": False,
-            "reason": temperature_audit.get("reason", "temperature_unavailable"),
-            "temperature_fit": dict(temperature_audit),
-        }
     valid = scores.notna() & actual.notna() & event_key.notna()
     scores = scores.loc[valid]
     actual = actual.loc[valid]
     event_key = event_key.loc[valid]
+
+    def _integer_keys(value: object) -> list[int]:
+        if not isinstance(value, (list, tuple, set, np.ndarray, pd.Series)):
+            return []
+        output: set[int] = set()
+        for item in value:
+            try:
+                output.add(int(item))
+            except (TypeError, ValueError):
+                continue
+        return sorted(output)
+
+    event_partition = temperature_audit.get("event_partition")
+    partition = dict(event_partition) if isinstance(event_partition, dict) else {}
+    selection_event_keys = _integer_keys(
+        partition.get("selection_event_keys", temperature_audit.get("selection_event_keys", [])),
+    )
+    calibration_event_keys = _integer_keys(
+        partition.get(
+            "calibration_event_keys",
+            temperature_audit.get("calibration_event_keys", temperature_audit.get("fit_event_keys", [])),
+        ),
+    )
+    declared_audit_event_keys = _integer_keys(
+        partition.get("audit_event_keys", temperature_audit.get("audit_event_keys", [])),
+    )
+    observed_audit_event_keys = _integer_keys(
+        pd.to_numeric(event_key, errors="coerce").dropna().astype(int).tolist(),
+    )
+    selection_set = set(selection_event_keys)
+    calibration_set = set(calibration_event_keys)
+    declared_audit_set = set(declared_audit_event_keys)
+    observed_audit_set = set(observed_audit_event_keys)
+    evaluation_event_disjoint = bool(
+        selection_set.isdisjoint(calibration_set)
+        and selection_set.isdisjoint(declared_audit_set)
+        and calibration_set.isdisjoint(declared_audit_set)
+    )
+    final_audit_block_complete = bool(
+        declared_audit_set and observed_audit_set == declared_audit_set
+    )
+    evaluation_disjoint = bool(
+        temperature_audit.get("evaluation_disjoint_from_temperature_fit", False)
+        and calibration_set.isdisjoint(observed_audit_set)
+        and final_audit_block_complete
+        and evaluation_event_disjoint
+    )
+    common_contract = {
+        "schema_version": PROBABILITY_AUDIT_SCHEMA_VERSION,
+        "source": "walk_forward_oof",
+        "probability_layer": "pl_gumbel",
+        "score_layer": str(score_layer),
+        "same_probability_layer_as_production": True,
+        "partition_contract_version": str(
+            partition.get("partition_contract_version")
+            or temperature_audit.get("partition_contract_version")
+            or "unverified_external_partition"
+        ),
+        "event_partition": partition,
+        "three_way_temporal_partition_available": bool(partition.get("available", False)),
+        "selection_event_keys": selection_event_keys,
+        "calibration_event_keys": calibration_event_keys,
+        "temperature_fit_event_keys": calibration_event_keys,
+        "audit_event_keys": declared_audit_event_keys,
+        "observed_audit_event_keys": observed_audit_event_keys,
+        "evaluation_event_disjoint": evaluation_event_disjoint,
+        "selection_disjoint_from_probability_calibration_and_audit": bool(
+            selection_set.isdisjoint(calibration_set)
+            and selection_set.isdisjoint(declared_audit_set)
+        ),
+        "evaluation_disjoint_from_temperature_fit": evaluation_disjoint,
+        "final_audit_event_block_complete": final_audit_block_complete,
+        "samples": int(max(1, samples)),
+        "seed": int(seed),
+        "temperature_fit": dict(temperature_audit),
+    }
+    if temperature is None:
+        return {
+            **common_contract,
+            "available": False,
+            "passed": False,
+            "reason": temperature_audit.get("reason", "temperature_unavailable"),
+            "event_total_audit": {"passed": False, "reason": "temperature_unavailable"},
+            "metrics": {},
+            "row_count": int(len(scores)),
+            "event_count": int(len(observed_audit_event_keys)),
+        }
     if scores.empty:
         return {
+            **common_contract,
             "available": False,
             "passed": False,
             "reason": "oof_scores_empty",
-            "temperature_fit": dict(temperature_audit),
+            "event_total_audit": {"passed": False, "reason": "oof_scores_empty"},
+            "metrics": {},
+            "row_count": 0,
+            "event_count": 0,
         }
     probabilities = _pl_probabilities_for_oof_audit(
         scores,
@@ -1982,9 +2176,6 @@ def _probability_audit_from_oof(
         seed=int(seed),
     )
     total_audit = _probability_event_total_audit(probabilities, event_key)
-    evaluation_disjoint = bool(
-        temperature_audit.get("evaluation_disjoint_from_temperature_fit", False)
-    )
     thresholds = {
         "max_brier": 0.30,
         "max_log_loss": 1.25,
@@ -2002,6 +2193,10 @@ def _probability_audit_from_oof(
     if not evaluation_disjoint:
         reasons = [reason for reason in reasons if reason != "event_total_failed"]
         reasons.append("temperature_fit_and_audit_events_not_disjoint")
+        if not final_audit_block_complete:
+            reasons.append("final_audit_event_block_incomplete")
+        if not evaluation_event_disjoint:
+            reasons.append("selection_calibration_audit_events_overlap")
     elif not bool(total_audit.get("passed", False)):
         reasons = ["event_total_failed"]
     audit_event_count = int(pd.to_numeric(event_key, errors="coerce").nunique(dropna=True))
@@ -2081,21 +2276,11 @@ def _probability_audit_from_oof(
         metrics[label] = metric
 
     return {
+        **common_contract,
         "available": True,
         "passed": bool(passed),
         "reason": "passed" if passed else ",".join(reasons),
-        "schema_version": PROBABILITY_AUDIT_SCHEMA_VERSION,
-        "source": "walk_forward_oof",
-        "probability_layer": "pl_gumbel",
-        "score_layer": str(score_layer),
-        "same_probability_layer_as_production": True,
-        "evaluation_disjoint_from_temperature_fit": evaluation_disjoint,
-        "temperature_fit_event_keys": list(temperature_audit.get("fit_event_keys", [])),
-        "audit_event_keys": list(temperature_audit.get("audit_event_keys", [])),
-        "samples": int(max(1, samples)),
-        "seed": int(seed),
         "temperature": float(temperature),
-        "temperature_fit": dict(temperature_audit),
         "event_total_audit": total_audit,
         "thresholds": thresholds,
         "metrics": metrics,
@@ -2114,6 +2299,7 @@ def _oof_scores_for_selection(
     race_baseline_col: str,
     target_spec: Optional[TargetSpec] = None,
     apply_race_probability_layer: bool = False,
+    frozen_training_event_keys: Optional[set[int]] = None,
 ) -> tuple[pd.Series, pd.Series, pd.Series]:
     spec = target_spec or TargetSpec()
     event_key = pd.to_numeric(train["event_key"], errors="coerce") if "event_key" in train.columns else None
@@ -2134,7 +2320,10 @@ def _oof_scores_for_selection(
         return fill
 
     for train_keys, val_key in folds:
-        train_df = train.loc[event_key.isin(train_keys)]
+        effective_train_keys = set(train_keys)
+        if frozen_training_event_keys is not None:
+            effective_train_keys &= {int(value) for value in frozen_training_event_keys}
+        train_df = train.loc[event_key.isin(effective_train_keys)]
         val_df = train.loc[event_key == val_key]
         if train_df.empty or val_df.empty:
             continue
@@ -2205,6 +2394,24 @@ def _oof_scores_for_selection(
         pd.concat(target_parts).sort_index(),
         pd.concat(event_parts).sort_index(),
     )
+
+
+def _race_probability_scores_from_oof(
+    train: pd.DataFrame,
+    scores: pd.Series,
+    event_key: pd.Series,
+) -> pd.Series:
+    """Apply the deployed race score layer event-by-event without refitting."""
+
+    transformed_scores = pd.Series(index=scores.index, dtype=float)
+    for idx in _event_groups(event_key.reindex(scores.index), scores.index):
+        event_features = train.reindex(idx)
+        transformed = race_stochastic_score_layer(event_features, scores.reindex(idx))
+        transformed_scores.loc[idx] = pd.to_numeric(
+            transformed["race_stochastic_pl_score"],
+            errors="coerce",
+        ).fillna(scores.reindex(idx))
+    return transformed_scores.sort_index()
 
 
 def _normalize_requested_model(value: str) -> str:
@@ -2377,10 +2584,55 @@ def train_model(
     selected_from_cv: Optional[str] = None
 
     all_folds = _walk_forward_folds(train)
-    folds, locked_holdout_folds = _split_selection_and_holdout_folds(all_folds)
-    if locked_holdout_folds:
+    temporal_partition = _probability_calibration_audit_event_split(
+        pd.Series([int(item[1]) for item in all_folds], dtype=float),
+    )
+    train_event_series = (
+        pd.to_numeric(train["event_key"], errors="coerce")
+        if "event_key" in train.columns
+        else pd.Series(dtype=float)
+    )
+    train_event_keys = sorted(
+        {int(value) for value in train_event_series.dropna().tolist()},
+    )
+    declared_audit_keys = [
+        int(value) for value in temporal_partition.get("audit_event_keys", [])
+    ]
+    frozen_final_audit_training_keys = (
+        [value for value in train_event_keys if value < min(declared_audit_keys)]
+        if declared_audit_keys
+        else []
+    )
+    temporal_partition = {
+        **temporal_partition,
+        "final_audit_model_training_event_keys": frozen_final_audit_training_keys,
+        "final_audit_model_refit_within_block": False,
+    }
+    if bool(temporal_partition.get("available", False)):
+        folds = _folds_for_validation_events(
+            all_folds,
+            list(temporal_partition["selection_event_keys"]),
+        )
+        calibration_folds = _folds_for_validation_events(
+            all_folds,
+            list(temporal_partition["calibration_event_keys"]),
+        )
+        locked_holdout_folds = _folds_for_validation_events(
+            all_folds,
+            list(temporal_partition["audit_event_keys"]),
+        )
         notes.append(
-            "Model selection uses earlier walk-forward folds; the latest event is locked for post-selection audit only.",
+            "Three-way temporal validation active: earlier events select the model, "
+            "middle events fit probability calibration, and the latest events remain "
+            "an untouched final audit block.",
+        )
+    else:
+        folds = list(all_folds)
+        calibration_folds = []
+        locked_holdout_folds = []
+        notes.append(
+            "Three-way temporal validation unavailable: all usable walk-forward folds "
+            "remain selection-only; probability calibration and final-audit claims are disabled.",
         )
     if folds:
         if not small_history_qualifying:
@@ -2663,11 +2915,31 @@ def train_model(
     if selected_from_cv is None and selected_name is not None:
         notes.append(f"Modele retenu par defaut: {selected_name}.")
 
+    holdout_scores = pd.Series(dtype=float)
+    holdout_y = pd.Series(dtype=float)
+    holdout_event = pd.Series(dtype=float)
     selection_audit: dict[str, Any] = {
         "available": False,
-        "reason": "locked_holdout_unavailable",
+        "reason": (
+            "locked_holdout_unavailable"
+            if bool(temporal_partition.get("available", False))
+            else str(temporal_partition.get("reason"))
+        ),
+        "partition_contract_version": TEMPORAL_VALIDATION_PARTITION_VERSION,
+        "selected_model": selected_name,
         "selection_fold_count": int(len(folds)),
+        "probability_calibration_fold_count": int(len(calibration_folds)),
         "locked_holdout_fold_count": int(len(locked_holdout_folds)),
+        "selection_event_keys": list(temporal_partition.get("selection_event_keys", [])),
+        "probability_calibration_event_keys": list(
+            temporal_partition.get("calibration_event_keys", []),
+        ),
+        "locked_event_keys": list(temporal_partition.get("audit_event_keys", [])),
+        "evaluation_event_disjoint": bool(
+            temporal_partition.get("evaluation_event_disjoint", False),
+        ),
+        "chronological": bool(temporal_partition.get("chronological", False)),
+        "event_partition": dict(temporal_partition),
     }
     if locked_holdout_folds and selected_name is not None:
         holdout_scores, holdout_y, holdout_event = _oof_scores_for_selection(
@@ -2678,133 +2950,158 @@ def train_model(
             folds=locked_holdout_folds,
             race_baseline_col=race_baseline_col,
             target_spec=target_spec,
+            frozen_training_event_keys=set(frozen_final_audit_training_keys),
         )
         if not holdout_scores.empty:
             holdout_metrics = _fold_metrics(holdout_y, holdout_scores, holdout_event)
+            expected_audit_keys = {
+                int(value) for value in temporal_partition.get("audit_event_keys", [])
+            }
+            observed_audit_keys = {
+                int(value)
+                for value in pd.to_numeric(holdout_event, errors="coerce").dropna().tolist()
+            }
+            complete_audit_block = bool(
+                expected_audit_keys and observed_audit_keys == expected_audit_keys
+            )
             selection_audit = {
-                "available": True,
-                "reason": "locked_latest_event",
+                **selection_audit,
+                "available": complete_audit_block,
+                "reason": (
+                    "locked_final_audit_block"
+                    if complete_audit_block
+                    else "final_audit_reconstruction_incomplete"
+                ),
                 "selected_model": selected_name,
-                "selection_fold_count": int(len(folds)),
-                "locked_holdout_fold_count": int(len(locked_holdout_folds)),
-                "locked_event_keys": [int(item[1]) for item in locked_holdout_folds],
+                "observed_locked_event_keys": sorted(observed_audit_keys),
+                "final_audit_event_block_complete": complete_audit_block,
                 "metrics": {key: float(value) for key, value in holdout_metrics.items()},
             }
-            notes.append(
-                "Locked post-selection audit: "
-                f"event={selection_audit['locked_event_keys']}, MAE={holdout_metrics['mae']:.3f}, "
-                f"PoleHit={holdout_metrics['pole_hit']:.3f}, Top3Hit={holdout_metrics['top3_hit']:.3f}.",
-            )
+            if complete_audit_block:
+                notes.append(
+                    "Locked post-selection audit: "
+                    f"events={selection_audit['locked_event_keys']}, MAE={holdout_metrics['mae']:.3f}, "
+                    f"PoleHit={holdout_metrics['pole_hit']:.3f}, Top3Hit={holdout_metrics['top3_hit']:.3f}.",
+                )
+            else:
+                notes.append(
+                    "Locked final audit failed closed because not every declared audit event "
+                    "could be reconstructed.",
+                )
 
-    rows, y_train, event_train = _prepare_training_rows(train, target_col=target_spec.actual_col)
     calibration_scores = pd.Series(dtype=float)
     calibration_y = pd.Series(dtype=float)
     calibration_event = pd.Series(dtype=float)
+    final_audit_scores = holdout_scores.copy()
+    final_audit_y = holdout_y.copy()
+    final_audit_event = holdout_event.copy()
+    if target_spec.uses_offset and not final_audit_scores.empty:
+        final_audit_scores = _race_probability_scores_from_oof(
+            train,
+            final_audit_scores,
+            final_audit_event,
+        )
     calibration_source = "unavailable"
-    if selected_name is not None:
+    if selected_name is not None and calibration_folds:
         calibration_scores, calibration_y, calibration_event = _oof_scores_for_selection(
             train=train,
             feature_cols=feature_cols,
             selected_name=selected_name or "",
             candidate_lookup=candidate_lookup,
-            folds=all_folds,
+            folds=calibration_folds,
             race_baseline_col=race_baseline_col,
             target_spec=target_spec,
             apply_race_probability_layer=target_spec.uses_offset,
         )
-        calibration_source = "walk-forward_oof"
-    if calibration_scores.empty or calibration_event.nunique(dropna=True) < 2:
-        if not rows.empty:
-            try:
-                calibration_scores = pd.Series(selected_model.predict(rows), index=rows.index, dtype=float)
-                if target_spec.uses_offset:
-                    transformed = race_stochastic_score_layer(rows, calibration_scores)
-                    calibration_scores = pd.to_numeric(
-                        transformed["race_stochastic_pl_score"],
-                        errors="coerce",
-                    ).fillna(calibration_scores)
-                calibration_y = y_train
-                calibration_event = event_train
-                calibration_source = "in_sample"
-            except Exception:
-                calibration_scores = pd.Series(dtype=float)
-                calibration_y = pd.Series(dtype=float)
-                calibration_event = pd.Series(dtype=float)
-                calibration_source = "unavailable"
+        calibration_source = "walk_forward_oof_temporal_calibration_block"
+    expected_calibration_keys = {
+        int(value) for value in temporal_partition.get("calibration_event_keys", [])
+    }
+    observed_calibration_keys = {
+        int(value)
+        for value in pd.to_numeric(calibration_event, errors="coerce").dropna().tolist()
+    }
+    calibration_block_complete = bool(
+        expected_calibration_keys
+        and observed_calibration_keys == expected_calibration_keys
+    )
 
     listwise_temperature: Optional[float] = None
-    probability_audit: dict[str, Any] = {}
-    if calibration_source == "walk-forward_oof":
-        probability_partition = _probability_calibration_audit_event_split(calibration_event)
-        if bool(probability_partition.get("available", False)):
-            fit_event_keys = set(int(value) for value in probability_partition["fit_event_keys"])
-            audit_event_keys = set(int(value) for value in probability_partition["audit_event_keys"])
-            numeric_event = pd.to_numeric(calibration_event, errors="coerce")
-            fit_mask = numeric_event.isin(fit_event_keys)
-            audit_mask = numeric_event.isin(audit_event_keys)
-            listwise_temperature, temperature_audit = _fit_pl_temperature_from_oof(
-                calibration_scores.loc[fit_mask],
-                calibration_y.loc[fit_mask],
-                calibration_event.loc[fit_mask],
-            )
-            temperature_audit = {**temperature_audit, **probability_partition}
-            probability_audit = _probability_audit_from_oof(
-                calibration_scores.loc[audit_mask],
-                calibration_y.loc[audit_mask],
-                calibration_event.loc[audit_mask],
-                listwise_temperature,
-                temperature_audit,
-                samples=int(f1_pl_samples),
-                seed=int(f1_listwise_seed),
-                score_layer=RACE_PROBABILITY_SCORE_LAYER if target_spec.uses_offset else "raw_model_score",
-            )
-        else:
-            # A temperature may still be fit for research continuity, but no
-            # calibration claim is allowed without a disjoint audit partition.
-            listwise_temperature, temperature_audit = _fit_pl_temperature_from_oof(
-                calibration_scores,
-                calibration_y,
-                calibration_event,
-            )
-            temperature_audit = {**temperature_audit, **probability_partition}
-            probability_audit = {
-                "available": False,
-                "passed": False,
-                "reason": str(probability_partition.get("reason")),
-                "schema_version": PROBABILITY_AUDIT_SCHEMA_VERSION,
-                "source": "walk_forward_oof",
-                "probability_layer": "pl_gumbel",
-                "score_layer": RACE_PROBABILITY_SCORE_LAYER if target_spec.uses_offset else "raw_model_score",
-                "same_probability_layer_as_production": True,
-                "evaluation_disjoint_from_temperature_fit": False,
-                "temperature_fit": dict(temperature_audit),
-                "event_total_audit": {"passed": False, "reason": "audit_partition_unavailable"},
-                "metrics": {},
-                "samples": int(max(1, f1_pl_samples)),
-            }
-        if listwise_temperature is not None:
-            nll_value = temperature_audit.get("nll")
-            nll_text = f"{float(nll_value):.4f}" if isinstance(nll_value, (int, float)) else "nan"
-            notes.append(
-                "Listwise PL temperature fitted on walk-forward OOF likelihood: "
-                f"temperature={listwise_temperature:.3f}, nll={nll_text}; "
-                "probability audit uses disjoint locked later OOF events when available.",
-            )
-        else:
-            notes.append(
-                "Listwise PL temperature fitting skipped: "
-                f"{temperature_audit.get('reason', 'unavailable')}.",
-            )
-    else:
-        probability_audit = {
+    probability_partition = dict(temporal_partition)
+    if not bool(probability_partition.get("available", False)):
+        temperature_audit = {
             "available": False,
-            "passed": False,
-            "reason": f"{calibration_source}_probability_audit_not_oof",
-            "source": calibration_source,
+            "reason": str(probability_partition.get("reason")),
+            "source": "walk_forward_oof",
+            "calibration_source": "unavailable",
+            "event_partition": probability_partition,
+            "fit_event_keys": [],
+            "calibration_event_keys": [],
+            "audit_event_keys": [],
+            "evaluation_disjoint_from_temperature_fit": False,
+        }
+    elif not calibration_block_complete:
+        temperature_audit = {
+            "available": False,
+            "reason": "probability_calibration_event_block_incomplete",
+            "source": "walk_forward_oof",
+            "calibration_source": calibration_source,
+            "event_partition": probability_partition,
+            "fit_event_keys": sorted(expected_calibration_keys),
+            "calibration_event_keys": sorted(expected_calibration_keys),
+            "observed_calibration_event_keys": sorted(observed_calibration_keys),
+            "audit_event_keys": list(probability_partition.get("audit_event_keys", [])),
+            "evaluation_disjoint_from_temperature_fit": bool(
+                probability_partition.get("evaluation_event_disjoint", False),
+            ),
+        }
+    else:
+        listwise_temperature, fit_details = _fit_pl_temperature_from_oof(
+            calibration_scores,
+            calibration_y,
+            calibration_event,
+        )
+        temperature_audit = {
+            **fit_details,
+            "calibration_source": calibration_source,
+            "event_partition": probability_partition,
+            "fit_event_keys": sorted(expected_calibration_keys),
+            "calibration_event_keys": sorted(expected_calibration_keys),
+            "observed_calibration_event_keys": sorted(observed_calibration_keys),
+            "audit_event_keys": list(probability_partition.get("audit_event_keys", [])),
+            "calibration_event_block_complete": calibration_block_complete,
+            "evaluation_disjoint_from_temperature_fit": bool(
+                probability_partition.get("evaluation_event_disjoint", False),
+            ),
         }
 
+    probability_audit = _probability_audit_from_oof(
+        final_audit_scores,
+        final_audit_y,
+        final_audit_event,
+        listwise_temperature,
+        temperature_audit,
+        samples=int(f1_pl_samples),
+        seed=int(f1_listwise_seed),
+        score_layer=RACE_PROBABILITY_SCORE_LAYER if target_spec.uses_offset else "raw_model_score",
+    )
+    if listwise_temperature is not None:
+        nll_value = temperature_audit.get("nll")
+        nll_text = f"{float(nll_value):.4f}" if isinstance(nll_value, (int, float)) else "nan"
+        notes.append(
+            "Listwise PL temperature fitted exclusively on the middle temporal "
+            f"calibration block: temperature={listwise_temperature:.3f}, nll={nll_text}; "
+            "the later audit block was not used for fitting.",
+        )
+    else:
+        notes.append(
+            "Listwise PL temperature fitting skipped: "
+            f"{temperature_audit.get('reason', 'unavailable')}.",
+        )
+
     if (
-        not rows.empty
+        calibration_block_complete
+        and not calibration_scores.empty
         and hasattr(selected_model, "calibrators")
         and isinstance(getattr(selected_model, "calibrators"), dict)
     ):
@@ -2819,9 +3116,9 @@ def train_model(
             selected_model.calibrators["top10"] = calibrator_top10
             selected_model.calibrators["top3"] = calibrator_top3
             notes.append(
-                "Calibration probabiliste "
-                f"({calibration_source}): win={calibrator_win.method}, "
-                f"top3={calibrator_top3.method}, top10={calibrator_top10.method}.",
+                "Probability calibrators fitted only on the event-disjoint middle "
+                f"block: win={calibrator_win.method}, top3={calibrator_top3.method}, "
+                f"top10={calibrator_top10.method}.",
             )
         except Exception:
             pass

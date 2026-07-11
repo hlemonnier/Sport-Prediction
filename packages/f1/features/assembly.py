@@ -943,6 +943,8 @@ def build_training_data(
     target_year: int,
     target_round: int,
     include_standings: bool,
+    session_cutoff: Optional[str] = None,
+    prediction_as_of: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, List[str]]:
     rows: List[pd.DataFrame] = []
     notes: List[str] = []
@@ -959,13 +961,27 @@ def build_training_data(
             if year == target_year and round_number >= target_round:
                 continue
             try:
-                fp_features = provider.get_fp_features(year, round_number)
+                if session_cutoff is None:
+                    fp_features = provider.get_fp_features(year, round_number)
+                else:
+                    fp_features = provider.get_fp_features(
+                        year,
+                        round_number,
+                        session_cutoff=session_cutoff,
+                        prediction_target=mode,
+                        prediction_as_of=prediction_as_of,
+                    )
             except (Exception, SystemExit) as exc:
                 notes.append(f"Echec FP {year} round {round_number}: {exc}")
                 continue
             if fp_features.empty:
-                continue
-            fp_features = fp_features.copy()
+                notes.append(
+                    f"Aucune feature FP exploitable {year} round {round_number}: "
+                    "roster cible conserve avec missingness explicite.",
+                )
+                fp_features = pd.DataFrame(columns=["driver_id"])
+            else:
+                fp_features = fp_features.copy()
             if "driver_id" in fp_features.columns:
                 fp_features["driver_id"] = fp_features["driver_id"].astype(str)
             if mode == "qualifying":
@@ -996,7 +1012,29 @@ def build_training_data(
                 qualy = qualy.dropna(subset=["target"])
                 if qualy.empty:
                     continue
-                merged = fp_features.merge(qualy[["driver_id", "target"]], on="driver_id", how="inner")
+                qualy_roster_cols = [
+                    column
+                    for column in ["driver_id", "driver_name", "team_name", "target"]
+                    if column in qualy.columns
+                ]
+                merged = qualy[qualy_roster_cols].merge(
+                    fp_features,
+                    on="driver_id",
+                    how="left",
+                    suffixes=("", "_fp"),
+                )
+                for identity_column in ("driver_name", "team_name"):
+                    fp_identity = f"{identity_column}_fp"
+                    if fp_identity not in merged.columns:
+                        continue
+                    if identity_column not in merged.columns:
+                        merged[identity_column] = merged[fp_identity]
+                    else:
+                        merged[identity_column] = merged[identity_column].where(
+                            merged[identity_column].notna(),
+                            merged[fp_identity],
+                        )
+                    merged = merged.drop(columns=[fp_identity])
                 if merged.empty:
                     continue
                 merged["event_name"] = event_name
@@ -1026,22 +1064,58 @@ def build_training_data(
                 race["driver_id"] = race["driver_id"].astype(str)
                 qualy["position"] = pd.to_numeric(qualy["position"], errors="coerce")
                 qualy_merge_cols = ["driver_id", "position"]
+                qualy_merge_cols.extend(
+                    column for column in ["driver_name", "team_name"] if column in qualy.columns
+                )
                 if "q3_time" in qualy.columns:
                     qualy["q3_time"] = pd.to_numeric(qualy["q3_time"], errors="coerce")
                     best_q3 = qualy["q3_time"].min(skipna=True)
                     if pd.notna(best_q3):
                         qualy["qualy_gap_to_best"] = qualy["q3_time"] - best_q3
                         qualy_merge_cols.append("qualy_gap_to_best")
-                merged = fp_features.merge(qualy[qualy_merge_cols], on="driver_id", how="inner")
-                merged = merged.rename(columns={"position": "qualy_position"})
                 race_merge_cols = ["driver_id", "position"]
+                race_merge_cols.extend(
+                    column for column in ["driver_name", "team_name"] if column in race.columns
+                )
                 if "grid_position" in race.columns:
                     race["grid_position"] = pd.to_numeric(race["grid_position"], errors="coerce")
                     race_merge_cols.append("grid_position")
                 if "grid_status" in race.columns:
                     race_merge_cols.append("grid_status")
-                merged = merged.merge(race[race_merge_cols], on="driver_id", how="inner")
-                merged = merged.rename(columns={"position": "target"})
+                qualy_roster = qualy[qualy_merge_cols].rename(columns={"position": "qualy_position"})
+                race_roster = race[race_merge_cols].rename(columns={"position": "target"})
+                merged = race_roster.merge(
+                    qualy_roster,
+                    on="driver_id",
+                    how="left",
+                    suffixes=("_race", "_qualy"),
+                )
+                merged = merged.merge(
+                    fp_features,
+                    on="driver_id",
+                    how="left",
+                    suffixes=("", "_fp"),
+                )
+                for identity_column in ("driver_name", "team_name"):
+                    candidates = [
+                        candidate
+                        for candidate in (
+                            identity_column,
+                            f"{identity_column}_race",
+                            f"{identity_column}_qualy",
+                            f"{identity_column}_fp",
+                        )
+                        if candidate in merged.columns
+                    ]
+                    if not candidates:
+                        continue
+                    identity = merged[candidates[0]]
+                    for candidate in candidates[1:]:
+                        identity = identity.where(identity.notna(), merged[candidate])
+                    merged[identity_column] = identity
+                    merged = merged.drop(
+                        columns=[candidate for candidate in candidates if candidate != identity_column],
+                    )
                 if "grid_position" not in merged.columns:
                     merged["grid_position"] = float("nan")
                 if "grid_status" not in merged.columns:
@@ -1303,25 +1377,42 @@ def build_current_features(
     round_number: int,
     include_standings: bool,
     history: Optional[pd.DataFrame] = None,
+    session_cutoff: Optional[str] = None,
+    prediction_as_of: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, List[str]]:
     notes: List[str] = []
     try:
-        fp_features = provider.get_fp_features(year, round_number)
+        if session_cutoff is None:
+            fp_features = provider.get_fp_features(year, round_number)
+        else:
+            fp_features = provider.get_fp_features(
+                year,
+                round_number,
+                session_cutoff=session_cutoff,
+                prediction_target=mode,
+                prediction_as_of=prediction_as_of,
+            )
     except (Exception, SystemExit) as exc:
         notes.append(f"Echec recuperation FP: {exc}")
         return pd.DataFrame(), notes
     if fp_features.empty:
         notes.append("Aucune donnee FP disponible pour ce round.")
-        current = _provisional_current_features_from_history(
-            provider=provider,
-            mode=mode,
-            year=year,
-            round_number=round_number,
-            include_standings=include_standings,
-            history=history,
-            notes=notes,
-        )
-        return current, notes
+        if mode == "qualifying":
+            current = _provisional_current_features_from_history(
+                provider=provider,
+                mode=mode,
+                year=year,
+                round_number=round_number,
+                include_standings=include_standings,
+                history=history,
+                notes=notes,
+            )
+            return current, notes
+        # A post-qualifying or pre-race roster can be fully known even when no
+        # representative practice lap survives the quality/cutoff contract.
+        # Continue with an empty right-hand feature table so Q/grid identities
+        # own the field and practice missingness remains explicit.
+        fp_features = pd.DataFrame(columns=["driver_id"])
     fp_features = fp_features.copy()
     fp_features["driver_id"] = fp_features["driver_id"].astype(str)
     event_name = _event_name_for_round(provider, year, round_number, notes)
@@ -1358,14 +1449,34 @@ def build_current_features(
         qualy["driver_id"] = qualy["driver_id"].astype(str)
         qualy["position"] = pd.to_numeric(qualy["position"], errors="coerce")
         qualy_merge_cols = ["driver_id", "position"]
+        qualy_merge_cols.extend(
+            column for column in ["driver_name", "team_name"] if column in qualy.columns
+        )
         if "q3_time" in qualy.columns:
             qualy["q3_time"] = pd.to_numeric(qualy["q3_time"], errors="coerce")
             best_q3 = qualy["q3_time"].min(skipna=True)
             if pd.notna(best_q3):
                 qualy["qualy_gap_to_best"] = qualy["q3_time"] - best_q3
                 qualy_merge_cols.append("qualy_gap_to_best")
-        merged = fp_features.merge(qualy[qualy_merge_cols], on="driver_id", how="inner")
-        merged = merged.rename(columns={"position": "qualy_position"})
+        qualy_roster = qualy[qualy_merge_cols].rename(columns={"position": "qualy_position"})
+        merged = qualy_roster.merge(
+            fp_features,
+            on="driver_id",
+            how="left",
+            suffixes=("", "_fp"),
+        )
+        for identity_column in ("driver_name", "team_name"):
+            fp_identity = f"{identity_column}_fp"
+            if fp_identity not in merged.columns:
+                continue
+            if identity_column not in merged.columns:
+                merged[identity_column] = merged[fp_identity]
+            else:
+                merged[identity_column] = merged[identity_column].where(
+                    merged[identity_column].notna(),
+                    merged[fp_identity],
+                )
+            merged = merged.drop(columns=[fp_identity])
         merged["grid_position"] = pd.to_numeric(merged["qualy_position"], errors="coerce")
         merged["grid_source"] = "qualifying_fallback"
     try:
@@ -1385,7 +1496,7 @@ def build_current_features(
         merged = merged.drop(columns=["grid_position", "grid_source", "grid_status"], errors="ignore").merge(
             grid,
             on="driver_id",
-            how="left",
+            how="outer",
         )
         grid_raw = pd.to_numeric(merged["grid_position"], errors="coerce")
         qualy_grid_fallback = pd.to_numeric(merged.get("qualy_position"), errors="coerce")
@@ -1407,10 +1518,25 @@ def build_current_features(
         merged.loc[missing_grid, "grid_source"] = "qualifying_fallback"
         merged["grid_position"] = grid_raw.fillna(qualy_grid_fallback)
         merged.loc[merged["grid_position"].isna(), "grid_source"] = "missing"
+    if merged.empty:
+        current = _provisional_current_features_from_history(
+            provider=provider,
+            mode=mode,
+            year=year,
+            round_number=round_number,
+            include_standings=include_standings,
+            history=history,
+            notes=notes,
+        )
+        return current, notes
     if "grid_status" not in merged.columns:
         merged["grid_status"] = "unknown"
     else:
         merged["grid_status"] = merged["grid_status"].fillna("unknown")
+    if "driver_name" not in merged.columns:
+        merged["driver_name"] = merged["driver_id"]
+    else:
+        merged["driver_name"] = merged["driver_name"].fillna(merged["driver_id"]).astype(str)
     if include_standings:
         try:
             standings = provider.get_standings(year, round_number)

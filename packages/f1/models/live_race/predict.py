@@ -859,6 +859,14 @@ def run_live_race_prediction(
     observations = observations.copy()
     observations = observations.sort_values(["driver_id", "lap_number", "timestamp"], kind="mergesort")
     cutoff_lap = getattr(config, "f1_live_replay_cutoff_lap", None)
+    cutoff_time_seconds = getattr(config, "f1_live_replay_cutoff_time_seconds", None)
+    timestamp_numeric = pd.to_numeric(
+        observations.get("timestamp", pd.Series(float("nan"), index=observations.index)),
+        errors="coerce",
+    )
+    timestamp_rows_total = int(len(observations))
+    timestamp_rows_known = int(timestamp_numeric.notna().sum())
+    timestamp_rows_dropped = 0
     if cutoff_lap is not None:
         cutoff_value = int(cutoff_lap)
         lap_filter = pd.to_numeric(observations.get("lap_number"), errors="coerce") <= float(cutoff_value)
@@ -873,6 +881,40 @@ def run_live_race_prediction(
                 "generated_at": _utc_now(),
             }
             return LiveRunResult(snapshot=pd.DataFrame(), trace=pd.DataFrame(), summary=summary, notes=notes)
+    if cutoff_time_seconds is not None:
+        cutoff_time_value = float(cutoff_time_seconds)
+        if not np.isfinite(cutoff_time_value) or cutoff_time_value < 0.0:
+            raise ValueError("f1_live_replay_cutoff_time_seconds must be a finite non-negative value")
+        timestamp_numeric = pd.to_numeric(
+            observations.get("timestamp", pd.Series(float("nan"), index=observations.index)),
+            errors="coerce",
+        )
+        known_timestamp = timestamp_numeric.notna() & np.isfinite(timestamp_numeric)
+        timestamp_rows_dropped = int((~known_timestamp).sum())
+        event_time_filter = known_timestamp & timestamp_numeric.le(cutoff_time_value)
+        observations = observations.loc[event_time_filter].copy()
+        notes.append(
+            "Global event-time replay cutoff active: using only observations with "
+            f"timestamp <= {cutoff_time_value:.6f}s; unknown timestamps dropped={timestamp_rows_dropped}.",
+        )
+        if observations.empty:
+            summary = {
+                "available": False,
+                "reason": "live_observations_empty_after_global_time_cutoff",
+                "source_used": source_result.source_used,
+                "cutoff_lap": int(cutoff_lap) if cutoff_lap is not None else None,
+                "cutoff_time_seconds": cutoff_time_value,
+                "timestamp_rows_total": timestamp_rows_total,
+                "timestamp_rows_known": timestamp_rows_known,
+                "timestamp_rows_dropped": timestamp_rows_dropped,
+                "generated_at": _utc_now(),
+            }
+            return LiveRunResult(snapshot=pd.DataFrame(), trace=pd.DataFrame(), summary=summary, notes=notes)
+    elif cutoff_lap is not None:
+        notes.append(
+            "Lap-number cutoff has no global event-time guarantee; retain only as a legacy diagnostic, "
+            "not as point-in-time replay evidence.",
+        )
 
     lap_number_numeric = pd.to_numeric(observations.get("lap_number"), errors="coerce")
     baseline_cache: dict[int, BaselineModel] = {}
@@ -1133,6 +1175,11 @@ def run_live_race_prediction(
             "heuristic_strategy_template_probabilities_not_calibrated",
             *(
                 []
+                if cutoff_time_seconds is not None
+                else ["global_event_time_cutoff_required_for_point_in_time_replay"]
+            ),
+            *(
+                []
                 if filter_cfg.promotion_ready and mc_priors.promotion_ready
                 else ["locked_replay_prior_calibration_required"]
             ),
@@ -1140,6 +1187,22 @@ def run_live_race_prediction(
         "uses_hand_tuned_priors": bool(not filter_cfg.promotion_ready or not mc_priors.promotion_ready),
         "horizon_laps": int(horizon),
         "replay_cutoff_lap": int(cutoff_lap) if cutoff_lap is not None else None,
+        "replay_cutoff_time_seconds": (
+            float(cutoff_time_seconds) if cutoff_time_seconds is not None else None
+        ),
+        "replay_cutoff_scope": (
+            "lap_and_global_event_time"
+            if cutoff_lap is not None and cutoff_time_seconds is not None
+            else "global_event_time"
+            if cutoff_time_seconds is not None
+            else "lap_number_only_not_global_event_time"
+            if cutoff_lap is not None
+            else "retrospective_full_session"
+        ),
+        "global_event_time_cutoff_applied": bool(cutoff_time_seconds is not None),
+        "timestamp_rows_total": timestamp_rows_total,
+        "timestamp_rows_known": timestamp_rows_known,
+        "timestamp_rows_dropped": timestamp_rows_dropped,
         "drivers_processed": int(snapshot_final["driver_id"].nunique()) if not snapshot_final.empty else 0,
         "laps_processed": int(pd.to_numeric(trace.get("lap_number"), errors="coerce").max())
         if not trace.empty

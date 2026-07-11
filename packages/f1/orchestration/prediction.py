@@ -128,6 +128,78 @@ CURRENT_WEEKEND_PRACTICE_EXACT_COLUMNS = {
 }
 
 
+def _stable_column_values(frame: pd.DataFrame, column: str) -> list[object]:
+    """Return deterministic, JSON-safe non-null values for an evidence column."""
+
+    if frame.empty or column not in frame.columns:
+        return []
+    values: list[object] = []
+    for raw_value in frame[column].dropna().tolist():
+        if isinstance(raw_value, np.generic):
+            raw_value = raw_value.item()
+        value: object
+        if isinstance(raw_value, (bool, int, float, str)):
+            value = raw_value
+        else:
+            value = str(raw_value)
+        if value not in values:
+            values.append(value)
+    return sorted(values, key=lambda item: str(item))
+
+
+def _practice_quality_evidence(features: pd.DataFrame) -> dict[str, object]:
+    """Summarize the point-in-time practice sample without overstating run intent."""
+
+    evidence: dict[str, object] = {
+        "contract": "f1_practice_lap_features_v3_quality_weighted",
+        "neutralised_laps_excluded_from_pace": True,
+        "deleted_and_pit_transition_laps_excluded_from_pace": True,
+        "run_intent_labels_calibrated": False,
+        "degradation_is_fuel_corrected": False,
+    }
+    roster_policies = _stable_column_values(features, "fp_roster_policy")
+    if roster_policies:
+        evidence["roster_policy"] = roster_policies
+    for column in (
+        "fp_roster_latest_session_driver_count",
+        "fp_roster_active_driver_count",
+        "fp_roster_carried_forward_driver_count",
+        "fp_roster_superseded_driver_count",
+    ):
+        if column not in features.columns:
+            continue
+        numeric = pd.to_numeric(features[column], errors="coerce").dropna()
+        if not numeric.empty:
+            evidence[column] = sorted({int(value) for value in numeric.tolist()})
+    for column in (
+        "fp_raw_timed_laps",
+        "fp_representative_laps",
+        "fp_invalid_laps",
+        "fp_deleted_laps",
+        "fp_neutralised_laps",
+        "fp_pit_out_laps",
+        "fp_pit_in_laps",
+    ):
+        if column not in features.columns:
+            continue
+        numeric = pd.to_numeric(features[column], errors="coerce")
+        evidence[column] = int(numeric.fillna(0.0).sum())
+    for column in (
+        "fp_lap_quality_ratio",
+        "fp_quali_sim_evidence_share",
+        "fp_race_sim_evidence_share",
+        "fp_run_intent_unclassified_share",
+        "fp_race_sim_raw_degradation_sec_per_lap",
+        "fp_race_sim_raw_degradation_mad",
+    ):
+        if column not in features.columns:
+            continue
+        numeric = pd.to_numeric(features[column], errors="coerce").dropna()
+        if not numeric.empty:
+            evidence[f"{column}_field_mean"] = float(numeric.mean())
+    return evidence
+
+
 def _is_current_weekend_practice_column(column: str) -> bool:
     return (
         column.startswith(("fp_", "fp1_", "fp2_", "fp3_", "sq_", "sprint_"))
@@ -1416,6 +1488,8 @@ def _merge_predicted_qualifying_context(
         target_year=config.year,
         target_round=config.round_number,
         include_standings=False,
+        session_cutoff=getattr(config, "qualifying_information_horizon", "auto"),
+        prediction_as_of=getattr(config, "prediction_as_of", None),
     )
     qual_train = _apply_season_sample_weighting(qual_train, config, notes)
     qual_features, qual_feature_notes = build_current_features(
@@ -1425,6 +1499,8 @@ def _merge_predicted_qualifying_context(
         round_number=config.round_number,
         include_standings=False,
         history=qual_train,
+        session_cutoff=getattr(config, "qualifying_information_horizon", "auto"),
+        prediction_as_of=getattr(config, "prediction_as_of", None),
     )
     for note in qual_notes + qual_feature_notes:
         note_lower = note.lower()
@@ -1955,6 +2031,8 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         target_year=config.year,
         target_round=config.round_number,
         include_standings=config.include_standings,
+        session_cutoff=getattr(config, "qualifying_information_horizon", "auto"),
+        prediction_as_of=getattr(config, "prediction_as_of", None),
     )
     train = _apply_season_sample_weighting(train, config, notes)
 
@@ -1965,6 +2043,8 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         round_number=config.round_number,
         include_standings=config.include_standings,
         history=train,
+        session_cutoff=getattr(config, "qualifying_information_horizon", "auto"),
+        prediction_as_of=getattr(config, "prediction_as_of", None),
     )
     notes.extend(feature_notes)
 
@@ -2122,6 +2202,27 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         else {}
     )
     prediction_phase = _prediction_input_phase(config, output)
+    resolved_cutoffs = _stable_column_values(features, "session_cutoff_resolved")
+    qualifying_information_horizon = {
+        "requested_cutoff": str(getattr(config, "qualifying_information_horizon", "auto")),
+        "resolved_cutoffs": resolved_cutoffs,
+        "prediction_as_of": getattr(config, "prediction_as_of", None),
+        "weekend_format_versions": _stable_column_values(features, "weekend_format_version"),
+        "weekend_snapshot_sha256": _stable_column_values(features, "weekend_snapshot_sha256"),
+        "session_completion_contract": "completed_session_with_classification",
+        "future_or_partial_sessions_eligible": False,
+    }
+    if not resolved_cutoffs:
+        notes.append(
+            "Information-horizon evidence is incomplete: the provider did not emit a resolved session cutoff; "
+            "the prediction artifact records this explicitly instead of inferring freshness from file presence.",
+        )
+    else:
+        notes.append(
+            "Qualifying information horizon: requested="
+            f"{qualifying_information_horizon['requested_cutoff']}, resolved={','.join(map(str, resolved_cutoffs))}.",
+        )
+    practice_quality = _practice_quality_evidence(features)
     race_input_evidence: dict[str, object] = {}
     if config.mode == "race":
         race_input_evidence = _race_input_evidence(
@@ -2183,6 +2284,8 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             "weather_feature_columns": [column for column in WEATHER_SCENARIO_COLUMNS if column in features.columns],
             "weather": weather_summary,
             "prediction_phase": prediction_phase,
+            "qualifying_information_horizon": qualifying_information_horizon,
+            "practice_quality_evidence": practice_quality,
             "race_information_horizon": (
                 str(output["race_information_horizon"].iloc[0])
                 if config.mode == "race" and "race_information_horizon" in output.columns and not output.empty

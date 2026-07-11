@@ -32,13 +32,16 @@ Legacy F1 experiment scripts now import this package directly.
 
 `LocalWeekendProvider`, `FastF1Provider`, and `OpenF1Provider` normalize
 practice laps through `data/providers/practice_features.py` under contract
-`f1_practice_lap_features_v2`. The shared contract defines:
+`f1_practice_lap_features_v3_quality_weighted`. The shared contract defines:
 
-- causal pre-qualifying session selection;
-- lap validity and pit-lap filtering;
+- season-aware, named point-in-time session selection;
+- completed-session gating plus inaccurate, deleted, pit-transition, yellow,
+  Safety Car, VSC, and red-flag lap filtering;
 - best/top-three/median pace and variability;
-- slow-lap, qualifying-simulation, race-simulation, wet-simulation, and
-  qualifying-versus-race features;
+- evidence-counted qualifying-simulation, race-simulation, wet-simulation,
+  and raw long-run slope features without invented fallback laps or a claimed
+  universal fuel correction;
+- roster preservation for drivers with no representative lap;
 - provider and contract-version provenance on the resulting rows.
 
 This guarantees consistent feature *semantics*, not identical raw coverage or
@@ -46,6 +49,10 @@ values. FastF1, OpenF1, and local snapshots can still differ in freshness,
 missing stint/tyre metadata, lap deletion flags, or session availability. A run
 must retain `fp_feature_contract_version`, feature counts, and source notes so
 those differences remain observable.
+
+The target/cutoff matrix and 2026 regulation-era rules are documented in
+`docs/architecture/f1_point_in_time_contract.md` and implemented in
+`domain/weekend.py`.
 
 ## Evidence Boundaries
 
@@ -56,8 +63,15 @@ those differences remain observable.
   not a validated driver-specific wet-pace model.
 - Probability fields are model outputs. Call them calibrated only when the
   emitted out-of-fold probability audit passes for the exact deployed score
-  transformation and information horizon.
+  transformation and information horizon, with chronological event-disjoint
+  selection, calibration, and final-audit blocks.
+- Historical live replay is causal only with a global event-time cutoff.
+  Lap-number-only truncation is a diagnostic because different cars cross the
+  same lap boundary at different timestamps.
+- Ultimate Lap-Time sector minima are combined only inside compatible
+  session/compound strata and remain a theoretical lower bound. They are not
+  an expected achievable lap.
 - Betting helpers are execution-free research utilities. Their presence does
   not make an unvalidated probability forecast decision-ready.
 
-Suggested commit name: `docs: define F1 package maturity and provider contracts`
+Suggested commit name: `feat(f1): enforce season-aware point-in-time prediction contracts`

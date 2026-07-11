@@ -1,5 +1,51 @@
 season: 2026
-regime: new_regulations
+as_of: "2026-07-11"
+regime: technical_and_sporting_reset_2026
 training_policy: same_season_walk_forward
+field_size: 22
+weekend_contract:
+  standard: standard
+  sprint: sprint_2024_plus
+  qualifying_elimination:
+    q1: 6
+    q2: 6
+    q3_field: 10
+  sprint_qualifying_elimination:
+    sq1: 6
+    sq2: 6
+    sq3_field: 10
+training:
+  default_arm: same_season_walk_forward
+  permitted_default_seasons:
+    - 2026
+  naive_prior_season_pooling: forbidden
+  excluded_naive_transfer_seasons:
+    - 2025
+  transfer_policy: separate_predeclared_ablation_only
+  target_round_excluded: true
+  chronological_events_only: true
+  selection_calibration_audit_event_disjoint: true
+point_in_time:
+  require_named_session_cutoff: true
+  require_completed_session_classification: true
+  mutable_provider_as_of_replay: forbidden_without_first_seen_snapshot
+  partial_sessions_eligible: false
+calendar_state:
+  latest_completed_round: 9
+  latest_completed_event: British Grand Prix
+  latest_completed_date: "2026-07-05"
+  next_scheduled_round: 10
+  next_scheduled_event: Belgian Grand Prix
+  next_scheduled_start: "2026-07-17"
+  cancelled_april_events:
+    - Bahrain Grand Prix
+    - Saudi Arabian Grand Prix
+regulatory_sources:
+  sporting_regulations_issue: "Issue 07, 2026-06-25"
+  sporting_regulations_url: "https://www.fia.com/system/files/documents/fia_2026_f1_regulations_-_section_b_sporting_-_iss_07_-_2026-06-25.pdf"
+  amended_calendar_url: "https://www.fia.com/news/2026-fia-sporting-calendars-approved-world-motor-sport-council"
+  official_calendar_url: "https://www.formula1.com/en/racing/2026"
 notes:
-  - 2026 predictions should prioritize same-season evidence over prior-season transfer.
+  - Treat 2026 as a new-regulation regime; do not silently pool 2025 observations.
+  - Use older seasons only in separately labelled transfer ablations with their own acceptance evidence.
+  - Refresh calendar_state after every completed or cancelled event before a locked run.

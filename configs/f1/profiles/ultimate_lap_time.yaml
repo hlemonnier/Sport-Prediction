@@ -52,6 +52,16 @@ evaluation:
     - interval_coverage
     - fastest_lap_winner_hit_rate
     - top3_fastest_lap_accuracy
+  current_evidence:
+    artifact: artifacts/backtests/f1/ultimate_lap_time_round09_post_sprint_pre_q_20260711.json
+    event_key: 202609
+    information_horizon: post_sprint_pre_qualifying
+    holdout_target_rows: 21
+    p50_mae_seconds: 1.165560796403658
+    interval_coverage: 1.0
+    mean_interval_width_seconds: 10.0
+    ranking_spearman: 0.9090909090909091
+    decision: not_promoted_single_event_wide_interval_no_locked_comparator
 promotion:
   fail_closed_on_missing_metrics: true
   fail_closed_on_leakage_issues: true

@@ -34,6 +34,14 @@ evaluation:
     - no_leakage_replay_invariance
     - regret_vs_oracle
   fail_closed_on_missing_metrics: true
+  current_evidence:
+    artifact: artifacts/reports/f1/live_race_round09_global_prefix_invariance.json
+    event_key: 202609
+    global_cutoff_time_seconds: 5200.0
+    prediction_prefix_invariant: true
+    model_one_step_mae_seconds: 0.44808541668280866
+    naive_last_lap_mae_seconds: 0.3759166666666666
+    decision: reject_model_worse_than_naive_and_hand_priors_unlocked
 planner:
   planner_id: deterministic_dp_pre_sim_v1
   horizon_laps: 12

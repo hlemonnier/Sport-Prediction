@@ -10,9 +10,15 @@ from .base import (
     Path,
     POINTS_TABLE,
     Tuple,
+    PredictionTarget,
+    Session,
+    SessionCutoff,
     _assign_pit_lane_grid_positions,
+    _eligible_pace_session_indices,
     _parse_grid_position_status,
     _standardize_grid_columns,
+    canonicalize_session_sequence,
+    complete_classification_positions,
     find_repo_root,
     first_available,
     hashlib,
@@ -160,41 +166,73 @@ class OpenF1Provider(BaseProvider):
             if row.get("driver_number") is not None
         }
 
-    def _pre_qualifying_sessions(self, meeting_key: int) -> list[tuple[int, str]]:
+    def _pre_qualifying_sessions(
+        self,
+        meeting_key: int,
+        *,
+        year: int = 2026,
+        session_cutoff: str | SessionCutoff | None = None,
+        prediction_target: str | PredictionTarget = "qualifying",
+    ) -> list[tuple[int, str]]:
         sessions = self._get_json("sessions", {"meeting_key": meeting_key})
         sessions = sorted(sessions, key=lambda row: str(row.get("date_start") or ""))
-        qualifying_index = next(
-            (
-                idx
-                for idx, row in enumerate(sessions)
-                if str(row.get("session_name") or "").strip().lower() == "qualifying"
-            ),
-            len(sessions),
+        session_rows = [
+            row
+            for row in sessions
+            if row.get("session_key") is not None and str(row.get("session_name") or "").strip()
+        ]
+        session_names = [str(row.get("session_name") or "").strip() for row in session_rows]
+        selected_indices, cutoff_label, weekend_format = _eligible_pace_session_indices(
+            year=year,
+            session_names=session_names,
+            prediction_target=prediction_target,
+            session_cutoff=session_cutoff,
         )
+        canonical_sessions = canonicalize_session_sequence(year, session_names)
         selected: list[tuple[int, str]] = []
-        practice_number = 0
-        for row in sessions[:qualifying_index]:
-            name = str(row.get("session_name") or "").strip()
-            normalized = name.lower()
-            session_key = row.get("session_key")
-            if session_key is None or not ("practice" in normalized or "sprint" in normalized):
+        label_by_session = {
+            Session.FP1: "FP1",
+            Session.FP2: "FP2",
+            Session.FP3: "FP3",
+            Session.SPRINT_QUALIFYING: "SQ",
+            Session.SPRINT: "Sprint",
+        }
+        for index in selected_indices:
+            row = session_rows[index]
+            session_key = int(row["session_key"])
+            if not self._get_json("session_result", {"session_key": session_key}):
                 continue
-            if "practice" in normalized:
-                practice_number += 1
-                label = f"FP{practice_number}"
-            elif "qualifying" in normalized or "shootout" in normalized:
-                label = "SQ"
-            else:
-                label = "Sprint"
-            selected.append((int(session_key), label))
+            session = canonical_sessions[index]
+            if session in label_by_session:
+                selected.append((session_key, label_by_session[session]))
+        self._last_session_cutoff_resolved = cutoff_label
+        self._last_weekend_format_version = weekend_format
         return selected
 
-    def get_fp_features(self, year: int, round_number: int) -> pd.DataFrame:
+    def get_fp_features(
+        self,
+        year: int,
+        round_number: int,
+        *,
+        session_cutoff: str | SessionCutoff | None = None,
+        prediction_target: str | PredictionTarget = "qualifying",
+        prediction_as_of: Optional[str] = None,
+    ) -> pd.DataFrame:
+        if prediction_as_of is not None:
+            raise ValueError(
+                "OpenF1 retrospective responses do not expose immutable first-seen timestamps; "
+                "prediction_as_of requires a frozen local weekend snapshot.",
+            )
         meeting_name, country_name = self._meeting_filters(round_number)
         meeting = self._meeting_for_round(year, round_number, meeting_name, country_name)
         meeting_key = meeting.get("meeting_key")
         frames: List[pd.DataFrame] = []
-        for session_key, label in self._pre_qualifying_sessions(int(meeting_key)):
+        for session_key, label in self._pre_qualifying_sessions(
+            int(meeting_key),
+            year=year,
+            session_cutoff=session_cutoff,
+            prediction_target=prediction_target,
+        ):
             lap_rows = self._get_json("laps", {"session_key": session_key})
             if not lap_rows:
                 continue
@@ -216,6 +254,16 @@ class OpenF1Provider(BaseProvider):
         if not merged.empty:
             merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
             merged["fp_feature_source"] = "openf1"
+            merged["session_cutoff_resolved"] = getattr(
+                self,
+                "_last_session_cutoff_resolved",
+                "unknown",
+            )
+            merged["weekend_format_version"] = getattr(
+                self,
+                "_last_weekend_format_version",
+                "unknown",
+            )
         return merged
 
     def get_qualifying_results(self, year: int, round_number: int) -> pd.DataFrame:
@@ -241,7 +289,7 @@ class OpenF1Provider(BaseProvider):
                 "position": r.get("position"),
                 "q3_time": q3_time,
             })
-        return pd.DataFrame(rows)
+        return complete_classification_positions(pd.DataFrame(rows))
 
     def get_race_results(self, year: int, round_number: int) -> pd.DataFrame:
         meeting_name, country_name = self._meeting_filters(round_number)
@@ -265,7 +313,7 @@ class OpenF1Provider(BaseProvider):
         df = pd.DataFrame(rows)
         df["position"] = pd.to_numeric(df["position"], errors="coerce")
         df["grid_position"] = pd.to_numeric(df["grid_position"], errors="coerce")
-        return df
+        return complete_classification_positions(df)
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:
         if round_number <= 1:

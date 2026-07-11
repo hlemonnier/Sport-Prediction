@@ -10,9 +10,15 @@ from .base import (
     Path,
     POINTS_TABLE,
     Tuple,
+    PredictionTarget,
+    Session,
+    SessionCutoff,
     _assign_pit_lane_grid_positions,
+    _eligible_pace_session_indices,
     _parse_grid_position_status,
     _standardize_grid_columns,
+    canonicalize_session_sequence,
+    complete_classification_positions,
     find_repo_root,
     first_available,
     hashlib,
@@ -123,6 +129,9 @@ class LocalWeekendProvider(BaseProvider):
                     "event_name": event_name,
                     "event_dir": candidate,
                     "sessions": sessions,
+                    "event_format": meta.get("event_format"),
+                    "metadata_schema_version": meta.get("schema_version"),
+                    "snapshot_sha256": meta.get("snapshot_sha256"),
                 },
             )
         weekends.sort(key=lambda item: int(item["round_number"]))
@@ -185,27 +194,72 @@ class LocalWeekendProvider(BaseProvider):
         sessions.sort(key=lambda s: self._safe_int(s.get("session_order"), default=999))
         return weekend_dir, sessions
 
-    def _select_fp_sessions(self, sessions: list[dict[str, object]]) -> list[dict[str, object]]:
-        qualifying_orders = [
-            self._safe_int(s.get("session_order"), default=999)
-            for s in sessions
-            if str(s.get("session_type", "")).strip().lower() == "qualifying"
+    @staticmethod
+    def _session_is_complete(
+        session: dict[str, object],
+        prediction_as_of: Optional[str] = None,
+    ) -> bool:
+        if prediction_as_of is not None:
+            available_at = session.get("available_at") or session.get("first_published_at")
+            if not available_at:
+                return False
+            try:
+                available_timestamp = pd.Timestamp(str(available_at))
+                cutoff_timestamp = pd.Timestamp(str(prediction_as_of))
+                if available_timestamp.tzinfo is None:
+                    available_timestamp = available_timestamp.tz_localize("UTC")
+                if cutoff_timestamp.tzinfo is None:
+                    cutoff_timestamp = cutoff_timestamp.tz_localize("UTC")
+                if available_timestamp > cutoff_timestamp:
+                    return False
+            except Exception:
+                return False
+        if session.get("completed") is False:
+            return False
+        status = str(session.get("completion_status") or "").strip().lower()
+        if status:
+            if any(token in status for token in ("partial", "ongoing", "scheduled", "suspended")):
+                return False
+            if any(token in status for token in ("complete", "final", "chequered")):
+                return True
+        # Backward-compatible read of immutable legacy snapshots.  A provider
+        # classification file is required; laps alone are not proof that an
+        # in-progress session had finished.
+        results_rows = LocalWeekendProvider._safe_int(session.get("results_rows"), default=0)
+        return results_rows > 0 and bool(session.get("results_path"))
+
+    def _select_fp_sessions(
+        self,
+        *,
+        year: int,
+        sessions: list[dict[str, object]],
+        prediction_target: str | PredictionTarget,
+        session_cutoff: str | SessionCutoff | None,
+        event_format_hint: Optional[str],
+        prediction_as_of: Optional[str],
+    ) -> tuple[list[dict[str, object]], str, str]:
+        session_rows = [
+            session
+            for session in sessions
+            if str(session.get("session_name") or session.get("session_type") or "").strip()
         ]
-        qualifying_order = min(qualifying_orders) if qualifying_orders else 999
+        session_names = [
+            str(session.get("session_name") or session.get("session_type") or "").strip()
+            for session in session_rows
+        ]
+        selected_indices, cutoff_label, weekend_format = _eligible_pace_session_indices(
+            year=year,
+            session_names=session_names,
+            prediction_target=prediction_target,
+            session_cutoff=session_cutoff,
+            event_format_hint=event_format_hint,
+        )
         selected = [
-            s
-            for s in sessions
-            if self._safe_int(s.get("session_order"), default=999) < qualifying_order
-            and str(s.get("session_type", "")).strip().lower()
-            in {"free_practice", "sprint_qualifying", "sprint_race"}
+            session_rows[index]
+            for index in selected_indices
+            if self._session_is_complete(session_rows[index], prediction_as_of)
         ]
-        if selected:
-            return selected
-        return [
-            s
-            for s in sessions
-            if str(s.get("session_type", "")).strip().lower() == "free_practice"
-        ]
+        return selected, cutoff_label, weekend_format
 
     def _session_label(self, session_type: str, free_practice_idx: int) -> str:
         normalized = session_type.strip().lower()
@@ -507,11 +561,29 @@ class LocalWeekendProvider(BaseProvider):
             )
         return rounds
 
-    def get_fp_features(self, year: int, round_number: int) -> pd.DataFrame:
+    def get_fp_features(
+        self,
+        year: int,
+        round_number: int,
+        *,
+        session_cutoff: str | SessionCutoff | None = None,
+        prediction_target: str | PredictionTarget = "qualifying",
+        prediction_as_of: Optional[str] = None,
+    ) -> pd.DataFrame:
         weekend_dir, sessions = self._session_entries(year, round_number)
         if not sessions:
             return pd.DataFrame()
-        selected = self._select_fp_sessions(sessions)
+        weekend = self._weekend_for_round(year, round_number) or {}
+        selected, cutoff_label, weekend_format = self._select_fp_sessions(
+            year=year,
+            sessions=sessions,
+            prediction_target=prediction_target,
+            session_cutoff=session_cutoff,
+            event_format_hint=(
+                str(weekend.get("event_format")) if weekend.get("event_format") is not None else None
+            ),
+            prediction_as_of=prediction_as_of,
+        )
         if not selected:
             return pd.DataFrame()
 
@@ -533,6 +605,11 @@ class LocalWeekendProvider(BaseProvider):
         if not merged.empty:
             merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
             merged["fp_feature_source"] = "local_weekends"
+            merged["session_cutoff_resolved"] = cutoff_label
+            merged["weekend_format_version"] = weekend_format
+            snapshot_sha256 = weekend.get("snapshot_sha256")
+            if snapshot_sha256:
+                merged["weekend_snapshot_sha256"] = str(snapshot_sha256)
         return merged
 
     def get_qualifying_results(self, year: int, round_number: int) -> pd.DataFrame:
@@ -570,7 +647,7 @@ class LocalWeekendProvider(BaseProvider):
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
         frame = frame[frame["driver_id"] != ""]
-        return frame
+        return complete_classification_positions(frame)
 
     def get_race_results(self, year: int, round_number: int) -> pd.DataFrame:
         weekend_dir, sessions = self._session_entries(year, round_number)
@@ -609,7 +686,7 @@ class LocalWeekendProvider(BaseProvider):
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
         frame = frame[frame["driver_id"] != ""]
-        return frame
+        return complete_classification_positions(frame)
 
     def get_starting_grid(self, year: int, round_number: int) -> pd.DataFrame:
         weekend = self._weekend_for_round(year, round_number)

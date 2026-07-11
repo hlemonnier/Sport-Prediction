@@ -23,30 +23,45 @@
     "legacy_local_reports_status": "stale_quarantined_until_regenerated_with_current_schema",
     "required_baseline_schema": "f1_baseline_ladder_complete_field_v2",
     "required_horizon_schema": "f1_horizon_a_vs_b_complete_field_calibration_v3",
-    "required_probability_audit_schema": "pl_gumbel_probability_audit_v4_disjoint_calibration"
+    "required_probability_audit_schema": "pl_gumbel_probability_audit_v4_disjoint_calibration",
+    "required_temporal_partition_schema": "f1_temporal_selection_calibration_audit_v1"
   },
   "provider_feature_contract": {
-    "version": "f1_practice_lap_features_v2",
+    "version": "f1_practice_lap_features_v3_quality_weighted",
     "implementation": "packages/f1/data/providers/practice_features.py",
     "providers": [
       "local",
       "fastf1",
       "openf1"
     ],
-    "scope": "pre-qualifying practice pace, qualifying-simulation, race-simulation, wet-simulation, and lap-quality features",
+    "scope": "named-cutoff practice and Sprint pace, evidence-counted qualifying/race/wet simulations, raw long-run slope, and lap-quality features",
     "guarantees_identical_semantics": true,
     "guarantees_identical_raw_coverage_or_values": false,
-    "causal_cutoff": "sessions available before the main qualifying session",
+    "causal_cutoff": "target-safe sessions resolved against the season-aware weekend DAG and proven complete by a classification",
+    "point_in_time_snapshot_required_for_mutable_as_of_replay": true,
+    "partial_sessions_eligible": false,
+    "current_roster_policy": "latest eligible session plus two-seat constructor continuity",
+    "superseded_reserve_drivers_eligible": false,
+    "unclassified_result_position_policy": "stable tail ranks in authoritative source order",
+    "complete_field_policy": "exact one-to-one target roster equality with no missing or extra drivers",
+    "run_intent_labels_calibrated": false,
+    "degradation_is_universally_fuel_corrected": false,
     "contract_test": "research/projects/F1/rising_qualification_prediction/Python/tests/test_provider_feature_contract.py"
   },
   "stages": {
     "pre_quali": {
       "implementation_status": "executable_research",
-      "deployment_status": "not_promoted",
-      "predictive_edge_status": "unproven",
-      "probability_status": "claimable_only_when_the_emitted_oof_probability_audit_passes",
+      "deployment_status": "point_ranking_promoted_research_policy",
+      "predictive_edge_status": "validated_on_nine_event_2026_point_in_time_walk_forward",
+      "promoted_policy": "auto_selection_without_runsim_standings_circuit_or_weather",
+      "probability_status": "not_promoted_insufficient_disjoint_calibration_history",
+      "uncertainty_status": "not_promoted_interval_coverage_regressed_from_0.8889_to_0.8131",
       "circuit_feature_status": "quarantined_by_default_research_opt_in_only",
       "weather_status": "scenario_and_uncertainty_prior_not_validated_relative_pace_edge",
+      "current_evidence": [
+        "artifacts/backtests/f1/rolling_2026/runs/2026_promoted_policy_20260711c/run_manifest.json",
+        "docs/research/f1_2026_walk_forward_experiment_report.md"
+      ],
       "historical_evidence": [
         "artifacts/reports/f1/reviews/same_season_walk_forward_backtest.json",
         "artifacts/reports/f1/reviews/baseline_ladder_2025_fullfield.json",
@@ -55,9 +70,9 @@
     },
     "pre_race": {
       "implementation_status": "executable_research",
-      "deployment_status": "not_promoted",
-      "predictive_edge_status": "unproven",
-      "probability_status": "claimable_only_when_the_exact_production_score_layer_oof_audit_passes",
+      "deployment_status": "retained_frozen_grid_only_baseline",
+      "predictive_edge_status": "automatic_ml_candidate_rejected_on_nine_event_2026_walk_forward",
+      "probability_status": "not_promoted_insufficient_disjoint_calibration_history",
       "information_horizons": [
         "pre_fp_provisional",
         "post_fp_pre_qualifying",
@@ -65,6 +80,10 @@
         "post_grid_pre_race"
       ],
       "horizon_specific_validation_required": true,
+      "current_evidence": [
+        "artifacts/backtests/f1/rolling_2026/runs/2026_promoted_policy_20260711c/run_manifest.json",
+        "docs/research/f1_2026_walk_forward_experiment_report.md"
+      ],
       "historical_evidence": [
         "artifacts/reports/f1/reviews/same_season_walk_forward_backtest.json",
         "artifacts/reports/f1/reviews/baseline_ladder_2025_fullfield.json"
@@ -75,8 +94,14 @@
       "deployment_status": "target_specific_untrained_snapshot_baseline",
       "predictive_edge_status": "unproven",
       "canonical_trace_model_promoted": false,
+      "causal_replay_cutoff": "global event timestamp; lap-number-only truncation is diagnostic and non-promotable",
       "prior_calibration_is_model_promotion": false,
       "strategy_template_probability_status": "heuristic_unvalidated_promotion_blocker",
+      "current_evidence": "artifacts/reports/f1/live_race_round09_global_prefix_invariance.json",
+      "round_09_global_prefix_invariance": true,
+      "round_09_model_mae_seconds": 0.44808541668280866,
+      "round_09_naive_last_lap_mae_seconds": 0.3759166666666666,
+      "round_09_decision": "reject_model_worse_than_naive_and_hand_priors_unlocked",
       "required_evidence": [
         "causal full-field replay benchmark",
         "locked filter, regime, pit-loss, and strategy-template calibration",
@@ -96,7 +121,13 @@
       "deployment_status": "not_promotable_until_locked_reports_exist",
       "predictive_edge_status": "unproven",
       "registry_profile": "configs/f1/profiles/ultimate_lap_time_deep.yaml",
-      "deterministic_baseline_is_production_replacement": false
+      "deterministic_baseline_is_production_replacement": false,
+      "sector_target_construction": "compatible_sector_lower_bound_v2 with fastest-clean-lap fallback when compatibility context is unavailable",
+      "sector_lower_bound_is_expected_achievable_lap": false,
+      "current_evidence": "artifacts/backtests/f1/ultimate_lap_time_round09_post_sprint_pre_q_20260711.json",
+      "round_09_post_sprint_pre_q_mae_seconds": 1.165560796403658,
+      "round_09_interval_width_seconds": 10.0,
+      "round_09_decision": "not_promoted_single_event_wide_interval_no_locked_comparator"
     }
   }
 }

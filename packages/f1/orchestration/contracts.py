@@ -24,9 +24,10 @@ F1_MODEL_ARCHITECTURE: tuple[F1PredictionStage, ...] = (
         status="active",
         predicts="qualifying order before qualifying is complete",
         inputs=(
-            "free-practice pace features",
+            "completed target-safe session evidence at a named cutoff",
+            "quality-filtered practice/Sprint pace with missingness retained",
             "team/driver form",
-            "circuit-card priors",
+            "circuit-card priors only in explicit research ablations",
             "weather priors when available",
         ),
         output_contract=(
@@ -46,7 +47,7 @@ F1_MODEL_ARCHITECTURE: tuple[F1PredictionStage, ...] = (
             "official starting grid when available",
             "qualifying result when available",
             "Pre-Quali predicted grid before qualifying",
-            "free-practice race pace features",
+            "quality-filtered practice/Sprint race-pace evidence",
             "strategy, reliability, circuit, and weather priors",
         ),
         output_contract=(
@@ -60,7 +61,7 @@ F1_MODEL_ARCHITECTURE: tuple[F1PredictionStage, ...] = (
     F1PredictionStage(
         key="live_race",
         name="Live Race Model",
-        status="planned",
+        status="experimental_research",
         predicts="live race order and strategy adjustments during the race",
         inputs=(
             "starting grid",
@@ -79,7 +80,7 @@ F1_MODEL_ARCHITECTURE: tuple[F1PredictionStage, ...] = (
     F1PredictionStage(
         key="ultimate_lap_time",
         name="Ultimate Lap-Time Model",
-        status="planned",
+        status="experimental_research",
         predicts="theoretical best lap pace for the upcoming weekend",
         inputs=(
             "car/team pace state",
@@ -100,12 +101,31 @@ F1_MODEL_ARCHITECTURE: tuple[F1PredictionStage, ...] = (
 def architecture_payload() -> dict[str, Any]:
     return {
         "name": "F1 Prediction System",
-        "version": "f1_prediction_architecture_v1",
+        "version": "f1_prediction_architecture_v2_point_in_time",
         "stages": [asdict(stage) for stage in F1_MODEL_ARCHITECTURE],
         "active_flow": [
             "pre_quali",
             "pre_race",
         ],
+        "experimental_branches": [
+            "live_race",
+            "ultimate_lap_time",
+        ],
+        "point_in_time_contract": {
+            "implementation": "packages/f1/domain/weekend.py",
+            "named_session_cutoff_required": True,
+            "completed_session_classification_required": True,
+            "partial_or_future_sessions_eligible": False,
+            "final_grid_is_distinct_from_qualifying_classification": True,
+            "mutable_provider_as_of_replay_requires_first_seen_snapshot": True,
+        },
+        "evaluation_contract": {
+            "complete_field_required": True,
+            "chronological_walk_forward": True,
+            "selection_calibration_final_audit_event_disjoint": True,
+            "same_season_2026_primary_arm": True,
+            "cross_regime_transfer_is_separate_ablation": True,
+        },
         "pre_quali_to_race_contract": {
             "enabled": True,
             "description": (

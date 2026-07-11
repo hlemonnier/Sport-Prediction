@@ -229,6 +229,27 @@ def create_app() -> FastAPI:
             fastf1_payload = await _run_blocking(
                 lambda: app.state.fastf1_schedule.resolve_live_or_next_session(year=year, now=now)
             )
+            if fastf1_payload.get("status") == "live":
+                try:
+                    openf1_payload = await _run_blocking(
+                        lambda: OpenF1RestClient.from_env().resolve_live_or_next_session(year=year, now=now)
+                    )
+                    if openf1_payload.get("status") == "live":
+                        openf1_payload = dict(openf1_payload)
+                        openf1_payload["scheduleSource"] = "fastf1-schedule"
+                        openf1_payload["scheduleSession"] = fastf1_payload.get("session")
+                        app.state.f1_session_status_cache[cache_key] = (monotonic_now, dict(openf1_payload))
+                        return openf1_payload
+                    fastf1_payload = dict(fastf1_payload)
+                    fastf1_payload["fallbackReason"] = (
+                        f"OpenF1 did not report a live timing session: "
+                        f"{openf1_payload.get('message', 'no live OpenF1 session')}"
+                    )
+                except Exception as exc:
+                    fastf1_payload = dict(fastf1_payload)
+                    fastf1_payload["fallbackReason"] = f"OpenF1 live timing unavailable: {exc}"
+                app.state.f1_session_status_cache[cache_key] = (monotonic_now, dict(fastf1_payload))
+                return fastf1_payload
             if fastf1_payload.get("status") != "unavailable":
                 app.state.f1_session_status_cache[cache_key] = (monotonic_now, dict(fastf1_payload))
                 return fastf1_payload
@@ -345,6 +366,7 @@ def create_app() -> FastAPI:
 
     @app.post("/api/f1/fastf1/import")
     async def import_fastf1(body: dict[str, Any]) -> dict[str, Any]:
+        snapshot = None
         try:
             request = fastf1_request_from_payload(body)
             result = await _run_blocking(lambda: app.state.fastf1_artifacts.import_session(request))
@@ -352,13 +374,29 @@ def create_app() -> FastAPI:
             mapped_session_key = _optional_str(body.get("map_to_session_key", body.get("openf1_session_key")))
             if mapped_session_key:
                 app.state.track_projector.set_session_alias(mapped_session_key, result.session_key)
+            hydrate_platform = body.get("hydrate_platform", True)
+            if hydrate_platform is True or _truthy(hydrate_platform):
+                snapshot = await runtime.reset_session(
+                    result.session_key,
+                    result.runtime_events,
+                    source="fastf1-history",
+                    replay_meta={
+                        "mode": "fastf1-history",
+                        "eventCount": len(result.runtime_events),
+                        "artifactCount": len(result.artifacts),
+                        "artifactSessionKey": result.session_key,
+                    },
+                )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except RuntimeError as exc:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(status_code=502, detail=f"FastF1 import failed: {exc}") from exc
-        return {"imported": True, **result.to_dict()}
+        response = {"imported": True, **result.to_dict()}
+        if snapshot is not None:
+            response["snapshot"] = snapshot.to_dict()
+        return response
 
     @app.get("/api/f1/fastf1/artifacts")
     async def list_fastf1_artifacts(

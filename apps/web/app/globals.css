@@ -3677,6 +3677,55 @@ body.sidebar-compact .nav-item {
   padding: var(--sp-4);
 }
 
+.f1-track-map .track-shadow,
+.f1-track-map .track-road,
+.f1-track-map .track-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.f1-track-map .track-shadow {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 34;
+}
+
+.f1-track-map .track-road {
+  stroke: #505050;
+  stroke-width: 24;
+}
+
+.f1-track-map .track-line {
+  stroke: #777;
+  stroke-width: 6;
+}
+
+.f1-track-map .track-corner circle {
+  stroke: #111;
+  stroke-width: 3;
+}
+
+.f1-track-map .track-corner text {
+  fill: #101010;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 8px;
+  font-weight: 900;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+.f1-track-map .track-corner.slow circle {
+  fill: #ff4d4d;
+}
+
+.f1-track-map .track-corner.medium circle {
+  fill: #ffce1f;
+}
+
+.f1-track-map .track-corner.fast circle {
+  fill: #35d39c;
+}
+
 .f1-track-card.tracker .f1-track-zone {
   opacity: 0.9;
 }
@@ -3789,6 +3838,47 @@ body.sidebar-compact .nav-item {
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
+}
+
+.f1-track-layout-panel {
+  justify-content: start;
+}
+
+.f1-track-layout-stats,
+.f1-track-layout-meta {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.f1-track-layout-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.f1-track-layout-stats span,
+.f1-track-layout-meta span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(254, 254, 254, 0.025);
+}
+
+.f1-track-layout-stats strong,
+.f1-track-layout-meta strong {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.f1-track-layout-stats small,
+.f1-track-layout-meta small {
+  color: var(--muted);
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .f1-track-zone-row {

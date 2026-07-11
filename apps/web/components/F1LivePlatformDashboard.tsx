@@ -21,6 +21,7 @@ import {
   stopF1TimedReplay,
   type FastF1ArtifactRecord,
   type FastF1ArtifactRowsResponse,
+  type FastF1ImportResponse,
   type FastF1EngineeringSummary,
   type F1AnalyticsResponse,
   type F1CustomMicroSectorPassage,
@@ -35,6 +36,10 @@ import {
   type F1StreamUpdate,
   type F1TrackGeometryResponse,
 } from "@/lib/f1Platform";
+import {
+  getF1TrackLayoutProfile,
+  type F1TrackLayoutProfile,
+} from "@/lib/f1TrackLayouts";
 
 const MEANINGFUL_REFRESH_EVENTS = new Set([
   "lap.updated",
@@ -110,6 +115,7 @@ export default function F1LivePlatformDashboard({
   sessionMode = "live",
 }: F1LivePlatformDashboardProps = {}) {
   const useSelectedSessionMode = sessionMode === "selected";
+  const useLiveSessionSurface = !useSelectedSessionMode && !showOperationsControls && initialTab === "standings";
   const [sessionKey, setSessionKey] = useState("");
   const [activeTab, setActiveTab] = useState<F1RaceTab>(initialTab);
   const [snapshot, setSnapshot] = useState<F1SessionSnapshot | null>(null);
@@ -129,7 +135,7 @@ export default function F1LivePlatformDashboard({
   const [replaySpeed, setReplaySpeed] = useState("20");
   const [replayStatus, setReplayStatus] = useState<F1ReplayStatus | null>(null);
   const [replayBusy, setReplayBusy] = useState(false);
-  const [fastF1Year, setFastF1Year] = useState("2024");
+  const [fastF1Year, setFastF1Year] = useState(String(new Date().getFullYear()));
   const [fastF1Event, setFastF1Event] = useState("Austria");
   const [fastF1Session, setFastF1Session] = useState("R");
   const [fastF1Drivers, setFastF1Drivers] = useState("VER, RUS");
@@ -141,6 +147,7 @@ export default function F1LivePlatformDashboard({
   const [artifactRows, setArtifactRows] = useState<FastF1ArtifactRowsResponse | null>(null);
   const [engineeringSummary, setEngineeringSummary] = useState<FastF1EngineeringSummary | null>(null);
   const [trackGeometry, setTrackGeometry] = useState<F1TrackGeometryResponse | null>(null);
+  const [trackLayoutProfile, setTrackLayoutProfile] = useState<F1TrackLayoutProfile | null>(null);
   const [liveLapDriverNumbers, setLiveLapDriverNumbers] = useState<number[]>([]);
   const [liveLapTargets, setLiveLapTargets] = useState<LiveLapTarget[]>([]);
   const [liveTelemetryVisible, setLiveTelemetryVisible] = useState<Record<LiveTelemetryMetric, boolean>>(
@@ -161,6 +168,7 @@ export default function F1LivePlatformDashboard({
     setAnalytics(null);
     setEngineeringSummary(null);
     setTrackGeometry(null);
+    setTrackLayoutProfile(null);
     setLastUpdate(null);
     setSelectedDriver(null);
   }, []);
@@ -235,6 +243,16 @@ export default function F1LivePlatformDashboard({
           setStatus("connecting");
           return;
         }
+        if (key && useLiveSessionSurface) {
+          setSessionKey(key);
+          setArtifactSessionKey(key.startsWith("fastf1:") ? key : "");
+          setAutoSessionMessage(
+            `${formatF1SessionTitle(resolution.session)} is live from ${sessionSourceLabel(resolution.source)}. ` +
+              "Waiting for OpenF1 live timing events to populate driver rows."
+          );
+          setStatus("polling");
+          return;
+        }
         if (await useLocalEngineerSessionFallback(`Live session from ${sessionSourceLabel(resolution.source)}: ${formatF1SessionTitle(resolution.session)}.`)) {
           return;
         }
@@ -278,7 +296,7 @@ export default function F1LivePlatformDashboard({
     } finally {
       setResolvingSession(false);
     }
-  }, [clearResolvedSessionState, primeFastF1ControlsFromSession, useLocalEngineerSessionFallback]);
+  }, [clearResolvedSessionState, primeFastF1ControlsFromSession, useLiveSessionSurface, useLocalEngineerSessionFallback]);
 
   useEffect(() => {
     if (!useSelectedSessionMode) {
@@ -478,6 +496,34 @@ export default function F1LivePlatformDashboard({
     void loadFastF1Artifacts();
   }, [loadFastF1Artifacts]);
 
+  const trackLayoutLookup = useMemo(
+    () => trackLayoutLookupFromSession(sessionResolution, snapshot?.sessionInfo ?? null),
+    [sessionResolution, snapshot?.sessionInfo]
+  );
+  const trackLayoutLookupKey = trackLayoutLookup
+    ? [trackLayoutLookup.circuitId ?? "", trackLayoutLookup.circuitName ?? "", trackLayoutLookup.eventName ?? ""].join("|")
+    : "";
+
+  useEffect(() => {
+    if (!trackLayoutLookup) {
+      setTrackLayoutProfile(null);
+      return;
+    }
+    let cancelled = false;
+    const loadTrackLayout = async () => {
+      try {
+        const profile = await getF1TrackLayoutProfile(trackLayoutLookup);
+        if (!cancelled) setTrackLayoutProfile(profile);
+      } catch {
+        if (!cancelled) setTrackLayoutProfile(null);
+      }
+    };
+    void loadTrackLayout();
+    return () => {
+      cancelled = true;
+    };
+  }, [trackLayoutLookupKey]);
+
   useEffect(() => {
     let cancelled = false;
     if (!selectedArtifactId) {
@@ -601,7 +647,7 @@ export default function F1LivePlatformDashboard({
       sessionResolution?.status === "live" ||
       sessionResolution?.status === "upcoming" ||
       sessionResolution?.status === "unavailable");
-  const blockSessionContent = showSessionResolutionPanel && activeTab !== "engineer";
+  const blockSessionContent = showSessionResolutionPanel && activeTab !== "engineer" && !useLiveSessionSurface;
 
   const latestPredictions = useMemo(() => {
     if (!snapshot?.predictions.length) return [];
@@ -632,8 +678,19 @@ export default function F1LivePlatformDashboard({
     }
     return Array.from(unique.values());
   }, [selected, snapshot]);
-  const useLiveSessionSurface = !useSelectedSessionMode && !showOperationsControls && initialTab === "standings";
   const raceTabs = useLiveSessionSurface ? F1_LIVE_RACE_TABS : F1_RACE_TABS;
+  const showLiveTimingUnavailableNotice =
+    useLiveSessionSurface &&
+    !isWaitingForData &&
+    sessionResolution?.status === "live" &&
+    !isOpenF1Source(sessionResolution.source) &&
+    !(snapshot?.drivers.length ?? 0);
+  const timingFeedContext =
+    snapshot?.sessionInfo?.location
+      ? String(snapshot.sessionInfo.location)
+      : useLiveSessionSurface && sessionResolution?.status === "live" && sessionResolution.session
+        ? formatF1SessionTitle(sessionResolution.session)
+        : "Race mode";
 
   useEffect(() => {
     if (!useLiveSessionSurface || !snapshot?.drivers.length) return;
@@ -720,12 +777,29 @@ export default function F1LivePlatformDashboard({
         distance_step_meters: 5,
         output_format: fastF1Output,
         map_to_session_key: sessionKey,
+        hydrate_platform: true,
       });
       setArtifactSessionKey(imported.sessionKey);
       setFastF1Artifacts(imported.artifacts);
-      setSelectedArtifactId(imported.artifacts[0]?.artifactId ?? null);
+      const lapArtifact = imported.artifacts.find((artifact) => artifact.kind === "fastf1_laps");
+      setSelectedArtifactId(lapArtifact?.artifactId ?? imported.artifacts[0]?.artifactId ?? null);
       setEngineeringSummary(await getFastF1EngineeringSummary(imported.sessionKey).catch(() => null));
-      setFastF1Error(imported.notes[0] ?? null);
+      if (imported.snapshot) {
+        setSessionKey(imported.sessionKey);
+        setSnapshot(imported.snapshot);
+        setSelectedDriver(imported.snapshot.drivers[0]?.driver_number ?? null);
+        setStatus("polling");
+        setError(null);
+        void loadAnalyticsForSession(imported.sessionKey);
+        setAvailableSessions((current) => upsertSessionSummary(current, fastF1SessionSummary(imported)));
+        setAutoSessionMessage(
+          `Loaded FastF1 historical session ${imported.sessionKey} with ${imported.snapshot.drivers.length} drivers and ${imported.snapshot.lapChart.length} lap points.`
+        );
+      }
+      if (!imported.snapshot && imported.notes[0]) {
+        setAutoSessionMessage(imported.notes[0]);
+      }
+      setFastF1Error(null);
     } catch (err) {
       setFastF1Error(err instanceof Error ? err.message : "Unable to import FastF1 artifacts");
     } finally {
@@ -910,6 +984,50 @@ export default function F1LivePlatformDashboard({
         </>
       ) : null}
 
+      {useSelectedSessionMode ? (
+        <section className="f1-import-bar f1-history-import-bar" aria-label="FastF1 historical session loader">
+          <label className="f1-session-control short">
+            <span>Year</span>
+            <input value={fastF1Year} onChange={(event) => setFastF1Year(event.target.value)} />
+          </label>
+          <label className="f1-session-control">
+            <span>Event or round</span>
+            <input value={fastF1Event} placeholder="Barcelona or 9" onChange={(event) => setFastF1Event(event.target.value)} />
+          </label>
+          <label className="f1-session-control">
+            <span>Session</span>
+            <select value={fastF1Session} onChange={(event) => setFastF1Session(event.target.value)}>
+              <option value="FP1">Practice 1</option>
+              <option value="FP2">Practice 2</option>
+              <option value="FP3">Practice 3</option>
+              <option value="Q">Qualifying</option>
+              <option value="SQ">Sprint Qualifying</option>
+              <option value="S">Sprint</option>
+              <option value="R">Race</option>
+            </select>
+          </label>
+          <label className="f1-session-control">
+            <span>Drivers</span>
+            <input value={fastF1Drivers} placeholder="VER, NOR, PIA" onChange={(event) => setFastF1Drivers(event.target.value)} />
+          </label>
+          <label className="f1-checkbox-control">
+            <input
+              type="checkbox"
+              checked={fastF1IncludeTelemetry}
+              onChange={(event) => setFastF1IncludeTelemetry(event.target.checked)}
+            />
+            Telemetry
+          </label>
+          <button type="button" className="button secondary button-sm" onClick={() => void importFastF1()} disabled={fastF1Busy}>
+            {fastF1Busy ? "Loading FastF1" : "Load FastF1"}
+          </button>
+          <button type="button" className="button button-sm" onClick={() => void loadFastF1Artifacts()} disabled={fastF1Busy}>
+            Refresh artifacts
+          </button>
+          {fastF1Error ? <span className="status-item f1-status-error">{fastF1Error}</span> : null}
+        </section>
+      ) : null}
+
       {!useLiveSessionSurface ? (
         <div className="status-strip">
           <span className="status-item">
@@ -944,6 +1062,7 @@ export default function F1LivePlatformDashboard({
           status={status}
           resolvingSession={resolvingSession}
           trackGeometry={trackGeometry}
+          trackLayoutProfile={trackLayoutProfile}
           selectedDriver={selected?.driver_number ?? null}
           onSelect={setSelectedDriver}
           onCheckLive={() => void resolveCurrentSession()}
@@ -983,7 +1102,7 @@ export default function F1LivePlatformDashboard({
                 <h2 className="module-title">Live Timing Feed</h2>
                 <span className="module-subtitle">Updated {snapshot ? formatRelativeTime(snapshot.generatedAt) : "pending"}</span>
               </div>
-              <span className="status-item">{snapshot?.sessionInfo?.location ? String(snapshot.sessionInfo.location) : "Race mode"}</span>
+              <span className="status-item">{timingFeedContext}</span>
             </div>
             <div className="panel-body panel-body-dense">
               {isWaitingForData ? (
@@ -994,6 +1113,12 @@ export default function F1LivePlatformDashboard({
               {status === "error" && !snapshot ? (
                 <div className="f1-inline-notice error">
                   F1 API is not reachable from this browser. Start the platform API on port 8001 or set NEXT_PUBLIC_F1_PLATFORM_API_URL.
+                </div>
+              ) : null}
+              {showLiveTimingUnavailableNotice ? (
+                <div className="f1-inline-notice warn">
+                  FastF1 confirms the session is live, but no live timing rows are attached yet. Configure OpenF1 credentials
+                  or start the live ingestor to populate drivers, sectors, and telemetry.
                 </div>
               ) : null}
               <TimingTable
@@ -1017,6 +1142,7 @@ export default function F1LivePlatformDashboard({
                   drivers={snapshot?.drivers ?? []}
                   selectedDriver={selected?.driver_number ?? null}
                   geometry={trackGeometry}
+                  layoutProfile={trackLayoutProfile}
                   microSectors={snapshot?.customMicroSectors ?? []}
                   onSelect={setSelectedDriver}
                 />
@@ -1171,6 +1297,7 @@ export default function F1LivePlatformDashboard({
             comparisonDrivers={comparisonDrivers}
             engineeringSummary={engineeringSummary}
             trackGeometry={trackGeometry}
+            trackLayoutProfile={trackLayoutProfile}
             onSelect={setSelectedDriver}
           />
 
@@ -1237,6 +1364,7 @@ function EngineerDashboard({
   comparisonDrivers,
   engineeringSummary,
   trackGeometry,
+  trackLayoutProfile,
   onSelect,
 }: {
   snapshot: F1SessionSnapshot | null;
@@ -1244,6 +1372,7 @@ function EngineerDashboard({
   comparisonDrivers: F1DriverState[];
   engineeringSummary: FastF1EngineeringSummary | null;
   trackGeometry: F1TrackGeometryResponse | null;
+  trackLayoutProfile: F1TrackLayoutProfile | null;
   onSelect: (driverNumber: number) => void;
 }) {
   const drivers = comparisonDrivers.length ? comparisonDrivers : snapshot?.drivers.slice(0, 4) ?? [];
@@ -1297,6 +1426,7 @@ function EngineerDashboard({
               drivers={snapshot?.drivers ?? []}
               selectedDriver={selectedDriver}
               geometry={trackGeometry}
+              layoutProfile={trackLayoutProfile}
               microSectors={snapshot?.customMicroSectors ?? []}
               onSelect={onSelect}
             />
@@ -1831,6 +1961,7 @@ function LiveSessionOverview({
   status,
   resolvingSession,
   trackGeometry,
+  trackLayoutProfile,
   selectedDriver,
   onSelect,
   onCheckLive,
@@ -1840,6 +1971,7 @@ function LiveSessionOverview({
   status: F1ConnectionStatus;
   resolvingSession: boolean;
   trackGeometry: F1TrackGeometryResponse | null;
+  trackLayoutProfile: F1TrackLayoutProfile | null;
   selectedDriver: number | null;
   onSelect: (driverNumber: number) => void;
   onCheckLive: () => void;
@@ -1879,6 +2011,7 @@ function LiveSessionOverview({
             drivers={drivers}
             selectedDriver={selectedDriver}
             geometry={trackGeometry}
+            layoutProfile={trackLayoutProfile}
             microSectors={snapshot?.customMicroSectors ?? []}
             onSelect={onSelect}
             mode="tracker"
@@ -2656,6 +2789,7 @@ function TrackMap({
   drivers,
   selectedDriver,
   geometry,
+  layoutProfile,
   microSectors,
   onSelect,
   mode = "default",
@@ -2663,13 +2797,15 @@ function TrackMap({
   drivers: F1DriverState[];
   selectedDriver: number | null;
   geometry: F1TrackGeometryResponse | null;
+  layoutProfile?: F1TrackLayoutProfile | null;
   microSectors: F1CustomMicroSectorPassage[];
   onSelect: (driverNumber: number) => void;
   mode?: "default" | "tracker";
 }) {
   const [activeSegment, setActiveSegment] = useState<number | null>(null);
   const trackerMode = mode === "tracker";
-  const trackPoints = useMemo(() => buildTrackPoints(geometry), [geometry]);
+  const useLayoutFallback = !geometry && Boolean(layoutProfile?.pathD && layoutProfile.points.length >= 3);
+  const trackPoints = useMemo(() => buildTrackPoints(geometry, layoutProfile), [geometry, layoutProfile]);
   const segments = useMemo(
     () => buildTrackSegments(trackPoints, drivers, microSectors),
     [drivers, microSectors, trackPoints]
@@ -2683,34 +2819,50 @@ function TrackMap({
   const visibleDrivers = selectedSegment?.ranking.slice(0, 5) ?? sortedDrivers(drivers).slice(0, 5);
   const sourceLabel = geometry
     ? `FastF1 centerline · ${geometry.sampledPointCount}/${geometry.pointCount} pts`
-    : "Fallback layout · import FastF1 telemetry for exact circuit";
+    : layoutProfile
+      ? `${layoutProfile.circuitName} layout · ${layoutProfile.source}`
+      : "Fallback layout · import FastF1 telemetry for exact circuit";
+  const viewBox = useLayoutFallback
+    ? "0 0 640 360"
+    : `0 0 ${TRACK_VIEWBOX.width} ${TRACK_VIEWBOX.height}`;
+  const showZoneOverlays = !useLayoutFallback || drivers.length > 0;
 
   return (
     <div className={`f1-track-card ${trackerMode ? "tracker" : ""}`}>
       <div className="f1-track-stage">
         <svg
           className="f1-track-map"
-          viewBox={`0 0 ${TRACK_VIEWBOX.width} ${TRACK_VIEWBOX.height}`}
+          viewBox={viewBox}
           role="img"
           aria-label="F1 track map"
         >
-          <polyline
-            points={pointString}
-            fill="none"
-            stroke="var(--border-2)"
-            strokeWidth="28"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <polyline
-            points={pointString}
-            fill="none"
-            stroke="#101010"
-            strokeWidth="18"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {segments.map((segment) => {
+          {useLayoutFallback && layoutProfile ? (
+            <>
+              <path className="track-shadow" d={layoutProfile.pathD} />
+              <path className="track-road" d={layoutProfile.pathD} />
+              <path className="track-line" d={layoutProfile.pathD} />
+            </>
+          ) : (
+            <>
+              <polyline
+                points={pointString}
+                fill="none"
+                stroke="var(--border-2)"
+                strokeWidth="28"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <polyline
+                points={pointString}
+                fill="none"
+                stroke="#101010"
+                strokeWidth="18"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </>
+          )}
+          {showZoneOverlays ? segments.map((segment) => {
             const leader = segment.leader;
             const active = activeSegment === segment.index;
             return (
@@ -2738,15 +2890,22 @@ function TrackMap({
                 <title>{`Zone ${segment.index + 1}${leader ? ` · ${driverLabel(leader)}` : ""}`}</title>
               </polyline>
             );
-          })}
-          {corners.map((corner) => (
-            <g key={corner.label} className="f1-track-corner-label">
-              <rect x={corner.point.x - 13} y={corner.point.y - 18} width="26" height="17" rx="4" />
-              <text x={corner.point.x} y={corner.point.y - 5} textAnchor="middle">
-                {corner.label}
-              </text>
-            </g>
-          ))}
+          }) : null}
+          {useLayoutFallback && layoutProfile
+            ? layoutProfile.corners.map((corner) => (
+                <g className={`track-corner ${corner.kind}`} key={`${corner.number}-${corner.x}-${corner.y}`}>
+                  <circle cx={corner.x} cy={corner.y} r="8" />
+                  <text x={corner.x} y={corner.y + 3}>{corner.number}</text>
+                </g>
+              ))
+            : corners.map((corner) => (
+                <g key={corner.label} className="f1-track-corner-label">
+                  <rect x={corner.point.x - 13} y={corner.point.y - 18} width="26" height="17" rx="4" />
+                  <text x={corner.point.x} y={corner.point.y - 5} textAnchor="middle">
+                    {corner.label}
+                  </text>
+                </g>
+              ))}
           {drivers.slice(0, 12).map((driver, index) => {
             const rawProgress = driver.track_progress ?? index / Math.max(1, drivers.length);
             const point = pointAtTrackProgress(trackPoints, normalizedProgress(rawProgress));
@@ -2776,7 +2935,9 @@ function TrackMap({
         <span className="f1-track-source">{sourceLabel}</span>
       </div>
 
-      {!trackerMode ? (
+      {!trackerMode && useLayoutFallback && layoutProfile ? (
+        <TrackLayoutSummaryPanel profile={layoutProfile} />
+      ) : !trackerMode ? (
       <div className="f1-track-zone-panel">
         <div className="f1-track-zone-title">
           <span>{selectedSegment ? `Zone ${selectedSegment.index + 1}` : "Track Zones"}</span>
@@ -2815,7 +2976,40 @@ function TrackMap({
   );
 }
 
-function buildTrackPoints(geometry: F1TrackGeometryResponse | null): TrackSvgPoint[] {
+function TrackLayoutSummaryPanel({ profile }: { profile: F1TrackLayoutProfile }) {
+  return (
+    <div className="f1-track-zone-panel f1-track-layout-panel">
+      <div className="f1-track-zone-title">
+        <span>Track Profile</span>
+        <strong>{profile.circuitName}</strong>
+      </div>
+      <div className="f1-corner-legend" aria-label="Corner speed legend">
+        <span><i className="slow" />Slow</span>
+        <span><i className="medium" />Medium</span>
+        <span><i className="fast" />Fast</span>
+      </div>
+      <div className="f1-corner-type-bar">
+        <span className="slow" style={{ flexGrow: profile.slow }} />
+        <span className="medium" style={{ flexGrow: profile.medium }} />
+        <span className="fast" style={{ flexGrow: profile.fast }} />
+      </div>
+      <div className="f1-track-layout-stats">
+        <span><strong>{profile.slow}</strong><small>Slow</small></span>
+        <span><strong>{profile.medium}</strong><small>Medium</small></span>
+        <span><strong>{profile.fast}</strong><small>Fast</small></span>
+      </div>
+      <div className="f1-track-layout-meta">
+        <span><small>Length</small><strong>{profile.lengthKm ?? "-"} km</strong></span>
+        <span><small>Corners</small><strong>{profile.totalCorners}</strong></span>
+      </div>
+    </div>
+  );
+}
+
+function buildTrackPoints(geometry: F1TrackGeometryResponse | null, layoutProfile?: F1TrackLayoutProfile | null): TrackSvgPoint[] {
+  if (!geometry && layoutProfile?.points && layoutProfile.points.length >= 3) {
+    return layoutProfile.points.map((point) => ({ x: point.x, y: point.y }));
+  }
   const rawPoints = geometry?.points
     .filter((point) => isNumber(point.x) && isNumber(point.y))
     .map((point) => ({ x: point.x, y: point.y }));
@@ -3640,6 +3834,45 @@ function formatSessionSummaryOption(session: F1SessionSummary): string {
   return [title, year, counts].filter(Boolean).join(" · ");
 }
 
+function upsertSessionSummary(sessions: F1SessionSummary[], next: F1SessionSummary): F1SessionSummary[] {
+  const filtered = sessions.filter((session) => String(session.sessionKey) !== String(next.sessionKey));
+  return [next, ...filtered];
+}
+
+function fastF1SessionSummary(imported: FastF1ImportResponse): F1SessionSummary {
+  const snapshot = imported.snapshot;
+  const info = snapshot?.sessionInfo ?? {};
+  const replayEventCount = typeof snapshot?.replay?.eventCount === "number" ? snapshot.replay.eventCount : 0;
+  return enrichSessionSummaryFromSnapshot(
+    {
+      sessionKey: imported.sessionKey,
+      seq: snapshot?.seq ?? 0,
+      source: snapshot?.source ?? "fastf1-history",
+      drivers: snapshot?.drivers.length ?? 0,
+      eventCount: imported.eventCount ?? replayEventCount,
+    },
+    snapshot ?? {
+      sessionKey: imported.sessionKey,
+      seq: 0,
+      generatedAt: imported.generatedAt,
+      source: "fastf1-history",
+      sessionInfo: info,
+      drivers: [],
+      lapChart: [],
+      strategyTimeline: [],
+      raceControl: [],
+      pitStops: [],
+      overtakes: [],
+      sessionResults: [],
+      customMicroSectors: [],
+      weatherSamples: [],
+      predictions: [],
+      topicWatermarks: {},
+      replay: {},
+    }
+  );
+}
+
 function enrichSessionSummaryFromSnapshot(summary: F1SessionSummary, snapshot: F1SessionSnapshot): F1SessionSummary {
   const info = snapshot.sessionInfo ?? {};
   return {
@@ -3672,6 +3905,29 @@ function stringFromSessionInfo(info: Record<string, unknown>, key: string): stri
 function numberFromSessionInfo(info: Record<string, unknown>, key: string): number | null {
   const value = info[key];
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function trackLayoutLookupFromSession(
+  resolution: F1SessionResolution | null,
+  snapshotSessionInfo: Record<string, unknown> | null
+): { circuitId?: string | null; circuitName?: string | null; eventName?: string | null } | null {
+  const resolutionSession =
+    resolution?.status === "live" ? resolution.session : resolution?.nextSession ?? null;
+  const session = resolutionSession ?? snapshotSessionInfo;
+  if (!session) return null;
+  const circuitId = sessionStringValue(session, "circuit_id");
+  const circuitName = sessionStringValue(session, "circuit_short_name") ?? sessionStringValue(session, "location");
+  const eventName =
+    sessionStringValue(session, "fastf1_event_name") ??
+    sessionStringValue(session, "event_name") ??
+    sessionStringValue(session, "official_event_name");
+  if (!circuitId && !circuitName && !eventName) return null;
+  return { circuitId, circuitName, eventName };
+}
+
+function sessionStringValue(session: F1SessionInfo | Record<string, unknown>, key: string): string | null {
+  const value = session[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function sessionKeyFromF1Session(session?: F1SessionInfo | null): string {

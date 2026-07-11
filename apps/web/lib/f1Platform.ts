@@ -244,6 +244,7 @@ export type FastF1ImportRequest = {
   distance_step_meters?: number;
   output_format?: "jsonl" | "parquet";
   map_to_session_key?: string | number | null;
+  hydrate_platform?: boolean;
 };
 
 export type FastF1ArtifactRecord = {
@@ -262,6 +263,8 @@ export type FastF1ImportResponse = {
   generatedAt: string;
   artifacts: FastF1ArtifactRecord[];
   notes: string[];
+  eventCount?: number;
+  snapshot?: F1SessionSnapshot;
 };
 
 export type FastF1ArtifactListResponse = {

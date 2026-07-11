@@ -14,6 +14,7 @@ from f1_platform.fastf1_analysis import (
     build_centerline,
     build_corner_metrics,
     build_telemetry_delta,
+    fastf1_runtime_events,
     request_from_payload,
     resample_telemetry,
     _normalize_record,
@@ -121,6 +122,11 @@ def test_fastf1_artifact_service_writes_session_engineering_artifacts(tmp_path):
     }
     assert by_kind["fastf1_laps"].row_count == 2
     assert by_kind["fastf1_centerline"].row_count == 5
+    assert result.to_dict()["eventCount"] > 0
+    lap_events = [event for event in result.runtime_events if event.topic == "v1/laps"]
+    assert lap_events[0].driver_number == 1
+    assert lap_events[0].payload["lap_duration"] == 65.1
+    assert {event.topic for event in result.runtime_events} >= {"v1/sessions", "v1/drivers", "v1/position", "v1/laps"}
     assert len(telemetry_artifacts) == 2
     assert len(corner_artifacts) == 2
     telemetry_paths = {artifact.path for artifact in telemetry_artifacts}
@@ -149,6 +155,36 @@ def test_fastf1_artifact_service_writes_session_engineering_artifacts(tmp_path):
     corner_by_driver = {item["driver"]: item for item in summary["cornerMetrics"]}
     assert corner_by_driver["VER"]["cornerCount"] == 1
     assert corner_by_driver["VER"]["corners"][0]["minimumSpeed"] == 180
+
+
+def test_fastf1_runtime_events_do_not_mislabel_relative_durations_as_absolute_timestamps():
+    loaded = FastF1LoadedSession(
+        year=2025,
+        event_name="Monaco Grand Prix",
+        session_name="R",
+        session_key="fastf1:2025:monaco-grand-prix:r",
+        laps=[
+            {
+                "Driver": "NOR",
+                "DriverNumber": "4",
+                "LapNumber": 1,
+                "LapTimeSeconds": 73.2,
+                "Time": "P0DT0H57M36.09S",
+            }
+        ],
+        weather=[{"Time": "P0DT0H1M18.584S", "TrackTemp": 42.1}],
+        race_control=[{"Date": "2025-05-25T12:20:01", "Message": "Track clear"}],
+        telemetry_laps=[],
+    )
+
+    events = fastf1_runtime_events(loaded)
+    lap_event = next(event for event in events if event.topic == "v1/laps")
+    weather_event = next(event for event in events if event.topic == "v1/weather")
+    race_control_event = next(event for event in events if event.topic == "v1/race_control")
+
+    assert lap_event.event_time is None
+    assert weather_event.event_time is None
+    assert race_control_event.event_time == "2025-05-25T12:20:01"
 
 
 def test_artifact_store_lists_and_reads_bounded_rows(tmp_path):
@@ -228,6 +264,9 @@ def test_fastf1_import_endpoint_uses_state_service(tmp_path, monkeypatch):
 
     assert payload["imported"] is True
     assert payload["sessionKey"] == "fake-session"
+    assert payload["snapshot"]["source"] == "fastf1-history"
+    assert payload["snapshot"]["drivers"][0]["acronym"] == "VER"
+    assert payload["snapshot"]["lapChart"][0]["value"] == 65.1
     assert fake_service.seen.year == 2026
     assert fake_service.seen.event == "Austria"
 
@@ -330,6 +369,7 @@ class FakeFastF1ArtifactService:
 
     def import_session(self, request: FastF1ImportRequest) -> FastF1ImportResult:
         self.seen = request
+        loaded = FakeFastF1Provider().load_session(request)
         return FastF1ImportResult(
             session_key="fake-session",
             generated_at="2026-06-25T00:00:00Z",
@@ -343,6 +383,7 @@ class FakeFastF1ArtifactService:
                 )
             ],
             notes=[],
+            runtime_events=fastf1_runtime_events(loaded),
         )
 
 

@@ -22,6 +22,7 @@ export type F1TrackLayoutProfile = {
   location?: string | null;
   lengthKm?: string | null;
   pathD: string;
+  points: Array<{ x: number; y: number }>;
   slow: number;
   medium: number;
   fast: number;
@@ -235,6 +236,7 @@ function buildTrackLayoutProfile(params: {
     location: optionalString(properties.Location),
     lengthKm: formatLengthKm(properties.length),
     pathD,
+    points: normalizedPoints,
     slow: counts.slow,
     medium: counts.medium,
     fast: counts.fast,

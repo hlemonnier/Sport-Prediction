@@ -13,15 +13,54 @@ import re
 import base64
 import binascii
 from bisect import bisect_right
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, Sequence
 
-from .schemas import JsonObject
+from .schemas import F1Event, JsonObject
 from .time import utc_now_iso
 
 DEFAULT_DISTANCE_STEP_METERS = 5.0
 DEFAULT_TELEMETRY_CHANNELS = ("Speed", "RPM", "Throttle", "Brake", "nGear", "DRS", "X", "Y", "Z")
+FASTF1_DRIVER_NUMBERS: dict[str, int] = {
+    "ALB": 23,
+    "ALO": 14,
+    "ANT": 12,
+    "BEA": 87,
+    "BOR": 5,
+    "BOT": 77,
+    "COL": 43,
+    "GAS": 10,
+    "HAD": 6,
+    "HAM": 44,
+    "HUL": 27,
+    "LEC": 16,
+    "LAW": 30,
+    "NOR": 4,
+    "OCO": 31,
+    "PIA": 81,
+    "RUS": 63,
+    "SAI": 55,
+    "STR": 18,
+    "TSU": 22,
+    "VER": 1,
+}
+FASTF1_TEAM_COLOURS: dict[str, str] = {
+    "alpine": "00A1E8",
+    "aston martin": "006F62",
+    "aston martin racing": "006F62",
+    "audi": "C0C0C0",
+    "cadillac": "B8B8B8",
+    "ferrari": "F91536",
+    "haas f1 team": "B6BABD",
+    "kick sauber": "00E701",
+    "mclaren": "FF8700",
+    "mercedes": "27F4D2",
+    "racing bulls": "6692FF",
+    "rb": "6692FF",
+    "red bull racing": "3671C6",
+    "williams": "64C4FF",
+}
 
 
 @dataclass(slots=True)
@@ -84,6 +123,7 @@ class FastF1ImportResult:
     generated_at: str
     artifacts: list[ArtifactRecord]
     notes: list[str]
+    runtime_events: list[F1Event] = field(default_factory=list, repr=False)
 
     def to_dict(self) -> JsonObject:
         return {
@@ -91,6 +131,7 @@ class FastF1ImportResult:
             "generatedAt": self.generated_at,
             "artifacts": [artifact.to_dict() for artifact in self.artifacts],
             "notes": list(self.notes),
+            "eventCount": len(self.runtime_events),
         }
 
 
@@ -535,6 +576,7 @@ class FastF1ArtifactService:
             generated_at=utc_now_iso(),
             artifacts=artifacts,
             notes=notes,
+            runtime_events=fastf1_runtime_events(loaded),
         )
 
     def list_artifacts(
@@ -602,6 +644,395 @@ class FastF1ArtifactService:
                 "cornerMetrics": len(corner_records),
             },
         }
+
+
+def fastf1_runtime_events(loaded: FastF1LoadedSession) -> list[F1Event]:
+    """Convert a loaded FastF1 session into the platform reducer contract."""
+
+    source_id = 1
+    events: list[F1Event] = []
+    session_key = loaded.session_key
+    driver_numbers = _fastf1_driver_number_map(loaded.laps)
+
+    events.append(
+        _fastf1_runtime_event(
+            source_id,
+            "v1/sessions",
+            f"fastf1:session:{session_key}",
+            session_key,
+            {
+                "session_key": session_key,
+                "session_name": _fastf1_session_label(loaded.session_name),
+                "session_type": _fastf1_session_type(loaded.session_name),
+                "event_name": loaded.event_name,
+                "fastf1_event_name": loaded.event_name,
+                "location": loaded.event_name,
+                "year": loaded.year,
+            },
+        )
+    )
+    source_id += 1
+
+    for driver_number, row in _fastf1_driver_rows(loaded.laps, driver_numbers):
+        code = _fastf1_driver_code(row, fallback=str(driver_number))
+        team = _text_value(row.get("Team"), row.get("TeamName"))
+        payload: JsonObject = {
+            "name_acronym": code,
+            "full_name": _text_value(row.get("FullName"), row.get("DriverFullName"), row.get("BroadcastName")) or code,
+        }
+        if team:
+            payload["team_name"] = team
+            colour = FASTF1_TEAM_COLOURS.get(team.strip().lower())
+            if colour:
+                payload["team_colour"] = colour
+        events.append(
+            _fastf1_runtime_event(
+                source_id,
+                "v1/drivers",
+                f"fastf1:driver:{driver_number}",
+                session_key,
+                payload,
+                driver_number=driver_number,
+            )
+        )
+        source_id += 1
+
+    for driver_number, position in _fastf1_positions(loaded.laps, driver_numbers).items():
+        events.append(
+            _fastf1_runtime_event(
+                source_id,
+                "v1/position",
+                f"fastf1:position:{driver_number}",
+                session_key,
+                {"position": position},
+                driver_number=driver_number,
+            )
+        )
+        source_id += 1
+
+    for segment in _fastf1_stint_segments(loaded.laps, driver_numbers):
+        driver_number = int(segment["driver_number"])
+        stint_number = int(segment["stint_number"])
+        events.append(
+            _fastf1_runtime_event(
+                source_id,
+                "v1/stints",
+                f"fastf1:stint:{driver_number}:{stint_number}",
+                session_key,
+                segment,
+                driver_number=driver_number,
+            )
+        )
+        source_id += 1
+
+    lap_rows = sorted(
+        loaded.laps,
+        key=lambda row: (
+            _optional_int(row.get("LapNumber")) or 10_000,
+            _fastf1_driver_number(row, driver_numbers) or 10_000,
+        ),
+    )
+    for row in lap_rows:
+        driver_number = _fastf1_driver_number(row, driver_numbers)
+        lap_number = _optional_int(row.get("LapNumber"))
+        if driver_number is None or lap_number is None:
+            continue
+        lap_time = _finite_float(row.get("LapTimeSeconds"))
+        sector_1 = _finite_float(row.get("Sector1TimeSeconds"))
+        sector_2 = _finite_float(row.get("Sector2TimeSeconds"))
+        sector_3 = _finite_float(row.get("Sector3TimeSeconds"))
+        if lap_time is None and sector_1 is None and sector_2 is None and sector_3 is None:
+            continue
+        payload = {
+            "lap_number": lap_number,
+            "lap_duration": lap_time,
+            "duration_sector_1": sector_1,
+            "duration_sector_2": sector_2,
+            "duration_sector_3": sector_3,
+            "compound": _text_value(row.get("Compound")),
+            "tyre_age": _optional_int(row.get("TyreLife")),
+            "is_personal_best": row.get("IsPersonalBest"),
+            "raw_fastf1": row,
+        }
+        events.append(
+            _fastf1_runtime_event(
+                source_id,
+                "v1/laps",
+                f"fastf1:lap:{driver_number}:{lap_number}",
+                session_key,
+                {key: value for key, value in payload.items() if value is not None},
+                driver_number=driver_number,
+                event_time=_fastf1_event_time(row.get("LapStartDate"), row.get("Time")),
+            )
+        )
+        source_id += 1
+
+    for index, row in enumerate(loaded.weather, start=1):
+        payload = _fastf1_weather_payload(row)
+        if not payload:
+            continue
+        events.append(
+            _fastf1_runtime_event(
+                source_id,
+                "v1/weather",
+                f"fastf1:weather:{index}",
+                session_key,
+                payload,
+                event_time=_fastf1_event_time(row.get("Date"), row.get("Time")),
+            )
+        )
+        source_id += 1
+
+    for index, row in enumerate(loaded.race_control, start=1):
+        events.append(
+            _fastf1_runtime_event(
+                source_id,
+                "v1/race_control",
+                f"fastf1:race-control:{index}",
+                session_key,
+                dict(row),
+                event_time=_fastf1_event_time(row.get("Date"), row.get("Time")),
+            )
+        )
+        source_id += 1
+
+    for driver_number, position in _fastf1_positions(loaded.laps, driver_numbers).items():
+        driver_laps = [
+            row
+            for row in loaded.laps
+            if _fastf1_driver_number(row, driver_numbers) == driver_number and _optional_int(row.get("LapNumber")) is not None
+        ]
+        events.append(
+            _fastf1_runtime_event(
+                source_id,
+                "v1/session_result",
+                f"fastf1:result:{driver_number}",
+                session_key,
+                {
+                    "position": position,
+                    "driver_number": driver_number,
+                    "number_of_laps": len(driver_laps),
+                },
+                driver_number=driver_number,
+            )
+        )
+        source_id += 1
+
+    return events
+
+
+def _fastf1_runtime_event(
+    source_id: int,
+    topic: str,
+    source_key: str,
+    session_key: str,
+    payload: JsonObject,
+    *,
+    driver_number: int | None = None,
+    event_time: str | None = None,
+) -> F1Event:
+    return F1Event.from_payload(
+        {
+            "source": "fastf1",
+            "topic": topic,
+            "source_id": source_id,
+            "source_key": source_key,
+            "session_key": session_key,
+            "driver_number": driver_number,
+            "event_time": event_time,
+            "payload": payload,
+        },
+        source="fastf1",
+        received_at=utc_now_iso(),
+    )
+
+
+def _fastf1_session_label(value: str) -> str:
+    normalized = value.strip().upper()
+    return {
+        "FP1": "Practice 1",
+        "FP2": "Practice 2",
+        "FP3": "Practice 3",
+        "P1": "Practice 1",
+        "P2": "Practice 2",
+        "P3": "Practice 3",
+        "Q": "Qualifying",
+        "SQ": "Sprint Qualifying",
+        "S": "Sprint",
+        "R": "Race",
+    }.get(normalized, value)
+
+
+def _fastf1_session_type(value: str) -> str:
+    normalized = value.strip().upper()
+    if normalized in {"FP1", "FP2", "FP3", "P1", "P2", "P3"}:
+        return "Practice"
+    if normalized in {"Q", "SQ"}:
+        return "Qualifying"
+    if normalized == "S":
+        return "Sprint"
+    if normalized == "R":
+        return "Race"
+    return value
+
+
+def _fastf1_driver_number_map(laps: Sequence[JsonObject]) -> dict[str, int]:
+    mapping: dict[str, int] = {}
+    next_generated = 900
+    for row in laps:
+        code = _fastf1_driver_code(row, fallback="")
+        if not code:
+            continue
+        direct = _optional_int(row.get("DriverNumber"))
+        known = direct or FASTF1_DRIVER_NUMBERS.get(code.upper())
+        if known is not None:
+            mapping[code.upper()] = known
+            continue
+        if code.upper() not in mapping:
+            mapping[code.upper()] = next_generated
+            next_generated += 1
+    return mapping
+
+
+def _fastf1_driver_number(row: JsonObject, driver_numbers: dict[str, int]) -> int | None:
+    direct = _optional_int(row.get("DriverNumber"))
+    if direct is not None:
+        return direct
+    code = _fastf1_driver_code(row, fallback="")
+    if not code:
+        return None
+    return driver_numbers.get(code.upper()) or FASTF1_DRIVER_NUMBERS.get(code.upper())
+
+
+def _fastf1_driver_code(row: JsonObject, *, fallback: str) -> str:
+    value = _text_value(row.get("Driver"), row.get("Abbreviation"), row.get("DriverCode"), row.get("BroadcastName"))
+    if value:
+        return value.strip().upper()[:3]
+    return fallback.strip().upper()
+
+
+def _fastf1_driver_rows(
+    laps: Sequence[JsonObject],
+    driver_numbers: dict[str, int],
+) -> list[tuple[int, JsonObject]]:
+    rows: dict[int, JsonObject] = {}
+    for row in laps:
+        driver_number = _fastf1_driver_number(row, driver_numbers)
+        if driver_number is None or driver_number in rows:
+            continue
+        rows[driver_number] = row
+    return sorted(rows.items(), key=lambda item: item[0])
+
+
+def _fastf1_positions(
+    laps: Sequence[JsonObject],
+    driver_numbers: dict[str, int],
+) -> dict[int, int]:
+    positions: dict[int, int] = {}
+    for row in sorted(laps, key=lambda item: _optional_int(item.get("LapNumber")) or 0):
+        driver_number = _fastf1_driver_number(row, driver_numbers)
+        position = _optional_int(row.get("Position"))
+        if driver_number is not None and position is not None:
+            positions[driver_number] = position
+    if positions:
+        return dict(sorted(positions.items(), key=lambda item: item[1]))
+
+    best_laps: list[tuple[float, int]] = []
+    for row in laps:
+        driver_number = _fastf1_driver_number(row, driver_numbers)
+        lap_time = _finite_float(row.get("LapTimeSeconds"))
+        if driver_number is not None and lap_time is not None:
+            best_laps.append((lap_time, driver_number))
+    best_by_driver: dict[int, float] = {}
+    for lap_time, driver_number in best_laps:
+        current = best_by_driver.get(driver_number)
+        if current is None or lap_time < current:
+            best_by_driver[driver_number] = lap_time
+    return {
+        driver_number: index + 1
+        for index, (driver_number, _lap_time) in enumerate(
+            sorted(best_by_driver.items(), key=lambda item: item[1])
+        )
+    }
+
+
+def _fastf1_stint_segments(
+    laps: Sequence[JsonObject],
+    driver_numbers: dict[str, int],
+) -> list[JsonObject]:
+    segments: dict[tuple[int, int], JsonObject] = {}
+    for row in laps:
+        driver_number = _fastf1_driver_number(row, driver_numbers)
+        lap_number = _optional_int(row.get("LapNumber"))
+        if driver_number is None or lap_number is None:
+            continue
+        stint_number = _optional_int(row.get("Stint")) or 1
+        key = (driver_number, stint_number)
+        compound = _text_value(row.get("Compound")) or "UNKNOWN"
+        segment = segments.setdefault(
+            key,
+            {
+                "driver_number": driver_number,
+                "stint_number": stint_number,
+                "compound": compound,
+                "lap_start": lap_number,
+                "lap_end": lap_number,
+                "tyre_age_at_start": _optional_int(row.get("TyreLife")) or 0,
+            },
+        )
+        segment["lap_start"] = min(int(segment["lap_start"]), lap_number)
+        segment["lap_end"] = max(int(segment["lap_end"]), lap_number)
+        if compound != "UNKNOWN":
+            segment["compound"] = compound
+    return [
+        segment
+        for _key, segment in sorted(segments.items(), key=lambda item: (item[0][0], item[0][1]))
+    ]
+
+
+def _fastf1_weather_payload(row: JsonObject) -> JsonObject:
+    payload = {
+        "air_temperature": _first_number(row.get("AirTemp"), row.get("AirTemperature"), row.get("air_temperature")),
+        "track_temperature": _first_number(row.get("TrackTemp"), row.get("TrackTemperature"), row.get("track_temperature")),
+        "humidity": _first_number(row.get("Humidity"), row.get("humidity")),
+        "pressure": _first_number(row.get("Pressure"), row.get("pressure")),
+        "rainfall": _first_number(row.get("Rainfall"), row.get("rainfall")),
+        "wind_speed": _first_number(row.get("WindSpeed"), row.get("wind_speed")),
+        "wind_direction": _first_number(row.get("WindDirection"), row.get("wind_direction")),
+        "raw_fastf1": row,
+    }
+    return {key: value for key, value in payload.items() if value is not None}
+
+
+def _fastf1_event_time(*values: Any) -> str | None:
+    """Return only absolute timestamps; FastF1 session durations stay in the raw payload."""
+
+    value = _text_value(*values)
+    if value is None or _duration_string_seconds(value) is not None:
+        return None
+    try:
+        float(value)
+    except ValueError:
+        return value
+    return None
+
+
+def _text_value(*values: Any) -> str | None:
+    for value in values:
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text and text.lower() not in {"nan", "nat", "none", "null"}:
+            return text
+    return None
+
+
+def _first_number(*values: Any) -> float | None:
+    for value in values:
+        number = _finite_float(value)
+        if number is not None:
+            return number
+    return None
 
 
 def _telemetry_delta_summary(

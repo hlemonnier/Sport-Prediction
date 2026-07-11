@@ -170,7 +170,9 @@ class OpenF1RestClient:
                 return []
             if exc.code == 401 and not token:
                 raise RuntimeError(
-                    "OpenF1 REST API requires authentication; set OPENF1_ACCESS_TOKEN or OPENF1_USERNAME/OPENF1_PASSWORD on the F1 platform service."
+                    "OpenF1 REST API requires authentication for this request. "
+                    f"Upstream response: {detail or '401 Unauthorized'}. "
+                    "Set OPENF1_ACCESS_TOKEN or OPENF1_USERNAME/OPENF1_PASSWORD on the F1 platform service."
                 ) from exc
             raise RuntimeError(f"OpenF1 REST request failed with HTTP {exc.code}: {detail}") from exc
         except URLError as exc:

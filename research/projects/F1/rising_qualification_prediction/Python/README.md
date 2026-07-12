@@ -35,40 +35,47 @@ Architectural target:
 
 ```text
 F1 Prediction System
-|-- Pre-Quali Model
-|   `-- predicts qualifying
-|-- Pre-Race Model
-|   `-- predicts race from grid/quali + race features
-|-- Live Race Model
-|   `-- updates prediction and strategy during race
-`-- Ultimate Lap-Time Model
-    `-- predicts theoretical best lap pace
+|-- Qualifying Prediction
+|   `-- predicts Grand Prix qualifying classification
+|-- Race Final Position
+|   `-- predicts final classification/status from as-of grid context
+|-- Best Estimated Lap Time
+|   `-- predicts achievable session-end best qualifying lap
+`-- Live Race Intelligence
+    |-- forecasts next lap, degradation, order, and final status
+    `-- selects legal pit, compound, and pace actions in the decision layer
 ```
 
 Executable research now:
-- `Pre-Quali Model`: predicts qualifying from FP pace and team/driver form.
+- `Qualifying Prediction` (`pre_quali` compatibility alias): predicts
+  qualifying from target-aligned rehearsal pace and same-season form.
   Circuit features are quarantined by default; weather is scenario/uncertainty
   context. Neither is a proven source of predictive edge.
-- `Pre-Race Model`: predicts the race from the official grid when available,
+- `Race Final Position` (`pre_race` compatibility alias): predicts the race
+  from the official grid when available,
   qualifying fallback when only qualifying is available, or the Pre-Quali
   predicted rank when the weekend is still before qualifying. These information
   horizons are not interchangeable and require separate evaluation evidence.
 
+- `Best Estimated Lap Time` (`ultimate_lap_time` compatibility alias): the
+  achievable rehearsal-shift point estimate has walk-forward evidence. Its
+  intervals and telemetry deep candidate remain unpromoted. The theoretical
+  compatible-sector floor is a diagnostic internal semantic, not the target.
+
 Experimental, not promoted:
-- `Live Race Model`: state-space, replay, simulation, strategy, and RL code
-  exists, but no canonical trace model is promoted. The live platform uses
-  explicitly named target-specific untrained snapshot baselines when a promoted
-  model is unavailable.
-- `Ultimate Lap-Time Model`: deterministic and deep candidate code exists, but
-  the deep candidate is fail-closed until locked grouped validation, leakage,
-  baseline-comparison, and promotion reports exist and pass.
+- `Live Race Intelligence` (`live_race` compatibility alias): the next-lap
+  blend was evaluated causally but rejected because its paired event-bootstrap
+  interval crosses zero; the raw last-clean-lap naive forecast is the current
+  research-runner default. Degradation, order, status, and every strategy
+  policy remain unpromoted. RL is allowed only for constrained pit, compound,
+  and pace decisions after simulator/MPC/OPE/shadow gates pass.
 
 “Executable” means the path runs; it does not mean that it beats its baseline,
 has production-calibrated probabilities, or is safe for betting. See
 `configs/f1/maturity.json` for the machine-readable evidence status.
 
-Pre-quali race flow:
-- Run the Pre-Quali model first.
+Qualifying-to-race flow:
+- Run Qualifying Prediction first.
 - Merge `qualy_pred_position`, `qualy_pred_rank`, `qualy_pred_top3_proba`, and
   `qualy_pred_top10_proba` into the race feature frame.
 - If real `grid_position` and `qualy_position` are missing, use
@@ -228,7 +235,7 @@ Additional ablation flag:
 Prediction JSON now includes:
 - `rows`: top-10 table for UI/review.
 - `all_prediction_rows`: full-field sorted table for betting/research consumers.
-- `model_architecture`: current four-stage F1 prediction architecture and the
+- `model_architecture`: current four-mode F1 prediction architecture and the
   active pre-quali-to-race contract.
 - `prediction_scenarios`: `base_no_weather` and `weather_integrated` tables for
   both qualifying and race modes.

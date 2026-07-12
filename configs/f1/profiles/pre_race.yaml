@@ -1,8 +1,10 @@
-profile_name: pre_race_2026_post_qualifying
-profile_version: pre_race_2026_walk_forward_v1
+profile_name: race_final_position_2026_post_qualifying
+profile_version: race_final_position_2026_walk_forward_v2
 model_family: pre_race
 source: local
-target: race_classification
+target: official_race_classification_and_terminal_status
+implemented_evidence_target: official_race_final_classification_position
+terminal_status_component: not_trained_or_evaluated
 information_horizon: post_qualifying_pre_grid
 field_size: 22
 training:
@@ -12,7 +14,9 @@ training:
   historical_transfer_enabled: false
 model:
   requested: baseline
-  point_ranking: grid_only_baseline
+  point_ranking: post_qualifying_order_proxy
+  fallback_when_final_grid_unavailable: qualifying_classification_proxy
+  starting_order_resolver: packages/f1/domain/starting_grid.py
 features:
   qualifying_classification: true
   practice_quality_weighted: true
@@ -21,10 +25,13 @@ features:
   circuit_identity: false
   weather: false
 promotion:
-  point_ranking_status: retained_frozen_baseline
+  point_ranking_status: retained_research_proxy_baseline
   probability_status: not_promoted_insufficient_disjoint_calibration_history
-  rejected_candidate: automatic_ml_selector
-  evidence_run_id: 2026_promoted_policy_20260711c
+  terminal_status_probability_status: not_implemented_not_trained_or_evaluated
+  rejected_candidate: causal_residual_and_reliability_challenger_set
+  evidence_run_id: 2026_four_mode_rebuild_20260712e
+  challenger_evidence: artifacts/backtests/f1/race_final_position/2026_walk_forward_causal_residual_challengers_v2_20260712e.json
+  final_grid_snapshot_evidence: unavailable_in_frozen_2026_rounds
   frozen_rounds:
     - 1
     - 2
@@ -37,5 +44,4 @@ promotion:
     - 9
   mean_field_mae: 3.737373737373737
   mean_kendall_tau_b: 0.5257335257335257
-  rejected_candidate_mean_field_mae: 3.818181818181818
-  rejected_candidate_mae_delta: 0.08080808080808083
+  stale_automatic_ml_comparison_status: quarantined_not_current_evidence

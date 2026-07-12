@@ -25,7 +25,7 @@ forecasting:
     research_runtime_gate: blend_rejected_fallback_to_naive
     point_status: blend_rejected_fail_closed_to_naive_baseline
     interval_status: not_promoted
-    evidence: artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v3_20260712d.json
+    evidence: artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v3_20260712e.json
     service_integration_status: not_integrated_service_next_lap_currently_means_relative_order_not_seconds
   degradation:
     target: clean_lap_stint_pace_loss_seconds_per_lap

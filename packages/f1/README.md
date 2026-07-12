@@ -4,13 +4,12 @@ Authoritative F1 package for the sport prediction system.
 
 ## Maturity
 
-| Stage | Current status | What may be claimed |
+| User-facing mode | Current status | What may be claimed |
 | --- | --- | --- |
-| Pre-Quali | Executable research | Produces rankings and probability fields; predictive edge and probability calibration remain run-gated. |
-| Pre-Race | Executable research | Supports predicted-grid, post-qualifying, and official-grid horizons; each horizon needs its own passing evaluation. |
-| Live Race | Experimental research | State-space/replay code exists; the platform currently serves explicitly named untrained snapshot baselines, not a promoted trace model. |
-| Live Strategy/RL | Experimental, fail-closed | Candidate registry metrics and locked promotion reports are required before replacement of a deterministic fallback. |
-| Ultimate Lap-Time | Experimental, fail-closed | Baseline and deep-model code exist; no production replacement is claimable without the locked evaluation and promotion bundle. |
+| Qualifying Prediction | Executable research | The 2026 causal point-ranking policy has evidence; its emitted probabilities and intervals are not promoted. |
+| Race Final Position | Executable research | The post-Qualifying proxy baseline is retained for that horizon; final-grid and terminal-status components are not validated/implemented as complete products. |
+| Best Estimated Lap Time | Executable research | The achievable point estimate has conditional 2026 walk-forward evidence with explicit coverage. Full-mode outcomes, intervals, and deep telemetry models remain gated. |
+| Live Race Intelligence | Experimental research | The causal last-clean-lap baseline is the research-runner default after the emitted SSM blend failed its uncertainty gate. Seconds-valued next-lap output is not yet platform-integrated; RL remains decision-only and fail-closed. |
 
 The authoritative machine-readable status and evidence policy lives in
 `configs/f1/maturity.json`. A runnable path, green unit tests, or an emitted
@@ -21,8 +20,8 @@ probability column is not evidence of production readiness or model edge.
 - `features`: circuit, practice, qualifying, race, strategy, weather, and live-state features
 - `models/pre_quali`: train/predict/evaluate surface for qualifying prediction
 - `models/pre_race`: train/predict/evaluate surface for race prediction
-- `models/live_race`: state/strategy/predict surface for live race prediction
-- `models/ultimate_lap_time`: train/predict surface for theoretical best lap pace
+- `models/live_race`: forecasting plus constrained pit/compound/pace decision research
+- `models/ultimate_lap_time`: separate theoretical-sector-floor and achievable-best-lap surfaces
 - `orchestration`: weekend pipeline, same-season backtest, scenarios, and contracts
 - `betting`: F1 betting recommendation helpers
 

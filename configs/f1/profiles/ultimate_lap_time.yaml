@@ -1,6 +1,11 @@
+profile_name: best_estimated_lap_time_2026
+profile_version: best_estimated_lap_time_v3
 model_family: ultimate_lap_time
-source: local_or_fastf1_or_openf1
-baseline_model: ultimate_lap_time_deterministic_baseline_v1
+source: locked_local_current_evidence
+candidate_provider_scope: local_or_fastf1_or_openf1_after_provider_specific_validation
+baseline_model: achievable_best_lap_rehearsal_shift_v1
+theoretical_diagnostic_model: ultimate_lap_time_deterministic_baseline_v1
+user_facing_mode: best_estimated_lap_time
 dataset:
   telemetry_basis: distance_normalized
   tensor_layout: channels_x_distance_bins
@@ -34,34 +39,46 @@ features:
     - tyre_age
     - weather
 targets:
-  - lap_time_seconds
-  - sector1_seconds
-  - sector2_seconds
-  - sector3_seconds
-  - p05_target
-  - p50_target
-  - p90_target
+  theoretical_sector_lower_bound:
+    output: compatible_sector_lower_bound_seconds
+    semantics: sum_of_compatible_observed_sector_minima_not_expected_achievable_lap
+    status: diagnostic_research_lower_bound
+  achievable_session_end_estimate:
+    output: p05_p50_p90_best_valid_qualifying_lap_seconds
+    semantics: best_valid_representative_lap_achieved_by_session_end
+    point_model: achievable_best_lap_rehearsal_shift_v1
+    status: conditional_point_estimate_retained_full_mode_not_promoted
 evaluation:
-  report_path: artifacts/reports/f1/ultimate_lap_time_evaluation.json
-  required_metrics:
-    - p50_mae
-    - p50_rmse
-    - p05_pinball
-    - p50_pinball
-    - p90_pinball
-    - interval_coverage
-    - fastest_lap_winner_hit_rate
-    - top3_fastest_lap_accuracy
-  current_evidence:
-    artifact: artifacts/backtests/f1/ultimate_lap_time_round09_post_sprint_pre_q_20260711.json
-    event_key: 202609
-    information_horizon: post_sprint_pre_qualifying
-    holdout_target_rows: 21
-    p50_mae_seconds: 1.165560796403658
-    interval_coverage: 1.0
-    mean_interval_width_seconds: 10.0
-    ranking_spearman: 0.9090909090909091
-    decision: not_promoted_single_event_wide_interval_no_locked_comparator
+  conditional_point_evidence:
+    artifact: artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_rehearsal_shift_v2_20260712e.json
+    protocol: same_season_strict_event_walk_forward
+    rounds: 9
+    matched_rows: 191
+    causal_inference_rows: 192
+    observed_target_rows: 195
+    evaluation_union_rows: 196
+    conditional_event_mean_p50_mae_seconds: 0.5133200235437062
+    conditional_raw_rehearsal_mean_mae_seconds: 0.763862255385939
+    paired_event_mean_mae_delta_seconds: -0.2505422318422328
+    end_to_end_scored_union_rate: 0.9744897959183674
+    conditional_event_mean_spearman: 0.9313375665778412
+    conditional_fastest_driver_hit_rate: 0.6666666666666666
+    interval_coverage: 0.7748344370860927
+    decision: retain_conditional_point_estimate_only_full_mode_blocked
+  future_probabilistic_and_deep_gate:
+    status: not_run_no_complete_report
+    required_metrics:
+      - p50_mae
+      - p50_rmse
+      - p05_pinball
+      - p50_pinball
+      - p90_pinball
+      - interval_coverage
+      - fastest_lap_winner_hit_rate
+      - top3_fastest_lap_accuracy
 promotion:
   fail_closed_on_missing_metrics: true
   fail_closed_on_leakage_issues: true
+  probabilistic_intervals_promoted: false
+  deep_model_promoted: false
+  deep_model_blocker: no_2026_distance_normalized_rehearsal_telemetry_with_separate_pre_q_feature_and_q_target_timestamps

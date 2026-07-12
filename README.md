@@ -77,9 +77,12 @@ Sport Prediction System
   Shared Core
     weather, data contracts, caching, evaluation, orchestration
   F1
-    Executable research: Pre-Quali, Pre-Race
-    Experimental: Live Race, Live Strategy/RL, Ultimate Lap-Time
-    Deployed live fallback: target-specific untrained snapshot baselines
+    1. Qualifying Prediction
+    2. Race Final Position
+    3. Best Estimated Lap Time
+    4. Live Race Intelligence (forecasting plus constrained strategy/RL decisions)
+    Service/runtime fallback: target-specific untrained snapshot baselines;
+      seconds-valued Live research forecasts are not service-integrated
   Football
     Pre-Match, Scoreline, Live Match, Player/Props
 ```

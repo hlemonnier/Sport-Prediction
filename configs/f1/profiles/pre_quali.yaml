@@ -1,5 +1,5 @@
 profile_name: pre_quali_2026_same_season
-profile_version: pre_quali_2026_walk_forward_v1
+profile_version: qualifying_prediction_2026_walk_forward_v2
 model_family: pre_quali
 source: local
 target: qualifying_classification
@@ -14,7 +14,14 @@ model:
   requested: auto
   compare_families:
     - baseline
-    - ml
+  point_ranking: chronological_causal_expert_selector
+  primary_signal: latest_target_aligned_rehearsal_rank
+  rehearsal_priority:
+    - sprint_qualifying
+    - practice_3
+    - practice_2
+    - practice_1
+  ml_status: candidate_only_no_current_hash_matching_paired_edge_evidence
 features:
   practice_quality_weighted: true
   run_simulation_features: false
@@ -22,10 +29,10 @@ features:
   circuit_identity: false
   weather: false
 promotion:
-  point_ranking_status: promoted_research_policy
+  point_ranking_status: retained_research_policy_no_current_paired_baseline_claim
   probability_status: not_promoted_insufficient_disjoint_calibration_history
-  uncertainty_status: not_promoted_interval_coverage_regressed
-  evidence_run_id: 2026_promoted_policy_20260711c
+  uncertainty_status: not_promoted_interval_coverage_inadequate
+  evidence_run_id: 2026_four_mode_rebuild_20260712e
   frozen_rounds:
     - 1
     - 2
@@ -36,12 +43,8 @@ promotion:
     - 7
     - 8
     - 9
-  mean_field_mae: 2.2323232323232323
-  baseline_mean_field_mae: 2.8585858585858586
-  paired_mae_delta: -0.6262626262626262
-  paired_event_bootstrap_ci95:
-    - -1.131313131313131
-    - -0.1818181818181818
-  mean_kendall_tau_b: 0.7287157287157288
-  mean_interval_coverage: 0.8131313131313131
-  baseline_mean_interval_coverage: 0.8888888888888888
+  mean_field_mae: 1.878787878787879
+  mean_kendall_tau_b: 0.7748917748917749
+  mean_top10_hit_pct: 91.11111111111111
+  mean_interval_coverage: 0.702020202020202
+  stale_comparison_runs_status: quarantined_not_current_evidence

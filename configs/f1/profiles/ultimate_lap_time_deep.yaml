@@ -1,5 +1,5 @@
 profile_name: ultimate_lap_time_deep
-profile_version: phase9_production_registry_v1
+profile_version: best_estimated_lap_time_deep_candidate_v2
 model_family: ultimate_lap_time
 source: local_or_fastf1_or_openf1
 registry:
@@ -7,24 +7,26 @@ registry:
   model_family: ultimate_lap_time
   version: v1
   training_data_cutoff: pending_locked_walk_forward_cutoff
-  feature_schema_version: ultimate_lap_time_telemetry_schema_v2_ideal_targets_normalized
+  feature_schema_version: ultimate_lap_time_telemetry_schema_v3_achievable_target
   artifact_path: artifacts/models/f1/ultimate_lap_time/deep/ultimate_lap_time_distance_tcn_v1
   metrics: {}
   promotion_status: candidate
-  fallback_model_id: ultimate_lap_time_deterministic_baseline_v1
+  fallback_model_id: achievable_best_lap_rehearsal_shift_v1
   deterministic_fallback: false
   metadata:
     architecture: distance_normalized_tcn
-    target_contract: theoretical_ideal_lap_v1
+    target_contract: achievable_session_end_lap_v1
+    quantile_training_contract: all_pinball_heads_use_the_same_realized_achievable_lap
     feature_normalization: train_fitted_persisted_stats
     distance_coverage_policy: reject_below_95_percent
     validation_strategy: grouped_temporal_holdout_with_early_stopping
+    feature_target_time_boundary: rehearsal_feature_as_of_strictly_before_separate_q_target_as_of
     production_replacement_allowed_by_default: false
 fallback:
-  model_id: ultimate_lap_time_deterministic_baseline_v1
+  model_id: achievable_best_lap_rehearsal_shift_v1
   model_family: ultimate_lap_time
   deterministic_fallback: true
-  artifact_path: artifacts/models/f1/ultimate_lap_time/deterministic_baseline_v1
+  artifact_path: artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_rehearsal_shift_v2_20260712e.json
 promotion:
   production_replacement_allowed_by_default: false
   split_strategy: grouped_event_circuit_time_walk_forward
@@ -37,7 +39,7 @@ promotion:
   calibration_report_path: artifacts/reports/f1/ultimate_lap_time/deep/calibration_report.json
   baseline_comparison:
     required: true
-    baseline_model_id: ultimate_lap_time_deterministic_baseline_v1
+    baseline_model_id: achievable_best_lap_rehearsal_shift_v1
     report_path: artifacts/reports/f1/ultimate_lap_time/deep/baseline_comparison.json
     metrics:
       - p50_mae
@@ -48,6 +50,10 @@ promotion:
     required: true
     fail_closed_on_issues: true
     report_path: artifacts/reports/f1/ultimate_lap_time/deep/leakage_report.json
+  required_data_provenance:
+    - feature_session_is_not_target_session
+    - feature_as_of_is_strictly_before_target_as_of
+    - target_is_separate_gp_qualifying_session_end_outcome
   simulator_validation:
     required: false
   required_metrics:

@@ -1,121 +1,100 @@
-# F1 2026 Point-in-Time Walk-Forward Experiment Report
+# F1 2026 Qualifying and Race Walk-Forward Report
 
-Date: 2026-07-11. Scope: completed 2026 rounds 1-9, ending with the British
-Grand Prix. This report promotes only the policy choices supported by the
-frozen local snapshots and leaves probability, live-strategy, and deep-model
-claims closed.
+Finalized: 2026-07-12 Europe/Paris. Evaluation-data cutoff: completed 2026
+rounds 1-9 through the British Grand Prix on 2026-07-05. The full mathematical,
+logical, implementation, Live, and Best Lap review is in
+[`f1_four_mode_math_logic_implementation_audit_20260711.md`](f1_four_mode_math_logic_implementation_audit_20260711.md).
 
-## Frozen Protocol
+## Protocol
 
-- Each round is predicted from earlier completed 2026 rounds only. No 2025
-  observations are silently pooled across the 2026 regulation change.
-- Qualifying uses only sessions completed before Grand Prix qualifying. Race
-  uses the `post_qualifying_pre_grid` horizon.
-- Every evaluated field has exactly 22 predicted, 22 actual, and 22 matched
-  drivers, with zero missing or unexpected entries. Round 1 is necessarily
-  heuristic because no earlier 2026 event exists.
-- The active roster comes from the latest eligible session plus two-seat team
-  continuity. This carried two temporarily absent cars in rounds 1 and 4,
-  excluded one superseded reserve in round 3, and excluded six reserves in each
-  of rounds 7 and 8. Unclassified result rows receive stable tail ranks.
-- Runs execute sequentially with one thread and immutable per-run manifests.
-- Differences use paired event-level bootstrap resampling with seed `20260711`.
-  The primary MAE comparison uses 500,000 resamples of the nine events.
+- Each round uses only strictly earlier completed 2026 rounds for model or
+  policy selection. There is no silent pre-2026 pooling across the regulation
+  change.
+- Qualifying uses only sessions completed before Grand Prix Qualifying.
+- Race uses the `post_qualifying_pre_grid` horizon. The frozen data do not
+  contain immutable final-grid-as-of snapshots, so Qualifying is explicitly a
+  proxy rather than claimed as the official final grid.
+- Every evaluated event has 22 predicted, 22 actual, and 22 matched drivers.
+- Rounds execute in ascending order with one thread.
+- The canonical run records actual CSV access by inference/evaluation role,
+  actual training event keys, bound profile hashes, and start/end drift guards.
 
-## Locked Runs
+## Canonical Run
 
-| Run | Purpose | Decision |
-| --- | --- | --- |
-| `2026_primary_baseline_20260711b` | Frozen pace/grid baselines | Comparator |
-| `2026_primary_auto_20260711b` | Automatic ML/baseline selection with run-simulation features | Qualifying gain; race rejected |
-| `2026_ablation_no_runsim_20260711b` | Automatic selection without run-simulation features | Retained for qualifying |
-| `2026_ablation_with_standings_20260711b` | Target-specific policy with standings | Rejected: exactly zero metric or selection change |
-| `2026_promoted_policy_20260711c` | Canonical target-specific retained policy | Evidence-pack source |
+`2026_four_mode_rebuild_20260712e` is the canonical Qualifying/Race evidence
+run. It uses:
 
-## Qualifying Result
+- Qualifying: `model=auto`, candidate family `baseline` only, target-specific
+  run-simulation features disabled;
+- Race: `model=baseline`, run-simulation diagnostics retained;
+- standings, circuit identity, and weather disabled;
+- same-season walk-forward with one sequential training job.
 
-| Metric | Frozen baseline | Retained policy | Change |
-| --- | ---: | ---: | ---: |
-| Full-field MAE | 2.8586 | 2.2323 | -0.6263 |
-| Kendall tau-b | 0.6508 | 0.7287 | +0.0779 |
-| Top-3 hit rate | 0.5185 | 0.6667 | +0.1481 |
-| Top-5 hit rate | 0.7556 | 0.7556 | 0.0000 |
-| Top-10 hit percentage | 80.00% | 87.78% | +7.78 pp |
-| Exact-position rate | 0.1313 | 0.1616 | +0.0303 |
-| Position-interval coverage | 0.8889 | 0.8131 | -0.0758 |
+The “auto” label for Qualifying means chronological selection among transparent
+causal baseline experts; it does not enable ML in this run.
 
-The paired qualifying MAE delta is -0.6263 positions, with a 95% event
-bootstrap interval of [-1.1313, -0.1818] and bootstrap probability of
-improvement 0.999246. Kendall tau-b improves by 0.0779 with interval
-[0.0221, 0.1414], and top-3 hit rate improves by 0.1481 with interval
-[0.0370, 0.2593]. The selector is retained for ranking. Its interval coverage
-regression is statistically adverse, so its uncertainty intervals are not
-promoted.
+## Qualifying
 
-The retained selector chose simple pace baselines on seven trained events and
-a ridge/pace blend only on round 9. This is evidence for adaptive selection,
-not evidence that a complex model is universally superior.
+The retained causal expert selector first competes against the latest
+target-aligned qualifying rehearsal: FP3 on a standard weekend and Sprint
+Qualifying on an alternative-format weekend. The source is event-consistent,
+and missing driver observations are explicitly flagged.
 
-## Race Result
+| Metric | Current causal expert |
+| --- | ---: |
+| Full-field MAE | 1.8788 |
+| Kendall tau-b | 0.7749 |
+| Top-10 hit percentage | 91.11% |
+| Exact-position rate | 0.2475 |
+| Position-interval coverage | 0.7020 |
 
-The automatic candidate is rejected. Mean full-field MAE worsened from 3.7374
-to 3.8182 (+0.0808), Kendall tau-b fell from 0.5257 to 0.5200, and interval
-coverage fell from 0.6414 to 0.6162. The paired MAE interval for candidate
-minus baseline is [-0.0202, 0.1818], with only 0.0467 bootstrap probability of
-improvement. The retained policy therefore remains the
-post-qualifying grid-only point-ranking baseline.
+Earlier legacy, fixed-rehearsal, and ML comparator runs no longer match the
+current source/configuration hashes and are quarantined. These numbers support
+the current absolute walk-forward point-policy measurement, not a current
+paired edge claim.
 
-## Ablations and Non-Promotions
+Decision:
 
-- Run-simulation features do not improve qualifying: the full feature set is
-  0.0101 MAE worse than the ablation, with interval [0.0000, 0.0303]. They stay
-  available as quality/provenance diagnostics but are disabled for the
-  promoted qualifying policy.
-- Standings cause exactly zero prediction, selection, or metric change in the
-  tested rounds and are excluded.
-- Circuit identity is not tested as a promoted feature because the nine-event
-  slice has no repeated 2026 circuit from which to estimate a causal within-
-  regime effect.
-- Weather is not promoted because immutable historical forecast snapshots are
-  absent; retrospective observations would not reproduce a pre-event forecast.
-- Historical transfer, DL, and RL are not promoted. The 2026 regime change and
-  short sample make complexity or cross-season pooling a weaker prior than the
-  measured same-season policies.
-- The temporal probability audit correctly remains unavailable: the rolling
-  histories do not yet supply separate, sufficiently sized selection,
-  calibration, and final-audit blocks. Probability columns are diagnostic and
-  must not be marketed as calibrated.
+- retain the causal expert point ranking;
+- keep ML shadow-only;
+- do not promote probability marginals or intervals because no disjoint
+  selection/calibration/final-audit blocks exist and interval coverage is poor.
 
-## Retained Runtime Policy
+## Race Final Position
 
-- Qualifying: `model=auto`, run-simulation disabled, standings/circuit/weather
-  disabled, same-season walk-forward, `pre_qualifying` cutoff.
-- Race: `model=baseline`, run-simulation retained for the existing diagnostic
-  probability layer, standings/circuit/weather disabled,
-  `post_qualifying_pre_grid` cutoff.
-- Live race and ultimate-lap paths remain experimental until their own locked
-  causal replay or grouped temporal reports pass.
+The current post-Qualifying proxy baseline has full-field MAE 3.7374 and
+Kendall tau-b 0.5257. This is not a resolved-final-grid result: immutable final
+grid snapshots are unavailable. The old automatic-ML comparison is stale and
+is not used as current evidence.
 
-## Independent Module Audits
+An independent same-season causal challenger run also rejects every residual
+or reliability adjustment. Team residual shrinkage is the closest at MAE
+3.7980, still 0.0606 worse than baseline with paired 95% interval
+[-0.1111, 0.2424]. Driver residual, reliability hazard, hierarchical residual,
+rank-normalized hierarchy, and the combined running/reliability policy have MAE
+between 3.8990 and 4.0000. None is promoted. Evidence:
+`artifacts/backtests/f1/race_final_position/2026_walk_forward_causal_residual_challengers_v2_20260712e.json`.
 
-The round-9 live-race replay was cut at global session time 5,200 seconds. A
-run from the full 1,113-row race file and a run from a physically truncated
-411-row prefix produced identical 22-driver prediction payload hashes. The
-causal cutoff works. The model does not earn promotion: one-step MAE is 0.4481
-seconds versus 0.3759 for naive last-lap persistence, a -0.0722-second gain
-(that is, a regression), and the filter, transition, and strategy-template
-priors remain hand tuned. Evidence:
-`artifacts/reports/f1/live_race_round09_global_prefix_invariance.json`.
+The new starting-grid resolver handles qualifying source, provisional/final
+phase, penalties, withdrawals, pit-lane starts, and actual start separately.
+That implementation correction does not retroactively create missing snapshot
+evidence. A final-grid horizon must be evaluated again after first-seen grid
+snapshots are captured.
 
-The ultimate-lap deterministic baseline was evaluated on 21 drivers with a
-valid compatible-sector qualifying target at Silverstone. With only earlier
-circuits, unseen-circuit MAE is 10.5461 seconds and interval coverage is zero,
-which proves that raw cross-circuit lap-time transfer is invalid. Adding only
-causally available Silverstone FP1, Sprint Qualifying, and Sprint evidence
-reduces MAE to 1.1656 seconds, gives Spearman 0.9091 and identifies the fastest
-driver, but the interval is an uninformative 10 seconds wide and the audit is a
-single event without a locked comparator. It remains a research lower-bound
-baseline, not an achievable-lap forecast or promoted model. Evidence:
-`artifacts/backtests/f1/ultimate_lap_time_round09_post_sprint_pre_q_20260711.json`.
+Race win, podium, points, and position probabilities remain diagnostic and
+unpromoted. Terminal-status learning/evaluation is not implemented in the
+current research provider path; the contract remains a target, not a delivered
+model.
 
-Suggested commit name: `feat(f1): promote target-specific 2026 walk-forward policies`
+## Rejected Complexity
+
+- Run-simulation features are not needed by the retained Qualifying point
+  policy.
+- Standings previously produced zero selection or metric change and remain
+  excluded.
+- Circuit identity has no repeated-circuit 2026 evidence in rounds 1-9.
+- Retrospective weather observations are not immutable forecast snapshots.
+- Historical transfer, DL, and RL are not justified for these two offline
+  classification targets by the current sample.
+
+Suggested commit name: `feat(f1): retain causal 2026 qualifying and race policies`

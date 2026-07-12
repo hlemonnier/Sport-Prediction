@@ -9,16 +9,22 @@ eligible for promotion.
 The repository contains four different prediction problems. They share data
 contracts, but they do not share a label or an information set.
 
-| Module | Target | Earliest useful same-weekend evidence | Forbidden evidence |
+| User-facing mode | Target | Earliest useful same-weekend evidence | Forbidden evidence |
 | --- | --- | --- | --- |
-| Pre-Quali | official Grand Prix qualifying order | completed sessions before Grand Prix qualifying | Q classification, final grid, race data |
-| Pre-Race | official race classification | named pre-FP, pre-Q, post-Q, or final-grid horizon | any session or grid revision published after the declared horizon |
-| Live Race | next-lap and finishing-order distribution | observations whose event timestamp is at or before replay time | later laps, global events learned from another car after replay time |
-| Ultimate Lap-Time | compatible-session pace envelope | laps available by the declared cutoff | mixing sector minima from incompatible tyre, weather, track, or setup states without an explicit relaxation label |
+| Qualifying Prediction | official Grand Prix qualifying classification | completed sessions before Grand Prix qualifying | Q classification, final grid, race data |
+| Race Final Position | official race classification and terminal status | named pre-FP, pre-Q, post-Q, or final-grid horizon | any session or grid revision published after the declared horizon |
+| Best Estimated Lap Time | best valid representative qualifying lap achieved by session end | target-aligned rehearsal laps available by the declared cutoff | Q target laps; theoretical sector floors relabelled as achievable estimates |
+| Live Race Intelligence | named next-lap/degradation/order/status forecast or legal pit/compound/pace decision | observations whose event timestamp is at or before replay time | later laps, global events learned after replay time, or any action outside the legal mask |
 
-Pre-Quali output can become a provisional race-grid input before Q. It is not
+Qualifying Prediction output can become provisional Race Final Position context
+before Q. It is not
 an official grid. Qualifying classification, provisional grid, final grid,
 pit-lane start, DNS, and actual start order remain separate states.
+
+Live forecasts and decisions are different estimands. Forecasting observable
+future state does not use an RL objective. RL is eligible only for the
+counterfactual pit, compound, and pace decision subcontracts after the legal
+mask, calibrated simulator, MPC baseline, locked OPE, and shadow gates pass.
 
 ## Season-Aware Weekend DAGs
 
@@ -82,10 +88,14 @@ most recent earlier participant only when a constructor's two-car seat count
 is incomplete. This keeps a car that missed the latest session while excluding
 superseded reserve drivers. Practice is left-joined so target drivers without
 representative laps retain explicit missingness. Current race scoring starts
-from the qualifying or official-grid roster. Official classification rows with
-no numeric position receive stable tail ranks in source order. A complete-field
-evaluation requires exact one-to-one roster equality: predictions may neither
-omit target drivers nor add reserves or other non-target drivers.
+from the qualifying or official-grid roster. For training/evaluation target
+normalization only, authoritative classification rows with no numeric position
+receive stable tail ranks in source order. That does not authorize a serving
+forecast: DNS, DSQ, withdrawn, and unclassified participants are explicitly
+unavailable, while retired or stopped cars may remain eligible for an official
+Race classification. A complete-field evaluation requires exact one-to-one
+roster equality: predictions may neither omit target drivers nor add reserves
+or other non-target drivers.
 
 ## Frozen Baselines and Evaluation
 

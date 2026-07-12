@@ -2,7 +2,8 @@
 
 F1 config home for circuits, season policies, and model profiles.
 
-- `profiles/`: pre-quali, pre-race, and live-race profiles
+- `profiles/`: the four user-facing mode profiles plus internal Live strategy
+  and deep-model candidate profiles
 - `seasons/`: season-specific regime and training policy config
 - `circuits.yaml`: circuit metadata and static priors
 - `maturity.json`: machine-readable stage, evidence, provider-contract, and
@@ -18,5 +19,11 @@ documentation TODOs.
 Circuit metadata is a static prior. Circuit features remain quarantined by
 default and must be enabled only for a named research ablation until a current,
 population-matched comparison demonstrates benefit.
+
+The canonical four-mode contract is implemented in
+`packages/f1/orchestration/contracts.py`: Qualifying Prediction, Race Final
+Position, Best Estimated Lap Time, and Live Race Intelligence. `pre_quali`,
+`pre_race`, `ultimate_lap_time`, and `live_race` are legacy implementation
+aliases, not additional product modes.
 
 Suggested commit name: `docs: add machine-readable F1 maturity evidence contract`

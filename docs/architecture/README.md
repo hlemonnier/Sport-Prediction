@@ -60,10 +60,15 @@ sport-prediction/
 
 ## Model Boundaries
 
-- F1 pre-quali predicts qualifying before qualifying is known.
-- F1 pre-race predicts race order from grid/quali or predicted qualifying plus race features.
-- F1 live-race updates predictions from live state and strategy events.
-- F1 ultimate-lap-time is the future theoretical best-lap pace model.
+- F1 **Qualifying Prediction** predicts the official Grand Prix qualifying
+  classification before qualifying is known.
+- F1 **Race Final Position** predicts official terminal classification/status
+  from as-of grid context and race features.
+- F1 **Best Estimated Lap Time** predicts the achievable session-end best lap;
+  a theoretical sector floor is a separate diagnostic semantic.
+- F1 **Live Race Intelligence** forecasts next-lap/degradation/order/status and
+  separately supports constrained pit/compound/pace decisions. RL belongs only
+  to the decision layer.
 - Football pre-match predicts 1X2 before kickoff.
 - Football scoreline predicts exact score and goal distribution.
 - Football live-match is the future rolling event/xG model.

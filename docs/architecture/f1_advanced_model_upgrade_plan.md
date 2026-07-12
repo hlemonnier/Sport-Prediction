@@ -1,25 +1,33 @@
 # F1 Advanced Model Upgrade Plan
 
+This document uses historical package names. The canonical product taxonomy is
+the four-mode contract in `packages/f1/orchestration/contracts.py`.
+`ultimate_lap_time` is an implementation alias inside **Best Estimated Lap
+Time**, whose product target is the achievable best valid Grand Prix Qualifying
+lap. The compatible-sector lower bound is diagnostic only. Live strategy is a
+decision layer inside **Live Race Intelligence**, not a separate user mode.
+
 This note defines how to move the two newest F1 model families from deterministic
 baselines toward serious DL/RL-grade systems without breaking the current
 `packages/f1` architecture.
 
 ## Current State
 
-### Ultimate Lap-Time
+### Best Estimated Lap Time (`ultimate_lap_time` compatibility package)
 
 Current file: `packages/f1/models/ultimate_lap_time/model.py`
 
-The implemented baseline estimates theoretical best lap pace from clean timing
-rows. It uses sector ideal-lap anchors when available, fastest clean lap fallback
-otherwise, hierarchical driver/team/circuit/event anchors, and lightweight
-context adjustments.
+The retained product baseline estimates the achievable best valid Grand Prix
+Qualifying lap from the target-aligned rehearsal and a source-specific median
+shift learned only from earlier same-season events. The older deterministic
+sector implementation estimates a compatible-sector lower bound from clean
+timing rows; that is a diagnostic, not the product target.
 
-This is the right first baseline because it is deterministic, auditable, and
-does not pretend public data contains private team telemetry. It is not yet the
-best possible model because it does not learn distance-normalized telemetry
-shape, local corner losses, track evolution, tyre thermal state, fuel effects, or
-uncertainty as a first-class output.
+The rehearsal-shift baseline is auditable and causal but only conditionally
+scored on drivers with both an eligible rehearsal and an observed target. The
+full mode remains blocked by coverage and target-observation modelling. The
+diagnostic sector floor remains useful for physics checks but must never be
+evaluated or served as an expected achievable lap.
 
 ### Live Race Strategy
 

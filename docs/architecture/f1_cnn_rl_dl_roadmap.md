@@ -1,12 +1,22 @@
-# F1 CNN/RL/DL Roadmap
+# F1 CNN/RL/DL Internal Roadmap (Legacy Naming)
+
+This is an internal model-family roadmap, not the canonical product taxonomy.
+The canonical user surface is the four-mode contract in
+`packages/f1/orchestration/contracts.py`. Here, historical `Ultimate Lap-Time`
+code belongs inside **Best Estimated Lap Time**: achievable Grand Prix
+Qualifying lap time is the product target and the compatible-sector floor is a
+diagnostic only. `Live Race Strategy` is the decision layer inside **Live Race
+Intelligence**, not a fifth mode.
 
 This roadmap turns the current F1 baselines into a staged path toward advanced
 CNN/DL/RL models.
 
-The two model families are:
+The two internal implementation families are:
 
-- `Ultimate Lap-Time`: theoretical best lap pace before or during a weekend.
-- `Live Race Strategy`: live pit/compound/action policy during a race.
+- `Ultimate Lap-Time` compatibility package: achievable qualifying-lap
+  forecasting plus a separately tagged theoretical-floor diagnostic.
+- `Live Race Strategy`: constrained pit/compound/pace decisions within Live
+  Race Intelligence.
 
 The current implementations are no longer empty. They are deterministic
 baselines. Treat them as the floor that every advanced model must beat.
@@ -22,7 +32,7 @@ F1 Advanced Models
 |   +-- lap/session tabular features
 |   +-- live race state/action/reward records
 |   +-- simulator transition records
-+-- Ultimate Lap-Time
++-- Best Estimated Lap Time internals
 |   +-- deterministic baseline
 |   +-- tabular quantile model
 |   +-- CNN/TCN telemetry model

@@ -1,12 +1,25 @@
 """Ultimate lap-time model package."""
 
+from .achievable import (
+    ACTUAL_LAP_COLUMN,
+    AchievableBestLapModel,
+    AchievableLapSourceCalibration,
+    fit_achievable_best_lap_model,
+)
+
 from .datasets import (
     build_distance_normalized_telemetry,
     build_ultimate_lap_dataset,
     build_ultimate_lap_example,
+    build_ultimate_lap_inference_input,
     dataset_summary,
 )
-from .deep import DistanceTelemetryTCN, DistanceTelemetryTCNConfig, torch_available
+from .deep import (
+    DistanceTelemetryTCN,
+    DistanceTelemetryTCNConfig,
+    deep_output_contract_issues,
+    torch_available,
+)
 from .evaluate import (
     DETERMINISTIC_BASELINE_MODEL_NAME,
     evaluate_ultimate_lap_time_baseline_backtest,
@@ -22,13 +35,17 @@ from .model import (
 )
 from .predict import predict_ultimate_lap_time
 from .schemas import (
+    ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
     IDEAL_LAP_TARGET_CONTRACT,
+    THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT,
     DistanceNormalizedTelemetryTensor,
     UltimateLapMetadata,
     UltimateLapSplitKey,
     UltimateLapTargets,
     UltimateLapTelemetryBatch,
     UltimateLapTelemetryExample,
+    UltimateLapTelemetryInput,
+    summarize_target_quantile_diagnostics,
 )
 from .tabular_quantile import TabularQuantileConfig, fit_tabular_quantile_model
 from .train import train_ultimate_lap_time
@@ -43,15 +60,20 @@ from .train_deep import (
 )
 
 __all__ = [
+    "ACTUAL_LAP_COLUMN",
+    "AchievableBestLapModel",
+    "AchievableLapSourceCalibration",
     "DeepFeatureNormalization",
     "DeepTrainingConfig",
     "DeepTrainingResult",
     "DeepUltimateLapTimeModel",
+    "ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT",
     "DistanceTelemetryTCN",
     "DistanceTelemetryTCNConfig",
     "DistanceNormalizedTelemetryTensor",
     "DETERMINISTIC_BASELINE_MODEL_NAME",
     "IDEAL_LAP_TARGET_CONTRACT",
+    "THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT",
     "TabularQuantileConfig",
     "UltimateLapTimeConfig",
     "UltimateLapMetadata",
@@ -61,19 +83,24 @@ __all__ = [
     "UltimateLapTargets",
     "UltimateLapTelemetryBatch",
     "UltimateLapTelemetryExample",
+    "UltimateLapTelemetryInput",
     "build_distance_normalized_telemetry",
     "aggregate_ideal_lap_holdout_targets",
     "build_ultimate_lap_dataset",
     "build_ultimate_lap_example",
+    "build_ultimate_lap_inference_input",
     "dataset_summary",
+    "deep_output_contract_issues",
     "evaluate_deep_ultimate_lap_time",
     "evaluate_ultimate_lap_time_baseline_backtest",
     "evaluate_ultimate_lap_time_predictions",
     "examples_to_deep_numpy",
     "fit_tabular_quantile_model",
+    "fit_achievable_best_lap_model",
     "predict_ultimate_lap_time",
     "predict_ultimate_lap_time_deep",
     "torch_available",
+    "summarize_target_quantile_diagnostics",
     "train_ultimate_lap_time",
     "train_ultimate_lap_time_deep",
     "write_ultimate_lap_time_baseline_backtest_report",

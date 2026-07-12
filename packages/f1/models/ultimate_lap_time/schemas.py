@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections import Counter
+from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Any, Mapping, Sequence
 
@@ -13,10 +14,27 @@ ALLOWED_SPLIT_NAMES: frozenset[str] = frozenset(
     {"train", "validation", "val", "test", "holdout", "live", "backtest"}
 )
 IDEAL_LAP_TARGET_CONTRACT = "theoretical_ideal_lap_v1"
+THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT = "theoretical_sector_floor_v1"
+ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT = "achievable_session_end_lap_v1"
 OBSERVED_LAP_TARGET_CONTRACT = "observed_lap_v1"
 ALLOWED_TARGET_CONTRACTS: frozenset[str] = frozenset(
-    {IDEAL_LAP_TARGET_CONTRACT, OBSERVED_LAP_TARGET_CONTRACT}
+    {
+        IDEAL_LAP_TARGET_CONTRACT,
+        THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT,
+        ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
+        OBSERVED_LAP_TARGET_CONTRACT,
+    }
 )
+THEORETICAL_TARGET_CONTRACTS: frozenset[str] = frozenset(
+    {IDEAL_LAP_TARGET_CONTRACT, THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT}
+)
+TARGET_CONTRACT_SEMANTICS: Mapping[str, str] = {
+    IDEAL_LAP_TARGET_CONTRACT: "theoretical_sector_floor",
+    THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT: "theoretical_sector_floor",
+    ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT: "achievable_session_end_lap",
+    OBSERVED_LAP_TARGET_CONTRACT: "observed_lap",
+}
+DEGENERATE_QUANTILE_TOLERANCE_SECONDS = 1e-6
 TARGET_VECTOR_COLUMNS: tuple[str, ...] = (
     "lap_p05",
     "lap_p50",
@@ -135,7 +153,16 @@ class UltimateLapSplitKey:
 
 @dataclass(frozen=True)
 class UltimateLapTargets:
-    """Lap and sector targets for quantile/deep Ultimate Lap-Time models."""
+    """One realized lap outcome with explicit estimand diagnostics.
+
+    ``IDEAL_LAP_TARGET_CONTRACT`` remains accepted as the legacy spelling for
+    a theoretical sector floor. It is not an achievable/session-end lap and is
+    therefore never silently treated as a promotion-grade forecast target.
+
+    The optional ``p*_target`` fields are accepted only as legacy metadata.
+    They are never used as quantile-regression labels: every pinball head trains
+    against the same realized ``lap_time_seconds`` outcome.
+    """
 
     lap_time_seconds: float
     sector1_seconds: float | None = None
@@ -145,8 +172,13 @@ class UltimateLapTargets:
     p50_target: float | None = None
     p90_target: float | None = None
     target_contract: str = OBSERVED_LAP_TARGET_CONTRACT
+    quantile_targets_were_explicit: bool = field(init=False)
+    quantile_targets_are_degenerate: bool = field(init=False)
 
     def __post_init__(self) -> None:
+        quantiles_were_explicit = all(
+            value is not None for value in (self.p05_target, self.p50_target, self.p90_target)
+        )
         lap = _finite_positive(self.lap_time_seconds, field_name="lap_time_seconds", required=True)
         object.__setattr__(self, "lap_time_seconds", lap)
         for name in ("sector1_seconds", "sector2_seconds", "sector3_seconds"):
@@ -175,6 +207,19 @@ class UltimateLapTargets:
         object.__setattr__(self, "p05_target", p05)
         object.__setattr__(self, "p50_target", p50)
         object.__setattr__(self, "p90_target", p90)
+        object.__setattr__(self, "quantile_targets_were_explicit", quantiles_were_explicit)
+        object.__setattr__(
+            self,
+            "quantile_targets_are_degenerate",
+            bool(
+                np.allclose(
+                    np.asarray([p05, p50, p90], dtype=float),
+                    float(p50),
+                    atol=DEGENERATE_QUANTILE_TOLERANCE_SECONDS,
+                    rtol=0.0,
+                )
+            ),
+        )
         contract = _as_clean_string(self.target_contract, field_name="target_contract").lower()
         if contract not in ALLOWED_TARGET_CONTRACTS:
             raise ValueError(f"target_contract must be one of {sorted(ALLOWED_TARGET_CONTRACTS)}")
@@ -185,20 +230,77 @@ class UltimateLapTargets:
         contract = _mapping_get_first(mapping, ("target_contract", "target_kind"))
         explicit_contract = str(contract).strip().lower() if contract is not None else None
         ideal_lap_time = _mapping_get_first(mapping, ("ideal_lap_time_seconds",))
+        theoretical_sector_floor = _mapping_get_first(
+            mapping, ("theoretical_sector_floor_seconds",)
+        )
+        achievable_session_end_lap = _mapping_get_first(
+            mapping,
+            (
+                "achievable_session_end_lap_time_seconds",
+                "session_end_lap_time_seconds",
+                "achievable_lap_time_seconds",
+            ),
+        )
         if explicit_contract == IDEAL_LAP_TARGET_CONTRACT and ideal_lap_time is None:
             raise ValueError(
                 "theoretical ideal-lap target requires an explicit ideal_lap_time_seconds value"
             )
-        if ideal_lap_time is not None and explicit_contract == OBSERVED_LAP_TARGET_CONTRACT:
-            raise ValueError("ideal_lap_time_seconds cannot use the observed-lap target contract")
-        lap_time = ideal_lap_time
-        if lap_time is not None:
-            contract = explicit_contract or IDEAL_LAP_TARGET_CONTRACT
+        if (
+            explicit_contract == THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT
+            and theoretical_sector_floor is None
+        ):
+            raise ValueError(
+                "theoretical sector-floor target requires an explicit "
+                "theoretical_sector_floor_seconds value"
+            )
+        if (
+            explicit_contract == ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT
+            and achievable_session_end_lap is None
+        ):
+            raise ValueError(
+                "achievable session-end target requires an explicit "
+                "achievable_session_end_lap_time_seconds value"
+            )
+        semantic_values = {
+            IDEAL_LAP_TARGET_CONTRACT: ideal_lap_time,
+            THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT: theoretical_sector_floor,
+            ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT: achievable_session_end_lap,
+        }
+        present_semantic_contracts = [
+            semantic_contract
+            for semantic_contract, semantic_value in semantic_values.items()
+            if semantic_value is not None
+        ]
+        if len(present_semantic_contracts) > 1:
+            raise ValueError(
+                "target payload contains multiple incompatible estimands: "
+                f"{sorted(present_semantic_contracts)}"
+            )
+        if explicit_contract is not None:
+            for semantic_contract, semantic_value in semantic_values.items():
+                if semantic_value is not None and semantic_contract != explicit_contract:
+                    raise ValueError(
+                        f"{semantic_contract} target value cannot use {explicit_contract}"
+                    )
+
+        if explicit_contract in semantic_values:
+            lap_time = semantic_values[explicit_contract]
+            contract = explicit_contract
+        elif theoretical_sector_floor is not None:
+            lap_time = theoretical_sector_floor
+            contract = THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT
+        elif ideal_lap_time is not None:
+            lap_time = ideal_lap_time
+            contract = IDEAL_LAP_TARGET_CONTRACT
+        elif achievable_session_end_lap is not None:
+            lap_time = achievable_session_end_lap
+            contract = ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT
         else:
             lap_time = _mapping_get_first(
                 mapping,
                 ("lap_time_seconds", "lap_duration", "LapTime", "lap_time", "duration"),
             )
+            contract = explicit_contract or OBSERVED_LAP_TARGET_CONTRACT
         return cls(
             lap_time_seconds=lap_time,
             sector1_seconds=_mapping_get_first(
@@ -216,8 +318,42 @@ class UltimateLapTargets:
             p05_target=_mapping_get_first(mapping, ("p05_target", "lap_p05", "p05", "target_p05")),
             p50_target=_mapping_get_first(mapping, ("p50_target", "lap_p50", "p50", "target_p50")),
             p90_target=_mapping_get_first(mapping, ("p90_target", "lap_p90", "p90", "target_p90")),
-            target_contract=contract or OBSERVED_LAP_TARGET_CONTRACT,
+            target_contract=contract,
         )
+
+    @property
+    def target_semantics(self) -> str:
+        return TARGET_CONTRACT_SEMANTICS[self.target_contract]
+
+    @property
+    def promotion_grade_quantiles_valid(self) -> bool:
+        return self.target_contract == ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT
+
+    @property
+    def quantile_target_semantics(self) -> str:
+        if self.quantile_targets_were_explicit and not self.quantile_targets_are_degenerate:
+            return "legacy_per_row_quantiles_ignored"
+        return "shared_realized_scalar"
+
+    @property
+    def promotion_blockers(self) -> tuple[str, ...]:
+        blockers: list[str] = []
+        if self.target_contract != ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT:
+            blockers.append("target_is_not_achievable_session_end_lap")
+        return tuple(blockers)
+
+    def quantile_diagnostics(self) -> dict[str, Any]:
+        return {
+            "target_contract": self.target_contract,
+            "target_semantics": self.target_semantics,
+            "quantile_target_semantics": self.quantile_target_semantics,
+            "quantile_targets_explicit": self.quantile_targets_were_explicit,
+            "quantile_targets_degenerate": self.quantile_targets_are_degenerate,
+            "quantile_training_target": "lap_time_seconds_shared_across_all_heads",
+            "legacy_per_row_quantile_fields_used_for_training": False,
+            "promotion_grade_quantiles_valid": self.promotion_grade_quantiles_valid,
+            "promotion_blockers": list(self.promotion_blockers),
+        }
 
     def as_dict(self) -> dict[str, float | str | None]:
         payload: dict[str, float | str | None] = {
@@ -229,16 +365,22 @@ class UltimateLapTargets:
             "p50_target": self.p50_target,
             "p90_target": self.p90_target,
             "target_contract": self.target_contract,
+            "target_semantics": self.target_semantics,
+            "quantile_target_semantics": self.quantile_target_semantics,
         }
         if self.target_contract == IDEAL_LAP_TARGET_CONTRACT:
             payload["ideal_lap_time_seconds"] = self.lap_time_seconds
+        elif self.target_contract == THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT:
+            payload["theoretical_sector_floor_seconds"] = self.lap_time_seconds
+        elif self.target_contract == ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT:
+            payload["achievable_session_end_lap_time_seconds"] = self.lap_time_seconds
         return payload
 
     def target_vector(self) -> np.ndarray:
         values = [
-            self.p05_target,
-            self.p50_target,
-            self.p90_target,
+            self.lap_time_seconds,
+            self.lap_time_seconds,
+            self.lap_time_seconds,
             self.sector1_seconds,
             self.sector2_seconds,
             self.sector3_seconds,
@@ -259,6 +401,9 @@ class UltimateLapMetadata:
     season: str | None = None
     lap_number: str | None = None
     source: str | None = None
+    target_session: str | None = None
+    feature_as_of: str | None = None
+    target_as_of: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "event_key", _as_clean_string(self.event_key, field_name="event_key"))
@@ -271,6 +416,9 @@ class UltimateLapMetadata:
         object.__setattr__(self, "season", _optional_clean_string(self.season))
         object.__setattr__(self, "lap_number", _optional_clean_string(self.lap_number))
         object.__setattr__(self, "source", _optional_clean_string(self.source))
+        object.__setattr__(self, "target_session", _optional_clean_string(self.target_session))
+        object.__setattr__(self, "feature_as_of", _optional_clean_string(self.feature_as_of))
+        object.__setattr__(self, "target_as_of", _optional_clean_string(self.target_as_of))
         if self.split_key.event_key != self.event_key:
             raise ValueError("split_key event_key must match metadata event_key")
         if self.split_key.circuit_id != self.circuit_id:
@@ -290,6 +438,9 @@ class UltimateLapMetadata:
             "split_name": self.split_key.split_name,
             "lap_number": self.lap_number,
             "source": self.source,
+            "target_session": self.target_session,
+            "feature_as_of": self.feature_as_of,
+            "target_as_of": self.target_as_of,
         }
 
 
@@ -343,9 +494,49 @@ class DistanceNormalizedTelemetryTensor:
         return (self.channels, self.distance_bins)
 
 
+def _clean_static_features(static_features: Mapping[str, Any]) -> dict[str, Any]:
+    cleaned: dict[str, Any] = {}
+    for key, value in dict(static_features).items():
+        text_key = _as_clean_string(key, field_name="static feature key")
+        if isinstance(value, (str, int, float, bool, np.integer, np.floating, np.bool_)) or value is None:
+            cleaned[text_key] = value
+    return cleaned
+
+
+def _validate_input_payload(
+    telemetry: DistanceNormalizedTelemetryTensor,
+    metadata: UltimateLapMetadata,
+) -> None:
+    if not isinstance(telemetry, DistanceNormalizedTelemetryTensor):
+        raise TypeError("telemetry must be a DistanceNormalizedTelemetryTensor")
+    if not isinstance(metadata, UltimateLapMetadata):
+        raise TypeError("metadata must be an UltimateLapMetadata")
+
+
+@dataclass(frozen=True)
+class UltimateLapTelemetryInput:
+    """Model-ready telemetry and metadata with no target dependency."""
+
+    telemetry: DistanceNormalizedTelemetryTensor
+    static_features: Mapping[str, Any]
+    metadata: UltimateLapMetadata
+
+    def __post_init__(self) -> None:
+        _validate_input_payload(self.telemetry, self.metadata)
+        object.__setattr__(self, "static_features", _clean_static_features(self.static_features))
+
+    def as_flat_record(self) -> dict[str, Any]:
+        record: dict[str, Any] = {}
+        record.update(self.metadata.as_dict())
+        record.update(self.static_features)
+        record["channels"] = self.telemetry.channels
+        record["distance_bins"] = self.telemetry.distance_bins
+        return record
+
+
 @dataclass(frozen=True)
 class UltimateLapTelemetryExample:
-    """Single model-ready Ultimate Lap-Time example."""
+    """Single labelled, model-ready Ultimate Lap-Time example."""
 
     telemetry: DistanceNormalizedTelemetryTensor
     static_features: Mapping[str, Any]
@@ -353,18 +544,19 @@ class UltimateLapTelemetryExample:
     metadata: UltimateLapMetadata
 
     def __post_init__(self) -> None:
-        if not isinstance(self.telemetry, DistanceNormalizedTelemetryTensor):
-            raise TypeError("telemetry must be a DistanceNormalizedTelemetryTensor")
+        _validate_input_payload(self.telemetry, self.metadata)
         if not isinstance(self.targets, UltimateLapTargets):
             raise TypeError("targets must be an UltimateLapTargets")
-        if not isinstance(self.metadata, UltimateLapMetadata):
-            raise TypeError("metadata must be an UltimateLapMetadata")
-        cleaned: dict[str, Any] = {}
-        for key, value in dict(self.static_features).items():
-            text_key = _as_clean_string(key, field_name="static feature key")
-            if isinstance(value, (str, int, float, bool, np.integer, np.floating, np.bool_)) or value is None:
-                cleaned[text_key] = value
-        object.__setattr__(self, "static_features", cleaned)
+        object.__setattr__(self, "static_features", _clean_static_features(self.static_features))
+
+    def without_targets(self) -> UltimateLapTelemetryInput:
+        """Return the genuine unlabeled input used by inference APIs."""
+
+        return UltimateLapTelemetryInput(
+            telemetry=self.telemetry,
+            static_features=self.static_features,
+            metadata=self.metadata,
+        )
 
     def as_flat_record(self) -> dict[str, Any]:
         record: dict[str, Any] = {}
@@ -459,18 +651,51 @@ def assert_split_fields_are_leakage_safe(fields: Sequence[str]) -> None:
         raise ValueError(f"split fields include leakage-prone columns: {tuple(fields)}")
 
 
+def summarize_target_quantile_diagnostics(
+    targets: Sequence[UltimateLapTargets],
+) -> dict[str, Any]:
+    """Aggregate target semantics and promotion-grade interval validity."""
+
+    contracts = Counter(target.target_contract for target in targets)
+    semantics = Counter(target.target_semantics for target in targets)
+    quantile_semantics = Counter(target.quantile_target_semantics for target in targets)
+    explicit_count = sum(target.quantile_targets_were_explicit for target in targets)
+    degenerate_count = sum(target.quantile_targets_are_degenerate for target in targets)
+    valid_count = sum(target.promotion_grade_quantiles_valid for target in targets)
+    blockers = sorted({blocker for target in targets for blocker in target.promotion_blockers})
+    row_count = len(targets)
+    return {
+        "row_count": row_count,
+        "target_contracts": dict(contracts),
+        "target_semantics": dict(semantics),
+        "quantile_target_semantics": dict(quantile_semantics),
+        "explicit_quantile_target_rows": int(explicit_count),
+        "degenerate_quantile_target_rows": int(degenerate_count),
+        "promotion_grade_quantile_rows": int(valid_count),
+        "promotion_grade_validation_passed": bool(row_count and valid_count == row_count),
+        "promotion_blockers": blockers,
+    }
+
+
 __all__ = [
     "ALLOWED_TARGET_CONTRACTS",
     "ALLOWED_SPLIT_NAMES",
+    "ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT",
+    "DEGENERATE_QUANTILE_TOLERANCE_SECONDS",
     "IDEAL_LAP_TARGET_CONTRACT",
     "OBSERVED_LAP_TARGET_CONTRACT",
+    "TARGET_CONTRACT_SEMANTICS",
     "TARGET_VECTOR_COLUMNS",
+    "THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT",
+    "THEORETICAL_TARGET_CONTRACTS",
     "DistanceNormalizedTelemetryTensor",
     "UltimateLapMetadata",
     "UltimateLapSplitKey",
     "UltimateLapTargets",
     "UltimateLapTelemetryBatch",
     "UltimateLapTelemetryExample",
+    "UltimateLapTelemetryInput",
     "assert_split_fields_are_leakage_safe",
     "split_fields_are_leakage_safe",
+    "summarize_target_quantile_diagnostics",
 ]

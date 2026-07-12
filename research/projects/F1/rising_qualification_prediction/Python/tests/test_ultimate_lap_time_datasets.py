@@ -8,14 +8,19 @@ from packages.f1.models.ultimate_lap_time.datasets import (
     build_distance_normalized_telemetry,
     build_ultimate_lap_dataset,
     build_ultimate_lap_example,
+    build_ultimate_lap_inference_input,
     dataset_summary,
     leakage_issues_for_examples,
     validate_ultimate_lap_examples,
 )
 from packages.f1.models.ultimate_lap_time.schemas import (
+    ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
     DistanceNormalizedTelemetryTensor,
     IDEAL_LAP_TARGET_CONTRACT,
+    THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT,
+    UltimateLapTargets,
     UltimateLapTelemetryBatch,
+    UltimateLapTelemetryInput,
 )
 
 
@@ -122,6 +127,8 @@ def test_build_example_batch_summary_and_split_leakage_checks() -> None:
     assert summary["row_count"] == 2
     assert summary["by_circuit"] == {"bahrain": 2}
     assert summary["target_availability"]["lap_time_seconds"] == 2
+    assert summary["target_diagnostics"]["degenerate_quantile_target_rows"] == 0
+    assert not summary["target_diagnostics"]["promotion_grade_validation_passed"]
     assert leakage_issues_for_examples(examples) == ()
 
 
@@ -151,4 +158,72 @@ def test_ideal_target_contract_cannot_relabel_an_observed_raw_lap() -> None:
             mislabeled,
             _telemetry_frame(),
             distance_bins=12,
+        )
+
+
+def test_unlabeled_inference_input_does_not_invent_targets() -> None:
+    unlabeled_record = _lap_record()
+    for key in (
+        "ideal_lap_time_seconds",
+        "target_contract",
+        "sector1_seconds",
+        "sector2_seconds",
+        "sector3_seconds",
+        "p05_target",
+        "p50_target",
+        "p90_target",
+    ):
+        unlabeled_record.pop(key)
+
+    model_input = build_ultimate_lap_inference_input(
+        unlabeled_record,
+        _telemetry_frame(),
+        distance_bins=12,
+        channel_names=("Speed", "Throttle", "Brake"),
+    )
+
+    assert isinstance(model_input, UltimateLapTelemetryInput)
+    flat = model_input.as_flat_record()
+    assert "lap_time_seconds" not in flat
+    assert "ideal_lap_time_seconds" not in flat
+    assert "target_contract" not in flat
+
+
+def test_target_semantics_and_degenerate_quantiles_are_explicit() -> None:
+    implicit_interval = UltimateLapTargets(
+        lap_time_seconds=90.0,
+        target_contract=ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
+    )
+    valid_interval = UltimateLapTargets(
+        lap_time_seconds=90.0,
+        p05_target=89.5,
+        p50_target=90.0,
+        p90_target=90.8,
+        target_contract=ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
+    )
+    theoretical_floor = UltimateLapTargets(
+        lap_time_seconds=89.5,
+        p05_target=89.0,
+        p50_target=89.5,
+        p90_target=90.0,
+        target_contract=THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT,
+    )
+
+    assert implicit_interval.quantile_targets_are_degenerate
+    assert not implicit_interval.quantile_targets_were_explicit
+    assert implicit_interval.quantile_target_semantics == "shared_realized_scalar"
+    assert implicit_interval.promotion_grade_quantiles_valid
+    assert "quantile_targets_are_degenerate" not in implicit_interval.promotion_blockers
+    assert valid_interval.quantile_target_semantics == "legacy_per_row_quantiles_ignored"
+    assert valid_interval.promotion_grade_quantiles_valid
+    np.testing.assert_allclose(implicit_interval.target_vector()[:3], [90.0, 90.0, 90.0])
+    assert theoretical_floor.target_semantics == "theoretical_sector_floor"
+    assert not theoretical_floor.promotion_grade_quantiles_valid
+
+    with pytest.raises(ValueError, match="multiple incompatible estimands"):
+        UltimateLapTargets.from_mapping(
+            {
+                "theoretical_sector_floor_seconds": 89.5,
+                "achievable_session_end_lap_time_seconds": 90.0,
+            }
         )

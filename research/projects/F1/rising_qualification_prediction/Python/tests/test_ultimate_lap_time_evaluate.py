@@ -15,7 +15,10 @@ from packages.f1.models.ultimate_lap_time.evaluate import (
     write_ultimate_lap_time_baseline_backtest_report,
     write_ultimate_lap_time_evaluation_report,
 )
-from packages.f1.models.ultimate_lap_time.schemas import IDEAL_LAP_TARGET_CONTRACT
+from packages.f1.models.ultimate_lap_time.schemas import (
+    ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
+    IDEAL_LAP_TARGET_CONTRACT,
+)
 
 
 def _baseline_laps(event_key: str, offset: float = 0.0) -> pd.DataFrame:
@@ -113,6 +116,49 @@ def test_evaluation_rejects_arbitrary_raw_lap_rows() -> None:
 
     with pytest.raises(ValueError, match="aggregate raw holdout laps first"):
         evaluate_ultimate_lap_time_predictions(raw_laps, predictions)
+
+
+def test_realized_scalar_targets_are_valid_for_quantile_evaluation() -> None:
+    actual = pd.DataFrame(
+        {
+            "event_key": ["bahrain"] * 3,
+            "session": ["Q"] * 3,
+            "driver_id": ["VER", "LEC", "NOR"],
+            "achievable_session_end_lap_time_seconds": [89.8, 90.1, 90.4],
+            "target_contract": [ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT] * 3,
+            "p05_target": [89.8, 90.1, 90.4],
+            "p50_target": [89.8, 90.1, 90.4],
+            "p90_target": [89.8, 90.1, 90.4],
+        }
+    )
+    predictions = pd.DataFrame(
+        {
+            "lap_p05": [89.5, 89.8, 90.1],
+            "lap_p50": [89.8, 90.1, 90.4],
+            "lap_p90": [90.2, 90.5, 90.8],
+        }
+    )
+
+    result = evaluate_ultimate_lap_time_predictions(actual, predictions)
+
+    assert result.target_diagnostics["degenerate_quantile_target_rows"] == 3
+    assert result.target_diagnostics["promotion_grade_validation_passed"]
+    assert result.promotion_grade_validation_passed
+    assert "quantile_targets_are_degenerate" not in result.to_dict()["promotion_blockers"]
+
+    with pytest.raises(ValueError, match="prediction target contract does not match"):
+        evaluate_ultimate_lap_time_predictions(
+            actual,
+            predictions.assign(target_contract=IDEAL_LAP_TARGET_CONTRACT),
+        )
+    with pytest.raises(ValueError, match="prediction target semantics do not match"):
+        evaluate_ultimate_lap_time_predictions(
+            actual,
+            predictions.assign(
+                target_contract=ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
+                target_semantics="theoretical_sector_floor",
+            ),
+        )
 
 
 def test_holdout_target_is_explicit_sector_minimum_aggregation() -> None:

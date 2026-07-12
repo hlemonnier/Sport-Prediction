@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -18,8 +18,15 @@ from packages.f1.models.ultimate_lap_time.model import (
     fit_ultimate_lap_time_model,
 )
 from packages.f1.models.ultimate_lap_time.schemas import (
+    ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
     IDEAL_LAP_TARGET_CONTRACT,
+    TARGET_CONTRACT_SEMANTICS,
+    THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT,
+    THEORETICAL_TARGET_CONTRACTS,
+    UltimateLapTargets,
     UltimateLapTelemetryExample,
+    UltimateLapTelemetryInput,
+    summarize_target_quantile_diagnostics,
 )
 from packages.sports_core.paths import find_repo_root
 
@@ -31,7 +38,22 @@ DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH = Path(
 )
 DEFAULT_REPORT_PATH = find_repo_root(__file__) / DEFAULT_REPORT_RELATIVE_PATH
 DEFAULT_BASELINE_BACKTEST_PATH = find_repo_root(__file__) / DEFAULT_BASELINE_BACKTEST_RELATIVE_PATH
-ACTUAL_COLUMNS: tuple[str, ...] = (IDEAL_LAP_TARGET_COLUMN,)
+ACTUAL_COLUMNS: tuple[str, ...] = (
+    IDEAL_LAP_TARGET_COLUMN,
+    "theoretical_sector_floor_seconds",
+    "achievable_session_end_lap_time_seconds",
+)
+ACTUAL_COLUMNS_BY_TARGET_CONTRACT: Mapping[str, tuple[str, ...]] = {
+    IDEAL_LAP_TARGET_CONTRACT: (IDEAL_LAP_TARGET_COLUMN,),
+    THEORETICAL_SECTOR_FLOOR_TARGET_CONTRACT: (
+        "theoretical_sector_floor_seconds",
+    ),
+    ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT: (
+        "achievable_session_end_lap_time_seconds",
+        "session_end_lap_time_seconds",
+        "achievable_lap_time_seconds",
+    ),
+}
 TARGET_CONTRACT_COLUMN = "target_contract"
 P05_COLUMNS: tuple[str, ...] = ("lap_p05", "p05_prediction", "predicted_p05", "p05", "pace_floor_seconds")
 P50_COLUMNS: tuple[str, ...] = (
@@ -80,6 +102,8 @@ def _as_dataframe(data: pd.DataFrame | Sequence[Mapping[str, Any]] | Sequence[Ul
     for item in data:
         if isinstance(item, UltimateLapTelemetryExample):
             rows.append(item.as_flat_record())
+        elif isinstance(item, UltimateLapTelemetryInput):
+            raise ValueError("ultimate lap-time evaluation requires labelled targets")
         else:
             rows.append(dict(item))
     return pd.DataFrame(rows)
@@ -235,6 +259,7 @@ class UltimateLapTimeEvaluationResult:
     leakage_issues: tuple[str, ...]
     required_metrics: tuple[str, ...] = REQUIRED_METRICS
     target_contract: str = IDEAL_LAP_TARGET_CONTRACT
+    target_diagnostics: dict[str, Any] = field(default_factory=dict)
 
     @property
     def missing_metrics(self) -> tuple[str, ...]:
@@ -255,7 +280,19 @@ class UltimateLapTimeEvaluationResult:
 
         return False
 
+    @property
+    def promotion_grade_validation_passed(self) -> bool:
+        return bool(
+            self.evaluation_contract_passed
+            and self.target_diagnostics.get("promotion_grade_validation_passed", False)
+        )
+
     def to_dict(self) -> dict[str, Any]:
+        target_blockers = list(self.target_diagnostics.get("promotion_blockers", []))
+        promotion_blockers = [
+            "registry_baseline_comparison_and_artifact_evidence_required",
+            *target_blockers,
+        ]
         return {
             "model_name": self.model_name,
             "row_count": self.row_count,
@@ -265,9 +302,11 @@ class UltimateLapTimeEvaluationResult:
             "required_metrics": list(self.required_metrics),
             "missing_metrics": list(self.missing_metrics),
             "evaluation_contract_passed": self.evaluation_contract_passed,
+            "promotion_grade_validation_passed": self.promotion_grade_validation_passed,
             "promotion_gate_passed": self.promotion_gate_passed,
-            "promotion_blockers": ["registry_baseline_comparison_and_artifact_evidence_required"],
+            "promotion_blockers": list(dict.fromkeys(promotion_blockers)),
             "target_contract": self.target_contract,
+            "target_diagnostics": self.target_diagnostics,
         }
 
 
@@ -309,13 +348,43 @@ def normalize_evaluation_frame(
             "aggregate raw holdout laps first"
         )
     contracts = actual_frame[contract_column].astype(str).str.strip().str.lower()
-    invalid_contracts = sorted(set(contracts[contracts != IDEAL_LAP_TARGET_CONTRACT].tolist()))
-    if invalid_contracts:
+    unique_contracts = sorted(set(contracts.tolist()))
+    if len(unique_contracts) != 1:
         raise ValueError(
-            "ultimate lap-time evaluation only accepts theoretical ideal-lap targets; "
-            f"invalid contracts={invalid_contracts}"
+            "ultimate lap-time evaluation cannot mix target contracts; "
+            f"found={unique_contracts}"
         )
-    actual_lap = _numeric_series(actual_frame, ACTUAL_COLUMNS, required=True)
+    target_contract = unique_contracts[0]
+    accepted_contracts = set(THEORETICAL_TARGET_CONTRACTS) | {
+        ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT
+    }
+    if target_contract not in accepted_contracts:
+        raise ValueError(
+            "ultimate lap-time evaluation only accepts theoretical-sector-floor or "
+            f"achievable-session-end targets; invalid contract={target_contract!r}"
+        )
+    expected_semantics = TARGET_CONTRACT_SEMANTICS[target_contract]
+    actual_semantics_column = _find_column(actual_frame, ("target_semantics",))
+    if actual_semantics_column is not None:
+        actual_semantics = sorted(
+            set(
+                actual_frame[actual_semantics_column]
+                .astype(str)
+                .str.strip()
+                .str.lower()
+                .tolist()
+            )
+        )
+        if actual_semantics != [expected_semantics]:
+            raise ValueError(
+                "label target semantics do not match target contract; "
+                f"semantics={actual_semantics}, contract={target_contract!r}"
+            )
+    actual_lap = _numeric_series(
+        actual_frame,
+        ACTUAL_COLUMNS_BY_TARGET_CONTRACT[target_contract],
+        required=True,
+    )
 
     if predictions is None:
         pred_frame = actual_frame
@@ -324,13 +393,82 @@ def normalize_evaluation_frame(
         if len(pred_frame) != len(actual_frame):
             raise ValueError("predictions length must match actual length")
         pred_frame = pred_frame.set_index(actual_frame.index)
+        prediction_contract_column = _find_column(
+            pred_frame, (TARGET_CONTRACT_COLUMN, "prediction_target_contract")
+        )
+        if prediction_contract_column is not None:
+            prediction_contracts = sorted(
+                set(
+                    pred_frame[prediction_contract_column]
+                    .astype(str)
+                    .str.strip()
+                    .str.lower()
+                    .tolist()
+                )
+            )
+            if prediction_contracts != [target_contract]:
+                raise ValueError(
+                    "prediction target contract does not match evaluation labels; "
+                    f"predictions={prediction_contracts}, actual={target_contract!r}"
+                )
+        prediction_semantics_column = _find_column(pred_frame, ("target_semantics",))
+        if prediction_semantics_column is not None:
+            prediction_semantics = sorted(
+                set(
+                    pred_frame[prediction_semantics_column]
+                    .astype(str)
+                    .str.strip()
+                    .str.lower()
+                    .tolist()
+                )
+            )
+            if prediction_semantics != [expected_semantics]:
+                raise ValueError(
+                    "prediction target semantics do not match evaluation labels; "
+                    f"predictions={prediction_semantics}, actual={expected_semantics!r}"
+                )
 
     frame = actual_frame.copy()
+    frame["__target_contract"] = target_contract
     frame["actual_lap_time"] = actual_lap
     frame["predicted_p05"] = _numeric_series(pred_frame, P05_COLUMNS, required=True)
     frame["predicted_p50"] = _numeric_series(pred_frame, P50_COLUMNS, required=True)
     frame["predicted_p90"] = _numeric_series(pred_frame, P90_COLUMNS, required=True)
     return frame
+
+
+def _target_diagnostics_for_evaluation_frame(frame: pd.DataFrame) -> dict[str, Any]:
+    if frame.empty:
+        return summarize_target_quantile_diagnostics(())
+    contract = str(frame["__target_contract"].iloc[0])
+    target_columns = {
+        "p05": _find_column(frame, ("p05_target", "target_p05")),
+        "p50": _find_column(frame, ("p50_target", "target_p50")),
+        "p90": _find_column(frame, ("p90_target", "target_p90")),
+    }
+
+    def _optional_target(row: pd.Series, key: str) -> float | None:
+        column = target_columns[key]
+        if column is None:
+            return None
+        try:
+            value = float(row[column])
+        except (TypeError, ValueError):
+            return None
+        return value if np.isfinite(value) else None
+
+    targets = [
+        UltimateLapTargets(
+            lap_time_seconds=float(row["actual_lap_time"]),
+            p05_target=_optional_target(row, "p05"),
+            p50_target=_optional_target(row, "p50"),
+            p90_target=_optional_target(row, "p90"),
+            target_contract=contract,
+        )
+        for _, row in frame.iterrows()
+        if np.isfinite(float(row["actual_lap_time"]))
+    ]
+    return summarize_target_quantile_diagnostics(targets)
 
 
 def evaluate_ultimate_lap_time_predictions(
@@ -343,6 +481,12 @@ def evaluate_ultimate_lap_time_predictions(
     """Evaluate Ultimate Lap-Time quantile predictions."""
 
     frame = normalize_evaluation_frame(actual, predictions)
+    target_diagnostics = _target_diagnostics_for_evaluation_frame(frame)
+    target_contract = (
+        str(frame["__target_contract"].iloc[0])
+        if not frame.empty and "__target_contract" in frame.columns
+        else IDEAL_LAP_TARGET_CONTRACT
+    )
     if frame.empty:
         metrics = {metric: float("nan") for metric in REQUIRED_METRICS}
         return UltimateLapTimeEvaluationResult(
@@ -351,6 +495,8 @@ def evaluate_ultimate_lap_time_predictions(
             metrics=metrics,
             calibration_curve=[],
             leakage_issues=("empty evaluation payload",),
+            target_contract=target_contract,
+            target_diagnostics=target_diagnostics,
         )
 
     valid = frame[
@@ -367,6 +513,8 @@ def evaluate_ultimate_lap_time_predictions(
             metrics=metrics,
             calibration_curve=[],
             leakage_issues=("no finite actual/prediction rows",),
+            target_contract=target_contract,
+            target_diagnostics=target_diagnostics,
         )
 
     error = valid["predicted_p50"] - valid["actual_lap_time"]
@@ -389,6 +537,8 @@ def evaluate_ultimate_lap_time_predictions(
         metrics=metrics,
         calibration_curve=_calibration_rows(valid),
         leakage_issues=leakage_issues_for_evaluation(valid),
+        target_contract=target_contract,
+        target_diagnostics=target_diagnostics,
     )
 
 

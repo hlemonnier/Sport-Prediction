@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import copy
+from datetime import datetime, timezone
 import math
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -14,6 +15,7 @@ from packages.f1.models.ultimate_lap_time.deep import (
     OUTPUT_COLUMNS,
     DistanceTelemetryTCN,
     DistanceTelemetryTCNConfig,
+    deep_output_contract_issues,
     resolve_device,
     seed_torch,
     torch,
@@ -21,9 +23,12 @@ from packages.f1.models.ultimate_lap_time.deep import (
     ultimate_lap_time_deep_loss,
 )
 from packages.f1.models.ultimate_lap_time.schemas import (
-    IDEAL_LAP_TARGET_CONTRACT,
+    ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
+    TARGET_CONTRACT_SEMANTICS,
+    TARGET_VECTOR_COLUMNS,
     UltimateLapTelemetryBatch,
     UltimateLapTelemetryExample,
+    UltimateLapTelemetryInput,
 )
 
 
@@ -43,7 +48,9 @@ class DeepTrainingConfig:
     head_hidden_dim: int = 64
     lambda_sector: float = 0.20
     lambda_rank: float = 0.02
-    lambda_mono: float = 1.0
+    # Retained for compatibility with persisted configs; structural output
+    # constraints replaced the redundant monotonicity penalty.
+    lambda_mono: float = 0.0
     validation_fraction: float = 0.20
     early_stopping_patience: int = 10
     early_stopping_min_delta: float = 1e-4
@@ -121,6 +128,17 @@ class DeepUltimateLapTimeModel:
     best_epoch: int
     training_group_keys: tuple[str, ...]
     validation_group_keys: tuple[str, ...]
+    target_contract: str = ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT
+
+    def __post_init__(self) -> None:
+        contract = str(self.target_contract).strip().lower()
+        if contract not in TARGET_CONTRACT_SEMANTICS:
+            raise ValueError(f"unknown deep-model target contract: {contract!r}")
+        self.target_contract = contract
+
+    @property
+    def target_semantics(self) -> str:
+        return TARGET_CONTRACT_SEMANTICS[self.target_contract]
 
 
 @dataclass(frozen=True)
@@ -135,7 +153,10 @@ class DeepTrainingResult:
         return self.status == "trained" and self.model is not None
 
 
-def _numeric_static_feature_names(examples: Sequence[UltimateLapTelemetryExample]) -> tuple[str, ...]:
+DeepTelemetryInput = Union[UltimateLapTelemetryExample, UltimateLapTelemetryInput]
+
+
+def _numeric_static_feature_names(examples: Sequence[DeepTelemetryInput]) -> tuple[str, ...]:
     names: set[str] = set()
     for example in examples:
         for key, value in example.static_features.items():
@@ -145,7 +166,7 @@ def _numeric_static_feature_names(examples: Sequence[UltimateLapTelemetryExample
 
 
 def _static_matrix(
-    examples: Sequence[UltimateLapTelemetryExample],
+    examples: Sequence[DeepTelemetryInput],
     static_feature_names: Sequence[str],
 ) -> np.ndarray:
     if not static_feature_names:
@@ -164,24 +185,64 @@ def _static_matrix(
 
 
 def examples_to_deep_numpy(
-    examples: Sequence[UltimateLapTelemetryExample],
+    examples: Sequence[DeepTelemetryInput],
     *,
     static_feature_names: Sequence[str] | None = None,
     normalization: DeepFeatureNormalization | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, tuple[str, ...]]:
-    """Convert examples to telemetry/static/target numpy tensors."""
+    """Convert labelled examples or unlabeled inference inputs to numpy.
 
-    batch = UltimateLapTelemetryBatch.from_examples(examples)
+    Unlabeled rows receive an all-NaN target vector. Training rejects those
+    rows before this converter is called; inference intentionally ignores the
+    target matrix.
+    """
+
+    if not examples:
+        names = tuple(static_feature_names or ())
+        return (
+            np.empty((0, 0, 0), dtype=np.float32),
+            np.empty((0, len(names)), dtype=np.float32),
+            np.empty((0, len(TARGET_VECTOR_COLUMNS)), dtype=np.float32),
+            names,
+        )
+    invalid_types = [
+        type(example).__name__
+        for example in examples
+        if not isinstance(example, (UltimateLapTelemetryExample, UltimateLapTelemetryInput))
+    ]
+    if invalid_types:
+        raise TypeError(
+            "examples must contain UltimateLapTelemetryExample or "
+            f"UltimateLapTelemetryInput rows; found {sorted(set(invalid_types))}"
+        )
+    channel_names = examples[0].telemetry.channel_names
+    telemetry_shape = examples[0].telemetry.shape
+    for example in examples:
+        if example.telemetry.channel_names != channel_names:
+            raise ValueError("all examples must have identical channel_names")
+        if example.telemetry.shape != telemetry_shape:
+            raise ValueError("all examples must have identical telemetry shapes")
     names = tuple(static_feature_names) if static_feature_names is not None else _numeric_static_feature_names(examples)
-    telemetry = batch.telemetry.astype(np.float32, copy=False)
+    telemetry = np.stack([example.telemetry.values for example in examples], axis=0).astype(
+        np.float32, copy=False
+    )
     static = _static_matrix(examples, names)
+    target = np.stack(
+        [
+            example.targets.target_vector()
+            if isinstance(example, UltimateLapTelemetryExample)
+            else np.full(len(TARGET_VECTOR_COLUMNS), np.nan, dtype=float)
+            for example in examples
+        ],
+        axis=0,
+    ).astype(np.float32, copy=False)
     if normalization is not None:
-        if batch.channel_names != normalization.channel_names:
+        if channel_names != normalization.channel_names:
             raise ValueError("inference telemetry channels do not match fitted model channel order")
         if names != normalization.static_feature_names:
             raise ValueError("inference static feature order does not match fitted model")
         telemetry, static = normalization.transform(telemetry, static)
-    return telemetry, static, batch.target_matrix().astype(np.float32, copy=False), names
+    return telemetry, static, target, names
 
 
 def _fit_normalization(
@@ -237,9 +298,65 @@ def _group_sort_key(example: UltimateLapTelemetryExample) -> tuple[str, str, str
 
 
 def _target_contract_reason(examples: Sequence[UltimateLapTelemetryExample]) -> str | None:
-    invalid = sorted({example.targets.target_contract for example in examples if example.targets.target_contract != IDEAL_LAP_TARGET_CONTRACT})
+    contracts = {example.targets.target_contract for example in examples}
+    invalid = sorted(contracts - {ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT})
     if invalid:
-        return f"deep training requires explicit {IDEAL_LAP_TARGET_CONTRACT} targets; found {invalid}"
+        return (
+            "deep quantile training requires achievable-session-end realized-lap "
+            f"targets; found {invalid}"
+        )
+    if len(contracts) > 1:
+        return f"deep training cannot mix target contracts: {sorted(contracts)}"
+    semantics = {example.targets.target_semantics for example in examples}
+    if len(semantics) > 1:
+        return f"deep training cannot mix target semantics: {sorted(semantics)}"
+    return None
+
+
+def _feature_target_boundary_reason(
+    examples: Sequence[UltimateLapTelemetryExample],
+) -> str | None:
+    """Require rehearsal telemetry to precede the separate Q outcome."""
+
+    for example in examples:
+        metadata = example.metadata
+        if not metadata.target_session or not metadata.feature_as_of or not metadata.target_as_of:
+            return (
+                "deep achievable-lap training requires feature_session/feature_as_of and a separate "
+                "target_session/target_as_of provenance boundary"
+            )
+        if str(metadata.session).strip().lower() == str(metadata.target_session).strip().lower():
+            return "deep achievable-lap telemetry session must differ from the target session"
+        try:
+            feature_time = datetime.fromisoformat(
+                str(metadata.feature_as_of).replace("Z", "+00:00")
+            )
+            target_time = datetime.fromisoformat(
+                str(metadata.target_as_of).replace("Z", "+00:00")
+            )
+        except ValueError:
+            return "deep feature/target timestamps must be valid ISO-8601 values"
+        if (
+            feature_time.tzinfo is None
+            or feature_time.utcoffset() is None
+            or target_time.tzinfo is None
+            or target_time.utcoffset() is None
+        ):
+            return "deep feature/target timestamps must be timezone-aware"
+        if feature_time.astimezone(timezone.utc) >= target_time.astimezone(timezone.utc):
+            return "deep telemetry feature_as_of must be strictly before target_as_of"
+    return None
+
+
+def _missing_target_reason(examples: Sequence[DeepTelemetryInput]) -> str | None:
+    unlabeled_count = sum(
+        not isinstance(example, UltimateLapTelemetryExample) for example in examples
+    )
+    if unlabeled_count:
+        return (
+            "deep training requires labelled UltimateLapTelemetryExample rows with targets; "
+            f"found {unlabeled_count} unlabeled UltimateLapTelemetryInput rows"
+        )
     return None
 
 
@@ -318,9 +435,9 @@ def _group_batches(group_ids: np.ndarray, batch_size: int, rng: np.random.Genera
 
 
 def train_ultimate_lap_time_deep(
-    examples: Sequence[UltimateLapTelemetryExample],
+    examples: Sequence[DeepTelemetryInput],
     *,
-    validation_examples: Sequence[UltimateLapTelemetryExample] | None = None,
+    validation_examples: Sequence[DeepTelemetryInput] | None = None,
     config: DeepTrainingConfig | None = None,
 ) -> DeepTrainingResult:
     """Train with grouped temporal validation and train-only normalization."""
@@ -328,15 +445,42 @@ def train_ultimate_lap_time_deep(
     cfg = config or DeepTrainingConfig()
     if not examples:
         raise ValueError("examples must contain at least one telemetry example")
+    all_supplied_examples = (*examples, *(validation_examples or ()))
+    missing_target_reason = _missing_target_reason(all_supplied_examples)
+    if missing_target_reason is not None:
+        return DeepTrainingResult(status="rejected", reason=missing_target_reason, model=None)
+    labelled_examples = tuple(
+        example for example in examples if isinstance(example, UltimateLapTelemetryExample)
+    )
+    labelled_validation_examples = (
+        tuple(
+            example
+            for example in validation_examples
+            if isinstance(example, UltimateLapTelemetryExample)
+        )
+        if validation_examples is not None
+        else None
+    )
+    contract_reason = _target_contract_reason(
+        (*labelled_examples, *(labelled_validation_examples or ()))
+    )
+    if contract_reason is not None:
+        return DeepTrainingResult(status="rejected", reason=contract_reason, model=None)
+    boundary_reason = _feature_target_boundary_reason(
+        (*labelled_examples, *(labelled_validation_examples or ()))
+    )
+    if boundary_reason is not None:
+        return DeepTrainingResult(status="rejected", reason=boundary_reason, model=None)
     if not torch_available():
         return DeepTrainingResult(status="skipped", reason="PyTorch is not installed", model=None)
 
-    train_examples, val_examples, split_reason = _split_grouped_temporal_validation(examples, validation_examples, cfg)
+    train_examples, val_examples, split_reason = _split_grouped_temporal_validation(
+        labelled_examples,
+        labelled_validation_examples,
+        cfg,
+    )
     if split_reason is not None:
         return DeepTrainingResult(status="rejected", reason=split_reason, model=None)
-    contract_reason = _target_contract_reason((*train_examples, *val_examples))
-    if contract_reason is not None:
-        return DeepTrainingResult(status="rejected", reason=contract_reason, model=None)
 
     train_batch = UltimateLapTelemetryBatch.from_examples(train_examples)
     static_names = _numeric_static_feature_names(train_examples)
@@ -481,13 +625,14 @@ def train_ultimate_lap_time_deep(
         best_epoch=int(best_epoch),
         training_group_keys=tuple(sorted({_group_key(example) for example in train_examples})),
         validation_group_keys=tuple(sorted({_group_key(example) for example in val_examples})),
+        target_contract=train_examples[0].targets.target_contract,
     )
     return DeepTrainingResult(status="trained", reason=None, model=fitted, history=tuple(history))
 
 
 def predict_ultimate_lap_time_deep(
     model: DeepUltimateLapTimeModel,
-    examples: Sequence[UltimateLapTelemetryExample],
+    examples: Sequence[DeepTelemetryInput],
 ) -> pd.DataFrame:
     """Predict using the exact train-fitted feature normalization."""
 
@@ -496,10 +641,9 @@ def predict_ultimate_lap_time_deep(
     if not isinstance(model, DeepUltimateLapTimeModel):
         raise TypeError("model must be a DeepUltimateLapTimeModel")
     if not examples:
-        return pd.DataFrame(columns=[*OUTPUT_COLUMNS, "model"])
-    contract_reason = _target_contract_reason(examples)
-    if contract_reason is not None:
-        raise ValueError(contract_reason)
+        return pd.DataFrame(
+            columns=[*OUTPUT_COLUMNS, "model", "target_contract", "target_semantics"]
+        )
     telemetry_np, static_np, _, _ = examples_to_deep_numpy(
         examples,
         static_feature_names=model.static_feature_names,
@@ -510,8 +654,14 @@ def predict_ultimate_lap_time_deep(
     network.eval()
     with torch.no_grad():
         prediction = network(torch.from_numpy(telemetry_np).to(device), torch.from_numpy(static_np).to(device))
-    output = pd.DataFrame(prediction.detach().cpu().numpy().astype(float), columns=OUTPUT_COLUMNS)
+    prediction_np = prediction.detach().cpu().numpy().astype(float)
+    contract_issues = deep_output_contract_issues(prediction_np)
+    if contract_issues:
+        raise RuntimeError(f"deep output contract violated: {list(contract_issues)}")
+    output = pd.DataFrame(prediction_np, columns=OUTPUT_COLUMNS)
     output["model"] = "ultimate_lap_time_distance_tcn"
+    output["target_contract"] = model.target_contract
+    output["target_semantics"] = model.target_semantics
     return output
 
 

@@ -26,6 +26,7 @@ OUTPUT_COLUMNS: tuple[str, ...] = (
     "sector2_seconds",
     "sector3_seconds",
 )
+MINIMUM_POSITIVE_TIME_SECONDS = 1e-4
 
 
 def torch_available() -> bool:
@@ -77,7 +78,9 @@ class DistanceTelemetryTCNConfig:
     activation: str = "gelu"
     lambda_sector: float = 0.20
     lambda_rank: float = 0.02
-    lambda_mono: float = 1.0
+    # Retained for configuration compatibility. Output monotonicity is now
+    # structural, so the composite loss does not apply this redundant term.
+    lambda_mono: float = 0.0
 
 
 if nn is not None:
@@ -183,10 +186,20 @@ if nn is not None:
                 pooled = torch.cat([pooled, self.static_branch(static_features)], dim=1)
 
             raw = self.head(pooled)
-            p05 = raw[:, 0]
-            p50 = p05 + F.softplus(raw[:, 1])
-            p90 = p50 + F.softplus(raw[:, 2])
-            return torch.stack([p05, p50, p90, raw[:, 3], raw[:, 4], raw[:, 5]], dim=1)
+            sectors = F.softplus(raw[:, 0:3]) + MINIMUM_POSITIVE_TIME_SECONDS
+            p50 = torch.sum(sectors, dim=1)
+            uncertainty_scale = torch.sigmoid(raw[:, 5])
+            lower_fraction = torch.clamp(
+                uncertainty_scale * torch.sigmoid(raw[:, 3]),
+                max=1.0 - 1e-4,
+            )
+            upper_fraction = uncertainty_scale * F.softplus(raw[:, 4])
+            p05 = p50 * (1.0 - lower_fraction)
+            p90 = p50 * (1.0 + upper_fraction)
+            return torch.cat(
+                [p05[:, None], p50[:, None], p90[:, None], sectors],
+                dim=1,
+            )
 
 else:
 
@@ -200,12 +213,26 @@ def pinball_loss_tensor(
     target: "torch.Tensor",
     quantiles: Sequence[float] = (0.05, 0.50, 0.90),
 ) -> "torch.Tensor":
+    """Apply every quantile head to the same realized lap outcome.
+
+    Conditional quantiles are model outputs, not independently observable
+    per-row labels.  The canonical target matrix repeats the realized lap in
+    its first three columns for compatibility; accepting a one-dimensional
+    outcome also makes the mathematical contract explicit.
+    """
+
     if torch is None:
         raise RuntimeError("PyTorch is not installed")
+    if target.ndim == 1:
+        realized = target
+    elif target.ndim == 2 and target.shape[1] >= 1:
+        realized = target[:, 0]
+    else:
+        raise ValueError("quantile target must contain one realized lap outcome per row")
     losses = []
     for idx, quantile in enumerate(quantiles):
         pred = prediction[:, idx]
-        truth = target[:, idx]
+        truth = realized
         mask = torch.isfinite(pred) & torch.isfinite(truth)
         if torch.any(mask):
             error = truth[mask] - pred[mask]
@@ -244,7 +271,7 @@ def fastest_lap_pairwise_rank_loss(
     if group_ids.ndim != 1 or group_ids.shape[0] != prediction.shape[0]:
         raise ValueError("group_ids must have one value per prediction row")
     pred = prediction[:, 1]
-    truth = target[:, 1]
+    truth = target[:, 0]
     mask = torch.isfinite(pred) & torch.isfinite(truth)
     pred = pred[mask]
     truth = truth[mask]
@@ -261,6 +288,8 @@ def fastest_lap_pairwise_rank_loss(
 
 
 def monotonic_quantile_penalty(prediction: "torch.Tensor") -> "torch.Tensor":
+    """Backward-compatible diagnostic for externally supplied predictions."""
+
     if torch is None:
         raise RuntimeError("PyTorch is not installed")
     p05, p50, p90 = prediction[:, 0], prediction[:, 1], prediction[:, 2]
@@ -274,7 +303,12 @@ def ultimate_lap_time_deep_loss(
     *,
     group_ids: "torch.Tensor | None" = None,
 ) -> "torch.Tensor":
-    """Composite loss from the roadmap: pinball + sectors + rank + monotonicity."""
+    """Composite pinball, sector and within-event ranking loss.
+
+    Positivity, quantile order and median/sector coherence are imposed by the
+    network parameterization, so an additional monotonicity penalty would be
+    mathematically redundant.
+    """
 
     quantile = pinball_loss_tensor(prediction, target)
     sector = sector_mae_tensor(prediction, target)
@@ -285,19 +319,47 @@ def ultimate_lap_time_deep_loss(
         if group_ids is not None
         else torch.zeros((), dtype=prediction.dtype, device=prediction.device)
     )
-    mono = monotonic_quantile_penalty(prediction)
     return (
         quantile
         + float(config.lambda_sector) * sector
         + float(config.lambda_rank) * rank
-        + float(config.lambda_mono) * mono
     )
+
+
+def deep_output_contract_issues(
+    prediction: np.ndarray | Sequence[Sequence[float]],
+    *,
+    coherence_tolerance_seconds: float = 1e-5,
+) -> tuple[str, ...]:
+    """Return physical-contract violations for deep output rows."""
+
+    values = np.asarray(prediction, dtype=float)
+    if values.ndim != 2 or values.shape[1] != len(OUTPUT_COLUMNS):
+        return (f"prediction must have shape rows x {len(OUTPUT_COLUMNS)}",)
+    issues: list[str] = []
+    if not np.isfinite(values).all():
+        issues.append("predictions contain non-finite values")
+        return tuple(issues)
+    if np.any(values <= 0.0):
+        issues.append("lap and sector predictions must be positive")
+    if np.any((values[:, 0] > values[:, 1]) | (values[:, 1] > values[:, 2])):
+        issues.append("lap quantiles must satisfy p05 <= p50 <= p90")
+    sector_sum = np.sum(values[:, 3:6], axis=1)
+    if not np.allclose(
+        values[:, 1],
+        sector_sum,
+        atol=float(coherence_tolerance_seconds),
+        rtol=1e-6,
+    ):
+        issues.append("lap p50 must equal the sum of the three sector predictions")
+    return tuple(issues)
 
 
 __all__ = [
     "OUTPUT_COLUMNS",
     "DistanceTelemetryTCN",
     "DistanceTelemetryTCNConfig",
+    "deep_output_contract_issues",
     "fastest_lap_pairwise_rank_loss",
     "monotonic_quantile_penalty",
     "pinball_loss_tensor",

@@ -15,7 +15,9 @@ from packages.f1.models.ultimate_lap_time.schemas import (
     UltimateLapTargets,
     UltimateLapTelemetryBatch,
     UltimateLapTelemetryExample,
+    UltimateLapTelemetryInput,
     assert_split_fields_are_leakage_safe,
+    summarize_target_quantile_diagnostics,
 )
 
 
@@ -52,6 +54,9 @@ METADATA_COLUMNS: dict[str, tuple[str, ...]] = {
     "driver_id": ("driver_id", "driver_number", "DriverNumber", "Driver", "driver"),
     "team_id": ("team_id", "team_name", "constructor_name", "constructor", "TeamName", "Team", "team"),
     "session": ("session", "session_name", "SessionName", "SessionType"),
+    "target_session": ("target_session", "target_session_name"),
+    "feature_as_of": ("feature_as_of", "telemetry_as_of"),
+    "target_as_of": ("target_as_of", "target_session_as_of"),
     "lap_number": ("lap_number", "LapNumber", "lap"),
     "source": ("source", "data_source"),
     "split_name": ("split_name", "split", "dataset_split"),
@@ -60,8 +65,14 @@ METADATA_COLUMNS: dict[str, tuple[str, ...]] = {
 TARGET_AND_PREDICTION_COLUMNS: frozenset[str] = frozenset(
     {
         "ideal_lap_time_seconds",
+        "theoretical_sector_floor_seconds",
+        "achievable_session_end_lap_time_seconds",
+        "session_end_lap_time_seconds",
+        "achievable_lap_time_seconds",
         "target_contract",
         "target_kind",
+        "target_semantics",
+        "quantile_target_semantics",
         "lap_time_seconds",
         "lap_duration",
         "LapTime",
@@ -333,6 +344,9 @@ def build_metadata(
         split_key=split_key,
         lap_number=_first_present(row, METADATA_COLUMNS["lap_number"]),
         source=_first_present(row, METADATA_COLUMNS["source"]),
+        target_session=_first_present(row, METADATA_COLUMNS["target_session"]),
+        feature_as_of=_first_present(row, METADATA_COLUMNS["feature_as_of"]),
+        target_as_of=_first_present(row, METADATA_COLUMNS["target_as_of"]),
     )
 
 
@@ -383,6 +397,37 @@ def build_ultimate_lap_example(
         ),
         static_features=extract_static_features(row),
         targets=UltimateLapTargets.from_mapping(row),
+        metadata=build_metadata(row, split_fields=split_fields),
+    )
+
+
+def build_ultimate_lap_inference_input(
+    record: Mapping[str, Any] | pd.Series,
+    telemetry: pd.DataFrame | np.ndarray | Sequence[Sequence[float]],
+    *,
+    distance_bins: int = DEFAULT_DISTANCE_BINS,
+    channel_names: Sequence[str] | None = None,
+    split_fields: Sequence[str] = DEFAULT_SPLIT_FIELDS,
+    already_distance_normalized: bool = False,
+    expected_lap_distance: float | None = None,
+    minimum_distance_coverage: float = DEFAULT_MINIMUM_DISTANCE_COVERAGE,
+) -> UltimateLapTelemetryInput:
+    """Build one model-ready input without constructing or inventing targets."""
+
+    row = _record_from_any(record)
+    expected_distance = expected_lap_distance
+    if expected_distance is None:
+        expected_distance = _first_present(row, EXPECTED_LAP_DISTANCE_COLUMNS)
+    return UltimateLapTelemetryInput(
+        telemetry=build_distance_normalized_telemetry(
+            telemetry,
+            distance_bins=distance_bins,
+            channel_names=channel_names,
+            already_distance_normalized=already_distance_normalized,
+            expected_lap_distance=expected_distance,
+            minimum_distance_coverage=minimum_distance_coverage,
+        ),
+        static_features=extract_static_features(row),
         metadata=build_metadata(row, split_fields=split_fields),
     )
 
@@ -489,6 +534,9 @@ def dataset_summary(examples: Sequence[UltimateLapTelemetryExample]) -> dict[str
         "by_driver": dict(counters["by_driver"]),
         "by_session": dict(counters["by_session"]),
         "target_availability": dict(target_availability),
+        "target_diagnostics": summarize_target_quantile_diagnostics(
+            [example.targets for example in examples]
+        ),
     }
 
 
@@ -518,6 +566,7 @@ __all__ = [
     "build_split_key",
     "build_ultimate_lap_dataset",
     "build_ultimate_lap_example",
+    "build_ultimate_lap_inference_input",
     "dataset_summary",
     "extract_static_features",
     "leakage_issues_for_examples",

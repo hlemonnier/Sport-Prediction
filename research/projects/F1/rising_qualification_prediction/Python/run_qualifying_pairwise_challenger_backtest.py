@@ -195,13 +195,19 @@ def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, A
         earlier_laps=earlier_laps,
     )
     event_key = int(metadata["year"]) * 100 + int(metadata["round_number"])
+    q1 = _has_time(qualifying_results, "Q1")
+    q2 = _has_time(qualifying_results, "Q2")
+    q3 = _has_time(qualifying_results, "Q3")
     actual = pd.DataFrame(
         {
             "driver_id": entrants["driver_id"],
             "qualy_position": _completed_positions(qualifying_results),
-            "has_valid_qualifying_lap": _has_time(qualifying_results, "Q1").astype(int),
-            "reached_q2": _has_time(qualifying_results, "Q2").astype(int),
-            "reached_q3": _has_time(qualifying_results, "Q3").astype(int),
+            # Provider tables occasionally omit a Q1 split while retaining a
+            # later-stage time.  Any official Q1/Q2/Q3 time proves a valid lap;
+            # the stage labels remain strictly nested.
+            "has_valid_qualifying_lap": (q1 | q2 | q3).astype(int),
+            "reached_q2": (q2 | q3).astype(int),
+            "reached_q3": q3.astype(int),
         }
     )
     frame = features.merge(actual, on="driver_id", how="left", validate="one_to_one")

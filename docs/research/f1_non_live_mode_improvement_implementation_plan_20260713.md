@@ -274,16 +274,19 @@ Each mode must add:
 
 - [x] Push the clean four-mode baseline and retained evidence.
 - [x] Freeze this implementation and promotion contract in the repository.
-- [ ] Build shared quality-aware rehearsal feature extraction.
-- [ ] Build shared latent lap sampler and stage/valid-lap interfaces.
-- [ ] Add the Qualifying pairwise residual challenger and joint outputs.
-- [ ] Add Best-Lap robust residual, stage mixture, and conformal calibration.
-- [ ] Add immutable `post_grid_pre_race` evidence snapshots.
-- [ ] Add Race terminal hazard and reason-coded status model.
-- [ ] Add Race conditional-order ranker, Monte Carlo, and assignment output.
-- [ ] Add optional LTR runtime diagnostics and deterministic fallback.
-- [ ] Run complete event-block backtests and negative controls.
-- [ ] Update per-round prediction-versus-reality evidence and audit decision.
-- [ ] Run all affected test suites, commit focused changes, and push.
+- [x] Build shared quality-aware rehearsal feature extraction.
+- [x] Build shared latent lap sampler and stage/valid-lap interfaces.
+- [x] Add the Qualifying pairwise residual challenger and joint outputs.
+- [x] Add Best-Lap robust residual, stage mixture, and conformal calibration.
+- [x] Add immutable `post_grid_pre_race` evidence snapshots.
+- [x] Add Race terminal hazard and reason-coded status model.
+- [x] Add Race conditional-order ranker, Monte Carlo, and assignment output.
+- [x] Add optional LTR runtime diagnostics and deterministic fallback.
+- [x] Run complete event-block backtests and negative controls.
+- [x] Update per-round prediction-versus-reality evidence and audit decision.
+- [x] Run all affected test suites, commit focused changes, and push.
+
+The completed decision record and round-by-round results are in
+`docs/research/f1_non_live_challenger_results_20260713.md`.
 
 Suggested commit name: `docs(f1): freeze non-live mode improvement plan`

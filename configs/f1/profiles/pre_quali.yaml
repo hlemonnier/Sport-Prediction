@@ -1,5 +1,5 @@
 profile_name: pre_quali_2026_same_season
-profile_version: qualifying_prediction_2026_walk_forward_v2
+profile_version: qualifying_prediction_2026_walk_forward_v3_pairwise_shadow
 model_family: pre_quali
 source: local
 target: qualifying_classification
@@ -11,7 +11,7 @@ training:
     - 2026
   historical_transfer_enabled: false
 model:
-  requested: auto
+  requested: baseline
   compare_families:
     - baseline
   point_ranking: chronological_causal_expert_selector
@@ -21,13 +21,28 @@ model:
     - practice_3
     - practice_2
     - practice_1
-  ml_status: candidate_only_no_current_hash_matching_paired_edge_evidence
+  ml_status: candidate_only_rejected_on_locked_2026_audit
+  challenger:
+    model_id: qualifying_pairwise_logistic_residual_v1
+    status: rejected_retain_baseline
+    training_unit: within_event_driver_pairs
+    maximum_movement_positions: 3
+    joint_position_marginals_calibrated: false
+    frozen_selector: baseline_retained_no_material_challenger_gain
+  stage_probabilities:
+    valid_lap: separate_regularized_logistic
+    q2_given_valid: separate_regularized_logistic
+    q3_given_q2: separate_regularized_logistic
+    promotion_status: uncalibrated_research_only
 features:
   practice_quality_weighted: true
   run_simulation_features: false
   standings: false
   circuit_identity: false
   weather: false
+  quality_aware_latent_lap_contract: packages/f1/features/qualifying_lap.py
+  deleted_laps_are_valid_targets: false
+  sprint_source_interactions: true
 promotion:
   point_ranking_status: retained_research_policy_no_current_paired_baseline_claim
   probability_status: not_promoted_insufficient_disjoint_calibration_history
@@ -48,3 +63,12 @@ promotion:
   mean_top10_hit_pct: 91.11111111111111
   mean_interval_coverage: 0.702020202020202
   stale_comparison_runs_status: quarantined_not_current_evidence
+  challenger_evidence: artifacts/backtests/f1/qualifying/quality_aware_pairwise_v1_20260713.json
+  challenger_audit_mean_field_mae: 2.1414141414141414
+  matched_baseline_audit_mean_field_mae: 1.8686868686868685
+  challenger_audit_mean_kendall_tau_b: 0.7518037518037518
+  matched_baseline_audit_mean_kendall_tau_b: 0.772967772967773
+  paired_mae_delta_ci95:
+    - 0.030303030303030373
+    - 0.505050505050505
+  decision: reject_pairwise_challenger_retain_rehearsal_rank_baseline

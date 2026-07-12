@@ -3,6 +3,13 @@
 Finalized: 2026-07-12 Europe/Paris. Primary evaluation-data cutoff: completed
 2026 rounds 1-9 through 2026-07-05.
 
+> 2026-07-13 challenger addendum: the non-live feature/model implementation
+> and new locked results are recorded in
+> `docs/research/f1_non_live_challenger_results_20260713.md`. Qualifying and
+> Race baselines remain retained. The quality-aware Best-Lap challenger is
+> materially better but remains diagnostic because its event-bootstrap upper
+> confidence bound is still slightly above zero.
+
 ## Executive Decision
 
 The F1 product has exactly four user-facing modes:

@@ -1,6 +1,6 @@
 {
   "schema_version": "f1_maturity_evidence_v2_four_modes",
-  "as_of": "2026-07-12",
+  "as_of": "2026-07-13",
   "evaluation_data_cutoff": "2026-07-05_after_round_09",
   "evidence_finalized_timezone": "Europe/Paris",
   "runtime": {
@@ -75,13 +75,26 @@
       "deployment_status": "research_point_policy_retained_no_current_paired_baseline_claim",
       "target": "official grand-prix qualifying classification",
       "absolute_walk_forward_evidence_status": "measured_on_nine_event_2026_point_in_time_walk_forward",
-      "predictive_edge_status": "no_current_paired_baseline_edge_claim",
+      "predictive_edge_status": "quality_aware_pairwise_challenger_rejected_on_2026_audit",
       "retained_point_policy": "chronological causal expert selector using target-aligned rehearsal ranks",
       "probability_status": "not_promoted_insufficient_disjoint_calibration_history",
       "uncertainty_status": "not_promoted_event_mean_coverage_0.7020",
       "mean_field_mae": 1.878787878787879,
       "stale_comparison_runs_status": "quarantined_not_current_evidence",
       "mean_kendall_tau_b": 0.7748917748917749,
+      "pairwise_challenger": {
+        "artifact": "artifacts/backtests/f1/qualifying/quality_aware_pairwise_v1_20260713.json",
+        "matched_baseline_mae": 1.8686868686868685,
+        "challenger_mae": 2.1414141414141414,
+        "matched_baseline_kendall": 0.772967772967773,
+        "challenger_kendall": 0.7518037518037518,
+        "paired_delta_ci95": [
+          0.030303030303030373,
+          0.505050505050505
+        ],
+        "decision": "rejected_baseline_retained"
+      },
+      "stage_probability_status": "implemented_but_not_posthoc_calibrated",
       "current_evidence": [
         "artifacts/backtests/f1/rolling_2026/runs/2026_four_mode_rebuild_20260712e/run_manifest.json",
         "docs/research/f1_four_mode_math_logic_implementation_audit_20260711.md"
@@ -93,11 +106,26 @@
       "target": "official final race classification and terminal status",
       "predictive_edge_status": "causal_residual_and_reliability_challengers_rejected",
       "probability_status": "not_promoted_insufficient_disjoint_calibration_history",
-      "terminal_status_probability_status": "not_implemented_not_trained_or_evaluated",
+      "terminal_status_probability_status": "implemented_diagnostic_brier_and_log_loss_improve_joint_model_rejected",
       "starting_grid_resolver": "packages/f1/domain/starting_grid.py",
       "frozen_2026_final_grid_snapshot_status": "unavailable_so_evaluation_uses_explicit_qualifying_proxy",
       "mean_field_mae": 3.737373737373737,
       "mean_kendall_tau_b": 0.5257335257335257,
+      "survival_order_challenger": {
+        "artifact": "artifacts/backtests/f1/race_final_position/survival_order_v2_20260713.json",
+        "matched_baseline_mae": 3.737373737373737,
+        "challenger_mae": 3.7676767676767673,
+        "baseline_terminal_brier": 0.1828127588050855,
+        "challenger_terminal_brier": 0.1765147342135671,
+        "baseline_terminal_log_loss": 0.5616540316067948,
+        "challenger_terminal_log_loss": 0.5389354044047333,
+        "paired_delta_ci95": [
+          -0.04040404040404057,
+          0.1111111111111111
+        ],
+        "decision": "joint_challenger_rejected_proxy_baseline_retained"
+      },
+      "immutable_final_grid_snapshot_contract_status": "implemented_but_historical_first_seen_2026_snapshots_unavailable",
       "challenger_evidence": "artifacts/backtests/f1/race_final_position/2026_walk_forward_causal_residual_challengers_v2_20260712e.json",
       "stale_automatic_ml_comparison_status": "quarantined_not_current_evidence",
       "current_evidence": [
@@ -111,6 +139,8 @@
       "target": "best valid representative qualifying lap achieved by session end",
       "theoretical_sector_lower_bound_is_target": false,
       "point_model": "achievable_best_lap_rehearsal_shift_v1",
+      "quality_aware_challenger_model": "achievable_best_lap_quality_aware_location_v2",
+      "quality_aware_challenger_status": "diagnostic_not_promoted_bootstrap_upper_bound_crosses_zero",
       "deep_model_status": "not_promoted_requires_rehearsal_telemetry_and_separate_pre_q_feature_q_target_timestamps",
       "rounds": 9,
       "matched_rows": 191,
@@ -124,6 +154,21 @@
       "conditional_event_mean_spearman": 0.9313375665778412,
       "conditional_fastest_driver_hit_rate": 0.6666666666666666,
       "probabilistic_interval_status": "not_promoted_coverage_0.7748_and_no_disjoint_calibration_block",
+      "quality_aware_challenger": {
+        "artifact": "artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_quality_aware_huber_v2_20260713.json",
+        "observed_target_coverage": 1.0,
+        "event_mean_mae_seconds": 0.4179188302342961,
+        "matched_baseline_event_mean_mae_seconds": 0.5239968546964834,
+        "relative_mae_gain": 0.2024401931260279,
+        "fastest_driver_hit_rate": 0.6666666666666666,
+        "interval_coverage": 0.8461538461538461,
+        "paired_delta_ci95_seconds": [
+          -0.24243809660369303,
+          0.006459896681313653
+        ],
+        "bootstrap_probability_of_improvement": 0.9629,
+        "decision": "diagnostic_only"
+      },
       "current_evidence": [
         "artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_rehearsal_shift_v2_20260712e.json",
         "docs/research/f1_four_mode_math_logic_implementation_audit_20260711.md"

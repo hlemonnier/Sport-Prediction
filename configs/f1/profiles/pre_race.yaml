@@ -1,10 +1,10 @@
 profile_name: race_final_position_2026_post_qualifying
-profile_version: race_final_position_2026_walk_forward_v2
+profile_version: race_final_position_2026_walk_forward_v3_survival_order_shadow
 model_family: pre_race
 source: local
 target: official_race_classification_and_terminal_status
 implemented_evidence_target: official_race_final_classification_position
-terminal_status_component: not_trained_or_evaluated
+terminal_status_component: trained_diagnostic_not_jointly_promoted
 information_horizon: post_qualifying_pre_grid
 field_size: 22
 training:
@@ -17,6 +17,15 @@ model:
   point_ranking: post_qualifying_order_proxy
   fallback_when_final_grid_unavailable: qualifying_classification_proxy
   starting_order_resolver: packages/f1/domain/starting_grid.py
+  challenger:
+    model_id: survival_aware_joint_race_v1
+    status: rejected_retain_qualifying_proxy
+    terminal_model: partial_pooled_reason_coded_hazard
+    conditional_order: bradley_terry_with_strong_grid_prior
+    reconciliation: fia_aware_minimum_expected_absolute_loss_assignment
+    simulations: 2000
+    plackett_luce_temperature: 0.25
+    order_residual_weight_frozen_on_2025: 0.45
 features:
   qualifying_classification: true
   practice_quality_weighted: true
@@ -24,10 +33,13 @@ features:
   standings: false
   circuit_identity: false
   weather: false
+  immutable_post_grid_pre_race_snapshot_contract: true
+  signed_qualifying_surprise: true
+  classified_distance_independent_beta_draws: false
 promotion:
   point_ranking_status: retained_research_proxy_baseline
   probability_status: not_promoted_insufficient_disjoint_calibration_history
-  terminal_status_probability_status: not_implemented_not_trained_or_evaluated
+  terminal_status_probability_status: diagnostic_brier_and_log_loss_improve_joint_model_rejected
   rejected_candidate: causal_residual_and_reliability_challenger_set
   evidence_run_id: 2026_four_mode_rebuild_20260712e
   challenger_evidence: artifacts/backtests/f1/race_final_position/2026_walk_forward_causal_residual_challengers_v2_20260712e.json
@@ -45,3 +57,14 @@ promotion:
   mean_field_mae: 3.737373737373737
   mean_kendall_tau_b: 0.5257335257335257
   stale_automatic_ml_comparison_status: quarantined_not_current_evidence
+  survival_order_challenger_evidence: artifacts/backtests/f1/race_final_position/survival_order_v2_20260713.json
+  survival_order_audit_mean_field_mae: 3.7676767676767673
+  matched_proxy_audit_mean_field_mae: 3.737373737373737
+  terminal_brier_baseline: 0.1828127588050855
+  terminal_brier_challenger: 0.1765147342135671
+  terminal_log_loss_baseline: 0.5616540316067948
+  terminal_log_loss_challenger: 0.5389354044047333
+  paired_mae_delta_ci95:
+    - -0.04040404040404057
+    - 0.1111111111111111
+  decision: reject_joint_challenger_retain_post_qualifying_proxy

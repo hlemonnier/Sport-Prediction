@@ -161,6 +161,13 @@ class PredictionSnapshot:
     confidence: float
     position_p10: float | None = None
     position_p90: float | None = None
+    prediction_kind: str = "race"
+    position_semantics: str = "race_finish_order"
+    strategy: JsonObject | None = None
+    forecast_available: bool = True
+    unavailable_reason: str | None = None
+    eligibility_status: str = "classification_eligible"
+    participation_status: str = "running_or_unknown"
 
     def to_dict(self) -> JsonObject:
         return asdict(self)

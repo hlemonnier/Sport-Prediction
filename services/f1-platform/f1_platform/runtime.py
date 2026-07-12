@@ -7,10 +7,15 @@ from collections import defaultdict
 from collections.abc import Iterable
 
 from .event_stream import EventStream, InMemoryEventStream
-from .predictions import HeuristicPredictionService, PredictionService
+from .predictions import (
+    HeuristicPredictionService,
+    PredictionKind,
+    PredictionService,
+    prediction_kind_for_session,
+)
 from .projections import NoopProjectionStore, ProjectionStore
 from .reducer import F1StateReducer
-from .schemas import F1Event, JsonObject, SessionSnapshot, StateUpdate
+from .schemas import F1Event, JsonObject, PredictionSnapshot, SessionSnapshot, StateUpdate
 from .track_geometry import TrackProjectionProvider
 
 
@@ -27,9 +32,16 @@ class F1PlatformRuntime:
         self.event_stream = event_stream or InMemoryEventStream()
         self.projection_store = projection_store or NoopProjectionStore()
         self.track_projector = track_projector
-        self.prediction_history: dict[str, list] = defaultdict(list)
+        self.prediction_history: dict[str, list[PredictionSnapshot]] = defaultdict(list)
         self.subscribers: dict[str, set[asyncio.Queue[StateUpdate]]] = defaultdict(set)
         self._lock = asyncio.Lock()
+        # Projection writes happen in worker threads.  Keep a separate
+        # per-session ordering gate so an older snapshot can never finish after
+        # and replace a newer durable projection.  The generation token also
+        # prevents an in-flight write from a prior reset from winning.
+        self._projection_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self._projection_generation: dict[str, int] = defaultdict(int)
+        self._projected_sequence: dict[str, int] = {}
 
     def ensure_session(self, session_key: int | str) -> F1StateReducer:
         session_id = _session_id(session_key)
@@ -55,31 +67,54 @@ class F1PlatformRuntime:
                     updates.append(update)
             reducer.replay_meta.update(replay_meta or {"mode": "sample-replay"})
             self.reducers[session_id] = reducer
-            base_snapshot = reducer.snapshot()
-            self.prediction_history[session_id] = await self.prediction_service.predict_race(base_snapshot)
-            snapshot = self._snapshot_with_history(reducer)
+            self.prediction_history[session_id] = []
+            projection_generation = self._projection_generation[session_id] + 1
+            self._projection_generation[session_id] = projection_generation
+            self._projected_sequence[session_id] = -1
+            prediction_snapshot = reducer.snapshot()
+            prediction_kind = prediction_kind_for_session(prediction_snapshot)
+        snapshot = await self._refresh_predictions_if_current(
+            session_id,
+            reducer,
+            prediction_snapshot,
+            prediction_kind,
+            replace=True,
+        )
+        if snapshot is None:
+            async with self._lock:
+                snapshot = self._snapshot_with_history(self.ensure_session(session_id))
         for update in updates[-10:]:
             await self._publish(session_id, update)
-        await self._project(snapshot)
+        await self._project(snapshot, generation=projection_generation)
         return snapshot
 
     async def ingest(self, event: F1Event) -> StateUpdate | None:
         session_id = _session_id(event.session_key)
         snapshot_to_project: SessionSnapshot | None = None
+        prediction_snapshot: SessionSnapshot | None = None
+        prediction_kind: PredictionKind | None = None
+        projection_generation = 0
         await self.event_stream.append(event)
         async with self._lock:
             reducer = self.ensure_session(session_id)
+            projection_generation = self._projection_generation[session_id]
             update = reducer.ingest(event)
             if update is not None and _is_meaningful_prediction_event(update.type):
-                snapshot = reducer.snapshot()
-                predictions = await self.prediction_service.predict_race(snapshot)
-                self.prediction_history[session_id].extend(predictions)
-            if update is not None:
+                prediction_snapshot = reducer.snapshot()
+                prediction_kind = prediction_kind_for_session(prediction_snapshot)
+            elif update is not None:
                 snapshot_to_project = self._snapshot_with_history(reducer)
         if update is not None:
             await self._publish(session_id, update)
+        if prediction_snapshot is not None and prediction_kind is not None:
+            snapshot_to_project = await self._refresh_predictions_if_current(
+                session_id,
+                reducer,
+                prediction_snapshot,
+                prediction_kind,
+            )
         if snapshot_to_project is not None:
-            await self._project(snapshot_to_project)
+            await self._project(snapshot_to_project, generation=projection_generation)
         return update
 
     async def recent_events(self, session_key: int | str, *, count: int = 100) -> list[JsonObject]:
@@ -129,8 +164,54 @@ class F1PlatformRuntime:
         snapshot.predictions = history[-80:]
         return snapshot
 
-    async def _project(self, snapshot: SessionSnapshot) -> None:
-        await asyncio.to_thread(self.projection_store.project_snapshot, snapshot)
+    async def _refresh_predictions_if_current(
+        self,
+        session_id: str,
+        reducer: F1StateReducer,
+        prediction_snapshot: SessionSnapshot,
+        prediction_kind: PredictionKind,
+        *,
+        replace: bool = False,
+    ) -> SessionSnapshot | None:
+        """Run inference outside the reducer lock and reject stale results."""
+
+        predictions = await self.prediction_service.predict(prediction_kind, prediction_snapshot)
+        async with self._lock:
+            current = self.reducers.get(session_id)
+            if current is not reducer or current.seq != prediction_snapshot.seq:
+                return None
+            current_kind = prediction_kind_for_session(current.snapshot())
+            if current_kind != prediction_kind:
+                return None
+            _validate_prediction_batch(predictions, prediction_snapshot.seq, prediction_kind)
+            if replace:
+                self.prediction_history[session_id] = list(predictions)
+            else:
+                self.prediction_history[session_id].extend(predictions)
+            return self._snapshot_with_history(current)
+
+    async def _project(self, snapshot: SessionSnapshot, *, generation: int) -> None:
+        """Project monotonically within one reducer generation.
+
+        Inference deliberately runs outside ``_lock``.  Projection I/O must do
+        the same, but uncoordinated worker threads can otherwise commit out of
+        order and replace all child tables with stale state.  Serializing each
+        session and checking both reset generation and sequence preserves the
+        newest snapshot without blocking unrelated sessions or reducer reads.
+        """
+
+        session_id = _session_id(snapshot.session_key)
+        async with self._projection_locks[session_id]:
+            if generation != self._projection_generation[session_id]:
+                return
+            if snapshot.seq < self._projected_sequence.get(session_id, -1):
+                return
+            await asyncio.to_thread(self.projection_store.project_snapshot, snapshot)
+            if generation == self._projection_generation[session_id]:
+                self._projected_sequence[session_id] = max(
+                    snapshot.seq,
+                    self._projected_sequence.get(session_id, -1),
+                )
 
     async def _publish(self, session_key: int | str, update: StateUpdate) -> None:
         session_id = _session_id(session_key)
@@ -155,6 +236,24 @@ def _is_meaningful_prediction_event(update_type: str) -> bool:
         "overtake.updated",
         "session_result.updated",
     }
+
+
+def _validate_prediction_batch(
+    predictions: list[PredictionSnapshot],
+    source_event_sequence: int,
+    prediction_kind: PredictionKind,
+) -> None:
+    for prediction in predictions:
+        if prediction.source_event_sequence != source_event_sequence:
+            raise RuntimeError(
+                "prediction source sequence does not match the snapshot used for inference: "
+                f"expected {source_event_sequence}, received {prediction.source_event_sequence}"
+            )
+        if prediction.prediction_kind != prediction_kind:
+            raise RuntimeError(
+                "prediction kind does not match the requested target: "
+                f"expected {prediction_kind!r}, received {prediction.prediction_kind!r}"
+            )
 
 
 def _session_id(session_key: int | str) -> str:

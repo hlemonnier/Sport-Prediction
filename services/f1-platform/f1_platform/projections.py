@@ -88,7 +88,7 @@ class SqlProjectionStore:
             with conn:
                 for statement in _SCHEMA:
                     conn.execute(statement)
-                self._ensure_prediction_range_columns(conn)
+                self._ensure_prediction_contract_columns(conn)
 
     def project_snapshot(self, snapshot: SessionSnapshot) -> None:
         session_key = str(snapshot.session_key)
@@ -370,16 +370,25 @@ class SqlProjectionStore:
                         INSERT INTO f1_predictions (
                             session_key, driver_number, source_event_sequence,
                             prediction_time, model_version, features_version,
+                            prediction_kind, position_semantics,
+                            forecast_available, unavailable_reason,
+                            eligibility_status, participation_status,
                             expected_position, position_p10, position_p90,
                             win_probability, podium_probability, points_probability,
                             dnf_probability, confidence,
-                            position_distribution_json
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            position_distribution_json, strategy_json
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(
                             session_key, driver_number, source_event_sequence, model_version
                         ) DO UPDATE SET
                             prediction_time = excluded.prediction_time,
                             features_version = excluded.features_version,
+                            prediction_kind = excluded.prediction_kind,
+                            position_semantics = excluded.position_semantics,
+                            forecast_available = excluded.forecast_available,
+                            unavailable_reason = excluded.unavailable_reason,
+                            eligibility_status = excluded.eligibility_status,
+                            participation_status = excluded.participation_status,
                             expected_position = excluded.expected_position,
                             position_p10 = excluded.position_p10,
                             position_p90 = excluded.position_p90,
@@ -388,7 +397,8 @@ class SqlProjectionStore:
                             points_probability = excluded.points_probability,
                             dnf_probability = excluded.dnf_probability,
                             confidence = excluded.confidence,
-                            position_distribution_json = excluded.position_distribution_json
+                            position_distribution_json = excluded.position_distribution_json,
+                            strategy_json = excluded.strategy_json
                         """,
                         (
                             session_key,
@@ -397,6 +407,12 @@ class SqlProjectionStore:
                             prediction.prediction_time,
                             prediction.model_version,
                             prediction.features_version,
+                            prediction.prediction_kind,
+                            prediction.position_semantics,
+                            int(bool(prediction.forecast_available)),
+                            prediction.unavailable_reason,
+                            prediction.eligibility_status,
+                            prediction.participation_status,
                             prediction.expected_position,
                             prediction.position_p10,
                             prediction.position_p90,
@@ -406,6 +422,7 @@ class SqlProjectionStore:
                             prediction.dnf_probability,
                             prediction.confidence,
                             _json(prediction.position_distribution),
+                            _json(prediction.strategy) if prediction.strategy is not None else None,
                         ),
                     )
 
@@ -486,8 +503,18 @@ class SqlProjectionStore:
             return sql
         return sql.replace("?", self._placeholder)
 
-    def _ensure_prediction_range_columns(self, conn: Any) -> None:
-        required = {"position_p10": "REAL", "position_p90": "REAL"}
+    def _ensure_prediction_contract_columns(self, conn: Any) -> None:
+        required = {
+            "position_p10": "REAL",
+            "position_p90": "REAL",
+            "prediction_kind": "TEXT NOT NULL DEFAULT 'race'",
+            "position_semantics": "TEXT NOT NULL DEFAULT 'race_finish_order'",
+            "strategy_json": "TEXT",
+            "forecast_available": "INTEGER NOT NULL DEFAULT 1",
+            "unavailable_reason": "TEXT",
+            "eligibility_status": "TEXT NOT NULL DEFAULT 'classification_eligible'",
+            "participation_status": "TEXT NOT NULL DEFAULT 'running_or_unknown'",
+        }
         if self._placeholder == "?":
             cursor = conn.execute("PRAGMA table_info(f1_predictions)")
             existing = {str(row[1]) for row in cursor.fetchall()}
@@ -767,6 +794,12 @@ _SCHEMA = (
         prediction_time TEXT NOT NULL,
         model_version TEXT NOT NULL,
         features_version TEXT NOT NULL,
+        prediction_kind TEXT NOT NULL DEFAULT 'race',
+        position_semantics TEXT NOT NULL DEFAULT 'race_finish_order',
+        forecast_available INTEGER NOT NULL DEFAULT 1,
+        unavailable_reason TEXT,
+        eligibility_status TEXT NOT NULL DEFAULT 'classification_eligible',
+        participation_status TEXT NOT NULL DEFAULT 'running_or_unknown',
         expected_position REAL,
         position_p10 REAL,
         position_p90 REAL,
@@ -776,6 +809,7 @@ _SCHEMA = (
         dnf_probability REAL NOT NULL,
         confidence REAL NOT NULL,
         position_distribution_json TEXT NOT NULL,
+        strategy_json TEXT,
         PRIMARY KEY (session_key, driver_number, source_event_sequence, model_version)
     )
     """,

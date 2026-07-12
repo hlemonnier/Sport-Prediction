@@ -1,4 +1,5 @@
 import asyncio
+import json
 import sqlite3
 
 from f1_platform.projections import SqliteProjectionStore
@@ -50,21 +51,41 @@ def test_sqlite_projection_store_persists_snapshot_tables(tmp_path):
         assert analytics["analytics"]["projection_summary"]["weatherSamples"] == len(snapshot.weather_samples)
         assert analytics["analytics"]["projection_summary"]["customMicroSectors"] == len(snapshot.custom_micro_sectors)
 
+        persisted_prediction = snapshot.predictions[0]
+        persisted_prediction.strategy = {
+            "recommendedAction": "pit_next_lap",
+            "policyVersion": "projection_test_v1",
+        }
+        persisted_prediction.forecast_available = False
+        persisted_prediction.unavailable_reason = "did_not_start"
+        persisted_prediction.eligibility_status = "not_eligible"
+        persisted_prediction.participation_status = "dns"
+        store.project_snapshot(snapshot)
+
         with sqlite3.connect(db_path) as conn:
             row = conn.execute(
                 """
-                SELECT position_p10, position_p90
+                SELECT position_p10, position_p90, prediction_kind,
+                       position_semantics, strategy_json, forecast_available,
+                       unavailable_reason, eligibility_status, participation_status
                 FROM f1_predictions
-                WHERE session_key = ?
+                WHERE session_key = ? AND driver_number = ?
                 ORDER BY prediction_time DESC
                 LIMIT 1
                 """,
-                (str(SAMPLE_SESSION_KEY),),
+                (str(SAMPLE_SESSION_KEY), persisted_prediction.driver_number),
             ).fetchone()
         assert row is not None
         assert row[0] is not None
         assert row[1] is not None
         assert row[0] <= row[1]
+        assert row[2] == "race"
+        assert row[3] == "race_finish_order"
+        assert json.loads(row[4]) == {
+            "recommendedAction": "pit_next_lap",
+            "policyVersion": "projection_test_v1",
+        }
+        assert row[5:] == (0, "did_not_start", "not_eligible", "dns")
 
     asyncio.run(run())
 
@@ -92,14 +113,65 @@ def test_sqlite_projection_store_migrates_prediction_range_columns(tmp_path):
             )
             """
         )
+        conn.execute(
+            """
+            INSERT INTO f1_predictions (
+                session_key, driver_number, source_event_sequence,
+                prediction_time, model_version, features_version,
+                expected_position, win_probability, podium_probability,
+                points_probability, dnf_probability, confidence,
+                position_distribution_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "legacy-session",
+                63,
+                8,
+                "2026-07-01T00:00:00Z",
+                "legacy_model",
+                "legacy_features",
+                2.0,
+                0.2,
+                0.4,
+                0.8,
+                0.1,
+                0.5,
+                '{"1":0.2,"2":0.8}',
+            ),
+        )
 
     store = SqliteProjectionStore(db_path)
     store.initialize()
 
     with sqlite3.connect(db_path) as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(f1_predictions)").fetchall()}
+        legacy = conn.execute(
+            """
+            SELECT prediction_kind, position_semantics, strategy_json,
+                   forecast_available, unavailable_reason,
+                   eligibility_status, participation_status
+            FROM f1_predictions
+            WHERE session_key = 'legacy-session'
+            """
+        ).fetchone()
     assert "position_p10" in columns
     assert "position_p90" in columns
+    assert "prediction_kind" in columns
+    assert "position_semantics" in columns
+    assert "strategy_json" in columns
+    assert "forecast_available" in columns
+    assert "unavailable_reason" in columns
+    assert "eligibility_status" in columns
+    assert "participation_status" in columns
+    assert legacy == (
+        "race",
+        "race_finish_order",
+        None,
+        1,
+        None,
+        "classification_eligible",
+        "running_or_unknown",
+    )
 
 
 def test_runtime_snapshot_reads_do_not_create_new_predictions(tmp_path):

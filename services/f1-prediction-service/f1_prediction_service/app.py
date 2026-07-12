@@ -7,7 +7,13 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .model import FEATURES_VERSION, MODEL_VERSION, TARGET_MODELS, predict_from_snapshot
+from .model import (
+    CALIBRATION_STATUS,
+    FEATURES_VERSION,
+    MODEL_VERSION,
+    TARGET_MODELS,
+    predict_from_snapshot,
+)
 
 
 def create_app() -> FastAPI:
@@ -31,6 +37,8 @@ def create_app() -> FastAPI:
             "service": "f1-prediction-service",
             "modelVersion": MODEL_VERSION,
             "featuresVersion": FEATURES_VERSION,
+            "calibrationStatus": CALIBRATION_STATUS,
+            "promotionStatus": "not_promoted",
             "supportedModels": {
                 kind: details["model_version"]
                 for kind, details in TARGET_MODELS.items()

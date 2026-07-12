@@ -7,7 +7,11 @@ import pytest
 
 from packages.f1.models.ultimate_lap_time.achievable import (
     ACTUAL_LAP_COLUMN,
+    decompose_event_fastest_and_driver_gap,
     fit_achievable_best_lap_model,
+    robust_huber_location,
+    sample_joint_qualifying_laps,
+    summarize_joint_lap_samples,
 )
 from packages.f1.models.ultimate_lap_time.schemas import (
     ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
@@ -116,3 +120,129 @@ def test_backtest_rejects_pre_2024_sprint_chronology(tmp_path) -> None:
             bootstrap_samples=10,
             bootstrap_seed=7,
         )
+
+
+def test_huber_location_keeps_one_value_and_resists_large_outlier() -> None:
+    assert robust_huber_location([1.25]) == pytest.approx(1.25)
+    assert robust_huber_location([0.0, 0.1, -0.1, 20.0]) < 1.0
+
+
+def test_event_fastest_and_driver_gap_decomposition_is_lossless() -> None:
+    frame = pd.DataFrame(
+        {
+            "event_key": [1, 1, 2, 2],
+            "anchor": [90.0, 91.0, 100.0, 102.0],
+            ACTUAL_LAP_COLUMN: [89.0, 90.5, 98.0, 101.0],
+        }
+    )
+    result = decompose_event_fastest_and_driver_gap(frame, anchor_column="anchor")
+
+    reconstructed = result["anchor"] + result["decomposed_total_residual_seconds"]
+    assert reconstructed.tolist() == pytest.approx(frame[ACTUAL_LAP_COLUMN].tolist())
+    assert result.loc[0, "target_gap_to_event_fastest_seconds"] == 0.0
+    assert result.loc[3, "target_gap_to_event_fastest_seconds"] == pytest.approx(3.0)
+
+
+def test_explicit_valid_lap_and_stage_hurdle_is_event_balanced() -> None:
+    history = _history().assign(
+        team_id=["ta", "tb", "ta", "tb", "tc"],
+        has_valid_qualifying_lap=[True, False, True, True, True],
+        reached_q2=[True, False, True, False, True],
+        reached_q3=[False, False, True, False, True],
+    )
+    model = fit_achievable_best_lap_model(history, target_event_key=202603)
+    result = model.predict(
+        pd.DataFrame(
+            {
+                "event_key": [202603],
+                "driver_id": ["x"],
+                "team_id": ["new"],
+                "rehearsal_source": ["practice_3"],
+                "rehearsal_lap_time_seconds": [90.0],
+            }
+        )
+    )
+
+    assert 0.0 < result.loc[0, "valid_lap_probability"] < 1.0
+    assert 0.0 < result.loc[0, "q2_given_valid_probability"] < 1.0
+    assert 0.0 < result.loc[0, "q3_given_q2_probability"] < 1.0
+    assert result.loc[0, "stage_probability_status"] == "event_balanced_beta_binomial"
+    assert (
+        result.loc[0, "no_valid_lap_probability"]
+        + result.loc[0, "q1_only_probability"]
+        + result.loc[0, "q2_only_probability"]
+        + result.loc[0, "q3_probability"]
+    ) == pytest.approx(1.0)
+
+
+def test_quality_anchor_robust_residual_and_event_block_interval_are_exposed() -> None:
+    history = _history().assign(
+        quality_aware_anchor_seconds=[80.0, 81.0, 90.0, 91.0, 89.0],
+        team_id=["ta", "tb", "ta", "tb", "tc"],
+        evidence_coverage_rate=[1.0, 0.9, 0.8, 0.7, 1.0],
+    )
+    model = fit_achievable_best_lap_model(history, target_event_key=202603)
+    result = model.predict(
+        pd.DataFrame(
+            {
+                "event_key": [202603],
+                "driver_id": ["x"],
+                "team_id": ["ta"],
+                "rehearsal_source": ["practice_3"],
+                "quality_aware_anchor_seconds": [100.0],
+                "anchor_source": ["valid_clean_rehearsal"],
+                "anchor_uncertainty_seconds": [0.6],
+                "evidence_coverage_rate": [0.8],
+            }
+        )
+    )
+
+    assert result.loc[0, "anchor_available"]
+    assert result.loc[0, "interval_method"] == "rolling_equal_event_weight_conformal"
+    assert result.loc[0, "interval_nominal_mass"] == pytest.approx(0.85)
+    assert result.loc[0, "lap_p05"] <= result.loc[0, "lap_p50"] <= result.loc[0, "lap_p90"]
+
+
+def test_weak_transfer_prior_cannot_create_historical_team_or_driver_effect() -> None:
+    history = pd.DataFrame(
+        {
+            "event_key": [202501, 202501, 202601, 202601],
+            "driver_id": ["old_a", "old_b", "new_a", "new_b"],
+            "team_id": ["OldTeam", "OldTeam", "NewTeam", "NewTeam"],
+            "rehearsal_source": ["practice_3"] * 4,
+            "quality_aware_anchor_seconds": [90.0, 91.0, 90.0, 91.0],
+            ACTUAL_LAP_COLUMN: [95.0, 96.0, 89.5, 90.5],
+            "history_weight": [0.1, 0.1, 1.0, 1.0],
+            "weak_transfer_prior": [True, True, False, False],
+        }
+    )
+
+    model = fit_achievable_best_lap_model(history, target_event_key=202602)
+
+    assert "OldTeam" not in model.residual_model.team_effects
+    assert "old_a" not in model.residual_model.driver_effects
+    calibration = model.calibrations["practice_3"]
+    assert calibration.event_keys == (202501, 202601)
+    assert calibration.conformal_event_keys == (202601,)
+
+
+def test_joint_samples_generate_coherent_fastest_and_top3_probabilities() -> None:
+    predictions = pd.DataFrame(
+        {
+            "driver_id": ["fast", "slow", "invalid"],
+            "lap_p05": [89.8, 91.8, 90.8],
+            "lap_p50": [90.0, 92.0, 91.0],
+            "lap_p90": [90.2, 92.2, 91.2],
+            "valid_lap_probability": [1.0, 1.0, 0.0],
+            "q2_given_valid_probability": [1.0, 1.0, 0.0],
+            "q3_given_q2_probability": [1.0, 1.0, 0.0],
+        }
+    )
+
+    samples = sample_joint_qualifying_laps(predictions, samples=2_000, seed=7)
+    summary = summarize_joint_lap_samples(samples).set_index("driver_id")
+
+    assert samples.lap_seconds.shape == (2_000, 3)
+    assert summary.loc["fast", "fastest_driver_probability"] > 0.99
+    assert summary.loc["invalid", "valid_lap_probability_sampled"] == 0.0
+    assert summary["fastest_driver_probability"].sum() == pytest.approx(1.0)

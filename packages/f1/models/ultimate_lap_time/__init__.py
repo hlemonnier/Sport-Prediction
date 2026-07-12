@@ -2,9 +2,19 @@
 
 from .achievable import (
     ACTUAL_LAP_COLUMN,
+    LATENT_POTENTIAL_ANCHOR_COLUMN,
+    QUALITY_AWARE_ANCHOR_COLUMN,
     AchievableBestLapModel,
     AchievableLapSourceCalibration,
+    JointLapSamples,
+    QualifyingStageProbabilities,
+    RobustHierarchicalResidualModel,
+    StageHurdleCalibration,
+    decompose_event_fastest_and_driver_gap,
     fit_achievable_best_lap_model,
+    robust_huber_location,
+    sample_joint_qualifying_laps,
+    summarize_joint_lap_samples,
 )
 
 from .datasets import (
@@ -61,8 +71,15 @@ from .train_deep import (
 
 __all__ = [
     "ACTUAL_LAP_COLUMN",
+    "LATENT_POTENTIAL_ANCHOR_COLUMN",
+    "QUALITY_AWARE_ANCHOR_COLUMN",
     "AchievableBestLapModel",
     "AchievableLapSourceCalibration",
+    "JointLapSamples",
+    "QualifyingStageProbabilities",
+    "RobustHierarchicalResidualModel",
+    "StageHurdleCalibration",
+    "decompose_event_fastest_and_driver_gap",
     "DeepFeatureNormalization",
     "DeepTrainingConfig",
     "DeepTrainingResult",
@@ -97,6 +114,9 @@ __all__ = [
     "examples_to_deep_numpy",
     "fit_tabular_quantile_model",
     "fit_achievable_best_lap_model",
+    "robust_huber_location",
+    "sample_joint_qualifying_laps",
+    "summarize_joint_lap_samples",
     "predict_ultimate_lap_time",
     "predict_ultimate_lap_time_deep",
     "torch_available",

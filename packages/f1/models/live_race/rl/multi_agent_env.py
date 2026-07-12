@@ -715,6 +715,7 @@ def build_traffic_heavy_scenario(
                 track_chaos_index=0.55,
                 metadata={
                     "available_compounds": ("MEDIUM", "HARD"),
+                    "pit_lane_open": True,
                     "event_lap_baseline_seconds": float(base_lap_seconds),
                     "circuit_id": "phase8_low_overtake_synthetic",
                     "ignored_future_columns": tuple(),

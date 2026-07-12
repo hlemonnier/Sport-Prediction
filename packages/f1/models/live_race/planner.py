@@ -19,6 +19,8 @@ from packages.f1.models.live_race.action_space import (
     ACTION_PIT_NOW,
     ACTION_STAY_OUT,
     DRY_COMPOUNDS,
+    KNOWN_COMPOUNDS,
+    WET_COMPOUNDS,
     ActionMaskConfig,
     StrategyAction,
     build_action_space,
@@ -86,7 +88,7 @@ class PlannerConfig:
     reward: RewardConfig = RewardConfig(position_gain_weight=0.0)
     strategy_score_weight: float = 0.05
     include_pit_next_lap: bool = True
-    compounds: tuple[str, ...] = DRY_COMPOUNDS
+    compounds: tuple[str, ...] = KNOWN_COMPOUNDS
 
 
 @dataclass(frozen=True)
@@ -105,7 +107,7 @@ class SimulatorMPCConfig:
     horizon_laps: int = 5
     action_mask: ActionMaskConfig = ActionMaskConfig()
     simulator: RaceSimulatorConfig = RaceSimulatorConfig()
-    compounds: tuple[str, ...] = DRY_COMPOUNDS
+    compounds: tuple[str, ...] = KNOWN_COMPOUNDS
     include_pit_next_lap: bool = True
     race_time_weight: float = 1.0
     expected_points_weight: float = 0.0
@@ -561,9 +563,20 @@ class DeterministicStrategyPlanner:
         )
 
     def _terminal_value(self, state: StrategyState) -> float:
+        # A finite planning horizon is not the chequered flag.  Applying the
+        # mandatory-compound penalty whenever search depth expires forces an
+        # artificial stop inside every short horizon.
+        if state.remaining_laps is None or int(state.remaining_laps) > 0:
+            return 0.0
         used_dry = {compound for compound in state.used_compounds if compound in DRY_COMPOUNDS}
+        wet_used = any(compound in WET_COMPOUNDS for compound in state.used_compounds)
         current_dry = state.compound in DRY_COMPOUNDS
-        if current_dry and len(used_dry) < 2 and bool(self.config.action_mask.enforce_dry_mandatory_change):
+        if (
+            current_dry
+            and not wet_used
+            and len(used_dry) < 2
+            and bool(self.config.action_mask.enforce_dry_mandatory_change)
+        ):
             return -float(self.config.transition.mandatory_dry_change_finish_penalty_seconds)
         return 0.0
 
@@ -795,7 +808,24 @@ class SimulatorMPCPlanner:
             )
 
         ordered = sorted(tuple(legal_actions), key=priority)
-        return tuple(ordered[: max(1, int(self.config.branch_limit))])
+        limit = max(1, int(self.config.branch_limit))
+        if len(ordered) <= limit:
+            return tuple(ordered)
+
+        # Preserve action-type coverage before filling remaining branches.
+        # The old lexical slice consumed the budget with stay-out and pit-now,
+        # making every pit-next action unreachable under the default limit.
+        buckets = {
+            action_type: [action for action in ordered if action.action_type == action_type]
+            for action_type in (ACTION_STAY_OUT, ACTION_PIT_NOW, ACTION_PIT_NEXT_LAP)
+        }
+        selected: list[StrategyAction] = []
+        while len(selected) < limit and any(buckets.values()):
+            for action_type in (ACTION_STAY_OUT, ACTION_PIT_NOW, ACTION_PIT_NEXT_LAP):
+                bucket = buckets[action_type]
+                if bucket and len(selected) < limit:
+                    selected.append(bucket.pop(0))
+        return tuple(selected)
 
     def _scenario_diagnostics(self) -> dict[str, object]:
         diagnostics: dict[str, object] = {}

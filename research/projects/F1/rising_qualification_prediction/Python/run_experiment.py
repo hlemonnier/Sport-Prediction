@@ -402,6 +402,11 @@ def _profile_base_config(profile: dict[str, Any], args: argparse.Namespace) -> d
                 else None
             )
         ),
+        "f1_live_next_lap_ssm_weight": (
+            _as_float(getattr(args, "f1_live_next_lap_ssm_weight", None), 0.0)
+            if getattr(args, "f1_live_next_lap_ssm_weight", None) is not None
+            else _as_float(f1_live.get("next_lap_ssm_weight"), 0.0)
+        ),
         "weather_enabled": _as_on_off(
             getattr(args, "weather", None)
             if getattr(args, "weather", None) is not None
@@ -523,6 +528,7 @@ def _build_prediction_config(
         f1_live_calibration_path=base.get("f1_live_calibration_path"),
         f1_live_replay_cutoff_lap=base.get("f1_live_replay_cutoff_lap"),
         f1_live_replay_cutoff_time_seconds=base.get("f1_live_replay_cutoff_time_seconds"),
+        f1_live_next_lap_ssm_weight=float(base.get("f1_live_next_lap_ssm_weight", 0.0)),
         weather_enabled=bool(base.get("weather_enabled", False)),
         weather_provider=str(base.get("weather_provider", "open_meteo")),
         weather_latitude=base.get("weather_latitude"),
@@ -750,6 +756,12 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
                 str(base["f1_live_replay_cutoff_time_seconds"]),
             ]
         )
+    cmd.extend(
+        [
+            "--f1-live-next-lap-ssm-weight",
+            str(base["f1_live_next_lap_ssm_weight"]),
+        ]
+    )
 
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -787,6 +799,7 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
             "f1_live_calibration_path": base.get("f1_live_calibration_path"),
             "f1_live_replay_cutoff_lap": base.get("f1_live_replay_cutoff_lap"),
             "f1_live_replay_cutoff_time_seconds": base.get("f1_live_replay_cutoff_time_seconds"),
+            "f1_live_next_lap_ssm_weight": float(base["f1_live_next_lap_ssm_weight"]),
             "output_dir": str(output_dir),
         },
         rows=rows,
@@ -1030,6 +1043,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_calibration_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--f1_live_replay_cutoff_time_seconds", type=float, default=None)
+        parser.add_argument("--f1_live_next_lap_ssm_weight", type=float, default=None)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default=None)
         parser.add_argument("--weather", choices=["on", "off"], default=None)
         parser.add_argument("--weather-provider", choices=["open_meteo"], default=None)
@@ -1095,6 +1109,7 @@ def build_parser(runner: str) -> argparse.ArgumentParser:
         parser.add_argument("--f1_live_calibration_path", default=None)
         parser.add_argument("--f1_live_replay_cutoff_lap", type=int, default=None)
         parser.add_argument("--f1_live_replay_cutoff_time_seconds", type=float, default=None)
+        parser.add_argument("--f1_live_next_lap_ssm_weight", type=float, default=0.0)
         parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
         parser.add_argument("--weather", choices=["on", "off"], default="off")
         parser.add_argument("--weather-provider", choices=["open_meteo"], default="open_meteo")
@@ -1201,6 +1216,7 @@ def _run_prediction_cli(argv: Sequence[str]) -> None:
         f1_live_calibration_path=args.f1_live_calibration_path,
         f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
         f1_live_replay_cutoff_time_seconds=args.f1_live_replay_cutoff_time_seconds,
+        f1_live_next_lap_ssm_weight=args.f1_live_next_lap_ssm_weight,
         weather_enabled=(str(args.weather).strip().lower() == "on"),
         weather_provider=args.weather_provider,
         weather_latitude=args.weather_latitude,

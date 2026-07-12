@@ -35,6 +35,7 @@ def _state(**overrides: object) -> StrategyState:
         "circuit_overtaking_difficulty": 0.35,
         "metadata": {
             "available_compounds": ("SOFT", "MEDIUM", "HARD"),
+            "pit_lane_open": True,
             "event_lap_baseline_seconds": 89.5,
             "ignored_future_columns": tuple(),
         },
@@ -115,3 +116,67 @@ def test_simulator_dp_wrapper_uses_simulator_transition_model() -> None:
 
     assert result.diagnostics["planner"] == "simulator_dp_v1"
     assert result.diagnostics["transition_model"] == "live_race_simulator_v1"
+
+
+def test_dp_mandatory_compound_penalty_applies_only_at_race_finish() -> None:
+    planner = SimulatorDPPlanner(config=PlannerConfig(horizon_laps=3, strategy_score_weight=0.0))
+
+    assert planner._terminal_value(_state(remaining_laps=20, used_compounds=("SOFT",))) == 0.0
+    assert planner._terminal_value(_state(remaining_laps=0, used_compounds=("SOFT",))) < 0.0
+    assert (
+        planner._terminal_value(
+            _state(
+                remaining_laps=0,
+                compound="MEDIUM",
+                used_compounds=("INTER", "MEDIUM"),
+            )
+        )
+        == 0.0
+    )
+
+
+def test_mpc_branch_limit_preserves_pit_next_action_family() -> None:
+    planner = SimulatorMPCPlanner(
+        config=SimulatorMPCConfig(horizon_laps=2, branch_limit=3, max_sequences=20)
+    )
+    state = _state()
+    mask = build_legal_action_mask(state, action_space=planner.action_space, config=planner.config.action_mask)
+
+    selected = planner._ordered_candidate_actions(mask.legal_actions)
+
+    assert {action.action_type for action in selected} == {
+        ACTION_STAY_OUT,
+        ACTION_PIT_NOW,
+        ACTION_PIT_NEXT_LAP,
+    }
+
+
+def test_mpc_action_space_can_select_wet_compounds_when_track_is_wet() -> None:
+    planner = SimulatorMPCPlanner(
+        config=SimulatorMPCConfig(horizon_laps=2, branch_limit=8, max_sequences=40)
+    )
+    state = _state(
+        metadata={
+            "available_compounds": ("INTER", "WET"),
+            "pit_lane_open": True,
+            "weather_is_wet": True,
+            "ignored_future_columns": tuple(),
+        }
+    )
+    mask = build_legal_action_mask(state, action_space=planner.action_space, config=planner.config.action_mask)
+
+    assert any(action.compound in {"INTER", "WET"} for action in mask.legal_actions)
+
+
+def test_action_mask_fails_closed_without_inventory_or_pit_lane_state() -> None:
+    planner = SimulatorMPCPlanner(
+        config=SimulatorMPCConfig(horizon_laps=2, branch_limit=8, max_sequences=40)
+    )
+    state = _state(metadata={"ignored_future_columns": tuple()})
+    mask = build_legal_action_mask(
+        state,
+        action_space=planner.action_space,
+        config=planner.config.action_mask,
+    )
+
+    assert all(not action.is_pit_action for action in mask.legal_actions)

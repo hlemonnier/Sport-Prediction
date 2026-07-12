@@ -74,6 +74,30 @@ def _event_seed(event_key: int, base_seed: int) -> int:
     return value if value > 0 else 1
 
 
+def _prior_observations_for_baseline(
+    observations: pd.DataFrame,
+    *,
+    lap_number: int,
+    timestamp: float,
+    timestamp_known: bool,
+) -> tuple[pd.DataFrame, str]:
+    """Select only observations knowable before one live prediction row."""
+
+    event_time = pd.to_numeric(
+        observations.get("timestamp", pd.Series(float("nan"), index=observations.index)),
+        errors="coerce",
+    )
+    if bool(timestamp_known) and np.isfinite(float(timestamp)):
+        if "timestamp_known" in observations.columns:
+            known = observations["timestamp_known"].fillna(False).astype(bool) & event_time.notna()
+        else:
+            known = event_time.notna()
+        return observations.loc[known & event_time.lt(float(timestamp))], "global_event_time"
+
+    lap = pd.to_numeric(observations.get("lap_number"), errors="coerce")
+    return observations.loc[lap.lt(float(lap_number))], "lap_number_fallback_not_global_time"
+
+
 def _resolve_artifacts_dir(config: PredictionConfig) -> Path:
     project_root = find_repo_root(__file__)
     return project_root / "artifacts" / "predictions" / "f1" / "live" / "traces" / str(int(config.year)) / f"round_{int(config.round_number):02d}"
@@ -125,6 +149,26 @@ def _write_trace(trace: pd.DataFrame, config: PredictionConfig, event_key: int) 
 def _sigmoid(value: float) -> float:
     clipped = float(np.clip(value, -60.0, 60.0))
     return float(1.0 / (1.0 + np.exp(-clipped)))
+
+
+def _blend_next_lap_point_forecast(
+    ssm_prediction: float,
+    naive_last_clean_lap: float,
+    *,
+    ssm_weight: float,
+) -> float:
+    """Blend complementary causal forecasts without manufacturing a target."""
+
+    weight = float(ssm_weight)
+    if not np.isfinite(weight) or not 0.0 <= weight <= 1.0:
+        raise ValueError("f1_live_next_lap_ssm_weight must be between zero and one")
+    ssm = float(ssm_prediction)
+    naive = float(naive_last_clean_lap)
+    if not np.isfinite(naive):
+        return ssm
+    if not np.isfinite(ssm):
+        return naive
+    return float((weight * ssm) + ((1.0 - weight) * naive))
 
 
 TELEMETRY_STRATEGY_FEED_COLUMNS = (
@@ -799,6 +843,9 @@ def _build_snapshot(trace: pd.DataFrame) -> pd.DataFrame:
         "deg_rate_mean",
         "deg_rate_std",
         "next_lap_mean",
+        "next_lap_mean_ssm",
+        "next_lap_mean_naive",
+        "next_lap_ssm_weight",
         "next_lap_std",
         "next_lap_pi90_low",
         "next_lap_pi90_high",
@@ -843,6 +890,19 @@ def run_live_race_prediction(
 
     telemetry = telemetry_adapter or NoopTelemetryFeatureAdapter()
     strategy = strategy_adapter or NoopStrategyPolicyAdapter()
+    next_lap_ssm_weight = float(getattr(config, "f1_live_next_lap_ssm_weight", 0.0))
+    if not np.isfinite(next_lap_ssm_weight) or not 0.0 <= next_lap_ssm_weight <= 1.0:
+        raise ValueError("f1_live_next_lap_ssm_weight must be between zero and one")
+    if next_lap_ssm_weight == 0.0:
+        notes.append(
+            "Next-lap point forecast uses the fail-closed causal last-clean-lap naive baseline; "
+            "the evaluated SSM blend did not clear its paired event-level gate."
+        )
+    elif next_lap_ssm_weight < 1.0:
+        notes.append(
+            "Next-lap point forecast uses a causal SSM/last-clean-lap blend; "
+            f"ssm_weight={next_lap_ssm_weight:.3f}."
+        )
 
     source_result = load_live_observations(config)
     notes.extend(source_result.notes)
@@ -864,8 +924,13 @@ def run_live_race_prediction(
         observations.get("timestamp", pd.Series(float("nan"), index=observations.index)),
         errors="coerce",
     )
+    timestamp_known_mask = (
+        observations["timestamp_known"].fillna(False).astype(bool)
+        if "timestamp_known" in observations.columns
+        else timestamp_numeric.notna()
+    ) & timestamp_numeric.notna() & np.isfinite(timestamp_numeric)
     timestamp_rows_total = int(len(observations))
-    timestamp_rows_known = int(timestamp_numeric.notna().sum())
+    timestamp_rows_known = int(timestamp_known_mask.sum())
     timestamp_rows_dropped = 0
     if cutoff_lap is not None:
         cutoff_value = int(cutoff_lap)
@@ -889,7 +954,11 @@ def run_live_race_prediction(
             observations.get("timestamp", pd.Series(float("nan"), index=observations.index)),
             errors="coerce",
         )
-        known_timestamp = timestamp_numeric.notna() & np.isfinite(timestamp_numeric)
+        known_timestamp = (
+            observations["timestamp_known"].fillna(False).astype(bool)
+            if "timestamp_known" in observations.columns
+            else timestamp_numeric.notna()
+        ) & timestamp_numeric.notna() & np.isfinite(timestamp_numeric)
         timestamp_rows_dropped = int((~known_timestamp).sum())
         event_time_filter = known_timestamp & timestamp_numeric.le(cutoff_time_value)
         observations = observations.loc[event_time_filter].copy()
@@ -916,15 +985,48 @@ def run_live_race_prediction(
             "not as point-in-time replay evidence.",
         )
 
-    lap_number_numeric = pd.to_numeric(observations.get("lap_number"), errors="coerce")
-    baseline_cache: dict[int, BaselineModel] = {}
+    baseline_cache: dict[tuple[str, float], tuple[BaselineModel, str, float, int]] = {}
 
-    def _baseline_before_lap(lap_number: int) -> BaselineModel:
-        lap_key = int(lap_number)
-        if lap_key not in baseline_cache:
-            prior_observations = observations.loc[lap_number_numeric < float(lap_key)]
-            baseline_cache[lap_key] = build_event_lap_baseline(prior_observations, min_clean_obs_per_lap=8)
-        return baseline_cache[lap_key]
+    def _baseline_before_observation(
+        lap_number: int,
+        timestamp: float,
+        timestamp_known: bool,
+    ) -> tuple[BaselineModel, str, float, int]:
+        mode = "global_event_time" if timestamp_known and np.isfinite(timestamp) else "lap_number_fallback_not_global_time"
+        coordinate = float(timestamp) if mode == "global_event_time" else float(int(lap_number))
+        cache_key = (mode, coordinate)
+        if cache_key not in baseline_cache:
+            prior_observations, resolved_mode = _prior_observations_for_baseline(
+                observations,
+                lap_number=lap_number,
+                timestamp=timestamp,
+                timestamp_known=timestamp_known,
+            )
+            evidence_time = pd.to_numeric(
+                prior_observations.get(
+                    "timestamp",
+                    pd.Series(float("nan"), index=prior_observations.index),
+                ),
+                errors="coerce",
+            )
+            finite_evidence_time = evidence_time[
+                evidence_time.notna() & np.isfinite(evidence_time)
+            ]
+            evidence_max_timestamp = (
+                float(finite_evidence_time.max())
+                if not finite_evidence_time.empty
+                else float("nan")
+            )
+            baseline_cache[cache_key] = (
+                build_event_lap_baseline(
+                    prior_observations,
+                    min_clean_obs_per_lap=8,
+                ),
+                resolved_mode,
+                evidence_max_timestamp,
+                int(len(prior_observations)),
+            )
+        return baseline_cache[cache_key]
 
     calibration_path = getattr(config, "f1_live_calibration_path", None)
     if calibration_path:
@@ -996,6 +1098,7 @@ def run_live_race_prediction(
 
         first_compound = driver_frame.iloc[0].get("compound")
         state = initialize_filter_state(first_compound, filter_cfg)
+        last_clean_lap_time = float("nan")
 
         for _, row in driver_frame.iterrows():
             lap_number = int(as_float(row.get("lap_number"), 0.0))
@@ -1014,12 +1117,33 @@ def run_live_race_prediction(
                 state = reset_filter_state(state, compound=compound, cfg=filter_cfg)
                 reset_applied = True
 
-            lap_baseline_model = _baseline_before_lap(lap_number)
+            row_timestamp = as_float(row.get("timestamp"))
+            raw_timestamp_known = row.get("timestamp_known", np.isfinite(row_timestamp))
+            try:
+                row_timestamp_known = bool(raw_timestamp_known) and np.isfinite(row_timestamp)
+            except (TypeError, ValueError):
+                row_timestamp_known = False
+            (
+                lap_baseline_model,
+                baseline_information_order,
+                baseline_evidence_max_timestamp,
+                baseline_evidence_row_count,
+            ) = _baseline_before_observation(
+                lap_number,
+                row_timestamp,
+                row_timestamp_known,
+            )
             baseline_current = lap_baseline_model.value_at(lap_number)
-            mean_pred, cov_pred, one_step_pred_mean, one_step_pred_std = lap_one_step_prediction(
+            mean_pred, cov_pred, one_step_ssm_mean, one_step_pred_std = lap_one_step_prediction(
                 state=state,
                 baseline_current=baseline_current,
                 cfg=filter_cfg,
+            )
+            one_step_naive_mean = last_clean_lap_time
+            one_step_pred_mean = _blend_next_lap_point_forecast(
+                one_step_ssm_mean,
+                one_step_naive_mean,
+                ssm_weight=next_lap_ssm_weight,
             )
 
             gate = apply_track_gating(filter_cfg.r_obs, flags)
@@ -1060,12 +1184,19 @@ def run_live_race_prediction(
                 else:
                     state.tyre_age = 0
                 state.assimilated_laps += 1
+                last_clean_lap_time = float(lap_time)
 
             baseline_next = lap_baseline_model.value_at(lap_number + 1)
-            next_lap_mean, next_lap_std = next_lap_distribution(
+            next_lap_ssm_mean, next_lap_std = next_lap_distribution(
                 state=state,
                 baseline_next=baseline_next,
                 cfg=filter_cfg,
+            )
+            next_lap_naive_mean = last_clean_lap_time
+            next_lap_mean = _blend_next_lap_point_forecast(
+                next_lap_ssm_mean,
+                next_lap_naive_mean,
+                ssm_weight=next_lap_ssm_weight,
             )
 
             trace_row: dict[str, Any] = {
@@ -1090,8 +1221,14 @@ def run_live_race_prediction(
                 "r_effective": float(gate.r_effective),
                 "reset_applied": bool(reset_applied),
                 "baseline_lap": float(baseline_current),
+                "baseline_information_order": baseline_information_order,
+                "baseline_evidence_max_timestamp": baseline_evidence_max_timestamp,
+                "baseline_evidence_row_count": int(baseline_evidence_row_count),
                 "lap_time_seconds": lap_time,
                 "one_step_pred_mean": float(one_step_pred_mean),
+                "one_step_pred_mean_ssm": float(one_step_ssm_mean),
+                "one_step_pred_mean_naive": float(one_step_naive_mean),
+                "next_lap_ssm_weight": float(next_lap_ssm_weight),
                 "one_step_pred_std": float(one_step_pred_std),
                 "one_step_error": float(lap_time - one_step_pred_mean) if np.isfinite(lap_time) else float("nan"),
                 "pace_penalty_mean": float(state.mean[0]),
@@ -1104,12 +1241,16 @@ def run_live_race_prediction(
                 "robust_scale": float(update_meta.get("robust_scale", 1.0)),
                 "skip_reason": update_meta.get("skip_reason"),
                 "next_lap_mean": float(next_lap_mean),
+                "next_lap_mean_ssm": float(next_lap_ssm_mean),
+                "next_lap_mean_naive": float(next_lap_naive_mean),
                 "next_lap_std": float(next_lap_std),
                 "next_lap_pi90_low": float(next_lap_mean - (1.645 * next_lap_std)),
                 "next_lap_pi90_high": float(next_lap_mean + (1.645 * next_lap_std)),
                 "race_time_seconds": race_time_seconds,
                 "gap_to_leader_seconds": as_float(row.get("gap_to_leader_seconds")),
-                "timestamp": as_float(row.get("timestamp")),
+                "timestamp": row_timestamp,
+                "timestamp_known": row_timestamp_known,
+                "timestamp_source": str(row.get("timestamp_source") or "unavailable"),
                 "eval_included": bool(can_assimilate and (not gate.skip_update)),
                 "assim_laps_driver": int(state.assimilated_laps),
                 "race_status": "running",
@@ -1164,6 +1305,16 @@ def run_live_race_prediction(
         "year": int(config.year),
         "round_number": int(config.round_number),
         "f1_live_model": str(config.f1_live_model),
+        "next_lap_point_model": (
+            "last_clean_lap_naive_v1"
+            if next_lap_ssm_weight == 0.0
+            else (
+                "ssm_last_clean_lap_causal_blend_v1"
+                if next_lap_ssm_weight < 1.0
+                else "ssm_v1"
+            )
+        ),
+        "next_lap_ssm_weight": float(next_lap_ssm_weight),
         "f1_live_source": str(config.f1_live_source),
         "calibration_path": str(calibration_path) if calibration_path else None,
         "filter_calibration": filter_cfg.diagnostics(),
@@ -1203,6 +1354,11 @@ def run_live_race_prediction(
         "timestamp_rows_total": timestamp_rows_total,
         "timestamp_rows_known": timestamp_rows_known,
         "timestamp_rows_dropped": timestamp_rows_dropped,
+        "baseline_information_order_counts": (
+            trace.get("baseline_information_order", pd.Series(dtype=object)).value_counts(dropna=False).to_dict()
+            if not trace.empty
+            else {}
+        ),
         "drivers_processed": int(snapshot_final["driver_id"].nunique()) if not snapshot_final.empty else 0,
         "laps_processed": int(pd.to_numeric(trace.get("lap_number"), errors="coerce").max())
         if not trace.empty

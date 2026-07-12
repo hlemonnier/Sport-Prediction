@@ -20,11 +20,16 @@ action_space:
     - SOFT
     - MEDIUM
     - HARD
+    - INTERMEDIATE
+    - WET
   modes:
     - conservative
     - aggressive
   min_laps_after_stop: 2
   enforce_dry_mandatory_change: true
+  wet_or_intermediate_use_waives_two_dry_specification_rule: true
+  missing_tyre_inventory_policy: mask_all_pit_compounds
+  missing_pit_lane_state_policy: mask_all_pit_actions
 evaluation:
   metrics:
     - policy_value
@@ -34,14 +39,16 @@ evaluation:
     - no_leakage_replay_invariance
     - regret_vs_oracle
   fail_closed_on_missing_metrics: true
-  current_evidence:
-    artifact: artifacts/reports/f1/live_race_round09_global_prefix_invariance.json
+  historical_diagnostic_evidence:
+    artifact: artifacts/reports/f1/live_race_round09_global_prefix_invariance_v2_20260711a.json
     event_key: 202609
     global_cutoff_time_seconds: 5200.0
     prediction_prefix_invariant: true
-    model_one_step_mae_seconds: 0.44808541668280866
-    naive_last_lap_mae_seconds: 0.3759166666666666
-    decision: reject_model_worse_than_naive_and_hand_priors_unlocked
+    matched_rows: 334
+    model_one_step_mae_seconds: 0.4207980685382251
+    naive_last_lap_mae_seconds: 0.3719550898203593
+    implementation_snapshot_status: historical_diagnostic_predates_blend_output_fields
+    decision: reject_pure_ssm_point_model_and_keep_strategy_priors_unlocked
 planner:
   planner_id: deterministic_dp_pre_sim_v1
   horizon_laps: 12

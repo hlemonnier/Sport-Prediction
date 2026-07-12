@@ -1,10 +1,56 @@
+profile_name: live_race_intelligence_2026
+profile_version: live_race_intelligence_v3
 model_family: live_race
-source: local_or_fastf1
+source: local_or_fastf1_first_seen_replay
+user_facing_mode: live_race_intelligence
+information_horizon: global_event_time_as_of
 features:
-  - starting_grid
-  - live_timing
-  - lap_times
-  - degradation
+  - actual_start_and_current_order
+  - first_seen_live_timing
+  - completed_representative_laps
+  - tyre_age_and_compound
+  - degradation_state
   - pit_state
+  - track_status
   - weather
-target: rolling_race_order
+forecasting:
+  next_lap:
+    target: next_eligible_representative_lap_seconds
+    point_model: last_clean_lap_naive_v1
+    rejected_candidate_model: causal_ssm_naive_convex_blend
+    next_lap_ssm_weight: 0.00
+    research_selected_ssm_weight: 0.20
+    research_weight_grid: 0.00_to_1.00_step_0.05
+    research_weight_selection: strictly_prior_event_mean_mae_only
+    research_runtime_gate: blend_rejected_fallback_to_naive
+    point_status: blend_rejected_fail_closed_to_naive_baseline
+    interval_status: not_promoted
+    evidence: artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v3_20260712d.json
+    service_integration_status: not_integrated_service_next_lap_currently_means_relative_order_not_seconds
+  degradation:
+    target: clean_lap_stint_pace_loss_seconds_per_lap
+    status: experimental_not_promotion_certified
+  order:
+    target: joint_running_order_at_named_future_checkpoint
+    status: experimental_not_promotion_certified
+  final_status:
+    target: classified_finish_dnf_nc_dsq_probability
+    status: experimental_not_promotion_certified
+decisions:
+  subcontracts:
+    - pit
+    - compound
+    - pace
+  reference_baselines:
+    - legal_rule_policy
+    - constrained_dynamic_programming
+    - constrained_model_predictive_control
+  reinforcement_learning_scope: decision_subcontracts_only
+  status: offline_research_not_promotable_awaiting_live_shadow_evidence
+  required_before_rl_promotion:
+    - legal_action_masks
+    - calibrated_counterfactual_simulator
+    - locked_causal_replay
+    - beats_simple_policy_and_mpc_baselines
+    - support_checked_off_policy_evaluation
+    - live_shadow_evidence

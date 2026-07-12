@@ -241,17 +241,31 @@ def evaluate_strategy_policy(
     if total == 0:
         missing_metrics.append("policy_value")
         missing_metrics.append("illegal_action_rate")
-    if oracle_planner is not None and not regrets:
+    if policy is None:
+        missing_metrics.append("candidate_policy")
+    if policy_errors > 0:
+        missing_metrics.append("policy_execution_errors")
+    if oracle_planner is None:
+        missing_metrics.append("counterfactual_policy_value")
+        missing_metrics.append("regret_vs_oracle")
+    elif len(planner_values) != total or len(regrets) != total:
+        missing_metrics.append("counterfactual_policy_value")
         missing_metrics.append("regret_vs_oracle")
     if not bool(invariance.get("available", False)):
         missing_metrics.append("replay_prefix_invariance")
+    missing_metrics = list(dict.fromkeys(missing_metrics))
     if cfg.fail_closed_on_missing_metrics and missing_metrics:
         promotion_gate_pass = False
     else:
         promotion_gate_pass = bool(
             total > 0
+            and policy is not None
+            and policy_errors == 0
             and illegal_count == 0
             and consistency_error_count == 0
+            and oracle_planner is not None
+            and len(planner_values) == total
+            and len(regrets) == total
             and bool(invariance.get("metadata_available_through_lap_ok", False))
             and bool(invariance.get("available", False))
             and invariance.get("prefix_invariant") is True
@@ -268,6 +282,7 @@ def evaluate_strategy_policy(
         "illegal_action_rate": float(illegal_count / total) if total else None,
         "illegal_action_count": int(illegal_count),
         "policy_error_count": int(policy_errors),
+        "counterfactual_value_coverage": float(len(planner_values) / total) if total else None,
         "action_distribution": action_dist,
         "transition_consistency": {
             "error_count": int(consistency_error_count),

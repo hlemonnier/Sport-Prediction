@@ -225,6 +225,17 @@ class StrategyState:
         available = _first(payload, ("available_compounds", "allowed_compounds"), None)
         if available is not None:
             meta["available_compounds"] = _tuple_compounds(available)
+        for state_key, aliases in {
+            "pit_lane_open": ("pit_lane_open",),
+            "is_box_lap": ("is_box_lap", "box_lap"),
+            "is_wet_track": ("is_wet_track",),
+            "weather_is_wet": ("weather_is_wet",),
+            "rain_expected": ("rain_expected",),
+            "track_status_is_wet": ("track_status_is_wet",),
+        }.items():
+            raw_value = _first(payload, aliases, None)
+            if raw_value is not None:
+                meta[state_key] = _safe_bool(raw_value, False)
 
         event_key_raw = _first(payload, ("event_key", "meeting_key"), None)
         event_key = None if event_key_raw is None else _safe_int(event_key_raw, 0)

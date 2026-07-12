@@ -202,7 +202,10 @@ class ActionMaskConfig:
     min_laps_after_stop: int = 2
     dry_compounds: tuple[str, ...] = DRY_COMPOUNDS
     wet_compounds: tuple[str, ...] = WET_COMPOUNDS
-    default_available_compounds: tuple[str, ...] = DRY_COMPOUNDS
+    # Unknown tyre inventory is not permission to fit every dry compound.
+    # Research callers may opt into an explicit default, but production and
+    # OPE fail closed by default.
+    default_available_compounds: tuple[str, ...] = ()
     allow_wet_compounds_when_declared: bool = True
     allow_same_compound_pit: bool = True
     enforce_dry_mandatory_change: bool = True
@@ -297,8 +300,7 @@ def _available_compounds(state: Any, config: ActionMaskConfig) -> tuple[str, ...
         compounds = tuple(
             compound for compound in (normalize_compound(item) for item in _as_tuple(explicit)) if compound != "UNKNOWN"
         )
-        if compounds:
-            return tuple(dict.fromkeys(compounds))
+        return tuple(dict.fromkeys(compounds))
 
     current = normalize_compound(_state_value(state, "compound", None))
     is_wet = any(
@@ -346,6 +348,8 @@ def _mandatory_change_required(state: Any, config: ActionMaskConfig) -> bool:
         return False
     current = normalize_compound(_state_value(state, "compound", None))
     used = set(_used_compounds(state))
+    if any(compound in WET_COMPOUNDS for compound in used):
+        return False
     if current not in DRY_COMPOUNDS:
         return False
     dry_used = {compound for compound in used if compound in DRY_COMPOUNDS}
@@ -381,7 +385,7 @@ def build_legal_action_mask(
 
     is_red = _safe_bool(_state_value(state, "is_red", False), False)
     is_box_lap = _safe_bool(_state_value(state, "is_box_lap", False), False)
-    pit_lane_open = _safe_bool(_state_value(state, "pit_lane_open", True), True)
+    pit_lane_open = _safe_bool(_state_value(state, "pit_lane_open", None), False)
 
     mask: list[bool] = []
     reasons: list[str] = []

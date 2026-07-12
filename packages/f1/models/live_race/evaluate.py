@@ -59,6 +59,22 @@ def _collect_eval_rows(trace: pd.DataFrame, warmup_laps: int = 3) -> pd.DataFram
     return frame
 
 
+def _collect_baseline_history_rows(trace: pd.DataFrame) -> pd.DataFrame:
+    """Return every causal clean observation available to live baselines.
+
+    Warm-up rows are valid history even though they are not scored.  Building a
+    baseline only from scored rows incorrectly removes the immediately prior
+    lap for each driver and makes comparator populations differ.
+    """
+
+    if trace.empty:
+        return pd.DataFrame()
+    frame = trace.copy()
+    frame["eval_included"] = frame.get("eval_included", False).astype(bool)
+    frame["lap_time_seconds"] = pd.to_numeric(frame.get("lap_time_seconds"), errors="coerce")
+    return frame[frame["eval_included"] & frame["lap_time_seconds"].notna()].copy()
+
+
 def _naive_baseline_predictions(frame: pd.DataFrame) -> pd.Series:
     out = pd.Series(index=frame.index, dtype=float)
     for _, idx in frame.groupby("driver_id", sort=False).groups.items():
@@ -76,24 +92,28 @@ def _arima_baseline_predictions(frame: pd.DataFrame) -> tuple[pd.Series, bool]:
     available = False
     for _, idx in frame.groupby("driver_id", sort=False).groups.items():
         subset = frame.loc[idx].sort_values("lap_number", kind="mergesort")
-        y = pd.to_numeric(subset["lap_time_seconds"], errors="coerce").dropna()
-        if len(y) < 8:
+        y = pd.to_numeric(subset["lap_time_seconds"], errors="coerce")
+        if len(y) <= 8:
             continue
-        try:
-            fitted = ARIMA(
-                y.to_numpy(dtype=float),
-                order=(2, 1, 2),
-                enforce_stationarity=False,
-                enforce_invertibility=False,
-            ).fit()
-            pred = pd.Series(index=subset.index, dtype=float)
-            one_step = fitted.predict(start=1, end=len(y) - 1)
-            if len(one_step) > 0:
-                pred.iloc[1 : 1 + len(one_step)] = np.asarray(one_step, dtype=float)
-            out.loc[subset.index] = pred
-            available = True
-        except Exception:
-            continue
+        # Expanding-origin forecasts only.  The former implementation fit once
+        # on the full evaluation series and reported in-sample predictions.
+        for position in range(8, len(y)):
+            history = y.iloc[:position].dropna().to_numpy(dtype=float)
+            if len(history) < 8:
+                continue
+            try:
+                fitted = ARIMA(
+                    history,
+                    order=(2, 1, 2),
+                    enforce_stationarity=False,
+                    enforce_invertibility=False,
+                ).fit()
+                forecast = np.asarray(fitted.forecast(steps=1), dtype=float)
+                if forecast.size and np.isfinite(forecast[0]):
+                    out.loc[subset.index[position]] = float(forecast[0])
+                    available = True
+            except Exception:
+                continue
 
     return out, available
 
@@ -113,16 +133,28 @@ def evaluate_live_replay(trace: pd.DataFrame, warmup_laps: int = 3) -> dict[str,
 
     model_metrics = _safe_metrics(y_true, y_pred, y_std)
 
-    naive_pred = _naive_baseline_predictions(eval_rows)
+    baseline_history = _collect_baseline_history_rows(trace)
+    naive_pred = _naive_baseline_predictions(baseline_history).reindex(eval_rows.index)
     naive_valid = naive_pred.notna()
+    model_on_naive_metrics = _safe_metrics(
+        eval_rows.loc[naive_valid, "lap_time_seconds"].to_numpy(dtype=float),
+        eval_rows.loc[naive_valid, "one_step_pred_mean"].to_numpy(dtype=float),
+        eval_rows.loc[naive_valid, "one_step_pred_std"].to_numpy(dtype=float),
+    )
     naive_metrics = _safe_metrics(
         eval_rows.loc[naive_valid, "lap_time_seconds"].to_numpy(dtype=float),
         naive_pred.loc[naive_valid].to_numpy(dtype=float),
         None,
     )
 
-    arima_pred, arima_available = _arima_baseline_predictions(eval_rows)
+    arima_pred, arima_available = _arima_baseline_predictions(baseline_history)
+    arima_pred = arima_pred.reindex(eval_rows.index)
     arima_valid = arima_pred.notna()
+    model_on_arima_metrics = _safe_metrics(
+        eval_rows.loc[arima_valid, "lap_time_seconds"].to_numpy(dtype=float),
+        eval_rows.loc[arima_valid, "one_step_pred_mean"].to_numpy(dtype=float),
+        eval_rows.loc[arima_valid, "one_step_pred_std"].to_numpy(dtype=float),
+    )
     arima_metrics = _safe_metrics(
         eval_rows.loc[arima_valid, "lap_time_seconds"].to_numpy(dtype=float),
         arima_pred.loc[arima_valid].to_numpy(dtype=float),
@@ -137,28 +169,46 @@ def evaluate_live_replay(trace: pd.DataFrame, warmup_laps: int = 3) -> dict[str,
             "rmse": model_metrics.rmse,
             "nll_like": model_metrics.nll_like,
             "rows": model_metrics.rows,
+            "population": "all_model_valid_rows",
+        },
+        "model_on_naive_rows": {
+            "mae": model_on_naive_metrics.mae,
+            "rmse": model_on_naive_metrics.rmse,
+            "nll_like": model_on_naive_metrics.nll_like,
+            "rows": model_on_naive_metrics.rows,
+            "population": "matched_model_and_naive_rows",
         },
         "naive_last_lap": {
             "mae": naive_metrics.mae,
             "rmse": naive_metrics.rmse,
             "rows": naive_metrics.rows,
+            "population": "matched_model_and_naive_rows",
         },
         "arima_212": {
             "available": bool(arima_available and arima_metrics.rows > 0),
             "mae": arima_metrics.mae,
             "rmse": arima_metrics.rmse,
             "rows": arima_metrics.rows,
+            "population": "matched_model_and_causal_expanding_arima_rows",
+            "fit_contract": "expanding_origin_prior_rows_only",
+        },
+        "model_on_arima_rows": {
+            "mae": model_on_arima_metrics.mae,
+            "rmse": model_on_arima_metrics.rmse,
+            "nll_like": model_on_arima_metrics.nll_like,
+            "rows": model_on_arima_metrics.rows,
+            "population": "matched_model_and_causal_expanding_arima_rows",
         },
         "baseline_arima_unavailable": not bool(arima_available and arima_metrics.rows > 0),
     }
 
-    if model_metrics.mae is not None and naive_metrics.mae is not None:
-        payload["mae_gain_vs_naive"] = float(naive_metrics.mae - model_metrics.mae)
-    if model_metrics.rmse is not None and naive_metrics.rmse is not None:
-        payload["rmse_gain_vs_naive"] = float(naive_metrics.rmse - model_metrics.rmse)
-    if model_metrics.mae is not None and arima_metrics.mae is not None:
-        payload["mae_gain_vs_arima"] = float(arima_metrics.mae - model_metrics.mae)
-    if model_metrics.rmse is not None and arima_metrics.rmse is not None:
-        payload["rmse_gain_vs_arima"] = float(arima_metrics.rmse - model_metrics.rmse)
+    if model_on_naive_metrics.mae is not None and naive_metrics.mae is not None:
+        payload["mae_gain_vs_naive"] = float(naive_metrics.mae - model_on_naive_metrics.mae)
+    if model_on_naive_metrics.rmse is not None and naive_metrics.rmse is not None:
+        payload["rmse_gain_vs_naive"] = float(naive_metrics.rmse - model_on_naive_metrics.rmse)
+    if model_on_arima_metrics.mae is not None and arima_metrics.mae is not None:
+        payload["mae_gain_vs_arima"] = float(arima_metrics.mae - model_on_arima_metrics.mae)
+    if model_on_arima_metrics.rmse is not None and arima_metrics.rmse is not None:
+        payload["rmse_gain_vs_arima"] = float(arima_metrics.rmse - model_on_arima_metrics.rmse)
 
     return payload

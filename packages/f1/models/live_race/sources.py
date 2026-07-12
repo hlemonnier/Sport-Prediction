@@ -279,8 +279,14 @@ def _standardize_laps(
     time_col = first_available(work, ["Time", "time", "LapStartTime", "lap_start_time"])
     if time_col:
         work["timestamp"] = _to_seconds(work[time_col])
+        work["timestamp_source"] = str(time_col)
     else:
-        work["timestamp"] = pd.to_numeric(work["lap_number"], errors="coerce")
+        # Lap number is an ordering coordinate, not a global event timestamp.
+        # Keep the timestamp missing so a replay cannot claim event-time
+        # causality from a synthetic value.
+        work["timestamp"] = float("nan")
+        work["timestamp_source"] = "unavailable"
+    work["timestamp_known"] = pd.to_numeric(work["timestamp"], errors="coerce").notna()
 
     work["race_time_seconds"] = _build_race_time_seconds(work)
     work["gap_to_leader_seconds"] = pd.to_numeric(work.get("gap_to_leader_seconds"), errors="coerce")
@@ -302,6 +308,8 @@ def _standardize_laps(
     out["track_status"] = work["track_status"].astype(str)
     out["lap_time_seconds"] = pd.to_numeric(work["lap_time_seconds"], errors="coerce")
     out["timestamp"] = pd.to_numeric(work["timestamp"], errors="coerce")
+    out["timestamp_known"] = work["timestamp_known"].astype(bool)
+    out["timestamp_source"] = work["timestamp_source"].astype(str)
     out["race_time_seconds"] = pd.to_numeric(work["race_time_seconds"], errors="coerce")
     out["gap_to_leader_seconds"] = pd.to_numeric(work["gap_to_leader_seconds"], errors="coerce")
     out["source"] = str(source_used)

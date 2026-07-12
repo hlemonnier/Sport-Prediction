@@ -184,6 +184,7 @@ def _run_race_prediction(
     f1_live_calibration_path: Optional[str] = None,
     f1_live_replay_cutoff_lap: Optional[int] = None,
     f1_live_replay_cutoff_time_seconds: Optional[float] = None,
+    f1_live_next_lap_ssm_weight: float = 0.0,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -218,6 +219,7 @@ def _run_race_prediction(
         f1_live_calibration_path=f1_live_calibration_path,
         f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
         f1_live_replay_cutoff_time_seconds=f1_live_replay_cutoff_time_seconds,
+        f1_live_next_lap_ssm_weight=f1_live_next_lap_ssm_weight,
     )
     return _prediction_payload(config)
 
@@ -468,6 +470,7 @@ def _run_live_race(
     f1_live_calibration_path: Optional[str],
     f1_live_replay_cutoff_lap: Optional[int],
     f1_live_replay_cutoff_time_seconds: Optional[float],
+    f1_live_next_lap_ssm_weight: float,
     prediction_as_of: Optional[str],
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
@@ -502,6 +505,7 @@ def _run_live_race(
         f1_live_calibration_path=f1_live_calibration_path,
         f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
         f1_live_replay_cutoff_time_seconds=f1_live_replay_cutoff_time_seconds,
+        f1_live_next_lap_ssm_weight=f1_live_next_lap_ssm_weight,
     )
     snapshot_path = output_dir / "live_race_snapshot.json"
     _write_json(snapshot_path, race_payload)
@@ -606,6 +610,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help="Global session timestamp cutoff for causal replay; preferred over lap-only truncation.",
+    )
+    parser.add_argument(
+        "--f1-live-next-lap-ssm-weight",
+        type=float,
+        default=0.0,
+        help="Causal SSM weight in the next-lap point blend; 0.0 is the evidence-gated naive fallback.",
     )
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--output-format", choices=["text", "json"], default="text")
@@ -739,6 +749,7 @@ def main() -> None:
             f1_live_calibration_path=args.f1_live_calibration_path,
             f1_live_replay_cutoff_lap=args.f1_live_replay_cutoff_lap,
             f1_live_replay_cutoff_time_seconds=args.f1_live_replay_cutoff_time_seconds,
+            f1_live_next_lap_ssm_weight=args.f1_live_next_lap_ssm_weight,
             prediction_as_of=args.prediction_as_of,
         )
         executed.append("live-race")
@@ -811,6 +822,7 @@ def main() -> None:
         "f1_live_calibration_path": args.f1_live_calibration_path,
         "f1_live_replay_cutoff_lap": args.f1_live_replay_cutoff_lap,
         "f1_live_replay_cutoff_time_seconds": args.f1_live_replay_cutoff_time_seconds,
+        "f1_live_next_lap_ssm_weight": float(args.f1_live_next_lap_ssm_weight),
         "output_dir": str(output_dir),
         "artifacts": artifacts,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),

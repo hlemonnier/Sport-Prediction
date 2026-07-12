@@ -57,8 +57,18 @@ promotion:
       - mc_regime_transition_probabilities
       - regime_specific_pit_loss_distributions
       - strategy_template_selection_probabilities
+  off_policy_evaluation:
+    required: true
+    support_checked: true
+    uncertainty_interval_required: true
+    report_path: artifacts/reports/f1/live_strategy/rl/locked_ope.json
+    registry_enforcement_status: not_implemented
+  live_shadow:
+    required: true
+    report_path: artifacts/reports/f1/live_strategy/rl/live_shadow_report.json
+    registry_enforcement_status: not_implemented
   required_metrics:
     - policy_value
     - illegal_action_rate
     - regret_vs_oracle
-  gate_status: not_promotable_until_locked_reports_exist
+  gate_status: not_promotable_until_locked_reports_exist_and_registry_validates_ope_uncertainty_and_shadow_evidence

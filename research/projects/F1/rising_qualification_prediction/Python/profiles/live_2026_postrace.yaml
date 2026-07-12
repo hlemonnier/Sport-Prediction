@@ -1,5 +1,5 @@
 {
-  "profile_version": 1,
+  "profile_version": 2,
   "name": "live_2026_postrace",
   "mission": "live_ops",
   "workflow": "weekend_phase",
@@ -8,16 +8,17 @@
     "source": "local",
     "year": 2026,
     "round_number": 1,
-    "include_standings": true,
+    "include_standings": false,
     "weekends_dir": "data/f1/raw/weekends",
     "cache_dir": null
   },
   "training": {
-    "train_seasons": [2022, 2023, 2024, 2026]
+    "train_seasons": [2026],
+    "historical_transfer_enabled": false
   },
   "experiments": {
     "enable_dl_candidates": false,
-    "compare_families": ["ml"]
+    "compare_families": ["baseline"]
   },
   "dl": {
     "device": "auto",
@@ -39,6 +40,7 @@
       "source": "auto",
       "model": "ssm_v1",
       "horizon_laps": 10,
+      "next_lap_ssm_weight": 0.00,
       "seed": 42,
       "cache_dir": null,
       "replay_path": null

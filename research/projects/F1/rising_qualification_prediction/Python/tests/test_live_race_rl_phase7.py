@@ -54,6 +54,7 @@ def _state(
         next_lap_mean=90.0,
         metadata={
             "available_compounds": ("MEDIUM", "HARD"),
+            "pit_lane_open": True,
             "ignored_future_columns": (),
         },
     )
@@ -207,6 +208,8 @@ def test_offline_rl_evaluation_exposes_locked_simulator_comparisons() -> None:
     assert result.metrics["historical_accuracy_used_for_promotion"] is False
     assert set(result.comparison_payloads) == {"offline_rl", "behavior_cloning", "dp_mpc"}
     assert result.metrics["comparison_deltas"]["policy_value_delta_vs_dp_mpc"] == 9.0
+    assert result.metrics["promotion_gate_pass"] is False
+    assert "evaluation_not_locked" in result.metrics["locked_evaluation_issues"]
 
 
 def test_offline_rl_promotion_gate_requires_beating_locked_simulator_comparators() -> None:
@@ -246,3 +249,43 @@ def test_offline_rl_promotion_gate_requires_beating_locked_simulator_comparators
     assert result.metrics["promotion_gate_pass"] is False
     assert result.metrics["comparison_deltas"]["policy_value_delta_vs_behavior_cloning"] == -1.0
     assert result.metrics["comparison_deltas"]["policy_value_delta_vs_dp_mpc"] == -2.0
+
+
+def test_offline_rl_gate_requires_and_accepts_complete_locked_evidence_contract() -> None:
+    dataset = build_rl_replay_dataset(_records(), action_index=ACTION_INDEX, strict=True)
+    bc_policy = fit_behavior_cloning(dataset)
+    offline_policy = fit_conservative_offline_q(
+        dataset,
+        behavior_policy=bc_policy,
+        config=ConservativeOfflineRLConfig(discount=0.0, iterations=10, ood_action_penalty=20.0),
+    )
+    baseline = TrivialLegalActionBaseline.fit(dataset)
+
+    class CompleteLockedEvaluator:
+        def evaluate_policy(self, policy: object) -> dict[str, object]:
+            mean_return = 12.0 if policy is offline_policy else 4.0 if policy is bc_policy else 3.0
+            return {
+                "metrics": {
+                    "mean_return": mean_return,
+                    "promotion_gate_pass": True,
+                    "evaluation_locked": True,
+                    "simulator_artifact_hash": "a" * 64,
+                    "calibration_report_hash": "b" * 64,
+                    "evaluation_split_id": "heldout-race-prefixes-v1",
+                    "causal_event_time_replay": True,
+                    "illegal_action_rate": 0.0,
+                    "policy_error_count": 0,
+                    "support_coverage": 0.95,
+                }
+            }
+
+    result = evaluate_offline_rl_policy(
+        offline_policy,
+        simulator=CompleteLockedEvaluator(),
+        behavior_cloning_policy=bc_policy,
+        dp_mpc_policy=baseline,
+    )
+
+    assert result.metrics["locked_evaluation_issues"] == []
+    assert result.metrics["comparison_gate_pass"] is True
+    assert result.metrics["promotion_gate_pass"] is True

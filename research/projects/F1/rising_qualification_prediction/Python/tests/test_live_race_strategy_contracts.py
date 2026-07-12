@@ -41,7 +41,10 @@ def _state(**overrides: object) -> StrategyState:
         "pace_penalty_mean": 0.0,
         "deg_rate_mean": 0.04,
         "next_lap_mean": 90.0,
-        "metadata": {"available_compounds": ("SOFT", "MEDIUM", "HARD")},
+        "metadata": {
+            "available_compounds": ("SOFT", "MEDIUM", "HARD"),
+            "pit_lane_open": True,
+        },
     }
     base.update(overrides)
     return StrategyState(**base)
@@ -60,6 +63,7 @@ def _replay_rows(extra_lap: bool = False) -> pd.DataFrame:
             "tyre_age": 0,
             "used_compounds": "MEDIUM",
             "available_compounds": "MEDIUM,HARD",
+            "pit_lane_open": True,
             "track_status": "1",
             "lap_time_seconds": 90.0,
             "race_time_seconds": 90.0,
@@ -78,6 +82,7 @@ def _replay_rows(extra_lap: bool = False) -> pd.DataFrame:
             "tyre_age": 1,
             "used_compounds": "MEDIUM",
             "available_compounds": "MEDIUM,HARD",
+            "pit_lane_open": True,
             "track_status": "1",
             "lap_time_seconds": 91.0,
             "race_time_seconds": 181.0,
@@ -97,6 +102,7 @@ def _replay_rows(extra_lap: bool = False) -> pd.DataFrame:
             "tyre_age": 0,
             "used_compounds": "MEDIUM,HARD",
             "available_compounds": "MEDIUM,HARD",
+            "pit_lane_open": True,
             "track_status": "1",
             "lap_time_seconds": 112.0,
             "race_time_seconds": 293.0,
@@ -118,6 +124,7 @@ def _replay_rows(extra_lap: bool = False) -> pd.DataFrame:
                 "tyre_age": 1,
                 "used_compounds": "MEDIUM,HARD",
                 "available_compounds": "MEDIUM,HARD",
+                "pit_lane_open": True,
                 "track_status": "1",
                 "lap_time_seconds": 91.5,
                 "race_time_seconds": 384.5,
@@ -138,7 +145,9 @@ def test_action_mask_blocks_impossible_pit_and_compound_actions() -> None:
     assert not red_mask.is_legal(StrategyAction(ACTION_STAY_OUT, mode="aggressive"))
     assert not red_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
 
-    limited_state = _state(metadata={"available_compounds": ("MEDIUM", "HARD")})
+    limited_state = _state(
+        metadata={"available_compounds": ("MEDIUM", "HARD"), "pit_lane_open": True}
+    )
     limited_mask = build_legal_action_mask(limited_state, action_space=action_space)
     assert not limited_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="SOFT"))
     assert limited_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
@@ -147,6 +156,30 @@ def test_action_mask_blocks_impossible_pit_and_compound_actions() -> None:
     late_mask = build_legal_action_mask(late_state, action_space=action_space, config=ActionMaskConfig(min_laps_after_stop=2))
     assert not late_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
     assert not late_mask.is_legal(StrategyAction(ACTION_PIT_NEXT_LAP, compound="HARD"))
+
+
+def test_strategy_state_preserves_pit_lane_and_box_legality_inputs() -> None:
+    state = StrategyState.from_mapping(
+        {
+            "event_key": 202601,
+            "driver_id": "44",
+            "lap_number": 20,
+            "total_laps": 58,
+            "remaining_laps": 38,
+            "stint_id": 1,
+            "compound": "MEDIUM",
+            "tyre_age": 10,
+            "used_compounds": "MEDIUM",
+            "available_compounds": "HARD",
+            "pit_lane_open": False,
+            "is_box_lap": True,
+        }
+    )
+    mask = build_legal_action_mask(state)
+
+    assert state.metadata["pit_lane_open"] is False
+    assert state.metadata["is_box_lap"] is True
+    assert all(not action.is_pit_action for action in mask.legal_actions)
 
 
 def test_replay_transitions_are_no_leakage_prefix_invariant_and_bufferable() -> None:

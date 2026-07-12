@@ -295,7 +295,12 @@ def evaluate_offline_rl_policy(
         and not missing_comparisons
         and all(value is not None and float(offline_value) > float(value) for value in comparison_values.values())
     )
-    offline_payload_gate_pass = bool(_payload_gate(offline_payload) and offline_value is not None)
+    locked_evidence_issues = _locked_evaluation_issues(offline_payload)
+    offline_payload_gate_pass = bool(
+        _payload_gate(offline_payload)
+        and offline_value is not None
+        and not locked_evidence_issues
+    )
 
     return OfflineRLEvaluationResult(
         available=True,
@@ -307,6 +312,7 @@ def evaluate_offline_rl_policy(
             "comparison_values": comparison_values,
             "comparison_gate_pass": bool(comparison_gate_pass),
             "missing_comparisons_for_promotion": list(missing_comparisons),
+            "locked_evaluation_issues": locked_evidence_issues,
             "historical_accuracy_used_for_promotion": False,
             "promotion_gate_pass": bool(offline_payload_gate_pass and comparison_gate_pass),
         },
@@ -406,6 +412,33 @@ def _payload_gate(payload: dict[str, object]) -> bool:
     if "promotion_gate_pass" in payload:
         return bool(payload.get("promotion_gate_pass"))
     return False
+
+
+def _locked_evaluation_issues(payload: dict[str, object]) -> list[str]:
+    """Require provenance and safety evidence, not a self-declared pass bit."""
+
+    metrics = payload.get("metrics")
+    evidence = metrics if isinstance(metrics, dict) else payload
+    issues: list[str] = []
+    if evidence.get("evaluation_locked") is not True:
+        issues.append("evaluation_not_locked")
+    for key in ("simulator_artifact_hash", "calibration_report_hash"):
+        value = str(evidence.get(key) or "").strip().lower()
+        if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+            issues.append(f"{key}_missing_or_invalid")
+    if not str(evidence.get("evaluation_split_id") or "").strip():
+        issues.append("evaluation_split_id_missing")
+    if evidence.get("causal_event_time_replay") is not True:
+        issues.append("causal_event_time_replay_unproven")
+    if _numeric_or_none(evidence.get("illegal_action_rate")) != 0.0:
+        issues.append("illegal_action_rate_nonzero_or_missing")
+    policy_errors = _numeric_or_none(evidence.get("policy_error_count"))
+    if policy_errors != 0.0:
+        issues.append("policy_error_count_nonzero_or_missing")
+    support = _numeric_or_none(evidence.get("support_coverage"))
+    if support is None or support < 0.90:
+        issues.append("offline_support_coverage_below_0_90_or_missing")
+    return issues
 
 
 __all__ = [

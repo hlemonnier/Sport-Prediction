@@ -59,6 +59,9 @@ def _fake_prediction(config: object) -> SimpleNamespace:
     ]
     extras: dict[str, object] = {
         "all_prediction_rows": rows,
+        "training_event_keys": [],
+        "training_row_count": 0,
+        "target_event_key_excluded_from_training": True,
         "qualifying_information_horizon": {
             "requested_cutoff": str(getattr(config, "qualifying_information_horizon")),
             "resolved_cutoffs": ["before_qualifying"],
@@ -183,6 +186,42 @@ def test_main_writes_exclusive_reproducibility_manifest(monkeypatch: pytest.Monk
 
     monkeypatch.setattr(rolling, "run_prediction", fake_run_prediction)
     output = tmp_path / "artifacts"
+    qualifying_profile = tmp_path / "pre_quali.yaml"
+    race_profile = tmp_path / "pre_race.yaml"
+    shared_profile = {
+        "source": "local",
+        "field_size": 22,
+        "training": {
+            "protocol": "same_season_walk_forward",
+            "seasons": [2026],
+        },
+        "promotion": {
+            "evidence_run_id": "test-run",
+            "frozen_rounds": [1, 9],
+        },
+    }
+    qualifying_profile.write_text(
+        json.dumps(
+            {
+                **shared_profile,
+                "information_horizon": "pre_qualifying",
+                "model": {"requested": "auto", "compare_families": ["baseline"]},
+                "features": {"run_simulation_features": False, "standings": False},
+            }
+        ),
+        encoding="utf-8",
+    )
+    race_profile.write_text(
+        json.dumps(
+            {
+                **shared_profile,
+                "information_horizon": "post_qualifying_pre_grid",
+                "model": {"requested": "baseline"},
+                "features": {"run_simulation_features": True, "standings": False},
+            }
+        ),
+        encoding="utf-8",
+    )
     arguments = [
         "--weekends-dir",
         str(weekends),
@@ -194,10 +233,16 @@ def test_main_writes_exclusive_reproducibility_manifest(monkeypatch: pytest.Monk
         "auto",
         "--race-model",
         "baseline",
+        "--compare-families",
+        "baseline",
         "--qualifying-runsim-features",
         "disabled",
         "--race-runsim-features",
         "enabled",
+        "--qualifying-profile",
+        str(qualifying_profile),
+        "--race-profile",
+        str(race_profile),
         "--quiet",
     ]
 

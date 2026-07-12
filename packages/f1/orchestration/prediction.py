@@ -13,6 +13,17 @@ from packages.f1.data.schemas.circuit import (
     CIRCUIT_NUMERIC_FEATURES,
     circuit_card_payload_from_frame,
 )
+from packages.f1.domain import (
+    EvidenceSource,
+    GridEntryStatus,
+    GridRevisionPhase,
+    OfficialGridEntry,
+    OfficialGridRevision,
+    ResolutionStatus,
+    WeekendFormat,
+    build_weekend_contract,
+    resolve_grand_prix_start,
+)
 from packages.f1.orchestration.contracts import architecture_payload
 from packages.f1.data.schemas import PredictionConfig, PredictionResult
 from packages.f1.features.assembly import build_current_features, build_training_data
@@ -103,6 +114,10 @@ CURRENT_WEEKEND_EVIDENCE_COLUMNS = (
     "fp3_delta",
     "sq_delta",
     "sprint_delta",
+    "latest_qualifying_rehearsal_rank",
+    "latest_qualifying_rehearsal_delta",
+    "latest_qualifying_rehearsal_coverage",
+    "latest_qualifying_rehearsal_source",
     "qualy_position",
     "qualy_gap_to_best",
     "grid_position",
@@ -160,6 +175,20 @@ def _practice_quality_evidence(features: pd.DataFrame) -> dict[str, object]:
     roster_policies = _stable_column_values(features, "fp_roster_policy")
     if roster_policies:
         evidence["roster_policy"] = roster_policies
+    rehearsal_sources = _stable_column_values(features, "latest_qualifying_rehearsal_source")
+    if rehearsal_sources:
+        evidence["latest_qualifying_rehearsal_source"] = rehearsal_sources
+    if "latest_qualifying_rehearsal_coverage" in features.columns:
+        rehearsal_coverage = pd.to_numeric(
+            features["latest_qualifying_rehearsal_coverage"],
+            errors="coerce",
+        ).dropna()
+        if not rehearsal_coverage.empty:
+            evidence["latest_qualifying_rehearsal_coverage"] = float(rehearsal_coverage.mean())
+    if "latest_qualifying_rehearsal_imputed" in features.columns:
+        evidence["latest_qualifying_rehearsal_imputed_rows"] = int(
+            features["latest_qualifying_rehearsal_imputed"].fillna(True).astype(bool).sum()
+        )
     for column in (
         "fp_roster_latest_session_driver_count",
         "fp_roster_active_driver_count",
@@ -203,6 +232,7 @@ def _practice_quality_evidence(features: pd.DataFrame) -> dict[str, object]:
 def _is_current_weekend_practice_column(column: str) -> bool:
     return (
         column.startswith(("fp_", "fp1_", "fp2_", "fp3_", "sq_", "sprint_"))
+        or column.startswith("latest_qualifying_rehearsal_")
         or column in CURRENT_WEEKEND_PRACTICE_EXACT_COLUMNS
     )
 
@@ -419,6 +449,10 @@ def _hierarchical_fallback(
         race_score = _race_grid_delta_fallback(features)
         if race_score is not None:
             return race_score
+
+    rehearsal_score = _first_numeric_series(features, ["latest_qualifying_rehearsal_rank"])
+    if rehearsal_score is not None and rehearsal_score.notna().any():
+        return rehearsal_score.fillna(float(rehearsal_score.median(skipna=True)))
 
     qualifying_score = _weighted_rank_score(
         features,
@@ -869,6 +903,10 @@ def _qualifying_feature_sets(
     disable_circuit: bool = False,
 ) -> tuple[List[str], List[str]]:
     feature_cols = [
+        "latest_qualifying_rehearsal_rank",
+        "latest_qualifying_rehearsal_delta",
+        "latest_qualifying_rehearsal_coverage",
+        "latest_qualifying_rehearsal_imputed",
         "fp1_delta",
         "fp2_delta",
         "fp3_delta",
@@ -916,6 +954,10 @@ def _qualifying_feature_sets(
     feature_cols.extend(QUALIFYING_CIRCUIT_NUMERIC_FEATURES)
     feature_cols.extend(QUALIFYING_CIRCUIT_INTERACTION_FEATURES)
     fallback_cols = [
+        "latest_qualifying_rehearsal_rank",
+        "latest_qualifying_rehearsal_delta",
+        "latest_qualifying_rehearsal_coverage",
+        "latest_qualifying_rehearsal_imputed",
         "fp_mean_delta",
         "fp_weighted_delta",
         "fp_quali_sim_delta",
@@ -1227,6 +1269,8 @@ def _build_oof_qualifying_signal_frame(
 def _resolve_race_information_horizon(
     features: pd.DataFrame,
     requested: str = "auto",
+    *,
+    prediction_as_of: Optional[str] = None,
 ) -> str:
     normalized = str(requested or "auto").strip().lower().replace("-", "_")
     aliases = {
@@ -1247,12 +1291,10 @@ def _resolve_race_information_horizon(
 
     if features.empty:
         return "pre_fp_provisional"
-    grid = pd.to_numeric(
-        features.get("grid_position", pd.Series(float("nan"), index=features.index)),
-        errors="coerce",
-    )
-    source = features.get("grid_source", pd.Series("unknown", index=features.index)).fillna("unknown").astype(str)
-    if (grid.notna() & source.eq("pre_race_official_grid")).any():
+    # Metadata labels alone do not select the final-grid horizon.  The same
+    # domain resolver used by the deployed score path must accept the full
+    # publication first.
+    if not _resolved_final_grid_frame(features, as_of=prediction_as_of).empty:
         return "post_grid_pre_race"
     qualy = pd.to_numeric(
         features.get("qualy_position", pd.Series(float("nan"), index=features.index)),
@@ -1273,11 +1315,225 @@ def _resolve_race_information_horizon(
     return "pre_fp_provisional"
 
 
+def _resolved_final_grid_frame(
+    frame: pd.DataFrame,
+    *,
+    as_of: Optional[str] = None,
+) -> pd.DataFrame:
+    """Validate a provider grid through the domain resolver or fail closed.
+
+    A numeric ``grid_position`` plus a friendly source label is not proof of a
+    point-in-time final grid.  The adapter requires one immutable publication
+    timestamp, revision id, final phase, complete roster, and explicit row
+    statuses before the scheduled order can enter the final-grid horizon.
+    """
+
+    required = {
+        "driver_id",
+        "grid_position",
+        "grid_source",
+        "grid_status",
+        "grid_revision_phase",
+        "grid_evidence_as_of",
+        "grid_evidence_id",
+        "grid_evidence_complete",
+        "event_year",
+    }
+    if frame.empty or not required.issubset(frame.columns):
+        return pd.DataFrame()
+    evidence = frame.loc[frame["grid_source"].astype(str).eq("pre_race_official_grid")].copy()
+    if evidence.empty:
+        return pd.DataFrame()
+
+    if "event_key" in evidence.columns and evidence["event_key"].notna().any():
+        group_columns = ["event_key"]
+    elif "event_round" in evidence.columns and evidence["event_round"].notna().any():
+        group_columns = ["event_year", "event_round"]
+    else:
+        group_columns = []
+    groups = (
+        [group for _, group in evidence.groupby(group_columns, sort=False, dropna=False)]
+        if group_columns
+        else [evidence]
+    )
+    resolved_groups = [
+        resolved
+        for group in groups
+        if not (resolved := _resolved_final_grid_event(group, as_of=as_of)).empty
+    ]
+    if not resolved_groups:
+        return pd.DataFrame()
+    return pd.concat(resolved_groups, ignore_index=True)
+
+
+def _resolved_final_grid_event(
+    evidence: pd.DataFrame,
+    *,
+    as_of: Optional[str],
+) -> pd.DataFrame:
+    """Resolve exactly one event/revision at the requested prediction cutoff."""
+
+    provenance_columns = (
+        "event_year",
+        "grid_evidence_as_of",
+        "grid_evidence_id",
+        "grid_revision_phase",
+    )
+    if any(
+        evidence[column].isna().any()
+        or evidence[column]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .isin({"", "nan", "none", "<na>", "null"})
+        .any()
+        for column in provenance_columns
+    ):
+        return pd.DataFrame()
+    if not _strict_true_mask(evidence["grid_evidence_complete"]).all():
+        return pd.DataFrame()
+
+    numeric_years = pd.to_numeric(evidence["event_year"], errors="coerce")
+    if numeric_years.isna().any() or not np.isfinite(numeric_years).all():
+        return pd.DataFrame()
+    if not np.equal(numeric_years, np.floor(numeric_years)).all():
+        return pd.DataFrame()
+    years = numeric_years.astype(int).unique()
+    evidence_times = evidence["grid_evidence_as_of"].astype(str).str.strip().unique()
+    evidence_ids = evidence["grid_evidence_id"].astype(str).str.strip().unique()
+    phases = evidence["grid_revision_phase"].astype(str).str.strip().str.lower().unique()
+    if len(years) != 1 or len(evidence_times) != 1 or len(evidence_ids) != 1 or len(phases) != 1:
+        return pd.DataFrame()
+    phase_aliases = {
+        "final": GridRevisionPhase.FINAL_PRE_RACE,
+        "final_pre_race": GridRevisionPhase.FINAL_PRE_RACE,
+        "provisional": GridRevisionPhase.PROVISIONAL_PRE_RACE,
+        "provisional_pre_race": GridRevisionPhase.PROVISIONAL_PRE_RACE,
+    }
+    phase = phase_aliases.get(str(phases[0]))
+    if phase is None:
+        return pd.DataFrame()
+
+    raw_formats = evidence.get(
+        "weekend_format_version",
+        pd.Series("standard", index=evidence.index),
+    )
+    format_values = raw_formats.dropna().astype(str).str.strip().str.lower().unique()
+    try:
+        weekend_format = (
+            WeekendFormat(str(format_values[0]))
+            if len(format_values) == 1
+            else WeekendFormat.STANDARD
+        )
+        contract = build_weekend_contract(int(years[0]), weekend_format)
+    except (TypeError, ValueError):
+        return pd.DataFrame()
+
+    status_map = {
+        "grid": GridEntryStatus.GRID,
+        "pit_lane": GridEntryStatus.PIT_LANE,
+        "dns": GridEntryStatus.DID_NOT_START,
+        "did_not_start": GridEntryStatus.DID_NOT_START,
+        "withdrawn": GridEntryStatus.WITHDRAWN,
+        "disqualified": GridEntryStatus.DISQUALIFIED,
+    }
+    entries: list[OfficialGridEntry] = []
+    for _, row in evidence.iterrows():
+        status = status_map.get(str(row.get("grid_status") or "").strip().lower())
+        if status is None:
+            return pd.DataFrame()
+        numeric_position = pd.to_numeric(pd.Series([row.get("grid_position")]), errors="coerce").iloc[0]
+        if status is GridEntryStatus.GRID:
+            if (
+                pd.isna(numeric_position)
+                or not np.isfinite(float(numeric_position))
+                or float(numeric_position) <= 0.0
+                or not float(numeric_position).is_integer()
+            ):
+                return pd.DataFrame()
+            position = int(numeric_position)
+        else:
+            position = None
+        try:
+            entries.append(
+                OfficialGridEntry(
+                    driver_id=str(row["driver_id"]),
+                    position=position,
+                    status=status,
+                    evidence_complete=True,
+                )
+            )
+        except (TypeError, ValueError):
+            return pd.DataFrame()
+
+    cutoff = as_of
+    if cutoff is None and "prediction_as_of" in evidence.columns:
+        cutoffs = evidence["prediction_as_of"].dropna().astype(str).str.strip()
+        cutoffs = cutoffs[~cutoffs.isin({"", "nan", "None", "<NA>"})].unique()
+        if len(cutoffs) > 1:
+            return pd.DataFrame()
+        if len(cutoffs) == 1:
+            cutoff = str(cutoffs[0])
+    if cutoff is None:
+        cutoff = str(evidence_times[0])
+    try:
+        resolution = resolve_grand_prix_start(
+            contract,
+            as_of=str(cutoff),
+            official_grid_revisions=(
+                OfficialGridRevision(
+                    revision_id=str(evidence_ids[0]),
+                    phase=phase,
+                    entries=tuple(entries),
+                    as_of=str(evidence_times[0]),
+                    evidence_complete=True,
+                ),
+            ),
+        )
+    except (OverflowError, TypeError, ValueError):
+        return pd.DataFrame()
+    scheduled = resolution.scheduled_grid
+    if (
+        scheduled.status is not ResolutionStatus.RESOLVED
+        or scheduled.source is not EvidenceSource.OFFICIAL_GRID_REVISION
+        or not scheduled.evidence_complete
+        or scheduled.phase != GridRevisionPhase.FINAL_PRE_RACE.value
+    ):
+        return pd.DataFrame()
+
+    identity_columns = [
+        column
+        for column in ("event_key", "event_year", "event_round")
+        if column in evidence.columns and evidence[column].notna().all()
+    ]
+    identity_values = {column: evidence[column].iloc[0] for column in identity_columns}
+    resolved_rows: list[dict[str, object]] = []
+    for entry in scheduled.entries:
+        resolved_rows.append(
+            {
+                "driver_id": entry.driver_id,
+                "grid_position": (
+                    float(entry.position) if entry.position is not None else float("nan")
+                ),
+                "grid_status": entry.status.value,
+                "grid_source": "pre_race_official_grid",
+                "grid_evidence_complete": True,
+                "grid_resolution_status": scheduled.status.value,
+                "grid_revision_phase": scheduled.phase,
+                "grid_evidence_as_of": scheduled.evidence_as_of,
+                "grid_evidence_id": str(evidence_ids[0]),
+                **identity_values,
+            }
+        )
+    return pd.DataFrame(resolved_rows)
+
+
 def _apply_race_information_horizon(
     frame: pd.DataFrame,
     *,
     horizon: str,
     training: bool,
+    as_of: Optional[str] = None,
 ) -> pd.DataFrame:
     """Enforce the feature/target contract available at one race horizon."""
 
@@ -1325,10 +1581,65 @@ def _apply_race_information_horizon(
             out = _scrub_current_weekend_practice(out)
     elif horizon == "post_qualifying_pre_grid":
         out["grid_position"] = actual_qualy
-        out["grid_source"] = "historical_qualifying_grid" if training else "qualifying_fallback"
-        out["grid_status"] = "qualifying"
-    # post_grid_pre_race intentionally retains the historical/current official
-    # grid, including penalties and pit-lane starts.
+        out["grid_source"] = "historical_qualifying_proxy" if training else "qualifying_proxy"
+        out["grid_status"] = "gp_grid_unresolved_proxy"
+        weekend_format = out.get(
+            "weekend_format_version",
+            pd.Series("unknown", index=out.index, dtype=object),
+        ).astype(str)
+        original_sprint_format = weekend_format.eq("sprint_2021_2022")
+        if original_sprint_format.any():
+            # In 2021-22, Friday Qualifying set the Sprint grid; the Sprint
+            # classification set the GP grid.  Q remains a useful causal proxy
+            # at this horizon but must never be labelled as the GP grid.
+            out.loc[original_sprint_format, "grid_source"] = (
+                "historical_qualifying_proxy_pre_sprint"
+                if training
+                else "qualifying_proxy_pre_sprint"
+            )
+            out.loc[original_sprint_format, "grid_status"] = "gp_grid_unresolved_proxy"
+        out["grid_evidence_complete"] = False
+    elif horizon == "post_grid_pre_race":
+        resolved_grid = _resolved_final_grid_frame(out, as_of=as_of)
+        if resolved_grid.empty:
+            out["grid_position"] = float("nan")
+            out["grid_source"] = "unresolved_final_grid"
+            out["grid_status"] = "unresolved"
+            out["grid_evidence_complete"] = False
+            out["grid_resolution_status"] = "unresolved"
+        else:
+            join_keys = ["driver_id"]
+            join_keys.extend(
+                column
+                for column in ("event_key", "event_year", "event_round")
+                if column in out.columns and column in resolved_grid.columns
+            )
+            replacement_columns = [
+                column for column in resolved_grid.columns if column not in join_keys
+            ]
+            out = out.drop(columns=replacement_columns, errors="ignore").merge(
+                resolved_grid,
+                on=join_keys,
+                how="left",
+            )
+            unresolved = ~out.get(
+                "grid_resolution_status",
+                pd.Series("unresolved", index=out.index),
+            ).fillna("unresolved").astype(str).eq("resolved")
+            out.loc[unresolved, "grid_position"] = float("nan")
+            out.loc[unresolved, "grid_source"] = "unresolved_final_grid"
+            out.loc[unresolved, "grid_status"] = "unresolved"
+            out.loc[unresolved, "grid_evidence_complete"] = False
+            out.loc[unresolved, "grid_resolution_status"] = "unresolved"
+            nonstarters = out["grid_status"].astype(str).str.lower().isin(
+                {"did_not_start", "withdrawn", "disqualified"}
+            )
+            out["race_prediction_available"] = ~nonstarters
+            out["race_prediction_unavailable_reason"] = np.where(
+                nonstarters,
+                out["grid_status"].astype(str),
+                None,
+            )
 
     if training and "target" in out.columns:
         target = pd.to_numeric(out["target"], errors="coerce")
@@ -1479,6 +1790,7 @@ def _merge_predicted_qualifying_context(
     horizon = _resolve_race_information_horizon(
         race_features,
         getattr(config, "race_information_horizon", "auto"),
+        prediction_as_of=getattr(config, "prediction_as_of", None),
     )
 
     qual_train, qual_notes = build_training_data(
@@ -1509,6 +1821,20 @@ def _merge_predicted_qualifying_context(
 
     if qual_train.empty and qual_features.empty:
         notes.append("[Race<-Quali] Impossible de construire un signal de qualif predit.")
+        # Fail closed: the requested race horizon still applies even when the
+        # nested qualifying path cannot build a field.  Returning here used to
+        # leave retrospective qualifying/grid columns untouched in pre-Q runs.
+        race_train = _apply_race_information_horizon(
+            race_train,
+            horizon=horizon,
+            training=True,
+        )
+        race_features = _apply_race_information_horizon(
+            race_features,
+            horizon=horizon,
+            training=False,
+            as_of=getattr(config, "prediction_as_of", None),
+        )
         return _add_race_context_interactions(race_train), _add_race_context_interactions(race_features)
 
     if config.disable_runsim_features:
@@ -1597,7 +1923,29 @@ def _merge_predicted_qualifying_context(
             )
 
     race_train = _apply_race_information_horizon(race_train, horizon=horizon, training=True)
-    race_features = _apply_race_information_horizon(race_features, horizon=horizon, training=False)
+    race_features = _apply_race_information_horizon(
+        race_features,
+        horizon=horizon,
+        training=False,
+        as_of=getattr(config, "prediction_as_of", None),
+    )
+    if horizon == "post_grid_pre_race" and not race_train.empty:
+        resolved_training_grid = race_train.get(
+            "grid_resolution_status",
+            pd.Series("unresolved", index=race_train.index),
+        ).fillna("unresolved").astype(str).eq("resolved")
+        numeric_training_grid = pd.to_numeric(
+            race_train.get("grid_position"),
+            errors="coerce",
+        ).notna()
+        valid_final_grid = resolved_training_grid & numeric_training_grid
+        dropped = int((~valid_final_grid).sum())
+        if dropped:
+            notes.append(
+                "[Race grid] Historical rows without a resolver-approved numeric final-grid slot "
+                f"were excluded from training: rows={dropped}."
+            )
+            race_train = race_train.loc[valid_final_grid].copy()
     if horizon in PRE_QUALIFYING_RACE_HORIZONS and not race_train.empty:
         valid_predicted_grid = pd.to_numeric(race_train.get("grid_position"), errors="coerce").notna()
         dropped = int((~valid_predicted_grid).sum())
@@ -1780,6 +2128,46 @@ def _score_prediction_output(
     else:
         output["listwise_enabled"] = False
 
+    output["probability_output_status"] = "diagnostic_not_promoted_uncalibrated"
+    output["position_interval_output_status"] = "diagnostic_not_promoted_uncalibrated"
+    if config.mode == "race":
+        available = _strict_true_mask(
+            output.get(
+                "race_prediction_available",
+                pd.Series(True, index=output.index),
+            )
+        )
+        output["forecast_available"] = available
+        output["forecast_unavailable_reason"] = output.get(
+            "race_prediction_unavailable_reason",
+            pd.Series(None, index=output.index, dtype=object),
+        )
+        unavailable = ~available
+        if unavailable.any():
+            for column in (
+                "pred",
+                "utility",
+                "exp_pos",
+                "pos_p10",
+                "pos_p50",
+                "pos_p90",
+            ):
+                if column in output.columns:
+                    output.loc[unavailable, column] = float("nan")
+            for column in (
+                "proba_win",
+                "proba_top3",
+                "proba_top10",
+                "p_win",
+                "p_top3",
+                "p_top10",
+            ):
+                if column in output.columns:
+                    output.loc[unavailable, column] = 0.0
+    else:
+        output["forecast_available"] = True
+        output["forecast_unavailable_reason"] = None
+
     if "driver_name" not in output.columns:
         if "driver_id" in output.columns:
             output["driver_name"] = output["driver_id"]
@@ -1828,10 +2216,14 @@ def _positive_numeric_count(frame: pd.DataFrame, column: str) -> int:
 def _true_count(frame: pd.DataFrame, column: str) -> int:
     if frame.empty or column not in frame.columns:
         return 0
-    values = frame[column]
-    if values.dtype == bool:
-        return int(values.fillna(False).sum())
-    return int(values.astype(str).str.lower().isin({"1", "true", "yes"}).sum())
+    return int(_strict_true_mask(frame[column]).sum())
+
+
+def _strict_true_mask(values: pd.Series) -> pd.Series:
+    """Parse only explicit true values; notably, the string ``false`` is false."""
+
+    clean = values.astype("string").str.strip().str.lower()
+    return clean.isin({"1", "1.0", "true", "yes"}).fillna(False)
 
 
 def _numeric_feature_snapshot(frame: pd.DataFrame, columns: tuple[str, ...]) -> dict[str, float | None]:
@@ -1882,11 +2274,36 @@ def _prediction_input_phase(config: PredictionConfig, features: pd.DataFrame) ->
             if "grid_position" in features.columns
             else pd.Series(float("nan"), index=features.index, dtype=float)
         )
+        grid_evidence_complete = _strict_true_mask(features.get(
+            "grid_evidence_complete",
+            pd.Series(False, index=features.index),
+        ))
+        grid_resolution_status = features.get(
+            "grid_resolution_status",
+            pd.Series("unresolved", index=features.index),
+        ).fillna("unresolved").astype(str).str.strip().str.lower()
+        resolved_grid = _resolved_final_grid_frame(
+            features,
+            as_of=getattr(config, "prediction_as_of", None),
+        )
+        resolved_driver_ids = (
+            set(resolved_grid["driver_id"].astype(str)) if not resolved_grid.empty else set()
+        )
+        driver_ids = features.get(
+            "driver_id",
+            pd.Series("", index=features.index),
+        ).fillna("").astype(str)
         official_grid_mask = (
-            grid_sources.isin({"pre_race_official_grid", "retrospective_results_grid"})
+            grid_sources.eq("pre_race_official_grid")
+            & grid_position.notna()
+            & grid_evidence_complete
+            & grid_resolution_status.eq("resolved")
+            & driver_ids.isin(resolved_driver_ids)
+        )
+        qualifying_grid_mask = (
+            grid_sources.isin({"qualifying_fallback", "qualifying_proxy"})
             & grid_position.notna()
         )
-        qualifying_grid_mask = grid_sources.eq("qualifying_fallback") & grid_position.notna()
         predicted_grid_mask = grid_sources.eq("predicted_qualifying_grid") & grid_position.notna()
         official_grid_rows = int(official_grid_mask.sum())
         qualifying_grid_rows = int(qualifying_grid_mask.sum())
@@ -2265,6 +2682,20 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
                 "Race weather context requested: "
                 f"weather_available={bool(weather_summary.get('weather_available', False))}.",
             )
+    training_event_keys = sorted(
+        {
+            int(value)
+            for value in pd.to_numeric(
+                train.get("event_key", pd.Series(dtype=float)),
+                errors="coerce",
+            ).dropna()
+        }
+    )
+    target_event_key = (int(config.year) * 100) + int(config.round_number)
+    if target_event_key in training_event_keys:
+        raise RuntimeError(
+            f"Point-in-time violation: target event {target_event_key} is present in training rows"
+        )
     return PredictionResult(
         version=version,
         table=table,
@@ -2297,5 +2728,8 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             "selection_audit": training_result.selection_audit,
             "grid_source_counts": grid_source_counts,
             "grid_status_counts": grid_status_counts,
+            "training_event_keys": training_event_keys,
+            "training_row_count": int(len(train)),
+            "target_event_key_excluded_from_training": True,
         },
     )

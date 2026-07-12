@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import packages.f1.orchestration.prediction as prediction_module
 from packages.f1.data.schemas.session import PredictionConfig
 from packages.f1.features.assembly import _add_temporal_features_train, _attach_temporal_features_current
 from packages.f1.features.weather import apply_f1_weather_to_features
@@ -19,6 +20,7 @@ from packages.f1.models.training import (
 )
 from packages.f1.orchestration.prediction import (
     _apply_race_information_horizon,
+    _merge_predicted_qualifying_context,
     _qualifying_feature_sets,
     _race_feature_sets,
     _race_input_evidence,
@@ -82,6 +84,34 @@ def _race_rows() -> pd.DataFrame:
     )
 
 
+def _complete_official_grid_event(
+    *,
+    year: int,
+    round_number: int,
+    evidence_as_of: str,
+) -> pd.DataFrame:
+    field_size = 22 if year >= 2026 else 20
+    positions = list(range(1, field_size + 1))
+    return pd.DataFrame(
+        {
+            "event_key": [(year * 100) + round_number] * field_size,
+            "event_year": [year] * field_size,
+            "event_round": [round_number] * field_size,
+            "driver_id": [f"{round_number}-{value}" for value in positions],
+            "target": positions,
+            "qualy_position": positions,
+            "grid_position": positions,
+            "grid_source": ["pre_race_official_grid"] * field_size,
+            "grid_status": ["grid"] * field_size,
+            "grid_revision_phase": ["final_pre_race"] * field_size,
+            "grid_evidence_as_of": [evidence_as_of] * field_size,
+            "grid_evidence_id": [f"fia-grid-r{round_number}-final"] * field_size,
+            "grid_evidence_complete": [True] * field_size,
+            "weekend_format_version": ["standard"] * field_size,
+        }
+    )
+
+
 def test_prequal_race_horizon_replaces_retrospective_grid_and_scrubs_unavailable_qualifying() -> None:
     out = _apply_race_information_horizon(
         _race_rows(),
@@ -106,9 +136,161 @@ def test_postqual_and_official_grid_horizons_remain_distinct() -> None:
     official = _apply_race_information_horizon(rows, horizon="post_grid_pre_race", training=True)
 
     assert postqual["grid_position"].tolist() == [1.0, 2.0, 3.0]
-    assert set(postqual["grid_source"]) == {"historical_qualifying_grid"}
-    assert official["grid_position"].tolist() == [3.0, 1.0, 2.0]
-    assert set(official["grid_source"]) == {"retrospective_results_grid"}
+    assert set(postqual["grid_source"]) == {"historical_qualifying_proxy"}
+    assert not postqual["grid_evidence_complete"].any()
+    assert official["grid_position"].isna().all()
+    assert set(official["grid_source"]) == {"unresolved_final_grid"}
+    assert not official["grid_evidence_complete"].any()
+
+
+def test_post_grid_horizon_accepts_only_a_complete_timestamped_final_revision() -> None:
+    rows = _complete_official_grid_event(
+        year=2026,
+        round_number=1,
+        evidence_as_of="2026-03-08T13:00:00Z",
+    )
+
+    official = _apply_race_information_horizon(
+        rows,
+        horizon="post_grid_pre_race",
+        training=True,
+    )
+
+    assert official["grid_position"].tolist() == [float(value) for value in range(1, 23)]
+    assert set(official["grid_source"]) == {"pre_race_official_grid"}
+    assert set(official["grid_resolution_status"]) == {"resolved"}
+    assert official["grid_evidence_complete"].all()
+
+
+def test_final_grid_evidence_after_prediction_cutoff_fails_closed() -> None:
+    rows = _complete_official_grid_event(
+        year=2026,
+        round_number=1,
+        evidence_as_of="2026-03-08T13:00:00Z",
+    )
+
+    assert _resolve_race_information_horizon(
+        rows,
+        "auto",
+        prediction_as_of="2026-03-08T12:00:00Z",
+    ) == "post_qualifying_pre_grid"
+    result = _apply_race_information_horizon(
+        rows,
+        horizon="post_grid_pre_race",
+        training=False,
+        as_of="2026-03-08T12:00:00Z",
+    )
+    assert result["grid_position"].isna().all()
+    assert set(result["grid_source"]) == {"unresolved_final_grid"}
+
+
+def test_post_grid_training_resolves_each_event_independently() -> None:
+    rows = pd.concat(
+        [
+            _complete_official_grid_event(
+                year=2025,
+                round_number=1,
+                evidence_as_of="2025-03-16T03:00:00Z",
+            ),
+            _complete_official_grid_event(
+                year=2025,
+                round_number=2,
+                evidence_as_of="2025-03-23T06:00:00Z",
+            ),
+        ],
+        ignore_index=True,
+    )
+    result = _apply_race_information_horizon(
+        rows,
+        horizon="post_grid_pre_race",
+        training=True,
+    )
+    assert len(result) == 40
+    assert result["grid_evidence_complete"].all()
+    assert set(result["grid_resolution_status"]) == {"resolved"}
+    assert result.groupby("event_key")["grid_position"].count().eq(20).all()
+
+
+@pytest.mark.parametrize("bad_position", [1.9, np.inf])
+def test_final_grid_rejects_non_integral_or_nonfinite_positions(bad_position: float) -> None:
+    rows = _complete_official_grid_event(
+        year=2026,
+        round_number=1,
+        evidence_as_of="2026-03-08T13:00:00Z",
+    )
+    rows["grid_position"] = rows["grid_position"].astype(float)
+    rows.loc[0, "grid_position"] = bad_position
+    result = _apply_race_information_horizon(
+        rows,
+        horizon="post_grid_pre_race",
+        training=False,
+    )
+    assert result["grid_position"].isna().all()
+
+
+def test_final_grid_requires_provenance_on_every_row() -> None:
+    rows = _complete_official_grid_event(
+        year=2026,
+        round_number=1,
+        evidence_as_of="2026-03-08T13:00:00Z",
+    )
+    rows.loc[0, "grid_evidence_id"] = None
+    result = _apply_race_information_horizon(
+        rows,
+        horizon="post_grid_pre_race",
+        training=False,
+    )
+    assert result["grid_position"].isna().all()
+
+
+def test_2021_2022_postqual_horizon_does_not_call_qualifying_the_gp_grid() -> None:
+    rows = _race_rows()
+    rows["weekend_format_version"] = "sprint_2021_2022"
+
+    result = _apply_race_information_horizon(
+        rows,
+        horizon="post_qualifying_pre_grid",
+        training=True,
+    )
+
+    assert result["grid_position"].tolist() == [1.0, 2.0, 3.0]
+    assert set(result["grid_source"]) == {"historical_qualifying_proxy_pre_sprint"}
+    assert set(result["grid_status"]) == {"gp_grid_unresolved_proxy"}
+    assert not result["grid_evidence_complete"].any()
+
+
+def test_missing_nested_qualifying_signal_still_enforces_race_horizon(monkeypatch) -> None:
+    monkeypatch.setattr(prediction_module, "build_training_data", lambda **_: (pd.DataFrame(), []))
+    monkeypatch.setattr(prediction_module, "build_current_features", lambda **_: (pd.DataFrame(), []))
+    config = PredictionConfig(
+        source="local",
+        mode="race",
+        year=2026,
+        round_number=3,
+        train_seasons=[2026],
+        include_standings=False,
+        cache_dir=None,
+        meeting_name=None,
+        country_name=None,
+        weekends_dir=None,
+        race_information_horizon="post_fp_pre_qualifying",
+        qualifying_information_horizon="pre_qualifying",
+    )
+
+    training, current = _merge_predicted_qualifying_context(
+        object(),
+        config,
+        _race_rows(),
+        _race_rows().drop(columns=["target"]),
+        [],
+    )
+
+    assert training["grid_position"].tolist() == [2.0, 1.0, 3.0]
+    assert current["grid_position"].tolist() == [2.0, 1.0, 3.0]
+    assert training["qualy_position"].isna().all()
+    assert current["qualy_position"].isna().all()
+    assert set(training["grid_source"]) == {"oof_predicted_qualifying_grid"}
+    assert set(current["grid_source"]) == {"predicted_qualifying_grid"}
 
 
 def test_pre_fp_horizon_scrubs_completed_weekend_practice_without_losing_prior_form() -> None:
@@ -155,6 +337,31 @@ def test_race_horizon_resolution_is_explicit_and_rejects_unknown_values() -> Non
         }
     )
     assert _resolve_race_information_horizon(prequal, "auto") == "post_fp_pre_qualifying"
+    unproven_grid = prequal.assign(
+        grid_position=[1.0],
+        grid_source=["pre_race_official_grid"],
+        grid_evidence_complete=[False],
+        qualy_position=[1.0],
+    )
+    proven_but_incomplete_grid = unproven_grid.assign(grid_evidence_complete=[True])
+    string_false_grid = unproven_grid.assign(grid_evidence_complete=["false"])
+    assert _resolve_race_information_horizon(unproven_grid, "auto") == "post_qualifying_pre_grid"
+    assert _resolve_race_information_horizon(string_false_grid, "auto") == "post_qualifying_pre_grid"
+    assert _resolve_race_information_horizon(proven_but_incomplete_grid, "auto") == "post_qualifying_pre_grid"
+    complete_grid = pd.DataFrame(
+        {
+            "driver_id": [str(value) for value in range(1, 23)],
+            "grid_position": list(range(1, 23)),
+            "grid_source": ["pre_race_official_grid"] * 22,
+            "grid_status": ["grid"] * 22,
+            "grid_revision_phase": ["final_pre_race"] * 22,
+            "grid_evidence_as_of": ["2026-03-08T13:00:00Z"] * 22,
+            "grid_evidence_id": ["fia-grid-r1-final"] * 22,
+            "grid_evidence_complete": [True] * 22,
+            "event_year": [2026] * 22,
+        }
+    )
+    assert _resolve_race_information_horizon(complete_grid, "auto") == "post_grid_pre_race"
     assert _resolve_race_information_horizon(prequal, "post_grid") == "post_grid_pre_race"
     with pytest.raises(ValueError, match="Unknown race_information_horizon"):
         _resolve_race_information_horizon(prequal, "future_magic")

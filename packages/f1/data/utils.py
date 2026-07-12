@@ -383,10 +383,22 @@ def merge_fp_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:
 def format_prediction_table(df: pd.DataFrame, top_n: Optional[int] = 10) -> pd.DataFrame:
     if df.empty:
         return df
-    df = df.copy().sort_values("pred", ascending=True)
+    df = df.copy()
+    available = df.get(
+        "forecast_available",
+        pd.Series(True, index=df.index),
+    ).astype("string").str.strip().str.lower().isin({"1", "1.0", "true", "yes"})
+    df["_forecast_available_sort"] = available
+    df = df.sort_values(
+        ["_forecast_available_sort", "pred"],
+        ascending=[False, True],
+        kind="mergesort",
+    )
     if top_n is not None:
-        df = df.head(max(0, int(top_n)))
-    df["rank"] = range(1, len(df) + 1)
+        df = df.loc[df["_forecast_available_sort"]].head(max(0, int(top_n)))
+    df["rank"] = pd.Series(pd.NA, index=df.index, dtype="Int64")
+    available_index = df.index[df["_forecast_available_sort"]]
+    df.loc[available_index, "rank"] = range(1, len(available_index) + 1)
     cols = [
         "rank",
         "driver_name",
@@ -401,6 +413,10 @@ def format_prediction_table(df: pd.DataFrame, top_n: Optional[int] = 10) -> pd.D
         "grid_position",
         "grid_source",
         "grid_status",
+        "forecast_available",
+        "forecast_unavailable_reason",
+        "probability_output_status",
+        "position_interval_output_status",
         "qualy_pred_position",
         "qualy_pred_rank",
         "qualy_pred_rank_pct",

@@ -328,6 +328,11 @@ def test_local_provider_starting_grid_uses_pre_race_grid_path_and_encodes_status
                 "event_name": "Test Grand Prix",
                 "grid_path": "starting_grid.csv",
                 "grid_availability_phase": "pre_race",
+                "grid_revision_phase": "final_pre_race",
+                "grid_evidence_as_of": "2025-03-16T03:00:00Z",
+                "grid_evidence_id": "fia-grid-test-final",
+                "grid_evidence_complete": True,
+                "weekend_format_version": "standard",
                 "sessions": [],
             }
         ),
@@ -350,6 +355,92 @@ def test_local_provider_starting_grid_uses_pre_race_grid_path_and_encodes_status
     assert grid.loc["3", "grid_status"] == "dns"
     assert pd.isna(grid.loc["3", "grid_position"])
     assert grid.loc["4", "grid_status"] == "pit_lane"
+    assert grid["grid_evidence_complete"].all()
+    assert set(grid["grid_revision_phase"]) == {"final_pre_race"}
+    assert set(grid["grid_evidence_id"]) == {"fia-grid-test-final"}
+
+
+def test_local_provider_selects_latest_grid_revision_at_prediction_cutoff(tmp_path) -> None:
+    weekend = tmp_path / "2026" / "round_01_test_grand_prix"
+    weekend.mkdir(parents=True)
+    (weekend / "weekend_metadata.json").write_text(
+        json.dumps(
+            {
+                "round_number": 1,
+                "event_name": "Test Grand Prix",
+                "sessions": [
+                    {
+                        "session_type": "Race",
+                        "grid_path": "grid_v1.csv",
+                        "grid_availability_phase": "pre_race",
+                        "grid_revision_phase": "final_pre_race",
+                        "grid_evidence_as_of": "2026-03-08T12:00:00Z",
+                        "grid_evidence_id": "grid-v1",
+                        "grid_evidence_complete": True,
+                    },
+                    {
+                        "session_type": "Race",
+                        "grid_path": "grid_v2.csv",
+                        "grid_availability_phase": "pre_race",
+                        "grid_revision_phase": "final_pre_race",
+                        "grid_evidence_as_of": "2026-03-08T13:00:00Z",
+                        "grid_evidence_id": "grid-v2",
+                        "grid_evidence_complete": True,
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    pd.DataFrame({"DriverNumber": [1, 2], "GridPosition": [1, 2]}).to_csv(
+        weekend / "grid_v1.csv", index=False
+    )
+    pd.DataFrame({"DriverNumber": [1, 2], "GridPosition": [2, 1]}).to_csv(
+        weekend / "grid_v2.csv", index=False
+    )
+    provider = LocalWeekendProvider(weekends_dir=str(tmp_path))
+
+    before_second = provider.get_starting_grid(
+        2026,
+        1,
+        prediction_as_of="2026-03-08T12:30:00Z",
+    ).set_index("driver_id")
+    after_second = provider.get_starting_grid(
+        2026,
+        1,
+        prediction_as_of="2026-03-08T13:30:00Z",
+    ).set_index("driver_id")
+
+    assert set(before_second["grid_evidence_id"]) == {"grid-v1"}
+    assert float(before_second.loc["1", "grid_position"]) == 1.0
+    assert set(after_second["grid_evidence_id"]) == {"grid-v2"}
+    assert float(after_second.loc["1", "grid_position"]) == 2.0
+
+
+def test_local_provider_rejects_missing_driver_ids_and_parses_dsq(tmp_path) -> None:
+    weekend = tmp_path / "2025" / "round_01_test_grand_prix"
+    weekend.mkdir(parents=True)
+    (weekend / "weekend_metadata.json").write_text(
+        json.dumps(
+            {
+                "round_number": 1,
+                "event_name": "Test Grand Prix",
+                "grid_path": "grid.csv",
+                "grid_availability_phase": "pre_race",
+                "sessions": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    pd.DataFrame(
+        {"DriverNumber": [1, None, 3], "GridPosition": [1, 2, "DSQ"]}
+    ).to_csv(weekend / "grid.csv", index=False)
+    provider = LocalWeekendProvider(weekends_dir=str(tmp_path))
+
+    grid = provider.get_starting_grid(2025, 1).set_index("driver_id")
+
+    assert set(grid.index) == {"1", "3"}
+    assert grid.loc["3", "grid_status"] == "disqualified"
 
 
 def test_local_provider_race_results_encode_pit_lane_after_grid(tmp_path) -> None:
@@ -786,11 +877,30 @@ def test_prediction_input_phase_separates_fp_qualifying_and_grid_states() -> Non
     )
     post_fp = pre_fp.assign(pace_sessions_available=[2, 2], fp_total_laps=[35, 31])
     post_qualifying = pre_fp.assign(qualy_position=[1.0, 2.0], grid_source=["qualifying_fallback", "qualifying_fallback"])
-    official_grid = pre_fp.assign(grid_source=["pre_race_official_grid", "pre_race_official_grid"])
+    official_positions = list(range(1, 21))
+    official_grid = pd.DataFrame(
+        {
+            "driver_id": [str(value) for value in official_positions],
+            "pace_sessions_available": [0] * 20,
+            "fp_total_laps": [0] * 20,
+            "qualy_position": [np.nan] * 20,
+            "grid_position": official_positions,
+            "grid_source": ["pre_race_official_grid"] * 20,
+            "grid_status": ["grid"] * 20,
+            "grid_revision_phase": ["final_pre_race"] * 20,
+            "grid_evidence_as_of": ["2025-03-16T03:00:00Z"] * 20,
+            "grid_evidence_id": ["fia-grid-final"] * 20,
+            "grid_evidence_complete": [True] * 20,
+            "grid_resolution_status": ["resolved"] * 20,
+            "event_year": [2025] * 20,
+        }
+    )
+    unproven_grid = official_grid.assign(grid_evidence_complete=[False] * 20)
 
     assert _prediction_input_phase(config, pre_fp)["phase"] == "pre_fp_provisional"
     assert _prediction_input_phase(config, post_fp)["phase"] == "post_fp_pre_qualifying"
     assert _prediction_input_phase(config, post_qualifying)["phase"] == "post_qualifying_pre_grid"
+    assert _prediction_input_phase(config, unproven_grid)["phase"] == "pre_fp_provisional"
     assert _prediction_input_phase(config, official_grid)["phase"] == "post_grid_pre_race"
 
 

@@ -16,6 +16,7 @@ import os
 import platform
 import re
 import subprocess
+from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import datetime, timezone
 from importlib import metadata
@@ -33,6 +34,7 @@ for _resource_variable in _EARLY_RESOURCE_ENVIRONMENT_VARIABLES:
     os.environ.setdefault(_resource_variable, "1")
 
 import pandas as pd
+import yaml
 
 from packages.f1 import PredictionConfig, run_prediction
 from packages.f1.orchestration.backtest import evaluate_prediction_rows
@@ -64,6 +66,14 @@ def default_selection_csv() -> str:
 
 def default_summary_csv() -> str:
     return str(_project_root() / "artifacts" / "reports" / "f1" / "docs" / "F1_2026_Rolling_Backtest_Summary.csv")
+
+
+def default_qualifying_profile() -> str:
+    return str(_project_root() / "configs" / "f1" / "profiles" / "pre_quali.yaml")
+
+
+def default_race_profile() -> str:
+    return str(_project_root() / "configs" / "f1" / "profiles" / "pre_race.yaml")
 
 
 def _utc_now() -> str:
@@ -290,6 +300,7 @@ def _implementation_manifest() -> dict[str, Any]:
         Path(__file__).resolve().with_name("repo_bootstrap.py"),
         Path(__file__).resolve().with_name("pyproject.toml"),
         *sorted((root / "packages" / "f1").rglob("*.py")),
+        *sorted((root / "packages" / "sports_core").rglob("*.py")),
     ]
     return _file_manifest(paths, manifest_version="f1_rolling_source_tree_v1", project_root=root)
 
@@ -325,6 +336,131 @@ def _data_paths_for_round(
             if round_number is not None and round_number <= int(target_round):
                 paths.extend(path for path in round_dir.rglob("*") if path.is_file())
     return paths
+
+
+@contextmanager
+def _capture_csv_reads():
+    """Capture actual pandas CSV reads during one prediction/evaluation call."""
+
+    original = pd.read_csv
+    accessed: list[Path] = []
+
+    def traced(path_or_buffer: object, *args: object, **kwargs: object):
+        if isinstance(path_or_buffer, (str, os.PathLike)):
+            accessed.append(Path(path_or_buffer).expanduser().resolve())
+        return original(path_or_buffer, *args, **kwargs)
+
+    pd.read_csv = traced  # type: ignore[assignment]
+    try:
+        yield accessed
+    finally:
+        pd.read_csv = original  # type: ignore[assignment]
+
+
+def _assert_no_current_target_label_access(
+    paths: Sequence[Path],
+    *,
+    target_year: int,
+    target_round: int,
+    target: str,
+) -> None:
+    forbidden: list[str] = []
+    for path in paths:
+        round_number = _round_number_from_directory(path.parent)
+        try:
+            event_year = int(path.parent.parent.name)
+        except (TypeError, ValueError):
+            continue
+        if event_year != int(target_year) or round_number != int(target_round):
+            continue
+        name = path.name.lower()
+        is_gp_qualifying_label = (
+            "_qualifying_results.csv" in name or "_qualifying_laps.csv" in name
+        ) and "sprint_qualifying" not in name
+        is_race_label = "_race_results.csv" in name or "_race_laps.csv" in name
+        if (target == "qualifying" and (is_gp_qualifying_label or is_race_label)) or (
+            target == "race" and is_race_label
+        ):
+            forbidden.append(_portable_path(path))
+    if forbidden:
+        raise RuntimeError(
+            f"{target} inference read current-event evaluation labels: {sorted(set(forbidden))}"
+        )
+
+
+def _assert_manifest_stable(before: dict[str, Any], after: dict[str, Any], label: str) -> None:
+    if before.get("aggregate_sha256") != after.get("aggregate_sha256"):
+        raise RuntimeError(f"{label} changed during the rolling evaluation")
+
+
+def _load_profile(path_value: str) -> tuple[Path, dict[str, Any]]:
+    path = Path(path_value).expanduser().resolve()
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"F1 profile must be a mapping: {path}")
+    return path, payload
+
+
+def _assert_profiles_match_invocation(
+    *,
+    qualifying: dict[str, Any],
+    race: dict[str, Any],
+    source: str,
+    year: int,
+    rounds: Sequence[int],
+    experiment_arm: str,
+    train_seasons: Sequence[int],
+    compare_families: Sequence[str],
+    qualifying_model: str,
+    race_model: str,
+    qualifying_horizon: str,
+    race_horizon: str,
+    qualifying_disable_runsim: bool,
+    race_disable_runsim: bool,
+    include_standings: bool,
+    run_id: Optional[str],
+) -> None:
+    errors: list[str] = []
+    for label, profile in (("qualifying", qualifying), ("race", race)):
+        training = profile.get("training", {})
+        if profile.get("source") != source:
+            errors.append(f"{label}.source")
+        if training.get("protocol") != experiment_arm:
+            errors.append(f"{label}.training.protocol")
+        if [int(value) for value in training.get("seasons", [])] != [
+            int(value) for value in train_seasons
+        ]:
+            errors.append(f"{label}.training.seasons")
+        frozen_rounds = profile.get("promotion", {}).get("frozen_rounds", [])
+        if [int(value) for value in frozen_rounds] != [int(value) for value in rounds]:
+            errors.append(f"{label}.promotion.frozen_rounds")
+        if int(profile.get("field_size", 0)) != (22 if int(year) >= 2026 else 20):
+            errors.append(f"{label}.field_size")
+        if bool(profile.get("features", {}).get("standings", False)) != bool(include_standings):
+            errors.append(f"{label}.features.standings")
+        evidence_run_id = profile.get("promotion", {}).get("evidence_run_id")
+        if run_id is not None and str(evidence_run_id) != str(run_id):
+            errors.append(f"{label}.promotion.evidence_run_id")
+    if qualifying.get("information_horizon") != qualifying_horizon:
+        errors.append("qualifying.information_horizon")
+    if race.get("information_horizon") != race_horizon:
+        errors.append("race.information_horizon")
+    if str(qualifying.get("model", {}).get("requested")) != str(qualifying_model):
+        errors.append("qualifying.model.requested")
+    if str(race.get("model", {}).get("requested")) != str(race_model):
+        errors.append("race.model.requested")
+    if list(qualifying.get("model", {}).get("compare_families", [])) != list(compare_families):
+        errors.append("qualifying.model.compare_families")
+    if bool(qualifying.get("features", {}).get("run_simulation_features", False)) == bool(
+        qualifying_disable_runsim
+    ):
+        errors.append("qualifying.features.run_simulation_features")
+    if bool(race.get("features", {}).get("run_simulation_features", False)) == bool(
+        race_disable_runsim
+    ):
+        errors.append("race.features.run_simulation_features")
+    if errors:
+        raise ValueError(f"Bound profiles disagree with invocation: {sorted(errors)}")
 
 
 def _normalize_key(value: object) -> str:
@@ -569,6 +705,12 @@ def _point_in_time_record(
         "qualifying_session_cutoff": qualifying_horizon,
         "prediction_as_of": config.prediction_as_of,
         "as_of_semantics": "completed_session_boundary_when_timestamp_snapshot_is_unavailable",
+        "actual_training_event_keys": extras.get("training_event_keys", []),
+        "actual_training_row_count": extras.get("training_row_count", 0),
+        "target_event_key_excluded_from_training": extras.get(
+            "target_event_key_excluded_from_training",
+            False,
+        ),
     }
     if target == "race":
         record["information_cutoff"] = str(config.race_information_horizon)
@@ -660,6 +802,28 @@ def _assert_complete_horizon_evidence(point_in_time: dict[str, Any]) -> None:
         raise RuntimeError("Prediction did not emit a resolved qualifying-session cutoff")
     if point_in_time.get("target") == "race" and not point_in_time.get("resolved_race_information_horizon"):
         raise RuntimeError("Race prediction did not emit a resolved race information horizon")
+    if not point_in_time.get("target_event_key_excluded_from_training"):
+        raise RuntimeError("Prediction did not prove target-event exclusion from actual training rows")
+    target_key = (int(point_in_time["target_season"]) * 100) + int(
+        point_in_time["target_round"]
+    )
+    training_keys = [int(value) for value in point_in_time.get("actual_training_event_keys", [])]
+    if any(value >= target_key and value // 100 == target_key // 100 for value in training_keys):
+        raise RuntimeError("Actual training-event keys contain the target or a future same-season event")
+    if (
+        point_in_time.get("target") == "race"
+        and point_in_time.get("resolved_race_information_horizon") == "post_grid_pre_race"
+    ):
+        phase = point_in_time.get("prediction_phase")
+        if (
+            not isinstance(phase, dict)
+            or phase.get("phase") != "post_grid_pre_race"
+            or not phase.get("official_grid_available")
+            or int(phase.get("official_grid_rows", 0)) <= 0
+        ):
+            raise RuntimeError(
+                "post_grid_pre_race requires resolver-approved complete official-grid evidence"
+            )
     point_in_time["horizon_evidence_complete"] = True
 
 
@@ -735,6 +899,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-threads", type=int, default=1)
     parser.add_argument("--output-dir", default=default_output_dir())
     parser.add_argument("--run-id", default=None)
+    parser.add_argument("--qualifying-profile", default=default_qualifying_profile())
+    parser.add_argument("--race-profile", default=default_race_profile())
     parser.add_argument(
         "--selection-csv",
         default=None,
@@ -788,6 +954,26 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         legacy_disable=bool(args.disable_runsim_features),
         target_policy=str(args.race_runsim_features),
     )
+    qualifying_profile_path, qualifying_profile = _load_profile(args.qualifying_profile)
+    race_profile_path, race_profile = _load_profile(args.race_profile)
+    _assert_profiles_match_invocation(
+        qualifying=qualifying_profile,
+        race=race_profile,
+        source=str(args.source),
+        year=int(args.year),
+        rounds=rounds,
+        experiment_arm=str(args.experiment_arm),
+        train_seasons=train_seasons_used,
+        compare_families=compare_families,
+        qualifying_model=qualifying_model,
+        race_model=race_model,
+        qualifying_horizon=str(args.qualifying_information_horizon),
+        race_horizon=str(args.race_information_horizon),
+        qualifying_disable_runsim=qualifying_disable_runsim,
+        race_disable_runsim=race_disable_runsim,
+        include_standings=bool(args.include_standings),
+        run_id=args.run_id,
+    )
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -816,6 +1002,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "race_information_horizon": args.race_information_horizon,
         "max_threads": int(args.max_threads),
         "round_execution": "ascending_sequential",
+        "bound_profiles": {
+            "qualifying": {
+                "path": _portable_path(qualifying_profile_path),
+                "sha256": _sha256_file(qualifying_profile_path),
+            },
+            "race": {
+                "path": _portable_path(race_profile_path),
+                "sha256": _sha256_file(race_profile_path),
+            },
+        },
     }
     git_state = _git_state()
     run_id = _validated_run_id(
@@ -842,7 +1038,20 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     prediction_artifacts: list[dict[str, Any]] = []
     point_in_time_by_round: list[dict[str, Any]] = []
     data_by_round: dict[str, Any] = {}
+    actual_csv_access_by_round: dict[str, Any] = {}
     available_local_rounds = _available_local_rounds(args.weekends_dir, args.year)
+    implementation_before = _implementation_manifest()
+    configuration_before = _configuration_file_manifest()
+    data_stability_paths = _data_paths_for_round(
+        weekends_dir=args.weekends_dir,
+        target_year=args.year,
+        target_round=max(rounds),
+        transfer_train_seasons=base_train_seasons,
+    )
+    data_stability_before = _file_manifest(
+        data_stability_paths,
+        manifest_version="f1_rolling_input_stability_v1",
+    )
     started_at = _utc_now()
 
     for round_number in rounds:
@@ -878,7 +1087,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             disable_runsim_features=qualifying_disable_runsim,
             **common_config,
         )
-        qualifying_result = run_prediction(qualifying_config)
+        with _capture_csv_reads() as qualifying_inference_reads:
+            qualifying_result = run_prediction(qualifying_config)
+        _assert_no_current_target_label_access(
+            qualifying_inference_reads,
+            target_year=args.year,
+            target_round=round_number,
+            target="qualifying",
+        )
         qualifying_point_in_time = _point_in_time_record(
             target="qualifying",
             config=qualifying_config,
@@ -895,7 +1111,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             )
         )
         point_in_time_by_round.append(qualifying_point_in_time)
-        actual_qualifying = provider.get_qualifying_results(args.year, round_number)  # type: ignore[attr-defined]
+        with _capture_csv_reads() as qualifying_evaluation_reads:
+            actual_qualifying = provider.get_qualifying_results(args.year, round_number)  # type: ignore[attr-defined]
         if actual_qualifying.empty:
             raise RuntimeError(f"Round {round_number} has no qualifying outcome for evaluation")
         selection_rows.extend(
@@ -938,7 +1155,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             race_information_horizon=args.race_information_horizon,
             **common_config,
         )
-        race_result = run_prediction(race_config)
+        with _capture_csv_reads() as race_inference_reads:
+            race_result = run_prediction(race_config)
+        _assert_no_current_target_label_access(
+            race_inference_reads,
+            target_year=args.year,
+            target_round=round_number,
+            target="race",
+        )
         race_point_in_time = _point_in_time_record(
             target="race",
             config=race_config,
@@ -955,7 +1179,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             )
         )
         point_in_time_by_round.append(race_point_in_time)
-        actual_race = provider.get_race_results(args.year, round_number)  # type: ignore[attr-defined]
+        with _capture_csv_reads() as race_evaluation_reads:
+            actual_race = provider.get_race_results(args.year, round_number)  # type: ignore[attr-defined]
         if actual_race.empty:
             raise RuntimeError(f"Round {round_number} has no race outcome for evaluation")
         selection_rows.extend(
@@ -1011,6 +1236,45 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             }
         )
         data_by_round[str(round_number)] = data_manifest
+        actual_csv_access_by_round[str(round_number)] = {
+            "qualifying_inference": _file_manifest(
+                qualifying_inference_reads,
+                manifest_version="f1_actual_csv_access_v1",
+            ),
+            "qualifying_evaluation_labels": _file_manifest(
+                qualifying_evaluation_reads,
+                manifest_version="f1_actual_csv_access_v1",
+            ),
+            "race_inference": _file_manifest(
+                race_inference_reads,
+                manifest_version="f1_actual_csv_access_v1",
+            ),
+            "race_evaluation_labels": _file_manifest(
+                race_evaluation_reads,
+                manifest_version="f1_actual_csv_access_v1",
+            ),
+            "current_target_label_access_assertion": "passed",
+        }
+
+    _assert_manifest_stable(
+        implementation_before,
+        _implementation_manifest(),
+        "implementation source tree",
+    )
+    _assert_manifest_stable(
+        configuration_before,
+        _configuration_file_manifest(),
+        "F1 configuration files",
+    )
+    data_stability_after = _file_manifest(
+        data_stability_paths,
+        manifest_version="f1_rolling_input_stability_v1",
+    )
+    _assert_manifest_stable(
+        data_stability_before,
+        data_stability_after,
+        "input data",
+    )
 
     selection_artifact = _write_csv_exclusive(selection_path, pd.DataFrame(selection_rows))
     selection_artifact["artifact_type"] = "rolling_backtest_selections"
@@ -1024,8 +1288,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "started_at": started_at,
         "completed_at": _utc_now(),
         "git": git_state,
-        "implementation": _implementation_manifest(),
-        "configuration_files": _configuration_file_manifest(),
+        "implementation": implementation_before,
+        "configuration_files": configuration_before,
         "run_configuration": {
             "payload": run_configuration,
             "sha256": _sha256_json(run_configuration),
@@ -1041,6 +1305,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         },
         "point_in_time_by_round": point_in_time_by_round,
         "input_data_by_round": data_by_round,
+        "actual_csv_access_by_round": actual_csv_access_by_round,
+        "input_data_stability_snapshot": data_stability_before,
         "artifacts": artifact_manifest,
         "artifact_contract": {
             "immutable_paths": True,

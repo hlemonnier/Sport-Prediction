@@ -24,6 +24,18 @@ PACE_DELTA_WEIGHTS = {
     "sprint_delta": 0.14,
 }
 
+# A qualifying forecast should first compete with the strongest causal,
+# target-aligned observation from the current weekend.  Sprint Qualifying is
+# closer to Grand Prix Qualifying than the Sprint race itself; on a standard
+# weekend FP3 is the last completed practice session.  Provider cutoffs remain
+# responsible for removing sessions that were not yet available.
+QUALIFYING_REHEARSAL_PRIORITY = (
+    ("sq", "sprint_qualifying"),
+    ("fp3", "practice_3"),
+    ("fp2", "practice_2"),
+    ("fp1", "practice_1"),
+)
+
 
 def _round_event_name(round_meta: dict[str, object], round_number: int) -> str:
     for key in ("event_name", "meeting_name", "country_name"):
@@ -311,6 +323,99 @@ def _numeric_feature(frame: pd.DataFrame, column: str, default: float) -> pd.Ser
     return pd.to_numeric(frame[column], errors="coerce").fillna(float(default)).clip(lower=0.0, upper=1.0)
 
 
+def _add_latest_qualifying_rehearsal_features(frame: pd.DataFrame) -> pd.DataFrame:
+    """Attach one event-consistent, target-aligned pre-qualifying signal.
+
+    The chosen source is identical for every driver in an event.  Missing
+    driver observations from that session are imputed from the all-practice
+    aggregate and explicitly flagged; this avoids silently mixing FP3 and SQ
+    as though they represented the same information state.
+    """
+
+    out = frame.copy()
+    out["latest_qualifying_rehearsal_rank"] = float("nan")
+    out["latest_qualifying_rehearsal_delta"] = float("nan")
+    out["latest_qualifying_rehearsal_source"] = "unavailable"
+    out["latest_qualifying_rehearsal_imputed"] = True
+    out["latest_qualifying_rehearsal_coverage"] = 0.0
+    if out.empty:
+        return out
+
+    if "event_key" in out.columns:
+        event_group = out["event_key"].astype(str)
+    elif {"event_year", "event_round"}.issubset(out.columns):
+        event_group = out["event_year"].astype(str) + ":" + out["event_round"].astype(str)
+    else:
+        event_group = pd.Series("event", index=out.index, dtype=object)
+
+    for _, idx in event_group.groupby(event_group, sort=False).groups.items():
+        event_rows = out.loc[idx]
+        selected_prefix: Optional[str] = None
+        selected_source = "unavailable"
+        selected_rank = pd.Series(float("nan"), index=event_rows.index, dtype=float)
+        selected_delta = pd.Series(float("nan"), index=event_rows.index, dtype=float)
+
+        for prefix, source in QUALIFYING_REHEARSAL_PRIORITY:
+            rank_col = f"{prefix}_rank"
+            delta_col = f"{prefix}_delta"
+            rank_values = (
+                pd.to_numeric(event_rows[rank_col], errors="coerce").astype(float)
+                if rank_col in event_rows.columns
+                else pd.Series(float("nan"), index=event_rows.index, dtype=float)
+            )
+            delta_values = (
+                pd.to_numeric(event_rows[delta_col], errors="coerce").astype(float)
+                if delta_col in event_rows.columns
+                else pd.Series(float("nan"), index=event_rows.index, dtype=float)
+            )
+            if not rank_values.notna().any() and not delta_values.notna().any():
+                continue
+            selected_prefix = prefix
+            selected_source = source
+            selected_rank = rank_values
+            selected_delta = delta_values
+            if not selected_rank.notna().any() and selected_delta.notna().any():
+                selected_rank = selected_delta.rank(method="average", ascending=True)
+            break
+
+        if selected_prefix is None:
+            continue
+
+        observed = selected_rank.notna() | selected_delta.notna()
+        fallback_rank = (
+            pd.to_numeric(event_rows["fp_mean_rank"], errors="coerce").astype(float)
+            if "fp_mean_rank" in event_rows.columns
+            else pd.Series(float("nan"), index=event_rows.index, dtype=float)
+        )
+        if not fallback_rank.notna().any() and "fp_mean_delta" in event_rows.columns:
+            fallback_rank = pd.to_numeric(event_rows["fp_mean_delta"], errors="coerce").astype(float).rank(
+                method="average",
+                ascending=True,
+            )
+        fallback_delta = (
+            pd.to_numeric(event_rows["fp_mean_delta"], errors="coerce").astype(float)
+            if "fp_mean_delta" in event_rows.columns
+            else pd.Series(float("nan"), index=event_rows.index, dtype=float)
+        )
+
+        out.loc[event_rows.index, "latest_qualifying_rehearsal_rank"] = selected_rank.fillna(fallback_rank)
+        out.loc[event_rows.index, "latest_qualifying_rehearsal_delta"] = selected_delta.fillna(fallback_delta)
+        out.loc[event_rows.index, "latest_qualifying_rehearsal_source"] = selected_source
+        out.loc[event_rows.index, "latest_qualifying_rehearsal_imputed"] = ~observed
+        out.loc[event_rows.index, "latest_qualifying_rehearsal_coverage"] = float(observed.mean())
+
+    out["latest_qualifying_rehearsal_rank"] = pd.to_numeric(
+        out["latest_qualifying_rehearsal_rank"],
+        errors="coerce",
+    )
+    out["latest_qualifying_rehearsal_delta"] = pd.to_numeric(
+        out["latest_qualifying_rehearsal_delta"],
+        errors="coerce",
+    )
+    out["latest_qualifying_rehearsal_imputed"] = out["latest_qualifying_rehearsal_imputed"].astype(bool)
+    return out
+
+
 def _ensure_fp_mean_delta(frame: pd.DataFrame) -> pd.DataFrame:
     out = frame.copy()
     delta_cols = [
@@ -505,7 +610,7 @@ def _ensure_fp_mean_delta(frame: pd.DataFrame) -> pd.DataFrame:
         else:
             out["fp_total_laps"] = 0.0
 
-    return out
+    return _add_latest_qualifying_rehearsal_features(out)
 
 
 def _rank_percentile(values: pd.Series, ascending: bool = True) -> pd.Series:
@@ -1443,6 +1548,8 @@ def build_current_features(
         merged["qualy_gap_to_best"] = float("nan")
         merged["grid_position"] = float("nan")
         merged["grid_source"] = "missing"
+        merged["grid_status"] = "unknown"
+        merged["grid_evidence_complete"] = False
         notes.append("Resultats qualifications indisponibles: mode FP-only active pour prediction race.")
     else:
         qualy = qualy.copy()
@@ -1479,45 +1586,91 @@ def build_current_features(
             merged = merged.drop(columns=[fp_identity])
         merged["grid_position"] = pd.to_numeric(merged["qualy_position"], errors="coerce")
         merged["grid_source"] = "qualifying_fallback"
+        merged["grid_status"] = "qualifying_proxy"
+        merged["grid_evidence_complete"] = False
     try:
-        starting_grid = provider.get_starting_grid(year, round_number)
+        try:
+            starting_grid = provider.get_starting_grid(
+                year,
+                round_number,
+                prediction_as_of=prediction_as_of,
+            )
+        except TypeError as exc:
+            if "prediction_as_of" not in str(exc):
+                raise
+            # Compatibility for narrow third-party/test providers that still
+            # implement the pre-cutoff method signature.  The orchestration
+            # resolver independently enforces the cutoff before use.
+            starting_grid = provider.get_starting_grid(year, round_number)
     except (Exception, SystemExit) as exc:
         notes.append(f"Echec recuperation grille: {exc}")
         starting_grid = pd.DataFrame()
     if not starting_grid.empty and "grid_position" in starting_grid.columns:
         grid_cols = ["driver_id", "grid_position"]
-        if "grid_source" in starting_grid.columns:
-            grid_cols.append("grid_source")
-        if "grid_status" in starting_grid.columns:
-            grid_cols.append("grid_status")
+        grid_metadata_columns = (
+            "grid_source",
+            "grid_status",
+            "grid_revision_phase",
+            "grid_evidence_as_of",
+            "grid_evidence_id",
+            "grid_evidence_complete",
+            "grid_resolution_status",
+        )
+        grid_cols.extend(column for column in grid_metadata_columns if column in starting_grid.columns)
+        if "weekend_format_version" in starting_grid.columns:
+            grid_cols.append("weekend_format_version")
         grid = starting_grid[grid_cols].copy()
+        if "weekend_format_version" in grid.columns:
+            grid = grid.rename(
+                columns={"weekend_format_version": "grid_weekend_format_version"}
+            )
         grid["driver_id"] = grid["driver_id"].astype(str)
         grid["grid_position"] = pd.to_numeric(grid["grid_position"], errors="coerce")
-        merged = merged.drop(columns=["grid_position", "grid_source", "grid_status"], errors="ignore").merge(
+        if "grid_source" not in grid.columns:
+            grid["grid_source"] = "pre_race_official_grid"
+        if "grid_status" not in grid.columns:
+            grid["grid_status"] = "unknown"
+        if "grid_evidence_complete" not in grid.columns:
+            grid["grid_evidence_complete"] = False
+        replace_columns = ["grid_position", *grid_metadata_columns]
+        merged = merged.drop(columns=replace_columns, errors="ignore").merge(
             grid,
             on="driver_id",
             how="outer",
         )
+        if "grid_weekend_format_version" in merged.columns:
+            grid_format = merged["grid_weekend_format_version"].astype("string").str.strip()
+            if "weekend_format_version" not in merged.columns:
+                merged["weekend_format_version"] = grid_format
+            else:
+                base_format = merged["weekend_format_version"].astype("string").str.strip()
+                conflicts = (
+                    base_format.notna()
+                    & grid_format.notna()
+                    & base_format.ne("")
+                    & grid_format.ne("")
+                    & base_format.ne(grid_format)
+                )
+                if conflicts.any():
+                    notes.append(
+                        "Conflit de provenance weekend_format entre les features de session "
+                        "et la grille; le format de session est conserve."
+                    )
+                merged["weekend_format_version"] = base_format.where(
+                    base_format.notna() & base_format.ne(""),
+                    grid_format,
+                )
+            merged = merged.drop(columns=["grid_weekend_format_version"])
         grid_raw = pd.to_numeric(merged["grid_position"], errors="coerce")
         qualy_grid_fallback = pd.to_numeric(merged.get("qualy_position"), errors="coerce")
-        if "grid_source" not in merged.columns:
-            merged["grid_source"] = "pre_race_official_grid"
         merged["grid_source"] = merged["grid_source"].fillna("qualifying_fallback")
-        merged.loc[grid_raw.notna() & merged["grid_source"].eq("qualifying_fallback"), "grid_source"] = (
-            "pre_race_official_grid"
-        )
         status = merged.get("grid_status", pd.Series("unknown", index=merged.index, dtype=object)).fillna("unknown")
-        nonstarters = status.astype(str).str.lower().isin(["dns"])
-        if nonstarters.any():
-            notes.append(f"{int(nonstarters.sum())} pilote(s) DNS exclus des features race courantes.")
-            merged = merged.loc[~nonstarters].copy()
-            status = status.loc[merged.index]
-            grid_raw = pd.to_numeric(merged["grid_position"], errors="coerce")
-            qualy_grid_fallback = pd.to_numeric(merged.get("qualy_position"), errors="coerce")
         missing_grid = grid_raw.isna() & status.isin(["missing", "unknown", "non_numeric"])
         merged.loc[missing_grid, "grid_source"] = "qualifying_fallback"
         merged["grid_position"] = grid_raw.fillna(qualy_grid_fallback)
         merged.loc[merged["grid_position"].isna(), "grid_source"] = "missing"
+        fallback_grid = merged["grid_source"].isin({"qualifying_fallback", "missing"})
+        merged.loc[fallback_grid, "grid_evidence_complete"] = False
     if merged.empty:
         current = _provisional_current_features_from_history(
             provider=provider,

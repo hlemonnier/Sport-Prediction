@@ -56,6 +56,8 @@ def _parse_grid_position_status(value: object) -> tuple[float, str]:
         return float("nan"), "pit_lane"
     if compact in {"dns", "dnq", "wd", "withdrawn"} or "didnotstart" in compact:
         return float("nan"), "dns"
+    if compact in {"dsq", "dq", "disqualified"}:
+        return float("nan"), "disqualified"
     numeric = pd.to_numeric(pd.Series([text]), errors="coerce").iloc[0]
     if pd.isna(numeric):
         return float("nan"), "non_numeric"
@@ -93,7 +95,10 @@ def _standardize_grid_columns(frame: pd.DataFrame, *, source: str) -> pd.DataFra
     if driver_col is None or grid_col is None:
         return pd.DataFrame()
     out = pd.DataFrame()
-    out["driver_id"] = frame[driver_col].astype(str).str.strip()
+    raw_driver_id = frame[driver_col]
+    out["driver_id"] = raw_driver_id.where(raw_driver_id.notna(), "").astype(str).str.strip()
+    invalid_driver_id = out["driver_id"].str.lower().isin({"", "nan", "none", "null", "<na>"})
+    out.loc[invalid_driver_id, "driver_id"] = ""
     parsed = frame[grid_col].apply(_parse_grid_position_status)
     out["grid_position"] = parsed.map(lambda item: item[0])
     out["grid_status"] = parsed.map(lambda item: item[1])
@@ -189,7 +194,13 @@ class BaseProvider:
     def get_race_results(self, year: int, round_number: int) -> pd.DataFrame:
         raise NotImplementedError
 
-    def get_starting_grid(self, year: int, round_number: int) -> pd.DataFrame:
+    def get_starting_grid(
+        self,
+        year: int,
+        round_number: int,
+        *,
+        prediction_as_of: Optional[str] = None,
+    ) -> pd.DataFrame:
         return pd.DataFrame()
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:

@@ -688,7 +688,13 @@ class LocalWeekendProvider(BaseProvider):
         frame = frame[frame["driver_id"] != ""]
         return complete_classification_positions(frame)
 
-    def get_starting_grid(self, year: int, round_number: int) -> pd.DataFrame:
+    def get_starting_grid(
+        self,
+        year: int,
+        round_number: int,
+        *,
+        prediction_as_of: Optional[str] = None,
+    ) -> pd.DataFrame:
         weekend = self._weekend_for_round(year, round_number)
         if weekend is None:
             return pd.DataFrame()
@@ -698,20 +704,27 @@ class LocalWeekendProvider(BaseProvider):
         meta = self._read_weekend_meta(weekend_dir)
         sessions_raw = meta.get("sessions") if meta else weekend.get("sessions")
         entries = [dict(entry) for entry in sessions_raw if isinstance(entry, dict)] if isinstance(sessions_raw, list) else []
-        grid_refs: list[tuple[object, object, bool]] = [
-            (meta.get("grid_path"), meta.get("grid_availability_phase"), False),
-            (meta.get("starting_grid_path"), meta.get("grid_availability_phase"), False),
-            (meta.get("pre_race_grid_path"), "pre_race", True),
+        grid_refs: list[tuple[object, object, bool, dict[str, object]]] = [
+            (meta.get("grid_path"), meta.get("grid_availability_phase"), False, meta),
+            (meta.get("starting_grid_path"), meta.get("grid_availability_phase"), False, meta),
+            (meta.get("pre_race_grid_path"), "pre_race", True, meta),
         ]
         for entry in entries:
             grid_refs.extend(
                 [
-                    (entry.get("grid_path"), entry.get("grid_availability_phase") or entry.get("availability_phase"), False),
-                    (entry.get("starting_grid_path"), entry.get("grid_availability_phase") or entry.get("availability_phase"), False),
-                    (entry.get("pre_race_grid_path"), "pre_race", True),
+                    (entry.get("grid_path"), entry.get("grid_availability_phase") or entry.get("availability_phase"), False, entry),
+                    (entry.get("starting_grid_path"), entry.get("grid_availability_phase") or entry.get("availability_phase"), False, entry),
+                    (entry.get("pre_race_grid_path"), "pre_race", True, entry),
                 ],
             )
-        for raw_path, phase, trusted_by_key in grid_refs:
+        cutoff = None
+        if prediction_as_of is not None:
+            cutoff = pd.to_datetime(prediction_as_of, utc=True, errors="coerce")
+            if pd.isna(cutoff):
+                return pd.DataFrame()
+        candidates: list[tuple[object, int, pd.DataFrame]] = []
+        unknown_time_candidates: list[tuple[int, pd.DataFrame]] = []
+        for ref_index, (raw_path, phase, trusted_by_key, evidence_owner) in enumerate(grid_refs):
             if raw_path is None:
                 continue
             if phase is None and not trusted_by_key:
@@ -733,7 +746,77 @@ class LocalWeekendProvider(BaseProvider):
                 continue
             grid["driver_id"] = grid["driver_id"].map(self._normalize_driver_id)
             grid = grid[grid["driver_id"] != ""]
-            return grid
+            if grid.empty:
+                continue
+
+            def evidence_value(*keys: str) -> object:
+                for source in (evidence_owner, meta):
+                    for key in keys:
+                        value = source.get(key)
+                        if value is not None and str(value).strip():
+                            return value
+                return None
+
+            revision_phase = evidence_value("grid_revision_phase", "official_grid_revision_phase")
+            evidence_as_of = evidence_value(
+                "grid_evidence_as_of",
+                "pre_race_grid_as_of",
+                "grid_as_of",
+            )
+            evidence_id = evidence_value("grid_evidence_id", "grid_revision_id")
+            complete_raw = evidence_value("grid_evidence_complete", "grid_complete")
+            explicitly_complete = complete_raw is True or str(complete_raw).strip().lower() in {
+                "1",
+                "true",
+                "yes",
+            }
+            phase_is_final = str(revision_phase or "").strip().lower() in {
+                "final",
+                "final_pre_race",
+            }
+            open_adjustment_raw = evidence_value(
+                "grid_adjustments_pending",
+                "grid_open_adjustments",
+                "grid_evidence_superseded",
+            )
+            has_open_adjustment = open_adjustment_raw is True or str(
+                open_adjustment_raw
+            ).strip().lower() in {"1", "true", "yes"}
+            grid["grid_revision_phase"] = revision_phase
+            grid["grid_evidence_as_of"] = evidence_as_of
+            grid["grid_evidence_id"] = evidence_id
+            grid["grid_evidence_complete"] = bool(
+                explicitly_complete
+                and phase_is_final
+                and evidence_as_of
+                and evidence_id
+                and not has_open_adjustment
+            )
+            grid["grid_resolution_status"] = (
+                "unvalidated_complete_revision"
+                if bool(grid["grid_evidence_complete"].iloc[0])
+                else "incomplete_evidence"
+            )
+            weekend_format = evidence_value("weekend_format_version", "weekend_format")
+            if weekend_format is not None:
+                grid["weekend_format_version"] = str(weekend_format).strip().lower()
+            if prediction_as_of is not None:
+                grid["prediction_as_of"] = str(prediction_as_of)
+
+            evidence_timestamp = pd.to_datetime(evidence_as_of, utc=True, errors="coerce")
+            if pd.isna(evidence_timestamp):
+                grid["grid_evidence_complete"] = False
+                grid["grid_resolution_status"] = "incomplete_evidence"
+                unknown_time_candidates.append((ref_index, grid))
+                continue
+            if cutoff is not None and evidence_timestamp > cutoff:
+                continue
+            candidates.append((evidence_timestamp, ref_index, grid))
+
+        if candidates:
+            return max(candidates, key=lambda item: (item[0], item[1]))[2]
+        if unknown_time_candidates:
+            return max(unknown_time_candidates, key=lambda item: item[0])[1]
         return pd.DataFrame()
 
     def get_standings(self, year: int, round_number: int) -> Optional[pd.DataFrame]:

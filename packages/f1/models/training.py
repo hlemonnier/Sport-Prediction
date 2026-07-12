@@ -883,7 +883,10 @@ def _candidate_models(
     candidates: list[CandidateSpec] = []
     requested = str(requested_model or "auto").strip().lower()
     families = {str(item).strip().lower() for item in (compare_families or ["ml"])}
-    allow_ml = "ml" in families or "baseline" in families
+    # Baseline-only is a genuine experiment arm.  Treating the word
+    # "baseline" as permission to instantiate ML candidates made that arm
+    # silently identical to the ML search.
+    allow_ml = "ml" in families
     allow_dl = enable_dl_candidates and ("dl" in families) and requested == "auto"
     dl_available = torch_available()
     include_default_ml = requested == "auto"
@@ -2429,6 +2432,20 @@ def _normalize_constraint_mode(value: object) -> str:
     return "constrained"
 
 
+def _preferred_qualifying_baseline_column(columns: List[str]) -> str:
+    """Return the conservative pre-Q baseline in causal priority order."""
+
+    for column in (
+        "latest_qualifying_rehearsal_rank",
+        "event_pace_index",
+        "fp_quali_sim_rank",
+        "fp_mean_rank",
+    ):
+        if column in columns:
+            return column
+    return columns[0]
+
+
 def train_model(
     train: pd.DataFrame,
     feature_cols: List[str],
@@ -2532,6 +2549,7 @@ def train_model(
     qualifying_baseline_cols = [
         col
         for col in [
+            "latest_qualifying_rehearsal_rank",
             "fp_quali_sim_rank",
             "fp_mean_rank",
             "fp_quali_sim_delta",
@@ -2744,11 +2762,7 @@ def train_model(
                 if race_baseline_supported:
                     selected_from_cv = race_baseline_name
                 elif qualifying_baseline_supported:
-                    default_col = (
-                        "event_pace_index"
-                        if "event_pace_index" in qualifying_baseline_cols
-                        else qualifying_baseline_cols[0]
-                    )
+                    default_col = _preferred_qualifying_baseline_column(qualifying_baseline_cols)
                     selected_from_cv = f"pace_baseline::{default_col}"
                 else:
                     selected_from_cv = None
@@ -2770,11 +2784,7 @@ def train_model(
             selected_from_cv = race_baseline_name
             notes.append("Mode conservateur: grid-only baseline selected without validation folds.")
         elif qualifying_baseline_supported:
-            default_col = (
-                "event_pace_index"
-                if "event_pace_index" in qualifying_baseline_cols
-                else qualifying_baseline_cols[0]
-            )
+            default_col = _preferred_qualifying_baseline_column(qualifying_baseline_cols)
             selected_from_cv = f"pace_baseline::{default_col}"
             notes.append("Mode conservateur: baseline pace prioritaire sans folds.")
 
@@ -2782,11 +2792,7 @@ def train_model(
         if race_baseline_supported:
             selected_from_cv = race_baseline_name
         elif qualifying_baseline_supported:
-            default_col = (
-                "event_pace_index"
-                if "event_pace_index" in qualifying_baseline_cols
-                else qualifying_baseline_cols[0]
-            )
+            default_col = _preferred_qualifying_baseline_column(qualifying_baseline_cols)
             selected_from_cv = f"pace_baseline::{default_col}"
         else:
             notes.append("f1_model=baseline demande mais aucune baseline exploitable n'est disponible.")
@@ -2887,11 +2893,7 @@ def train_model(
         selected_family = "baseline"
         notes.append("Fallback prioritaire active: baseline qualif.")
     if selected_model is None and qualifying_baseline_supported:
-        default_col = (
-            "event_pace_index"
-            if "event_pace_index" in qualifying_baseline_cols
-            else qualifying_baseline_cols[0]
-        )
+        default_col = _preferred_qualifying_baseline_column(qualifying_baseline_cols)
         selected_model = ColumnBaselineModel(
             column=default_col,
             fill_value=_median_fill(default_col, 0.0),

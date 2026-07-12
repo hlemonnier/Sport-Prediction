@@ -671,6 +671,8 @@ class LocalWeekendProvider(BaseProvider):
         name_col = first_available(results, ["Abbreviation", "BroadcastName", "FullName", "Driver"])
         team_col = first_available(results, ["TeamName", "Team", "team_name"])
         grid_col = first_available(results, ["GridPosition", "Grid", "StartingGridPosition", "grid_position"])
+        status_col = first_available(results, ["Status", "status", "ResultStatus"])
+        laps_col = first_available(results, ["Laps", "laps", "LapsCompleted"])
         frame = pd.DataFrame()
         frame["driver_id"] = results[driver_col].map(self._normalize_driver_id)
         if name_col:
@@ -685,6 +687,30 @@ class LocalWeekendProvider(BaseProvider):
             frame = _assign_pit_lane_grid_positions(frame)
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
+        if status_col:
+            raw_status = results[status_col].astype("string").str.strip()
+            valid_status = raw_status.notna() & raw_status.ne("") & ~raw_status.str.lower().isin(
+                {"nan", "none", "null", "unknown"}
+            )
+            frame["race_status_raw"] = raw_status.where(valid_status)
+            frame["race_status_evidence_complete"] = valid_status.astype(bool)
+        else:
+            # A terminal-status target cannot be reconstructed from final
+            # position alone; retain an explicit unavailable contract.
+            frame["race_status_raw"] = pd.NA
+            frame["race_status_evidence_complete"] = False
+        if laps_col:
+            frame["laps_completed"] = pd.to_numeric(results[laps_col], errors="coerce")
+            winner_laps = frame["laps_completed"].max(skipna=True)
+            if pd.notna(winner_laps) and float(winner_laps) > 0.0:
+                frame["retirement_fraction"] = (
+                    frame["laps_completed"] / float(winner_laps)
+                ).clip(0.0, 1.0)
+            else:
+                frame["retirement_fraction"] = float("nan")
+        else:
+            frame["laps_completed"] = float("nan")
+            frame["retirement_fraction"] = float("nan")
         frame = frame[frame["driver_id"] != ""]
         return complete_classification_positions(frame)
 

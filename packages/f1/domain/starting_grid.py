@@ -103,6 +103,17 @@ class ActualStartStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
+class RacePredictionHorizon(str, Enum):
+    """Distinct information products for a pre-Race forecast.
+
+    The post-Qualifying product is only a grid *proxy*.  It must never be
+    relabelled as the published final grid product.
+    """
+
+    POST_QUALIFYING_PRE_GRID = "post_qualifying_pre_grid"
+    POST_GRID_PRE_RACE = "post_grid_pre_race"
+
+
 def _require_driver_id(value: str) -> str:
     driver_id = str(value).strip()
     if not driver_id or driver_id.lower() in {"nan", "none", "null", "<na>"}:
@@ -267,6 +278,7 @@ class GridAdjustment:
     as_of: Timestamp
     evidence_id: str
     places: int | None = None
+    reason: str | None = None
     evidence_complete: bool = True
 
     def __post_init__(self) -> None:
@@ -294,6 +306,9 @@ class GridAdjustment:
                 GridAdjustmentKind.BACK_OF_GRID,
             }:
                 raise ValueError("places is only valid for grid-drop or back-of-grid evidence")
+        if self.reason is not None:
+            reason = str(self.reason).strip()
+            object.__setattr__(self, "reason", reason or None)
         _timestamp(self.as_of, "grid adjustment as_of")
 
 
@@ -366,6 +381,7 @@ class ResolvedGridAdjustment:
 
     kind: GridAdjustmentKind
     places: int | None
+    reason: str | None
     status: GridEntryStatus
     source: EvidenceSource
     as_of: str
@@ -446,6 +462,127 @@ class GrandPrixStartResolution:
             for entry in self.actual_start.entries
             if entry.status in {GridEntryStatus.STARTED, GridEntryStatus.STARTED_PIT_LANE}
         )
+
+
+@dataclass(frozen=True)
+class RaceGridSnapshotEntry:
+    """One immutable input row for a named pre-Race prediction horizon."""
+
+    driver_id: str
+    grid_position: int | None
+    status: GridEntryStatus
+    starter_eligible: bool
+    pit_lane_start: bool
+    penalty_evidence: tuple[ResolvedGridAdjustment, ...]
+    evidence_ids: tuple[str, ...]
+    evidence_complete: bool
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "driver_id", _require_driver_id(self.driver_id))
+        object.__setattr__(
+            self,
+            "grid_position",
+            _require_optional_position(self.grid_position, "snapshot grid position"),
+        )
+        if not isinstance(self.status, GridEntryStatus):
+            raise TypeError("snapshot grid status must be a GridEntryStatus")
+        object.__setattr__(
+            self,
+            "starter_eligible",
+            _require_bool(self.starter_eligible, "snapshot starter_eligible"),
+        )
+        object.__setattr__(
+            self,
+            "pit_lane_start",
+            _require_bool(self.pit_lane_start, "snapshot pit_lane_start"),
+        )
+        object.__setattr__(self, "penalty_evidence", tuple(self.penalty_evidence))
+        if any(
+            not isinstance(adjustment, ResolvedGridAdjustment)
+            for adjustment in self.penalty_evidence
+        ):
+            raise TypeError("penalty_evidence must contain ResolvedGridAdjustment values")
+        evidence_ids = tuple(str(value).strip() for value in self.evidence_ids)
+        if any(not value for value in evidence_ids):
+            raise ValueError("snapshot evidence_ids must be non-empty strings")
+        object.__setattr__(self, "evidence_ids", evidence_ids)
+        object.__setattr__(
+            self,
+            "evidence_complete",
+            _require_bool(self.evidence_complete, "snapshot entry evidence_complete"),
+        )
+
+
+@dataclass(frozen=True)
+class RaceGridSnapshot:
+    """Immutable, provenance-bearing race-grid model input.
+
+    ``available`` is deliberately stricter than merely having rows.  The final
+    grid horizon is available only from a complete ``FINAL_PRE_RACE`` official
+    revision with no unresolved decisions.  Callers may inspect unavailable
+    snapshots, but ``require_available`` prevents accidental forecast emission.
+    """
+
+    horizon: RacePredictionHorizon
+    prediction_as_of: str
+    publication_as_of: str | None
+    resolution_status: ResolutionStatus
+    source: EvidenceSource
+    entries: tuple[RaceGridSnapshotEntry, ...]
+    revision_ids: tuple[str, ...]
+    available: bool
+    evidence_complete: bool
+    unresolved_state_flags: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.horizon, RacePredictionHorizon):
+            raise TypeError("snapshot horizon must be a RacePredictionHorizon")
+        _, prediction_text = _timestamp(self.prediction_as_of, "snapshot prediction_as_of")
+        object.__setattr__(self, "prediction_as_of", prediction_text)
+        if self.publication_as_of is not None:
+            publication_time, publication_text = _timestamp(
+                self.publication_as_of,
+                "snapshot publication_as_of",
+            )
+            prediction_time, _ = _timestamp(prediction_text, "snapshot prediction_as_of")
+            if publication_time > prediction_time:
+                raise ValueError("snapshot publication_as_of cannot be after prediction_as_of")
+            object.__setattr__(self, "publication_as_of", publication_text)
+        if not isinstance(self.resolution_status, ResolutionStatus):
+            raise TypeError("snapshot resolution_status must be a ResolutionStatus")
+        if not isinstance(self.source, EvidenceSource):
+            raise TypeError("snapshot source must be an EvidenceSource")
+        object.__setattr__(self, "entries", tuple(self.entries))
+        if any(not isinstance(entry, RaceGridSnapshotEntry) for entry in self.entries):
+            raise TypeError("snapshot entries must be RaceGridSnapshotEntry values")
+        object.__setattr__(
+            self,
+            "revision_ids",
+            tuple(str(value).strip() for value in self.revision_ids if str(value).strip()),
+        )
+        object.__setattr__(self, "available", _require_bool(self.available, "snapshot available"))
+        object.__setattr__(
+            self,
+            "evidence_complete",
+            _require_bool(self.evidence_complete, "snapshot evidence_complete"),
+        )
+        object.__setattr__(
+            self,
+            "unresolved_state_flags",
+            tuple(str(value) for value in self.unresolved_state_flags),
+        )
+        if self.available and (not self.evidence_complete or not self.entries):
+            raise ValueError("available snapshots require complete, non-empty evidence")
+
+    def require_available(self) -> "RaceGridSnapshot":
+        """Return this snapshot or fail closed before model inference."""
+
+        if not self.available:
+            detail = ",".join(self.unresolved_state_flags) or "grid_evidence_unavailable"
+            raise ValueError(
+                f"{self.horizon.value} snapshot is unavailable: {detail}"
+            )
+        return self
 
 
 def _source_for_session(session: Session) -> EvidenceSource:
@@ -816,6 +953,7 @@ def _order_from_official_revision(
                     ResolvedGridAdjustment(
                         kind=kind,
                         places=None,
+                        reason=None,
                         status=_adjustment_status(kind),
                         source=EvidenceSource.OFFICIAL_GRID_REVISION,
                         as_of=evidence_text,
@@ -962,6 +1100,7 @@ def _apply_adjustments(
             ResolvedGridAdjustment(
                 kind=item[1].kind,
                 places=item[1].places,
+                reason=item[1].reason,
                 status=_adjustment_status(item[1].kind),
                 source=EvidenceSource.GRID_ADJUSTMENT,
                 as_of=item[2],
@@ -1286,6 +1425,106 @@ def resolve_grand_prix_start(
     )
 
 
+def build_race_grid_snapshot(
+    resolution: GrandPrixStartResolution,
+    *,
+    horizon: RacePredictionHorizon = RacePredictionHorizon.POST_GRID_PRE_RACE,
+) -> RaceGridSnapshot:
+    """Freeze the exact grid evidence supplied to a pre-Race model.
+
+    The final-grid horizon fails closed unless the resolver selected a complete
+    official final pre-Race revision.  The post-Qualifying horizon intentionally
+    uses ``provisional_grid`` and stays labelled as a proxy even when complete.
+    """
+
+    if not isinstance(resolution, GrandPrixStartResolution):
+        raise TypeError("resolution must be a GrandPrixStartResolution")
+    if not isinstance(horizon, RacePredictionHorizon):
+        raise TypeError("horizon must be a RacePredictionHorizon")
+
+    order = (
+        resolution.scheduled_grid
+        if horizon is RacePredictionHorizon.POST_GRID_PRE_RACE
+        else resolution.provisional_grid
+    )
+    prediction_time, prediction_text = _timestamp(resolution.as_of, "resolution as_of")
+    publication_text = order.evidence_as_of
+    flags = list(order.issues)
+    if publication_text is not None:
+        publication_time, publication_text = _timestamp(
+            publication_text,
+            "grid evidence_as_of",
+        )
+        if publication_time > prediction_time:
+            flags.append("grid_publication_after_prediction_cutoff")
+
+    allowed_starter_statuses = {GridEntryStatus.GRID, GridEntryStatus.PIT_LANE}
+    declared_nonstarters = {
+        GridEntryStatus.WITHDRAWN,
+        GridEntryStatus.DID_NOT_START,
+        GridEntryStatus.DISQUALIFIED,
+    }
+    snapshot_entries: list[RaceGridSnapshotEntry] = []
+    for row in order.entries:
+        starter_eligible = row.status in allowed_starter_statuses
+        status_resolved = row.status in allowed_starter_statuses | declared_nonstarters
+        if not status_resolved:
+            flags.append(f"unresolved_starter_eligibility:{row.driver_id}")
+        snapshot_entries.append(
+            RaceGridSnapshotEntry(
+                driver_id=row.driver_id,
+                grid_position=row.position,
+                status=row.status,
+                starter_eligible=starter_eligible,
+                pit_lane_start=row.status is GridEntryStatus.PIT_LANE,
+                penalty_evidence=row.adjustment_evidence,
+                evidence_ids=row.evidence_ids,
+                evidence_complete=bool(row.evidence_complete and status_resolved),
+            )
+        )
+
+    duplicate_drivers = len({row.driver_id for row in snapshot_entries}) != len(snapshot_entries)
+    if duplicate_drivers:
+        flags.append("duplicate_driver_in_snapshot")
+
+    if horizon is RacePredictionHorizon.POST_GRID_PRE_RACE:
+        if order.source is not EvidenceSource.OFFICIAL_GRID_REVISION:
+            flags.append("official_final_grid_revision_missing")
+        if order.phase != GridRevisionPhase.FINAL_PRE_RACE.value:
+            flags.append("grid_revision_not_final_pre_race")
+        final_contract = bool(
+            order.status is ResolutionStatus.RESOLVED
+            and order.source is EvidenceSource.OFFICIAL_GRID_REVISION
+            and order.phase == GridRevisionPhase.FINAL_PRE_RACE.value
+        )
+    else:
+        # The proxy is useful but remains a distinct product.  It is never
+        # upgraded to final-grid evidence by this constructor.
+        final_contract = order.status is ResolutionStatus.RESOLVED
+
+    complete = bool(
+        final_contract
+        and order.evidence_complete
+        and publication_text is not None
+        and not duplicate_drivers
+        and snapshot_entries
+        and all(row.evidence_complete for row in snapshot_entries)
+        and "grid_publication_after_prediction_cutoff" not in flags
+    )
+    return RaceGridSnapshot(
+        horizon=horizon,
+        prediction_as_of=prediction_text,
+        publication_as_of=publication_text,
+        resolution_status=order.status,
+        source=order.source,
+        entries=tuple(snapshot_entries),
+        revision_ids=order.evidence_ids,
+        available=complete,
+        evidence_complete=complete,
+        unresolved_state_flags=tuple(dict.fromkeys(flags)),
+    )
+
+
 __all__ = [
     "ActualStartEntry",
     "ActualStartSnapshot",
@@ -1303,9 +1542,13 @@ __all__ = [
     "OfficialGridEntry",
     "OfficialGridRevision",
     "OrderResolution",
+    "RaceGridSnapshot",
+    "RaceGridSnapshotEntry",
+    "RacePredictionHorizon",
     "ResolutionStatus",
     "ResolvedClassificationEntry",
     "ResolvedGridAdjustment",
     "ResolvedOrderEntry",
+    "build_race_grid_snapshot",
     "resolve_grand_prix_start",
 ]

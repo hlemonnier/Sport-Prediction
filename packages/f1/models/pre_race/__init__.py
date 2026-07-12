@@ -1,6 +1,11 @@
 """Pre-race prediction, terminal hazard, ranking, and joint simulation."""
 
-from .joint import JointRaceForecast, SurvivalAwareRaceModel
+from .joint import (
+    JointRaceForecast,
+    SurvivalAwareRaceModel,
+    expected_classified_lap_deficit,
+    sample_fia_classification_order,
+)
 from .evaluate import evaluate_terminal_status_probabilities
 from .predict import run_prediction
 from .ranking import BradleyTerryOrderRanker, ConditionalOrderConfig
@@ -22,7 +27,9 @@ __all__ = [
     "TerminalHazardConfig",
     "TerminalStatus",
     "add_reason_coded_terminal_targets",
+    "expected_classified_lap_deficit",
     "evaluate_terminal_status_probabilities",
     "reason_code_terminal_status",
     "run_prediction",
+    "sample_fia_classification_order",
 ]

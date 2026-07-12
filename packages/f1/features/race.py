@@ -53,6 +53,11 @@ RACE_ORDER_FEATURE_COLUMNS: tuple[str, ...] = (
     "race_sprint_pace_score",
 )
 
+RACE_DISTANCE_FEATURE_COLUMNS: tuple[str, ...] = (
+    "race_expected_lap_deficit",
+    "race_expected_lap_seconds",
+)
+
 
 _ALIASES: dict[str, tuple[str, ...]] = {
     "race_team_mechanical_rate": (
@@ -133,6 +138,14 @@ _ALIASES: dict[str, tuple[str, ...]] = {
     "race_sprint_pace_delta": (
         "sprint_pace_delta",
         "sprint_race_pace_delta",
+    ),
+    "race_expected_lap_deficit": (
+        "expected_lap_deficit",
+        "classified_lap_deficit_prior",
+    ),
+    "race_expected_lap_seconds": (
+        "expected_race_lap_seconds",
+        "track_reference_lap_seconds",
     ),
 }
 
@@ -262,7 +275,11 @@ def engineer_survival_aware_race_features(frame: pd.DataFrame) -> pd.DataFrame:
     out["race_starter_eligible"] = starter_values
     out["race_pit_lane_start"] = pit_lane_flag.astype(float)
 
-    for column in (*RACE_SURVIVAL_FEATURE_COLUMNS, *RACE_ORDER_FEATURE_COLUMNS):
+    for column in (
+        *RACE_SURVIVAL_FEATURE_COLUMNS,
+        *RACE_ORDER_FEATURE_COLUMNS,
+        *RACE_DISTANCE_FEATURE_COLUMNS,
+    ):
         if column not in out.columns:
             out[column] = np.nan
         out[f"{column}_missing"] = pd.to_numeric(out[column], errors="coerce").isna()

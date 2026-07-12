@@ -34,7 +34,11 @@ from packages.f1.models.pre_race import (
     evaluate_terminal_status_probabilities,
     reason_code_terminal_status,
 )
-from packages.f1.models.pre_race.joint import minimum_expected_absolute_assignment
+from packages.f1.models.pre_race.joint import (
+    expected_classified_lap_deficit,
+    minimum_expected_absolute_assignment,
+    sample_fia_classification_order,
+)
 
 
 DRIVERS = tuple(f"DRV{number:02d}" for number in range(1, 21))
@@ -328,6 +332,9 @@ def test_joint_model_emits_probabilities_and_legal_permutation_with_dns_and_pitl
     assert point.loc["D", "predicted_terminal_status"] == "dns_withdrawal"
     assert int(point.loc["D", "predicted_position"]) == 4
     assert point.loc["C", "starter_eligible"]
+    assert set(point["classified_lap_deficit_source"]) == {
+        "zero_no_calibrated_evidence"
+    }
     position_sums = forecast.position_probabilities.filter(like="p_position_").sum(axis=1)
     status_sums = forecast.status_probabilities.filter(regex=r"^p_(?!terminal$)").sum(axis=1)
     assert position_sums.tolist() == pytest.approx([1.0] * 4)
@@ -355,6 +362,60 @@ def test_joint_all_terminal_roster_remains_a_legal_permutation() -> None:
     assert sorted(point["predicted_position"].tolist()) == [1, 2, 3, 4]
     assert set(point["predicted_terminal_status"]) == {"dns_withdrawal"}
     assert np.all(np.sort(forecast.position_samples, axis=0) == np.arange(1, 5)[:, None])
+
+
+def test_all_classified_distance_preserves_grid_prior_instead_of_random_beta_laps() -> None:
+    statuses = [TerminalStatus.CLASSIFIED_FINISH] * 4
+    classification, distance = sample_fia_classification_order(
+        statuses=statuses,
+        # Deliberately extreme values: classified finishers must ignore these
+        # terminal-hazard draws completely.
+        terminal_retirement_fraction=np.asarray([0.1, 0.9, 0.4, 0.7]),
+        conditional_scores=np.asarray([4.0, 3.0, 2.0, 1.0]),
+        order_shocks=np.zeros(4),
+        expected_lap_deficit=np.zeros(4),
+        scheduled_laps=np.full(4, 60.0),
+        grid_positions=np.arange(1.0, 5.0),
+        driver_ids=np.asarray(["A", "B", "C", "D"]),
+    )
+
+    assert classification.tolist() == [0, 1, 2, 3]
+    assert distance.tolist() == [60.0, 60.0, 60.0, 60.0]
+
+
+def test_late_retiree_can_rank_ahead_of_pace_coupled_lapped_finisher() -> None:
+    classification, distance = sample_fia_classification_order(
+        statuses=[
+            TerminalStatus.CLASSIFIED_FINISH,
+            TerminalStatus.MECHANICAL_POWER_UNIT,
+            TerminalStatus.CLASSIFIED_FINISH,
+        ],
+        terminal_retirement_fraction=np.asarray([1.0, 0.99, 1.0]),
+        conditional_scores=np.asarray([3.0, 2.0, 1.0]),
+        order_shocks=np.zeros(3),
+        expected_lap_deficit=np.asarray([0.0, 0.0, 2.0]),
+        scheduled_laps=np.full(3, 60.0),
+        grid_positions=np.arange(1.0, 4.0),
+        driver_ids=np.asarray(["WIN", "RET", "LAP"]),
+    )
+
+    assert distance.tolist() == pytest.approx([60.0, 59.4, 58.0])
+    assert classification.tolist() == [0, 1, 2]
+
+
+def test_classified_lap_deficit_is_derived_from_accumulated_long_run_pace() -> None:
+    features = pd.DataFrame(
+        {
+            "race_long_run_pace_delta": [0.0, 1.5, np.nan],
+            "race_expected_lap_seconds": [90.0, 90.0, 90.0],
+        }
+    )
+    deficit = expected_classified_lap_deficit(
+        features,
+        np.full(3, 60.0),
+        allow_pace_implied=True,
+    )
+    assert deficit.tolist() == pytest.approx([0.0, 1.0, 0.0])
 
 
 def test_expected_absolute_assignment_is_globally_optimal_and_deterministic() -> None:

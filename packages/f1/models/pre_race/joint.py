@@ -18,6 +18,143 @@ from packages.f1.models.pre_race.survival import PartialPooledTerminalHazard
 _STATUS_COLUMNS = tuple(f"p_{status.value}" for status in TERMINAL_STATUSES)
 
 
+def expected_classified_lap_deficit(
+    features: pd.DataFrame,
+    scheduled_laps: np.ndarray,
+    *,
+    allow_pace_implied: bool = False,
+) -> np.ndarray:
+    """Return a causal, pace-coupled prior for classified lap deficits.
+
+    An explicit pre-Race deficit estimate wins.  A raw long-run delta is only
+    converted to laps behind when ``allow_pace_implied`` is explicitly enabled;
+    that dimensional conversion is diagnostic until calibrated.  The default
+    zero preserves conditional order instead of inventing lapping noise.  The
+    FIA 90% classification threshold supplies a conservative upper bound.
+    """
+
+    laps = np.asarray(scheduled_laps, dtype=float)
+    if laps.ndim != 1 or len(laps) != len(features):
+        raise ValueError("scheduled_laps must contain one value per entrant")
+    explicit = pd.to_numeric(
+        features.get(
+            "race_expected_lap_deficit",
+            pd.Series(np.nan, index=features.index, dtype=float),
+        ),
+        errors="coerce",
+    )
+    long_run = pd.to_numeric(
+        features.get(
+            "race_long_run_pace_delta",
+            pd.Series(np.nan, index=features.index, dtype=float),
+        ),
+        errors="coerce",
+    )
+    lap_seconds = pd.to_numeric(
+        features.get(
+            "race_expected_lap_seconds",
+            pd.Series(90.0, index=features.index, dtype=float),
+        ),
+        errors="coerce",
+    ).fillna(90.0).clip(lower=30.0, upper=180.0)
+    if long_run.notna().any():
+        fastest = float(long_run.min(skipna=True))
+        pace_gap = (long_run - fastest).clip(lower=0.0)
+        pace_implied = pace_gap.to_numpy(dtype=float) * laps / lap_seconds.to_numpy(dtype=float)
+    else:
+        pace_implied = np.zeros(len(features), dtype=float)
+    estimate = explicit.to_numpy(dtype=float)
+    fallback = pace_implied if allow_pace_implied else np.zeros(len(features), dtype=float)
+    estimate = np.where(np.isfinite(estimate), estimate, fallback)
+    estimate = np.where(np.isfinite(estimate), estimate, 0.0)
+    maximum_classified_deficit = np.maximum(0.0, np.floor(laps * 0.10))
+    return np.clip(estimate, 0.0, maximum_classified_deficit)
+
+
+def sample_fia_classification_order(
+    *,
+    statuses: list[TerminalStatus],
+    terminal_retirement_fraction: np.ndarray,
+    conditional_scores: np.ndarray,
+    order_shocks: np.ndarray,
+    expected_lap_deficit: np.ndarray,
+    scheduled_laps: np.ndarray,
+    grid_positions: np.ndarray,
+    driver_ids: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Reconcile one joint draw into an inspectable FIA-style order.
+
+    Terminal statuses retain their sampled hazard distance.  A classified
+    finisher's distance is instead derived from pre-Race pace evidence.  When a
+    non-zero lap-deficit prior exists, the same Plackett-Luce shock that improves
+    running order can reduce the deficit; no independent Beta draw can demote a
+    normal finisher.  Continuous distance lets a late retiree remain ahead of a
+    genuinely lapped classified finisher.
+    """
+
+    n = len(statuses)
+    arrays = (
+        terminal_retirement_fraction,
+        conditional_scores,
+        order_shocks,
+        expected_lap_deficit,
+        scheduled_laps,
+        grid_positions,
+        driver_ids,
+    )
+    if any(len(values) != n for values in arrays):
+        raise ValueError("sampled classification inputs must have equal length")
+    sampled_utility = np.asarray(conditional_scores, dtype=float) + np.asarray(
+        order_shocks, dtype=float
+    )
+    distance = np.zeros(n, dtype=float)
+    starter_rows: list[int] = []
+    dns_rows: list[int] = []
+    for row, status in enumerate(statuses):
+        if status is TerminalStatus.DNS_WITHDRAWAL:
+            dns_rows.append(row)
+            continue
+        starter_rows.append(row)
+        if status is TerminalStatus.CLASSIFIED_FINISH:
+            prior_deficit = max(0.0, float(expected_lap_deficit[row]))
+            if prior_deficit <= 1e-12:
+                # Critical invariant: no pace evidence means a normal full-
+                # distance finisher, never a random independent lap deficit.
+                sampled_deficit = 0.0
+            else:
+                sampled_deficit = np.floor(
+                    prior_deficit + 0.5 - (0.25 * float(order_shocks[row]))
+                )
+                sampled_deficit = float(
+                    np.clip(
+                        sampled_deficit,
+                        0.0,
+                        np.floor(float(scheduled_laps[row]) * 0.10),
+                    )
+                )
+            distance[row] = float(scheduled_laps[row]) - sampled_deficit
+        else:
+            distance[row] = float(
+                np.clip(terminal_retirement_fraction[row], 0.0, 1.0)
+                * scheduled_laps[row]
+            )
+    starter_rows.sort(
+        key=lambda row: (
+            -distance[row],
+            -sampled_utility[row],
+            str(driver_ids[row]),
+        )
+    )
+    dns_rows.sort(
+        key=lambda row: (
+            float(grid_positions[row]),
+            -sampled_utility[row],
+            str(driver_ids[row]),
+        )
+    )
+    return np.asarray([*starter_rows, *dns_rows], dtype=int), distance
+
+
 def _hungarian_minimize(cost: np.ndarray) -> np.ndarray:
     """Exact deterministic square linear assignment without a SciPy dependency."""
 
@@ -305,6 +442,7 @@ class SurvivalAwareRaceModel:
         simulations: int = 4000,
         seed: int = 17,
         plackett_luce_temperature: float = 1.0,
+        allow_pace_implied_lap_deficit: bool = False,
     ) -> JointRaceForecast:
         if not self._fitted:
             raise RuntimeError("joint race model must be fitted before prediction")
@@ -333,6 +471,34 @@ class SurvivalAwareRaceModel:
             rows.get("race_scheduled_laps", pd.Series(60.0, index=rows.index)),
             errors="coerce",
         ).fillna(60.0).clip(lower=1.0).to_numpy(dtype=float)
+        classified_lap_deficit = expected_classified_lap_deficit(
+            rows,
+            scheduled_laps,
+            allow_pace_implied=allow_pace_implied_lap_deficit,
+        )
+        explicit_lap_deficit = pd.to_numeric(
+            rows.get(
+                "race_expected_lap_deficit",
+                pd.Series(np.nan, index=rows.index, dtype=float),
+            ),
+            errors="coerce",
+        ).notna().to_numpy()
+        long_run_lap_deficit = pd.to_numeric(
+            rows.get(
+                "race_long_run_pace_delta",
+                pd.Series(np.nan, index=rows.index, dtype=float),
+            ),
+            errors="coerce",
+        ).notna().to_numpy()
+        lap_deficit_source = np.where(
+            explicit_lap_deficit,
+            "explicit_pre_race",
+            np.where(
+                allow_pace_implied_lap_deficit & long_run_lap_deficit,
+                "pace_implied_diagnostic",
+                "zero_no_calibrated_evidence",
+            ),
+        )
 
         rng = np.random.default_rng(seed)
         position_samples = np.empty((n_drivers, simulations), dtype=np.int16)
@@ -348,35 +514,24 @@ class SurvivalAwareRaceModel:
             statuses = [TERMINAL_STATUSES[index] for index in status_indices]
             status_samples[:, simulation] = [status.value for status in statuses]
 
-            retirement_fraction = np.empty(n_drivers, dtype=float)
+            retirement_fraction = np.ones(n_drivers, dtype=float)
             for row, status in enumerate(statuses):
+                if status is TerminalStatus.CLASSIFIED_FINISH:
+                    continue
                 alpha, beta = self.terminal_model.retirement_beta(status)
                 retirement_fraction[row] = rng.beta(alpha, beta)
             gumbel = rng.gumbel(0.0, plackett_luce_temperature, size=n_drivers)
-            sampled_utility = conditional_scores + gumbel
-
-            starter_rows = [
-                row
-                for row, status in enumerate(statuses)
-                if status is not TerminalStatus.DNS_WITHDRAWAL
-            ]
-            dns_rows = [
-                row
-                for row, status in enumerate(statuses)
-                if status is TerminalStatus.DNS_WITHDRAWAL
-            ]
-            completed_laps = np.floor(retirement_fraction * scheduled_laps).astype(int)
-            starter_rows.sort(
-                key=lambda row: (
-                    -completed_laps[row],
-                    -retirement_fraction[row],
-                    -sampled_utility[row],
-                    drivers[row],
-                )
+            classification, _ = sample_fia_classification_order(
+                statuses=statuses,
+                terminal_retirement_fraction=retirement_fraction,
+                conditional_scores=conditional_scores,
+                order_shocks=gumbel,
+                expected_lap_deficit=classified_lap_deficit,
+                scheduled_laps=scheduled_laps,
+                grid_positions=grid,
+                driver_ids=drivers,
             )
-            dns_rows.sort(key=lambda row: (grid[row], -sampled_utility[row], drivers[row]))
-            classification = [*starter_rows, *dns_rows]
-            for position, row in enumerate(classification, start=1):
+            for position, row in enumerate(classification.tolist(), start=1):
                 position_samples[row, simulation] = position
 
         modal_indices = np.argmax(probability_matrix, axis=1)
@@ -415,6 +570,9 @@ class SurvivalAwareRaceModel:
                 "expected_position": position_samples.mean(axis=1),
                 "median_position": np.median(position_samples, axis=1),
                 "conditional_order_score": conditional_scores,
+                "expected_classified_lap_deficit": classified_lap_deficit,
+                "classified_lap_deficit_source": lap_deficit_source,
+                "pace_implied_lap_deficit_enabled": allow_pace_implied_lap_deficit,
                 "grid_position": grid,
                 "starter_eligible": pd.to_numeric(
                     rows["race_starter_eligible"], errors="coerce"
@@ -446,5 +604,7 @@ class SurvivalAwareRaceModel:
 __all__ = [
     "JointRaceForecast",
     "SurvivalAwareRaceModel",
+    "expected_classified_lap_deficit",
     "minimum_expected_absolute_assignment",
+    "sample_fia_classification_order",
 ]

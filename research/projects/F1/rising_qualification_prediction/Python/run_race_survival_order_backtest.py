@@ -19,6 +19,7 @@ from packages.f1.data.providers import LocalWeekendProvider
 from packages.f1.domain.starting_grid import RacePredictionHorizon
 from packages.f1.models.pre_race.evaluate import evaluate_terminal_status_probabilities
 from packages.f1.models.pre_race.joint import SurvivalAwareRaceModel
+from packages.f1.models.pre_race.ranking import BradleyTerryOrderRanker, ConditionalOrderConfig
 from packages.f1.models.pre_race.status import TerminalStatus, reason_code_terminal_status
 from packages.f1.orchestration.model_runtime import f1_model_runtime_doctor
 from packages.f1.orchestration.non_live_validation import EventError, evaluate_race_promotion
@@ -355,6 +356,8 @@ def run(
     years: Sequence[int],
     evaluation_years: Sequence[int],
     simulations: int,
+    plackett_luce_temperature: float,
+    order_residual_weight: float,
     bootstrap_samples: int,
     seed: int,
 ) -> dict[str, Any]:
@@ -390,7 +393,11 @@ def run(
         current = event_frames[event_key].copy()
         if prior["event_key"].nunique() < 4:
             continue
-        model = SurvivalAwareRaceModel().fit(
+        model = SurvivalAwareRaceModel(
+            order_model=BradleyTerryOrderRanker(
+                ConditionalOrderConfig(residual_weight=float(order_residual_weight))
+            )
+        ).fit(
             prior,
             cutoff=current["event_as_of"].iloc[0],
         )
@@ -410,6 +417,7 @@ def run(
             prediction_as_of=current["event_as_of"].iloc[0],
             simulations=int(simulations),
             seed=int(seed) + event_key,
+            plackett_luce_temperature=float(plackett_luce_temperature),
         )
         scored = current[
             ["driver_id", "grid_position", "finish_position", "terminal_status"]
@@ -527,6 +535,8 @@ def run(
             "baseline_status": "causal_beta_smoothed_rolling_terminal_rate",
             "final_grid_claimed": False,
             "simulations": int(simulations),
+            "plackett_luce_temperature": float(plackett_luce_temperature),
+            "order_residual_weight": float(order_residual_weight),
         },
         "aggregate": {
             "events": len(events),
@@ -576,6 +586,13 @@ def main() -> int:
     parser.add_argument("--years", type=_csv_ints, default=(2022, 2023, 2024, 2025, 2026))
     parser.add_argument("--evaluation-years", type=_csv_ints, default=(2025, 2026))
     parser.add_argument("--simulations", type=int, default=2_000)
+    parser.add_argument("--plackett-luce-temperature", type=float, default=0.25)
+    parser.add_argument(
+        "--order-residual-weight",
+        type=float,
+        default=0.45,
+        help="fixed on 2025 transfer validation before the 2026 audit",
+    )
     parser.add_argument("--bootstrap-samples", type=int, default=20_000)
     parser.add_argument("--seed", type=int, default=20260713)
     parser.add_argument(
@@ -589,6 +606,8 @@ def main() -> int:
         years=args.years,
         evaluation_years=args.evaluation_years,
         simulations=args.simulations,
+        plackett_luce_temperature=args.plackett_luce_temperature,
+        order_residual_weight=args.order_residual_weight,
         bootstrap_samples=args.bootstrap_samples,
         seed=args.seed,
     )

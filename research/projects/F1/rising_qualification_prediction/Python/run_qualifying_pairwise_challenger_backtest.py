@@ -265,7 +265,7 @@ def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, A
         path = _resolve_snapshot_path(root, event_dir, session.get("laps_path"))
         part = pd.read_csv(path)
         part["rehearsal_source"] = str(
-            session.get("session_type") or session.get("session_name") or "earlier_rehearsal"
+            session.get("session_name") or session.get("session_type") or "earlier_rehearsal"
         )
         earlier_parts.append(part)
         input_paths.append(path)

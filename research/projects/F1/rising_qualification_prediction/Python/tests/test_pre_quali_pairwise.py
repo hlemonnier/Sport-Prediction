@@ -421,7 +421,7 @@ def test_qualifying_contract_gates_require_complete_legal_field_and_fail_close_p
     assert not target_mismatch["point_contract_gates_passed"]
 
 
-def test_event_frame_unions_all_completed_pre_q_result_rosters_before_target_open(
+def test_event_frame_uses_latest_rehearsal_roster_and_does_not_readd_fp1_reserve(
     tmp_path,
 ) -> None:
     event_dir = tmp_path / "round_01_test"
@@ -499,10 +499,11 @@ def test_event_frame_unions_all_completed_pre_q_result_rosters_before_target_ope
     frame, info, _ = _event_frame(tmp_path, event_dir)
     indexed = frame.set_index("driver_id")
 
-    assert set(indexed.index) == {"A", "SUB"}
+    assert set(indexed.index) == {"A"}
     assert indexed.loc["A", "team_id"] == "New Team"
     assert info["official_target_driver_ids"] == ["A", "SUB"]
     assert info["target_result_used_for_roster"] is False
+    assert info["roster_source"] == "latest_target_aligned_pre_qualifying_session_only"
 
 
 def test_walk_forward_helper_trains_only_on_prior_complete_events() -> None:

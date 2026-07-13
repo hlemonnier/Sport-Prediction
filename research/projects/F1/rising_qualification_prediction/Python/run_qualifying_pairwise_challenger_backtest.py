@@ -255,7 +255,6 @@ def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, A
     rehearsal_laps["rehearsal_source"] = source
 
     earlier_parts: list[pd.DataFrame] = []
-    roster_parts: list[pd.DataFrame] = []
     input_paths = [
         metadata_path,
         qualifying_results_path,
@@ -272,28 +271,13 @@ def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, A
         input_paths.append(path)
     earlier_laps = pd.concat(earlier_parts, ignore_index=True) if earlier_parts else None
 
-    # Results tables are roster evidence only. Union every completed causal
-    # pre-Q session (including no-lap/substitute entrants), latest session
-    # first so its team identity wins. Sprint finishing position is never used
-    # as pace or as a model feature.
-    for session in sorted(
-        completed_pre_q,
-        key=lambda value: int(value.get("session_order", -1)),
-        reverse=True,
-    ):
-        if not session.get("results_path"):
-            continue
-        path = _resolve_snapshot_path(root, event_dir, session.get("results_path"))
-        roster_parts.append(pd.read_csv(path))
-        input_paths.append(path)
-
     # Freeze inference inputs before opening the target classification. This is
-    # the production boundary: roster and teams come only from pre-Q sessions.
-    entrants = _pre_qualifying_roster(rehearsal_results, *roster_parts)
-    latest_identity = _pre_qualifying_roster(*roster_parts).set_index("driver_id")
-    entrants["team_id"] = entrants["driver_id"].map(latest_identity["team_id"]).fillna(
-        entrants["team_id"]
-    )
+    # the production boundary. The latest target-aligned rehearsal owns the
+    # active roster: unioning older FP1/FP2 classifications silently re-added
+    # reserve drivers who had already surrendered their seats and produced
+    # illegal 21/23/25-car fields in real replays. Missing entrants now remain a
+    # visible coverage failure instead of being guessed from the target result.
+    entrants = _pre_qualifying_roster(rehearsal_results)
     features = build_quality_aware_rehearsal_features(
         rehearsal_laps,
         entrants=entrants,
@@ -359,7 +343,7 @@ def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, A
         "field_size": int(len(frame)),
         "official_target_driver_count": int(target_drivers.nunique()),
         "official_target_driver_ids": sorted(target_drivers.unique().tolist()),
-        "roster_source": "completed_pre_qualifying_sessions_only",
+        "roster_source": "latest_target_aligned_pre_qualifying_session_only",
         "target_result_used_for_roster": False,
     }
     return frame, event_info, input_paths

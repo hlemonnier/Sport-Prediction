@@ -12,6 +12,7 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import pandas as pd
 
+from packages.f1.models.ultimate_lap_time.achievable import FORBIDDEN_INFERENCE_COLUMNS
 from packages.f1.models.ultimate_lap_time.datasets import TARGET_AND_PREDICTION_COLUMNS
 from packages.f1.models.ultimate_lap_time.schemas import UltimateLapTelemetryExample
 from packages.f1.orchestration.model_runtime import inspect_optional_model_runtime
@@ -42,6 +43,35 @@ DEFAULT_EXCLUDED_FEATURE_COLUMNS: frozenset[str] = frozenset(
         "source",
         "channels",
         "distance_bins",
+    }
+)
+CAUSAL_FEATURE_FORBIDDEN_COLUMNS: frozenset[str] = frozenset(
+    set(TARGET_AND_PREDICTION_COLUMNS)
+    | set(FORBIDDEN_INFERENCE_COLUMNS)
+    | {
+        "event_key",
+        "event_id",
+        "meeting_key",
+        "weekend_key",
+        "driver_id",
+        "driver_number",
+        "lap_id",
+        "row_id",
+        "season",
+        "event_as_of",
+        "feature_as_of",
+        "target_as_of",
+        "qualy_position",
+        "actual_qualifying_position",
+        "finish_position",
+        "race_position",
+        "has_valid_qualifying_lap",
+        "reached_q2",
+        "reached_q3",
+        "lap_residual_seconds",
+        "split_key",
+        "split_name",
+        "fold",
     }
 )
 
@@ -108,6 +138,21 @@ class TabularQuantileConfig:
             raise ValueError("feature_columns must be an explicit non-empty causal allowlist")
         if len(set(self.feature_columns)) != len(self.feature_columns):
             raise ValueError("feature_columns must not contain duplicates")
+        forbidden = set(CAUSAL_FEATURE_FORBIDDEN_COLUMNS) | {
+            str(self.target_column),
+            str(self.season_column),
+            str(self.event_time_column),
+        }
+        overlap = sorted(
+            column
+            for column in self.feature_columns
+            if column in forbidden or str(column).startswith("predicted_")
+        )
+        if overlap:
+            raise ValueError(
+                "feature_columns contain forbidden outcome or identifier fields: "
+                f"{overlap}"
+            )
         if self.random_state < 0:
             raise ValueError("random_state must be non-negative")
         if self.min_rows_for_boosting < 1 or self.n_estimators < 1:
@@ -635,6 +680,7 @@ def predict_tabular_quantiles(
 
 
 __all__ = [
+    "CAUSAL_FEATURE_FORBIDDEN_COLUMNS",
     "PREDICTION_COLUMNS",
     "PREDICTION_COLUMN_BY_QUANTILE",
     "QUANTILES",

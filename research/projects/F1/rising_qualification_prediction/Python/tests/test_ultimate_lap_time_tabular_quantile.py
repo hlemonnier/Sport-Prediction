@@ -41,7 +41,7 @@ def test_tabular_quantile_model_fits_with_graceful_backend_and_monotonic_predict
     config = TabularQuantileConfig(
         n_estimators=12,
         min_rows_for_boosting=6,
-        feature_columns=("circuit_id", "driver_id", "compound", "tyre_age", "track_temp_c"),
+        feature_columns=("circuit_id", "compound", "tyre_age", "track_temp_c"),
     )
 
     model = fit_tabular_quantile_model(train, config=config)
@@ -155,7 +155,7 @@ def test_lightgbm_quantile_objectives_when_runtime_is_available() -> None:
         _training_frame(),
         config=TabularQuantileConfig(
             backend="lightgbm",
-            feature_columns=("tyre_age", "track_temp_c", "driver_id"),
+            feature_columns=("tyre_age", "track_temp_c", "circuit_id"),
             n_estimators=5,
         ),
     )
@@ -171,6 +171,17 @@ def test_lightgbm_quantile_objectives_when_runtime_is_available() -> None:
 def test_quantile_fit_enforces_explicit_features_and_strict_event_cutoff() -> None:
     with pytest.raises(ValueError, match="explicit non-empty causal allowlist"):
         TabularQuantileConfig()
+    with pytest.raises(ValueError, match="forbidden outcome or identifier"):
+        TabularQuantileConfig(feature_columns=("driver_id",))
+    with pytest.raises(ValueError, match="forbidden outcome or identifier"):
+        TabularQuantileConfig(
+            feature_columns=("lap_residual_seconds",),
+            target_column="lap_residual_seconds",
+        )
+    with pytest.raises(ValueError, match="forbidden outcome or identifier"):
+        TabularQuantileConfig(
+            feature_columns=("qualifying_q3_lap_time_seconds",),
+        )
 
     frame = _training_frame()
     event_dates = {

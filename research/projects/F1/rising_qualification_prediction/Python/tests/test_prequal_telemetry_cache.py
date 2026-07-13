@@ -11,6 +11,7 @@ from packages.f1.data.providers.telemetry_cache import (
     select_representative_push_laps,
     validate_telemetry_frame,
 )
+from run_prequal_telemetry_cache import _rehearsal_contract, _training_targets
 
 
 def test_push_lap_selection_rejects_deleted_pit_inaccurate_and_flagged_laps() -> None:
@@ -102,6 +103,51 @@ def test_cache_audit_requires_complete_independent_events_and_existing_files(
         "telemetry_cutoff_violations",
         "telemetry_files_missing",
     }
+
+
+def test_rehearsal_contract_uses_sprint_qualifying_without_reading_gp_qualifying() -> None:
+    event = pd.Series(
+        {
+            "Session1": "Practice 1",
+            "Session1DateUtc": "2026-05-01T10:00:00Z",
+            "Session2": "Sprint Qualifying",
+            "Session2DateUtc": "2026-05-01T14:00:00Z",
+            "Session3": "Sprint",
+            "Session3DateUtc": "2026-05-02T10:00:00Z",
+            "Session4": "Qualifying",
+            "Session4DateUtc": "2026-05-02T14:00:00Z",
+            "Session5": "Race",
+            "Session5DateUtc": "2026-05-03T14:00:00Z",
+        }
+    )
+    source, cutoff = _rehearsal_contract(event)
+    assert source == "Sprint Qualifying"
+    assert cutoff.isoformat() == "2026-05-02T14:00:00+00:00"
+
+
+def test_training_targets_are_separate_and_stage_labels_are_nested() -> None:
+    class Session:
+        laps = pd.DataFrame(
+            {
+                "Driver": ["AAA", "AAA", "BBB"],
+                "LapTime": pd.to_timedelta([90.0, 89.5, 91.0], unit="s"),
+                "Deleted": [False, True, False],
+            }
+        )
+        results = pd.DataFrame(
+            {
+                "Abbreviation": ["AAA", "BBB"],
+                "Q1": [pd.Timedelta(90.0, "s"), pd.Timedelta(91.0, "s")],
+                "Q2": [pd.Timedelta(89.8, "s"), pd.NaT],
+                "Q3": [pd.NaT, pd.NaT],
+            }
+        )
+
+    targets = _training_targets(Session(), event_key=202601).set_index("driver_id")
+    assert targets.loc["AAA", "lap_time_seconds"] == pytest.approx(90.0)
+    assert bool(targets.loc["AAA", "has_q2_time"])
+    assert not bool(targets.loc["BBB", "has_q2_time"])
+    assert targets["target_available_after_qualifying"].all()
 
 
 # Suggested commit name: test(f1-telemetry): enforce causal cache readiness

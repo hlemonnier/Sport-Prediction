@@ -1,0 +1,297 @@
+#!/usr/bin/env python3
+"""Capture causal pre-Qualifying telemetry and audit TCN data readiness."""
+
+from __future__ import annotations
+import repo_bootstrap  # noqa: F401
+
+import argparse
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import re
+from typing import Any, Iterable
+
+import numpy as np
+import pandas as pd
+
+from packages.f1.data.providers.telemetry_cache import (
+    REQUIRED_TELEMETRY_CHANNELS,
+    audit_telemetry_cache_manifests,
+    select_representative_push_laps,
+    utc_now,
+    validate_telemetry_frame,
+)
+from packages.sports_core.paths import find_repo_root
+
+
+SCHEMA_VERSION = "f1_prequal_telemetry_cache_v1"
+REHEARSAL_PRIORITY = (
+    "Sprint Qualifying",
+    "Sprint Shootout",
+    "Practice 3",
+    "Practice 2",
+    "Practice 1",
+)
+
+
+def _fastf1() -> Any:
+    try:
+        import fastf1
+    except Exception as exc:  # pragma: no cover - optional provider
+        raise RuntimeError("FastF1 is required to capture telemetry") from exc
+    return fastf1
+
+
+def _timestamp(value: Any) -> pd.Timestamp:
+    parsed = pd.Timestamp(value)
+    if parsed.tzinfo is None:
+        return parsed.tz_localize("UTC")
+    return parsed.tz_convert("UTC")
+
+
+def _event_sessions(event: pd.Series) -> list[dict[str, Any]]:
+    sessions: list[dict[str, Any]] = []
+    for order in range(1, 6):
+        name = event.get(f"Session{order}")
+        start = event.get(f"Session{order}DateUtc")
+        if pd.isna(name) or pd.isna(start):
+            continue
+        sessions.append({"order": order, "name": str(name), "start": _timestamp(start)})
+    return sessions
+
+
+def _rehearsal_contract(event: pd.Series) -> tuple[str, pd.Timestamp]:
+    sessions = _event_sessions(event)
+    qualifying = next((item for item in sessions if item["name"] == "Qualifying"), None)
+    if qualifying is None:
+        raise ValueError("event schedule has no Grand Prix Qualifying session")
+    eligible = {item["name"]: item for item in sessions if item["start"] < qualifying["start"]}
+    for name in REHEARSAL_PRIORITY:
+        if name in eligible:
+            return name, qualifying["start"]
+    raise ValueError("event has no completed rehearsal scheduled before Qualifying")
+
+
+def _portable(path: Path, root: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(root.resolve()))
+    except ValueError:
+        return str(path.resolve())
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_") or "event"
+
+
+def _absolute_telemetry(lap: Any) -> pd.DataFrame:
+    telemetry = lap.get_telemetry().copy()
+    if "Date" not in telemetry.columns:
+        lap_date = pd.to_datetime(lap.get("Date"), utc=True, errors="coerce")
+        if pd.isna(lap_date):
+            raise ValueError("lap telemetry has no absolute timestamp anchor")
+        if "Time" not in telemetry.columns:
+            raise ValueError("lap telemetry has neither Date nor relative Time")
+        relative = pd.to_timedelta(telemetry["Time"], errors="coerce")
+        telemetry["Date"] = lap_date - relative.max() + relative
+    return telemetry
+
+
+def _write_lap_tensor(
+    telemetry: pd.DataFrame,
+    *,
+    path: Path,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        channel: pd.to_numeric(telemetry[channel], errors="coerce").to_numpy(dtype=np.float32)
+        for channel in REQUIRED_TELEMETRY_CHANNELS
+    }
+    payload["Date"] = pd.to_datetime(telemetry["Date"], utc=True).view("int64").to_numpy()
+    np.savez_compressed(path, **payload)
+
+
+def _training_targets(session: Any, *, event_key: int) -> pd.DataFrame:
+    laps = session.laps.copy()
+    if laps.empty:
+        return pd.DataFrame()
+    valid = laps.copy()
+    if "Deleted" in valid.columns:
+        deleted = valid["Deleted"].fillna(False).astype(bool)
+        valid = valid.loc[~deleted]
+    valid["lap_time_seconds"] = pd.to_timedelta(valid["LapTime"], errors="coerce").dt.total_seconds()
+    valid = valid.loc[np.isfinite(valid["lap_time_seconds"])]
+    best = (
+        valid.sort_values(["Driver", "lap_time_seconds"], kind="mergesort")
+        .groupby("Driver", sort=False, as_index=False)
+        .first()
+    )
+    best = best.rename(columns={"Driver": "driver_id"})
+    best["event_key"] = int(event_key)
+    result = best[["event_key", "driver_id", "lap_time_seconds"]].copy()
+    classifications = getattr(session, "results", pd.DataFrame())
+    if isinstance(classifications, pd.DataFrame) and not classifications.empty:
+        info = classifications.reset_index(drop=True).copy()
+        driver_column = "Abbreviation" if "Abbreviation" in info.columns else "DriverId"
+        if driver_column in info.columns:
+            stage = pd.DataFrame({"driver_id": info[driver_column].astype(str)})
+            for name in ("Q1", "Q2", "Q3"):
+                stage[f"has_{name.lower()}_time"] = info.get(name, pd.Series(index=info.index)).notna()
+            result = result.merge(stage, on="driver_id", how="left", validate="one_to_one")
+    result["target_available_after_qualifying"] = True
+    return result
+
+
+def capture_round(
+    *,
+    year: int,
+    round_number: int,
+    output_root: Path,
+    cache_dir: Path,
+    maximum_laps_per_driver: int,
+    include_training_targets: bool,
+) -> Path:
+    fastf1 = _fastf1()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    fastf1.Cache.enable_cache(str(cache_dir))
+    event = fastf1.get_event(int(year), int(round_number))
+    rehearsal_name, qualifying_start = _rehearsal_contract(event)
+    event_key = int(year) * 100 + int(round_number)
+    event_name = str(event.get("EventName") or f"Round {round_number}")
+    event_dir = output_root / str(year) / f"round_{round_number:02d}_{_slug(event_name)}"
+    rehearsal = fastf1.get_session(int(year), int(round_number), rehearsal_name)
+    rehearsal.load(laps=True, telemetry=True, weather=False, messages=True)
+    selected = select_representative_push_laps(
+        rehearsal.laps, maximum_laps_per_driver=int(maximum_laps_per_driver)
+    )
+    if selected.empty:
+        raise ValueError("no promotion-grade pre-Qualifying push laps were found")
+
+    records: list[dict[str, Any]] = []
+    for row_index, row in selected.iterrows():
+        lap = rehearsal.laps.loc[row_index]
+        telemetry = _absolute_telemetry(lap)
+        validation = validate_telemetry_frame(
+            telemetry, qualifying_start_utc=qualifying_start.isoformat()
+        )
+        driver_id = str(row["driver_id"])
+        lap_number = int(row["lap_number"])
+        tensor_path = event_dir / "features" / f"{driver_id}_lap_{lap_number:03d}.npz"
+        _write_lap_tensor(telemetry, path=tensor_path)
+        records.append(
+            {
+                "event_key": event_key,
+                "driver_id": driver_id,
+                "lap_number": lap_number,
+                "push_lap_rank": int(row["push_lap_rank"]),
+                "lap_time_seconds": float(row["lap_time_seconds"]),
+                "rehearsal_source": rehearsal_name,
+                "feature_as_of": validation["feature_as_of"],
+                "qualifying_start_utc": validation["qualifying_start_utc"],
+                "telemetry_path": _portable(tensor_path, find_repo_root()),
+                "telemetry_sha256": _sha256(tensor_path),
+                "telemetry_rows": validation["rows"],
+                "distance_min_m": validation["distance_min_m"],
+                "distance_max_m": validation["distance_max_m"],
+                "channels": validation["channels"],
+            }
+        )
+
+    target_evidence: dict[str, Any] | None = None
+    if include_training_targets:
+        qualifying = fastf1.get_session(int(year), int(round_number), "Qualifying")
+        qualifying.load(laps=True, telemetry=False, weather=False, messages=False)
+        targets = _training_targets(qualifying, event_key=event_key)
+        target_path = event_dir / "training_targets_after_qualifying.csv"
+        event_dir.mkdir(parents=True, exist_ok=True)
+        targets.to_csv(target_path, index=False)
+        target_evidence = {
+            "path": _portable(target_path, find_repo_root()),
+            "sha256": _sha256(target_path),
+            "rows": int(len(targets)),
+            "inference_eligible": False,
+        }
+
+    manifest = {
+        "schema_version": SCHEMA_VERSION,
+        "event_key": event_key,
+        "year": int(year),
+        "round": int(round_number),
+        "event_name": event_name,
+        "rehearsal_source": rehearsal_name,
+        "qualifying_start_utc": qualifying_start.isoformat().replace("+00:00", "Z"),
+        "captured_at": utc_now(),
+        "feature_records": records,
+        "training_target_evidence": target_evidence,
+        "causality": {
+            "feature_files_available_before_qualifying": True,
+            "target_file_separate_and_inference_ineligible": True,
+            "target_session_used_for_roster": False,
+        },
+    }
+    manifest_path = event_dir / "telemetry_manifest.json"
+    event_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+    return manifest_path
+
+
+def _load_records(output_root: Path) -> Iterable[dict[str, Any]]:
+    for path in sorted(output_root.glob("*/round_*/telemetry_manifest.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        yield from payload.get("feature_records", [])
+
+
+def main() -> int:
+    root = find_repo_root()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--year", type=int, default=2026)
+    parser.add_argument("--round", type=int, action="append", dest="rounds")
+    parser.add_argument(
+        "--output-root", type=Path, default=root / "data" / "f1" / "telemetry" / "pre_qualifying"
+    )
+    parser.add_argument("--cache-dir", type=Path, default=root / ".cache" / "fastf1")
+    parser.add_argument("--maximum-laps-per-driver", type=int, default=3)
+    parser.add_argument("--include-training-targets", action="store_true")
+    parser.add_argument("--audit-only", action="store_true")
+    parser.add_argument("--minimum-independent-events", type=int, default=20)
+    parser.add_argument("--minimum-drivers-per-event", type=int, default=18)
+    args = parser.parse_args()
+
+    manifests: list[str] = []
+    if not args.audit_only:
+        if not args.rounds:
+            raise SystemExit("at least one --round is required unless --audit-only is set")
+        for round_number in sorted(set(args.rounds)):
+            path = capture_round(
+                year=args.year,
+                round_number=round_number,
+                output_root=args.output_root,
+                cache_dir=args.cache_dir,
+                maximum_laps_per_driver=args.maximum_laps_per_driver,
+                include_training_targets=bool(args.include_training_targets),
+            )
+            manifests.append(str(path))
+
+    audit = audit_telemetry_cache_manifests(
+        _load_records(args.output_root),
+        root=root,
+        minimum_independent_events=args.minimum_independent_events,
+        minimum_drivers_per_event=args.minimum_drivers_per_event,
+    )
+    print(json.dumps({"manifests": manifests, "audit": audit.to_payload()}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+
+
+# Suggested commit name: feat(f1-telemetry): capture timestamped pre-quali tensors

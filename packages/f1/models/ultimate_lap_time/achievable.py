@@ -348,11 +348,26 @@ def shared_qualifying_forecast_artifact(
         sample_digest.update(array.tobytes(order="C"))
 
     def frame_digest(frame: pd.DataFrame) -> str:
-        payload = frame.to_json(
+        # Pandas indices are execution-local bookkeeping, not forecast data.
+        # Canonicalize row/column order so the Qualifying and Best-Lap runners
+        # hash identical shared outputs even when they slice the same event from
+        # differently indexed season frames.
+        canonical = frame.copy()
+        sort_columns = [
+            column
+            for column in (EVENT_KEY_COLUMN, DRIVER_ID_COLUMN)
+            if column in canonical.columns
+        ]
+        if sort_columns:
+            canonical = canonical.sort_values(sort_columns, kind="mergesort")
+        canonical = canonical.reindex(sorted(canonical.columns), axis=1).reset_index(
+            drop=True
+        )
+        payload = canonical.to_json(
             orient="split",
             date_format="iso",
             double_precision=15,
-            index=True,
+            index=False,
         )
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 

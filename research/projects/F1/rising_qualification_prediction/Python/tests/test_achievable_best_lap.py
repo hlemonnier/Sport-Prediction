@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import math
 
 import pandas as pd
@@ -513,6 +514,23 @@ def test_best_lap_marginals_and_classification_use_the_exact_same_joint_samples(
         training_partition_manifest=partition,
     )
     assert artifact == repeated
+    reindexed = replace(
+        forecast,
+        lap_predictions=forecast.lap_predictions.set_axis(
+            range(100, 100 + len(forecast.lap_predictions))
+        ),
+        point_order=forecast.point_order.set_axis(
+            range(200, 200 + len(forecast.point_order))
+        ),
+        position_marginals=forecast.position_marginals.set_axis(
+            range(300, 300 + len(forecast.position_marginals))
+        ),
+    )
+    assert shared_qualifying_forecast_artifact(
+        reindexed,
+        model=model,
+        training_partition_manifest=partition,
+    ) == artifact
     assert artifact["event_key"] == 202601
     assert artifact["joint_sample_count"] == 600
     assert artifact["shared_samples_drive_best_lap_and_qualifying"]

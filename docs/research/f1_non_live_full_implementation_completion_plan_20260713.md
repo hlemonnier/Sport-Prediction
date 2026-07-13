@@ -33,8 +33,9 @@ and chronological evidence. Passing isolated unit tests is not sufficient.
   hard-coded Q1/Q2/Q3 time penalties are not the final implementation.
 - [ ] Huber selection is executed reproducibly on the declared selection block,
   rather than represented by a hard-coded outcome.
-- [ ] Interval names match their actual quantiles. An 85% central interval is
-  exposed as P07.5/P92.5; P05/P90 denotes a 90% central interval.
+- [ ] Interval names match their actual quantiles. P05/P90 denotes an
+  asymmetric interval with 85% nominal mass; an 85% central interval would be
+  P07.5/P92.5.
 - [ ] Quantile challenger and event-block conformal calibration are evaluated
   chronologically with complete entrant coverage.
 

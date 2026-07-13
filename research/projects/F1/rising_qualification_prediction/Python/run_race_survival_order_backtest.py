@@ -50,6 +50,16 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _canonical_json_sha256(value: object) -> str:
+    encoded = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def _metadata(weekends_dir: Path, year: int, round_number: int) -> tuple[dict[str, Any], Path]:
     matches = sorted((weekends_dir / str(year)).glob(f"round_{round_number:02d}_*"))
     if not matches:
@@ -114,7 +124,7 @@ def _session_snapshot_provenance(
         semantics = "retrospective_provider_post_session_snapshot_capture_time"
     else:
         semantics = "legacy_retrospective_provider_snapshot_capture_time_unavailable"
-    return {
+    payload: dict[str, Any] = {
         "session_type": normalized,
         "captured_at": str(captured_at) if captured_at else None,
         "first_published_at": (
@@ -125,6 +135,7 @@ def _session_snapshot_provenance(
         "logical_information_horizon": "completed_session_classification",
         "verification_cutoff": str(prediction_as_of),
     }
+    return payload
 
 
 def _rolling_group_mean(
@@ -1931,7 +1942,7 @@ def run(
         root / "packages/f1/features/race.py",
         root / "packages/f1/orchestration/non_live_validation.py",
     ]
-    return {
+    payload: dict[str, Any] = {
         "schema_version": "f1_race_survival_order_event_block_v3",
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": "race_final_position",
@@ -2065,6 +2076,35 @@ def run(
             for path in implementation_paths
         ],
     }
+    configuration_manifest = {
+        "weekends_dir": str(weekends_dir),
+        "years": sorted(set(int(value) for value in years)),
+        "evaluation_years": sorted(evaluation_set),
+        "development_years": sorted(partition_years["development"]),
+        "selection_years": sorted(partition_years["selection"]),
+        "calibration_years": sorted(partition_years["calibration"]),
+        "audit_years": sorted(partition_years["audit"]),
+        "simulations": int(simulations),
+        "selection_simulations": int(selection_simulations),
+        "bootstrap_samples": int(bootstrap_samples),
+        "seed": int(seed),
+        "temperature_candidates": list(temperatures),
+        "order_residual_candidates": list(residual_weights),
+    }
+    payload["configuration_manifest"] = configuration_manifest
+    payload["manifest_hashes"] = {
+        "data_input_manifest_sha256": _canonical_json_sha256(
+            payload["input_manifest"]
+        ),
+        "implementation_manifest_sha256": _canonical_json_sha256(
+            payload["implementation_manifest"]
+        ),
+        "configuration_manifest_sha256": _canonical_json_sha256(
+            configuration_manifest
+        ),
+        "protocol_sha256": _canonical_json_sha256(payload["protocol"]),
+    }
+    return payload
 
 
 def _csv_ints(value: str) -> tuple[int, ...]:

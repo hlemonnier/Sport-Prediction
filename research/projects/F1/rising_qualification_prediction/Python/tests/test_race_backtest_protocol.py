@@ -17,6 +17,7 @@ from run_race_survival_order_backtest import (  # noqa: E402
     _align_grid_driver_ids_from_qualifying,
     _build_event_rows,
     _canonicalize_qualifying_driver_identity,
+    _canonical_json_sha256,
     _fit_binary_terminal_calibrator,
     _map_driver_ids_from_qualifying,
     _normalize_identity_token,
@@ -56,6 +57,15 @@ def test_order_residual_weight_is_a_score_time_parameter_only() -> None:
     assert model.order_model.config.grid_prior_weight == original.grid_prior_weight
     assert model.order_model.config.max_iter == original.max_iter
     assert model.order_model.config.random_state == original.random_state
+
+
+def test_canonical_manifest_hash_is_order_stable_and_value_sensitive() -> None:
+    first = {"b": [2, 3], "a": {"x": 1}}
+    reordered = {"a": {"x": 1}, "b": [2, 3]}
+    changed = {"a": {"x": 1}, "b": [2, 4]}
+
+    assert _canonical_json_sha256(first) == _canonical_json_sha256(reordered)
+    assert _canonical_json_sha256(first) != _canonical_json_sha256(changed)
 
 
 def test_qualifying_abbreviation_is_the_stable_longitudinal_driver_identity() -> None:

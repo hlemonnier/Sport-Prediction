@@ -1163,6 +1163,15 @@ def run(
         horizon = RacePredictionHorizon(event_info[event_key]["information_horizon"])
         return prior, current, order_history, prediction_as_of, horizon
 
+    # Hyperparameter selection changes only the conditional-order residual
+    # weight and Plackett-Luce sampling temperature.  Temperature is a
+    # prediction-time parameter, so refitting the same event/residual model for
+    # every temperature is both wasteful and a reproducibility risk.  Cache
+    # immutable, uncalibrated fitted models at the exact sufficient key.
+    fitted_model_cache: dict[tuple[int, float], SurvivalAwareRaceModel] = {}
+    model_fit_count = 0
+    model_fit_cache_hits = 0
+
     def event_forecast(
         event_key: int,
         *,
@@ -1171,22 +1180,32 @@ def run(
         forecast_simulations: int,
         calibrator: BinaryTerminalCalibrator | None = None,
     ) -> tuple[Any, pd.DataFrame, pd.DataFrame]:
+        nonlocal model_fit_count, model_fit_cache_hits
         prior, current, order_history, prediction_as_of, horizon = event_inputs(
             event_key
         )
-        terminal_model = PartialPooledTerminalHazard()
-        model = SurvivalAwareRaceModel(
-            terminal_model=terminal_model,
-            order_model=BradleyTerryOrderRanker(
-                ConditionalOrderConfig(residual_weight=float(residual_weight))
-            ),
-        ).fit(
-            prior,
-            cutoff=prediction_as_of,
-            order_history=order_history,
-        )
+        cache_key = (int(event_key), float(residual_weight))
+        cache_allowed = calibrator is None
+        model = fitted_model_cache.get(cache_key) if cache_allowed else None
+        if model is None:
+            terminal_model = PartialPooledTerminalHazard()
+            model = SurvivalAwareRaceModel(
+                terminal_model=terminal_model,
+                order_model=BradleyTerryOrderRanker(
+                    ConditionalOrderConfig(residual_weight=float(residual_weight))
+                ),
+            ).fit(
+                prior,
+                cutoff=prediction_as_of,
+                order_history=order_history,
+            )
+            model_fit_count += 1
+            if cache_allowed:
+                fitted_model_cache[cache_key] = model
+        else:
+            model_fit_cache_hits += 1
         if calibrator is not None:
-            terminal_model.set_terminal_calibrator(calibrator)
+            model.terminal_model.set_terminal_calibrator(calibrator)
         forecast = model.predict_joint(
             current.drop(columns=target_columns, errors="ignore"),
             horizon=horizon,
@@ -1678,6 +1697,18 @@ def run(
                 "candidate_results": selection_trace,
                 "selected_by_information_horizon": selected_by_horizon,
                 "cross_horizon_parameter_reuse": False,
+                "model_fit_cache": {
+                    "key": ["event_key", "order_residual_weight"],
+                    "prediction_time_parameters_excluded": [
+                        "plackett_luce_temperature",
+                        "forecast_simulations",
+                        "seed",
+                    ],
+                    "calibrated_models_cached": False,
+                    "entries": len(fitted_model_cache),
+                    "model_fits": model_fit_count,
+                    "cache_hits": model_fit_cache_hits,
+                },
                 "hazard_covariate_l2_c": 0.25,
                 "qualifying_prior_ridge_alpha": 10.0,
             },

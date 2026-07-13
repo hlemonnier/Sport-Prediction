@@ -989,12 +989,12 @@ def run_backtest(
             }
         )
         joint_seed = SHARED_QUALIFYING_SAMPLE_SEED_BASE + int(event_key)
-        baseline_predictions = baseline_model.predict_qualifying(
-            baseline_inference,
-            samples=5_000,
-            seed=joint_seed,
-            allow_diagnostic_stage_fallback=True,
-        ).lap_predictions
+        # The legacy baseline is a per-driver rehearsal-shift estimator, not a
+        # full classification simulator. Drivers without a valid rehearsal lap
+        # are intentionally outside its scored population, which can be odd;
+        # applying FIA elimination sampling to that subset is mathematically
+        # invalid. Use its analytic lap forecast directly.
+        baseline_predictions = baseline_model.predict(baseline_inference)
         baseline_indexed = baseline_predictions.set_index("driver_id")
         baseline_by_driver = baseline_indexed["lap_p50"]
         shared_forecast_artifacts.append(artifact)

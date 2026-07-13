@@ -20,6 +20,8 @@ from run_race_survival_order_backtest import (  # noqa: E402
     _fit_binary_terminal_calibrator,
     _map_driver_ids_from_qualifying,
     _normalize_identity_token,
+    _resolve_missing_race_targets,
+    _resolve_session_reference,
     _rolling_oof_qualifying_prior,
     _same_product_promotion_blockers,
     _set_prediction_order_residual_weight,
@@ -148,6 +150,53 @@ def test_duplicate_stable_driver_identity_fails_closed() -> None:
                 }
             )
         )
+
+
+def test_first_seen_grid_can_authoritatively_complete_a_nonstarter_target() -> None:
+    resolved = _resolve_missing_race_targets(
+        pd.DataFrame(
+            {
+                "driver_id": ["RUS", "STR"],
+                "race_target_observed": [True, pd.NA],
+                "race_target_source": ["provider_race_classification", pd.NA],
+                "race_status_raw": ["Finished", pd.NA],
+                "race_status_evidence_complete": [True, pd.NA],
+                "finish_position": [1.0, np.nan],
+                "retirement_fraction": [1.0, np.nan],
+                "laps_completed": [60.0, np.nan],
+                "grid_evidence_complete": [True, True],
+                "grid_publication_pre_race_verified": [True, True],
+                "grid_starter_eligible": [1.0, 0.0],
+                "grid_baseline_position": [1.0, 2.0],
+            }
+        ),
+        final_capture=True,
+    )
+
+    nonstarter = resolved.loc[resolved["driver_id"].eq("STR")].iloc[0]
+    assert bool(nonstarter["race_target_observed"]) is True
+    assert nonstarter["race_target_source"] == "official_first_seen_grid_nonstarter"
+    assert nonstarter["race_status_raw"] == "Did not start"
+    assert nonstarter["finish_position"] == 2.0
+    assert nonstarter["retirement_fraction"] == 0.0
+
+
+def test_legacy_metadata_reference_uses_weekend_basename_fallback(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "project"
+    weekend = root / "data/f1/raw/weekends/2025/round_09_fake"
+    weekend.mkdir(parents=True)
+    actual = weekend / "01_practice_1_results.csv"
+    actual.write_text("DriverNumber,Status\n1,Finished\n", encoding="utf-8")
+
+    resolved = _resolve_session_reference(
+        root,
+        weekend,
+        "data/f1/weekends/2025/round_09_fake/01_practice_1_results.csv",
+    )
+
+    assert resolved == actual
 
 
 def test_signed_qualifying_prior_is_rolling_out_of_event_and_target_blind() -> None:
@@ -288,7 +337,7 @@ def test_provisional_grid_resolves_provider_ties_by_official_source_order() -> N
     assert positions.index.tolist() == frame.index.tolist()
 
 
-def test_race_truth_is_read_only_after_causal_feature_roster_is_frozen(
+def test_unproven_missing_race_target_fails_closed_after_feature_freeze(
     tmp_path: Path,
 ) -> None:
     weekend = tmp_path / "2026" / "round_01_fake"
@@ -375,9 +424,17 @@ def test_race_truth_is_read_only_after_causal_feature_roster_is_frozen(
     assert pd.isna(
         frame.loc[frame["driver_id"].eq("BBB"), "race_provider_driver_id"].iloc[0]
     )
-    assert frame.loc[frame["driver_id"].eq("BBB"), "race_status_raw"].iloc[0] == (
-        "Did not start"
+    assert pd.isna(
+        frame.loc[frame["driver_id"].eq("BBB"), "race_status_raw"].iloc[0]
     )
+    assert (
+        frame.loc[frame["driver_id"].eq("BBB"), "race_target_observed"].iloc[0]
+        is False
+    )
+    assert info["race_target_coverage_complete"] is False
+    assert info["race_target_missing_driver_ids"] == ["BBB"]
+    assert info["qualifying_snapshot_provenance"]["first_seen_verified"] is False
+    assert "retrospective" in info["driver_identity_contract"]["canonical_source"]
     assert "race_team_name" not in frame.columns
     assert "race_power_unit" not in frame.columns
     assert "finish_position" not in info["causal_inference_columns"]

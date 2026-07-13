@@ -75,6 +75,58 @@ def _normalized_circuit(metadata: dict[str, Any]) -> str:
     return "_".join(part for part in "".join(char if char.isalnum() else " " for char in text).split() if part)
 
 
+def _session_snapshot_provenance(
+    metadata: dict[str, Any],
+    session_type: str,
+    *,
+    prediction_as_of: str,
+) -> dict[str, Any]:
+    """Describe capture time separately from the session's logical horizon."""
+
+    normalized = str(session_type).strip().lower()
+    entry = next(
+        (
+            session
+            for session in metadata.get("sessions", [])
+            if str(session.get("session_type", "")).strip().lower() == normalized
+        ),
+        {},
+    )
+    first_published_at = entry.get("first_published_at")
+    captured_at = entry.get("available_at")
+    published_timestamp = pd.to_datetime(
+        first_published_at, errors="coerce", utc=True
+    )
+    logical_cutoff = pd.to_datetime(
+        prediction_as_of, errors="coerce", utc=True
+    )
+    first_seen_verified = bool(
+        first_published_at
+        and pd.notna(published_timestamp)
+        and pd.notna(logical_cutoff)
+        and published_timestamp <= logical_cutoff
+    )
+    if first_seen_verified:
+        semantics = "first_published_provider_snapshot_verified_pre_cutoff"
+    elif first_published_at:
+        semantics = "reported_first_publication_not_verified_pre_cutoff"
+    elif captured_at:
+        semantics = "retrospective_provider_post_session_snapshot_capture_time"
+    else:
+        semantics = "legacy_retrospective_provider_snapshot_capture_time_unavailable"
+    return {
+        "session_type": normalized,
+        "captured_at": str(captured_at) if captured_at else None,
+        "first_published_at": (
+            str(first_published_at) if first_published_at else None
+        ),
+        "first_seen_verified": first_seen_verified,
+        "time_semantics": semantics,
+        "logical_information_horizon": "completed_session_classification",
+        "verification_cutoff": str(prediction_as_of),
+    }
+
+
 def _rolling_group_mean(
     history: pd.DataFrame,
     *,
@@ -118,7 +170,31 @@ def _rolling_rate(
     return output
 
 
-def _pre_race_red_flag_count(root: Path, metadata: dict[str, Any]) -> int:
+def _resolve_session_reference(
+    root: Path,
+    weekend_dir: Path,
+    reference: object,
+) -> Path | None:
+    """Resolve metadata paths with the same legacy fallback as the provider."""
+
+    text = str(reference or "").strip()
+    if not text:
+        return None
+    path = Path(text).expanduser()
+    candidates = (
+        (path,)
+        if path.is_absolute()
+        else (root / path, weekend_dir / path.name, weekend_dir / path)
+    )
+    return next((candidate for candidate in candidates if candidate.exists()), None)
+
+
+def _pre_race_red_flag_count(
+    root: Path,
+    metadata: dict[str, Any],
+    *,
+    weekend_dir: Path,
+) -> int:
     qualifying_order = min(
         (
             int(session.get("session_order", 999))
@@ -134,9 +210,8 @@ def _pre_race_red_flag_count(root: Path, metadata: dict[str, Any]) -> int:
         reference = session.get("race_control_messages_path")
         if not reference:
             continue
-        path = Path(str(reference))
-        path = path if path.is_absolute() else root / path
-        if not path.exists():
+        path = _resolve_session_reference(root, weekend_dir, reference)
+        if path is None:
             continue
         frame = pd.read_csv(path)
         for column in ("Flag", "Status", "Message"):
@@ -145,7 +220,12 @@ def _pre_race_red_flag_count(root: Path, metadata: dict[str, Any]) -> int:
     return int(sum("red" in value and "flag" in value for value in set(messages)))
 
 
-def _pre_race_wet_evidence(root: Path, metadata: dict[str, Any]) -> float:
+def _pre_race_wet_evidence(
+    root: Path,
+    metadata: dict[str, Any],
+    *,
+    weekend_dir: Path,
+) -> float:
     qualifying_order = min(
         (
             int(session.get("session_order", 999))
@@ -161,9 +241,8 @@ def _pre_race_wet_evidence(root: Path, metadata: dict[str, Any]) -> float:
         reference = session.get("weather_path")
         if not reference:
             continue
-        path = Path(str(reference))
-        path = path if path.is_absolute() else root / path
-        if not path.exists():
+        path = _resolve_session_reference(root, weekend_dir, reference)
+        if path is None:
             continue
         frame = pd.read_csv(path)
         if "Rainfall" in frame.columns:
@@ -176,6 +255,8 @@ def _pre_race_wet_evidence(root: Path, metadata: dict[str, Any]) -> float:
 def _pre_race_driver_mechanical_stop_share(
     root: Path,
     metadata: dict[str, Any],
+    *,
+    weekend_dir: Path,
 ) -> dict[str, float]:
     counts: dict[str, int] = {}
     mechanical: dict[str, int] = {}
@@ -185,9 +266,8 @@ def _pre_race_driver_mechanical_stop_share(
         reference = session.get("results_path")
         if not reference:
             continue
-        path = Path(str(reference))
-        path = path if path.is_absolute() else root / path
-        if not path.exists():
+        path = _resolve_session_reference(root, weekend_dir, reference)
+        if path is None:
             continue
         frame = pd.read_csv(path)
         driver_col = next(
@@ -538,7 +618,7 @@ def _canonicalize_qualifying_driver_identity(
     out["driver_abbreviation"] = abbreviations.astype(str)
     out["driver_id"] = abbreviations.astype(str)
     out["driver_identity_source"] = (
-        "pre_race_qualifying_fia_driver_abbreviation"
+        "retrospective_provider_qualifying_fia_driver_abbreviation"
     )
 
     lookup: dict[str, str] = {}
@@ -587,6 +667,61 @@ def _map_driver_ids_from_qualifying(
         raise ValueError(
             f"{source_name} maps multiple provider rows to one stable driver identity"
         )
+    return out
+
+
+def _resolve_missing_race_targets(
+    frame: pd.DataFrame,
+    *,
+    final_capture: bool,
+) -> pd.DataFrame:
+    """Complete only officially proven nonstarters; leave all other gaps open."""
+
+    out = frame.copy()
+    observed = out["race_target_observed"].eq(True)
+    unmatched = ~observed
+    authoritative_nonstarter = pd.Series(False, index=out.index, dtype=bool)
+    if final_capture:
+        authoritative_nonstarter = (
+            unmatched
+            & out["grid_evidence_complete"].eq(True)
+            & out["grid_publication_pre_race_verified"].eq(True)
+            & pd.to_numeric(out["grid_starter_eligible"], errors="coerce")
+            .fillna(1.0)
+            .le(0.0)
+        )
+    if authoritative_nonstarter.any():
+        out.loc[authoritative_nonstarter, "race_status_raw"] = "Did not start"
+        out.loc[
+            authoritative_nonstarter, "race_status_evidence_complete"
+        ] = True
+        out.loc[
+            authoritative_nonstarter, "race_target_source"
+        ] = "official_first_seen_grid_nonstarter"
+        out.loc[authoritative_nonstarter, "race_target_observed"] = True
+        used = {
+            int(value)
+            for value in pd.to_numeric(
+                out["finish_position"], errors="coerce"
+            ).dropna()
+        }
+        next_position = 1
+        ordered_nonstarters = out.loc[authoritative_nonstarter].sort_values(
+            ["grid_baseline_position", "driver_id"], kind="mergesort"
+        )
+        for index in ordered_nonstarters.index:
+            while next_position in used:
+                next_position += 1
+            out.loc[index, "finish_position"] = next_position
+            out.loc[index, "retirement_fraction"] = 0.0
+            out.loc[index, "laps_completed"] = 0.0
+            used.add(next_position)
+    unproven_missing = unmatched & ~authoritative_nonstarter
+    out.loc[unproven_missing, "race_target_observed"] = False
+    out.loc[unproven_missing, "race_status_evidence_complete"] = False
+    out.loc[
+        unproven_missing, "race_target_source"
+    ] = "unavailable_without_authoritative_nonstarter_evidence"
     return out
 
 
@@ -682,7 +817,9 @@ def _build_event_rows(
     frame["power_unit_source"] = frame.get(
         "qualy_power_unit_source", pd.Series(index=frame.index, dtype=object)
     )
-    frame["causal_roster_source"] = "pre_race_qualifying_classification"
+    frame["causal_roster_source"] = (
+        "retrospective_provider_post_qualifying_classification"
+    )
     event_key = int(year) * 100 + int(round_number)
     frame["event_key"] = event_key
     frame["event_as_of"] = _event_as_of(metadata)
@@ -741,6 +878,16 @@ def _build_event_rows(
         )
         horizon = RacePredictionHorizon.POST_QUALIFYING_PRE_GRID
         prediction_as_of = _event_as_of(metadata)
+    qualifying_snapshot_provenance = _session_snapshot_provenance(
+        metadata,
+        "qualifying",
+        prediction_as_of=prediction_as_of,
+    )
+    prediction_as_of_semantics = (
+        "first_seen_final_grid_publication"
+        if final_capture
+        else "retrospective_race_start_upper_bound_without_first_seen_qualifying_time"
+    )
     frame["feature_as_of"] = prediction_as_of
     frame["grid_baseline_position"] = _legal_grid_baseline(frame)
 
@@ -811,10 +958,16 @@ def _build_event_rows(
     )
     frame["race_driver_incident_rate"] = frame["driver_id"].astype(str).map(driver_incident)
     frame["race_circuit_dnf_rate"] = frame["circuit_id"].map(circuit_dnf)
-    frame["race_weekend_stoppage_count"] = float(_pre_race_red_flag_count(root, metadata))
-    frame["race_wet_probability"] = _pre_race_wet_evidence(root, metadata)
+    frame["race_weekend_stoppage_count"] = float(
+        _pre_race_red_flag_count(
+            root, metadata, weekend_dir=metadata_path.parent
+        )
+    )
+    frame["race_wet_probability"] = _pre_race_wet_evidence(
+        root, metadata, weekend_dir=metadata_path.parent
+    )
     raw_mechanical_stop_share = _pre_race_driver_mechanical_stop_share(
-        root, metadata
+        root, metadata, weekend_dir=metadata_path.parent
     )
     mechanical_stop_share = {
         identity_lookup[_normalize_identity_token(raw_driver_id)]: value
@@ -912,6 +1065,11 @@ def _build_event_rows(
     race_targets = race[target_columns].copy().rename(
         columns={"position": "finish_position"}
     )
+    race_targets["race_target_source"] = "provider_race_classification"
+    race_targets["race_target_observed"] = (
+        pd.to_numeric(race_targets["finish_position"], errors="coerce").notna()
+        & race_targets["race_status_evidence_complete"].fillna(False).astype(bool)
+    )
     race_targets = _map_driver_ids_from_qualifying(
         race_targets,
         identity_lookup,
@@ -932,34 +1090,20 @@ def _build_event_rows(
         how="left",
         validate="one_to_one",
     )
-    qualifying_only = frame["race_status_raw"].isna()
-    if qualifying_only.any():
-        # A causal roster entrant absent from the authoritative Race
-        # classification is retained as a target-population DNS at the tail.
-        # This repair occurs only after the inference snapshot is immutable.
-        frame.loc[qualifying_only, "race_status_raw"] = "Did not start"
-        frame.loc[qualifying_only, "race_status_evidence_complete"] = True
-        used = {
-            int(value)
-            for value in pd.to_numeric(frame["finish_position"], errors="coerce").dropna()
-        }
-        next_position = 1
-        for index in frame.index[qualifying_only]:
-            while next_position in used:
-                next_position += 1
-            frame.loc[index, "finish_position"] = next_position
-            frame.loc[index, "retirement_fraction"] = 0.0
-            frame.loc[index, "laps_completed"] = 0.0
-            used.add(next_position)
-    frame["terminal_status"] = frame["race_status_raw"].map(reason_code_terminal_status)
-    if frame["terminal_status"].isna().any():
+    frame = _resolve_missing_race_targets(frame, final_capture=final_capture)
+    encoded_terminal = frame["race_status_raw"].map(reason_code_terminal_status)
+    observed_target = frame["race_target_observed"].eq(True)
+    unresolved_target = observed_target & encoded_terminal.isna()
+    if unresolved_target.any():
         unresolved = sorted(
-            frame.loc[frame["terminal_status"].isna(), "race_status_raw"]
+            frame.loc[unresolved_target, "race_status_raw"]
             .astype(str)
             .unique()
         )
         raise ValueError(f"unresolved terminal status labels: {unresolved}")
-    frame["terminal_status"] = frame["terminal_status"].map(lambda value: value.value)
+    frame["terminal_status"] = encoded_terminal.map(
+        lambda value: value.value if isinstance(value, TerminalStatus) else None
+    )
     frame["terminal_label_granularity"] = frame["race_status_raw"].map(
         terminal_label_granularity
     ).map(lambda value: value.value if value is not None else None)
@@ -974,10 +1118,14 @@ def _build_event_rows(
             reference = session.get(key)
             if not reference:
                 continue
-            path = Path(str(reference))
-            path = path if path.is_absolute() else root / path
-            if path.exists():
+            path = _resolve_session_reference(
+                root, metadata_path.parent, reference
+            )
+            if path is not None:
                 input_paths.append(path)
+    missing_target_driver_ids = sorted(
+        frame.loc[~observed_target, "driver_id"].astype(str).tolist()
+    )
     info = {
         "event_key": event_key,
         "year": int(year),
@@ -987,16 +1135,30 @@ def _build_event_rows(
         "field_size": int(len(frame)),
         "information_horizon": horizon.value,
         "prediction_as_of": prediction_as_of,
+        "prediction_as_of_semantics": prediction_as_of_semantics,
         "final_grid_snapshot_used": final_capture,
         "grid_capture_id": (
             str(starting_grid["grid_capture_id"].iloc[0]) if final_capture else None
         ),
         "causal_inference_columns": list(inference_columns),
         "race_truth_attached_after_inference_freeze": True,
+        "race_target_coverage_complete": not missing_target_driver_ids,
+        "race_target_missing_driver_ids": missing_target_driver_ids,
+        "race_target_sources": {
+            str(key): int(value)
+            for key, value in frame["race_target_source"]
+            .fillna("unavailable")
+            .value_counts()
+            .sort_index()
+            .items()
+        },
         "signed_qualifying_surprise_prior": qualifying_prior_manifest,
+        "qualifying_snapshot_provenance": qualifying_snapshot_provenance,
         "driver_identity_contract": {
             "canonical_field": "driver_id",
-            "canonical_source": "pre_race_qualifying_fia_driver_abbreviation",
+            "canonical_source": (
+                "retrospective_provider_qualifying_fia_driver_abbreviation"
+            ),
             "provider_identity_retained_as": "provider_driver_id",
             "race_truth_allowed_to_repair_identity": False,
         },
@@ -1050,6 +1212,7 @@ def _same_product_promotion_blockers(
     audit_event_count: int,
     same_product_selection_evidence: bool,
     same_product_calibration_evidence: bool,
+    point_in_time_input_snapshot_verified: bool = True,
 ) -> tuple[str, ...]:
     """Return protocol blockers before any metric-based promotion decision."""
 
@@ -1060,6 +1223,8 @@ def _same_product_promotion_blockers(
         reasons.append("missing_same_product_selection_evidence")
     if not bool(same_product_calibration_evidence):
         reasons.append("missing_same_product_calibration_evidence")
+    if not bool(point_in_time_input_snapshot_verified):
+        reasons.append("qualifying_snapshot_not_first_seen_verified")
     return tuple(reasons)
 
 
@@ -1135,6 +1300,7 @@ def run(
     event_frames: dict[int, pd.DataFrame] = {}
     event_info: dict[int, dict[str, Any]] = {}
     inputs: set[Path] = set()
+    excluded_incomplete_target_events: list[dict[str, Any]] = []
     for year in sorted(set(int(value) for value in years)):
         for item in provider.list_rounds(year):
             round_number = int(item["round_number"])
@@ -1146,9 +1312,24 @@ def run(
                 round_number=round_number,
                 history=history,
             )
+            inputs.update(event_inputs)
+            if not bool(info["race_target_coverage_complete"]):
+                excluded_incomplete_target_events.append(
+                    {
+                        "event_key": int(info["event_key"]),
+                        "event_name": str(info["event_name"]),
+                        "missing_driver_ids": list(
+                            info["race_target_missing_driver_ids"]
+                        ),
+                        "reason": (
+                            "incomplete_provider_race_target_without_"
+                            "authoritative_nonstarter_evidence"
+                        ),
+                    }
+                )
+                continue
             event_frames[int(info["event_key"])] = frame
             event_info[int(info["event_key"])] = info
-            inputs.update(event_inputs)
             history = pd.concat([history, frame], ignore_index=True)
 
     partition_years = {
@@ -1202,6 +1383,8 @@ def run(
         "laps_completed",
         "terminal_label_granularity",
         "race_provider_driver_id",
+        "race_target_observed",
+        "race_target_source",
     ]
 
     def event_inputs(
@@ -1470,6 +1653,7 @@ def run(
                 "grid_provider_driver_id",
                 "grid_identity_mapping_source",
                 "race_provider_driver_id",
+                "race_target_source",
             )
             if column in current.columns
         ]
@@ -1481,6 +1665,7 @@ def run(
                 "finish_position",
                 "terminal_status",
                 "terminal_label_granularity",
+                "race_target_observed",
                 "race_status_raw",
                 "retirement_fraction",
             ]
@@ -1675,6 +1860,14 @@ def run(
                     "same_product_calibration_evidence"
                 ]
             ),
+            point_in_time_input_snapshot_verified=all(
+                bool(
+                    event_info[int(event["event_key"])][
+                        "qualifying_snapshot_provenance"
+                    ]["first_seen_verified"]
+                )
+                for event in group
+            ),
         )
         if protocol_reasons:
             promotion_by_horizon[horizon_value] = {
@@ -1739,7 +1932,7 @@ def run(
         root / "packages/f1/orchestration/non_live_validation.py",
     ]
     return {
-        "schema_version": "f1_race_survival_order_event_block_v2",
+        "schema_version": "f1_race_survival_order_event_block_v3",
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": "race_final_position",
         "target": "official_terminal_race_classification_and_status",
@@ -1752,6 +1945,15 @@ def run(
             "years_loaded": sorted(set(int(value) for value in years)),
             "evaluation_years": sorted(evaluation_set),
             "event_partitions": partition_events,
+            "excluded_incomplete_target_events": excluded_incomplete_target_events,
+            "driver_identity_semantics": {
+                "driver_id": "uppercase_fia_driver_abbreviation",
+                "provider_driver_id": "provider_or_car_number_from_qualifying",
+                "car_number": "event_specific_car_number",
+                "migration_from_v2": (
+                    "v2 predictions used provider car numbers as driver_id"
+                ),
+            },
             "event_partition_issues": list(partition_issues),
             "audit_oof_qualifying_prior_verified": True,
             "audit_power_unit_identity_verified": True,
@@ -1797,7 +1999,20 @@ def run(
                 "cross_horizon_calibration_reuse": False,
             },
             "inference_target_boundary": {
-                "feature_roster": "qualifying_or_immutable_final_grid_plus_pre_race_practice",
+                "feature_roster": (
+                    "retrospective_post_session_qualifying_snapshot_or_"
+                    "immutable_final_grid_plus_pre_race_practice"
+                ),
+                "qualifying_snapshot_first_seen_verified": all(
+                    bool(info["qualifying_snapshot_provenance"]["first_seen_verified"])
+                    for info in event_info.values()
+                ),
+                "qualifying_snapshot_time_semantics": sorted(
+                    {
+                        str(info["qualifying_snapshot_provenance"]["time_semantics"])
+                        for info in event_info.values()
+                    }
+                ),
                 "race_result_read_after_inference_freeze": True,
                 "race_result_fields_allowed": list(target_columns),
                 "race_result_team_or_power_unit_fallback": False,

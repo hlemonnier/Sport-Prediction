@@ -296,7 +296,10 @@ def _quality_aware_rehearsal(
     if "Driver" not in frame.columns:
         raise ValueError(f"{path} is missing Driver")
     earlier_parts: list[pd.DataFrame] = []
-    roster_sources: list[pd.DataFrame] = [pd.read_csv(_session_results_path(path))]
+    # The target-aligned rehearsal owns the active pre-Q roster. Earlier
+    # practice laps remain useful fallback pace evidence, but their result
+    # tables contain reserve drivers who may already have surrendered the seat.
+    roster_source = pd.read_csv(_session_results_path(path))
     for earlier_path in (
         _earlier_evidence_paths(path, source=source) if include_earlier_evidence else []
     ):
@@ -305,11 +308,9 @@ def _quality_aware_rehearsal(
             continue
         earlier["rehearsal_source"] = _source_from_filename(earlier_path)
         earlier_parts.append(earlier)
-        earlier_results_path = _session_results_path(earlier_path)
-        roster_sources.append(pd.read_csv(earlier_results_path))
     earlier_laps = pd.concat(earlier_parts, ignore_index=True) if earlier_parts else None
     roster_parts: list[pd.DataFrame] = []
-    for roster_source in roster_sources:
+    for roster_source in (roster_source,):
         roster_driver = next(
             (
                 column

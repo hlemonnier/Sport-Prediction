@@ -180,7 +180,16 @@ def _pre_qualifying_roster(*parts: pd.DataFrame) -> pd.DataFrame:
     return roster.drop_duplicates("driver_id", keep="first").reset_index(drop=True)
 
 
-def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, Any], list[Path]]:
+def _event_inference_frame(
+    root: Path,
+    event_dir: Path,
+) -> tuple[pd.DataFrame, dict[str, Any], list[Path], Path]:
+    """Build and freeze one event's pre-Qualifying inference snapshot.
+
+    The returned frame contains no Grand Prix Qualifying result content.  The
+    target path is resolved for later evaluation, but it is not opened here.
+    """
+
     metadata_path = event_dir / "weekend_metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     sessions = [dict(value) for value in metadata.get("sessions", []) if isinstance(value, dict)]
@@ -285,6 +294,41 @@ def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, A
         official_session_timing=True,
     )
     event_key = int(metadata["year"]) * 100 + int(metadata["round_number"])
+    frame = features.copy()
+    frame["event_key"] = event_key
+    frame["rehearsal_source"] = source
+    frame["latest_qualifying_rehearsal_source"] = source
+    baseline_anchor = pd.to_numeric(frame.get("valid_clean_best_seconds"), errors="coerce")
+    fallback = pd.to_numeric(frame.get("quality_aware_anchor_seconds"), errors="coerce")
+    baseline_anchor = baseline_anchor.where(baseline_anchor.notna(), fallback)
+    stable = pd.DataFrame(
+        {
+            "anchor": baseline_anchor.fillna(np.inf),
+            "driver": frame["driver_id"].astype(str),
+            "row": np.arange(len(frame)),
+        }
+    ).sort_values(["anchor", "driver", "row"], kind="mergesort")
+    ranks = pd.Series(np.arange(1, len(stable) + 1), index=stable.index)
+    frame["latest_qualifying_rehearsal_rank"] = ranks.reindex(frame.index).astype(int)
+    event_info = {
+        "event_key": event_key,
+        "year": int(metadata["year"]),
+        "round": int(metadata["round_number"]),
+        "event_name": str(metadata.get("event_name") or event_dir.name),
+        "event_format": str(metadata.get("event_format") or "unknown"),
+        "rehearsal_source": source,
+        "field_size": int(len(frame)),
+        "roster_source": "latest_target_aligned_pre_qualifying_session_only",
+        "target_result_used_for_roster": False,
+    }
+    return frame, event_info, input_paths, qualifying_results_path
+
+
+def _qualifying_target_frame(
+    qualifying_results_path: Path,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Open the evaluation-only Qualifying classification."""
+
     qualifying_results = pd.read_csv(qualifying_results_path)
     driver_column = _driver_column(qualifying_results)
     target_drivers = qualifying_results[driver_column].astype(str).str.strip()
@@ -317,36 +361,54 @@ def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, A
             ),
         }
     )
-    frame = features.merge(actual, on="driver_id", how="left", validate="one_to_one")
-    frame["event_key"] = event_key
-    frame["rehearsal_source"] = source
-    frame["latest_qualifying_rehearsal_source"] = source
-    baseline_anchor = pd.to_numeric(frame.get("valid_clean_best_seconds"), errors="coerce")
-    fallback = pd.to_numeric(frame.get("quality_aware_anchor_seconds"), errors="coerce")
-    baseline_anchor = baseline_anchor.where(baseline_anchor.notna(), fallback)
-    stable = pd.DataFrame(
-        {
-            "anchor": baseline_anchor.fillna(np.inf),
-            "driver": frame["driver_id"].astype(str),
-            "row": np.arange(len(frame)),
-        }
-    ).sort_values(["anchor", "driver", "row"], kind="mergesort")
-    ranks = pd.Series(np.arange(1, len(stable) + 1), index=stable.index)
-    frame["latest_qualifying_rehearsal_rank"] = ranks.reindex(frame.index).astype(int)
-    event_info = {
-        "event_key": event_key,
-        "year": int(metadata["year"]),
-        "round": int(metadata["round_number"]),
-        "event_name": str(metadata.get("event_name") or event_dir.name),
-        "event_format": str(metadata.get("event_format") or "unknown"),
-        "rehearsal_source": source,
-        "field_size": int(len(frame)),
+    target_info = {
         "official_target_driver_count": int(target_drivers.nunique()),
         "official_target_driver_ids": sorted(target_drivers.unique().tolist()),
-        "roster_source": "latest_target_aligned_pre_qualifying_session_only",
-        "target_result_used_for_roster": False,
     }
-    return frame, event_info, input_paths
+    return actual, target_info
+
+
+def _load_target_after_frozen_forecast(
+    qualifying_results_path: Path,
+    *,
+    expected_event_key: int,
+    frozen_forecast_artifact: dict[str, object],
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Fail closed unless a complete event forecast exists before target I/O."""
+
+    artifact_hash = str(frozen_forecast_artifact.get("artifact_sha256") or "")
+    artifact_event_key = frozen_forecast_artifact.get("event_key")
+    if re.fullmatch(r"[0-9a-f]{64}", artifact_hash) is None:
+        raise RuntimeError("Qualifying target read requires a frozen forecast artifact")
+    try:
+        matching_event = int(artifact_event_key) == int(expected_event_key)
+    except (TypeError, ValueError):
+        matching_event = False
+    if not matching_event:
+        raise RuntimeError("Qualifying target read artifact belongs to another event")
+    return _qualifying_target_frame(qualifying_results_path)
+
+
+def _attach_qualifying_target(
+    inference_frame: pd.DataFrame,
+    target: pd.DataFrame,
+) -> pd.DataFrame:
+    target_columns = [column for column in target.columns if column != "driver_id"]
+    return inference_frame.drop(columns=target_columns, errors="ignore").merge(
+        target,
+        on="driver_id",
+        how="left",
+        validate="one_to_one",
+    )
+
+
+def _event_frame(root: Path, event_dir: Path) -> tuple[pd.DataFrame, dict[str, Any], list[Path]]:
+    """Backward-compatible fully labelled frame for historical training/tests."""
+
+    inference, info, input_paths, target_path = _event_inference_frame(root, event_dir)
+    target, target_info = _qualifying_target_frame(target_path)
+    info.update(target_info)
+    return _attach_qualifying_target(inference, target), info, input_paths
 
 
 def _metric_rows(
@@ -764,8 +826,10 @@ def run(
     seed: int,
 ) -> dict[str, Any]:
     root = _root()
+    audit_year = max(int(value) for value in evaluation_years)
     frames: list[pd.DataFrame] = []
     infos: dict[int, dict[str, Any]] = {}
+    deferred_evaluation_targets: dict[int, Path] = {}
     inputs: set[Path] = set()
     skipped_no_causal_rehearsal: list[str] = []
     for year in sorted(set(int(value) for value in years)):
@@ -773,7 +837,14 @@ def run(
             (weekends_dir / str(year)).glob("round_*"), key=_round_number
         ):
             try:
-                frame, info, event_inputs = _event_frame(root, event_dir)
+                if int(year) == audit_year:
+                    frame, info, event_inputs, target_path = _event_inference_frame(
+                        root,
+                        event_dir,
+                    )
+                    deferred_evaluation_targets[int(info["event_key"])] = target_path
+                else:
+                    frame, info, event_inputs = _event_frame(root, event_dir)
             except ValueError as error:
                 if "no causal FP3/Sprint-Qualifying" not in str(error):
                     raise
@@ -792,7 +863,6 @@ def run(
         max_movement=3,
         random_state=int(seed),
     )
-    audit_year = max(int(value) for value in evaluation_years)
     partitions = _locked_event_partitions(tuple(infos), audit_year=audit_year)
     frozen_selection, selection = _freeze_shared_engine_on_selection(
         dataset,
@@ -868,6 +938,25 @@ def run(
             target_event_key=int(event_key),
             interval_calibration_predictions=held_out_interval_rows,
         )
+        target_path = deferred_evaluation_targets.get(int(event_key))
+        if target_path is None:
+            raise RuntimeError(f"evaluation event {event_key} has no deferred target path")
+        target, target_info = _load_target_after_frozen_forecast(
+            target_path,
+            expected_event_key=int(event_key),
+            frozen_forecast_artifact=artifact,
+        )
+        infos[int(event_key)].update(target_info)
+        current = _attach_qualifying_target(current, target)
+        current_target = target.set_index("driver_id")
+        event_mask = numeric_events.eq(event_key)
+        event_drivers = dataset.loc[event_mask, "driver_id"].astype(str)
+        for target_column in target.columns:
+            if target_column == "driver_id":
+                continue
+            dataset.loc[event_mask, target_column] = event_drivers.map(
+                current_target[target_column]
+            ).to_numpy()
         shared_forecast_artifacts.append(artifact)
         shared = shared_forecast.point_order.copy()
         shared["shared_forecast_artifact_sha256"] = artifact["artifact_sha256"]

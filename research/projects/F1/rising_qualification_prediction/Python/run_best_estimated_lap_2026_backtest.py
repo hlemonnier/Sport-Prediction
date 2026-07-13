@@ -255,6 +255,33 @@ def _official_driver_best_laps(qualifying_laps_path: Path) -> pd.Series:
     ).dropna()
 
 
+def _load_target_after_frozen_forecasts(
+    qualifying_laps_path: Path,
+    *,
+    expected_event_key: int,
+    frozen_forecast_artifact: Mapping[str, object],
+    root: Path,
+) -> tuple[pd.Series, dict[str, str]]:
+    """Open and hash evaluation truth only after event forecasts are frozen."""
+
+    artifact_hash = str(frozen_forecast_artifact.get("artifact_sha256") or "")
+    artifact_event_key = frozen_forecast_artifact.get("event_key")
+    if re.fullmatch(r"[0-9a-f]{64}", artifact_hash) is None:
+        raise RuntimeError("Best Lap target read requires a frozen forecast artifact")
+    try:
+        matching_event = int(artifact_event_key) == int(expected_event_key)
+    except (TypeError, ValueError):
+        matching_event = False
+    if not matching_event:
+        raise RuntimeError("Best Lap target read artifact belongs to another event")
+    actual = _official_driver_best_laps(qualifying_laps_path)
+    target_manifest = _hash_manifest(
+        [qualifying_laps_path, _qualifying_results_path(qualifying_laps_path)],
+        root=root,
+    )
+    return actual, target_manifest
+
+
 def _label_quality_history(
     features: pd.DataFrame,
     *,
@@ -829,15 +856,14 @@ def run_backtest(
     residual_selector["shared_cross_mode_selected_enable_robust_residual"] = (
         enable_selected_residual
     )
-    selected_input_files: list[Path] = [*prior_files, *selector_input_files]
+    inference_input_files: list[Path] = [*prior_files, *selector_input_files]
+    evaluation_target_files: list[Path] = []
     for round_dir in selected:
         source, rehearsal_path, qualifying_path = _target_aligned_files(round_dir)
-        selected_input_files.extend(
+        inference_input_files.extend(
             [
                 rehearsal_path,
                 _session_results_path(rehearsal_path),
-                qualifying_path,
-                _qualifying_results_path(qualifying_path),
                 *_earlier_evidence_paths(rehearsal_path, source=source),
                 *(
                     _session_results_path(value)
@@ -847,7 +873,15 @@ def run_backtest(
                 ),
             ]
         )
-    input_manifest_before = _hash_manifest(selected_input_files, root=root)
+        evaluation_target_files.extend(
+            [qualifying_path, _qualifying_results_path(qualifying_path)]
+        )
+    selected_input_files = [*inference_input_files, *evaluation_target_files]
+    inference_input_manifest_before = _hash_manifest(
+        inference_input_files,
+        root=root,
+    )
+    evaluation_target_manifest_after_forecast: dict[str, str] = {}
 
     baseline_history_parts: list[pd.DataFrame] = [
         part[
@@ -894,15 +928,13 @@ def run_backtest(
             ]
         )
         rehearsal = _clean_driver_best_laps(rehearsal_path)
-        actual = _official_driver_best_laps(qualifying_path)
         quality_features = _quality_aware_rehearsal(
             rehearsal_path, event_key=event_key, source=source
         )
         inference_ids = pd.Index(quality_features["driver_id"].astype(str))
         baseline_inference_ids = rehearsal.index
-        common = baseline_inference_ids.intersection(actual.index)
-        if inference_ids.empty or common.empty:
-            raise ValueError(f"round {round_number} has no matched valid rehearsal/qualifying laps")
+        if inference_ids.empty or baseline_inference_ids.empty:
+            raise ValueError(f"round {round_number} has no causal rehearsal entrants")
 
         baseline_history = (
             pd.concat(baseline_history_parts, ignore_index=True)
@@ -1013,6 +1045,18 @@ def run_backtest(
             seed=joint_seed,
             allow_diagnostic_stage_fallback=True,
         ).lap_predictions.set_index("driver_id")
+        actual, target_manifest = _load_target_after_frozen_forecasts(
+            qualifying_path,
+            expected_event_key=event_key,
+            frozen_forecast_artifact=artifact,
+            root=root,
+        )
+        evaluation_target_manifest_after_forecast.update(target_manifest)
+        common = baseline_inference_ids.intersection(actual.index)
+        if common.empty:
+            raise ValueError(
+                f"round {round_number} has no matched valid rehearsal/qualifying laps"
+            )
         evaluated = predictions.copy()
         evaluated["quality_location_lap_p50"] = evaluated["driver_id"].map(
             location_diagnostic["lap_p50"]
@@ -1283,6 +1327,18 @@ def run_backtest(
     point_retained = bool(all(promotion_gates.values()))
     if set(input_files) != set(selected_input_files):
         raise RuntimeError("Best Lap accessed an unexpected input-file set")
+    input_manifest_before = dict(
+        sorted(
+            {
+                **inference_input_manifest_before,
+                **evaluation_target_manifest_after_forecast,
+            }.items()
+        )
+    )
+    if set(input_manifest_before) != {
+        str(path.relative_to(root)) for path in set(selected_input_files)
+    }:
+        raise RuntimeError("Best Lap did not hash every target after its forecast freeze")
     _assert_manifest_unchanged(
         implementation_manifest,
         root=root,

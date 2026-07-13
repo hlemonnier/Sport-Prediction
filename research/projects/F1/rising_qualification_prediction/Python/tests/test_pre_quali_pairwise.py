@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import run_qualifying_pairwise_challenger_backtest as qualifying_runner
+
 from packages.f1.features.qualifying_lap import build_quality_aware_rehearsal_features
 from packages.f1.models.pre_quali.classification import (
     STAGE_PROBABILITY_STATUS,
@@ -28,7 +30,9 @@ from packages.f1.models.pre_quali.selection import (
 )
 from run_qualifying_pairwise_challenger_backtest import (
     _event_frame,
+    _event_inference_frame,
     _locked_event_partitions,
+    _load_target_after_frozen_forecast,
     _pre_qualifying_roster,
     _qualifying_contract_gates,
 )
@@ -423,6 +427,7 @@ def test_qualifying_contract_gates_require_complete_legal_field_and_fail_close_p
 
 def test_event_frame_uses_latest_rehearsal_roster_and_does_not_readd_fp1_reserve(
     tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     event_dir = tmp_path / "round_01_test"
     event_dir.mkdir()
@@ -496,6 +501,25 @@ def test_event_frame_uses_latest_rehearsal_roster_and_does_not_readd_fp1_reserve
     }
     (event_dir / "weekend_metadata.json").write_text(json.dumps(metadata))
 
+    target_reads: list[str] = []
+    original_read_csv = pd.read_csv
+
+    def tracked_read_csv(path, *args, **kwargs):
+        if str(path).endswith("q_results.csv"):
+            target_reads.append(str(path))
+        return original_read_csv(path, *args, **kwargs)
+
+    monkeypatch.setattr(qualifying_runner.pd, "read_csv", tracked_read_csv)
+
+    inference, pre_target_info, _, target_path = _event_inference_frame(
+        tmp_path,
+        event_dir,
+    )
+    assert target_reads == []
+    assert target_path.name == "q_results.csv"
+    assert "qualy_position" not in inference.columns
+    assert "official_target_driver_ids" not in pre_target_info
+
     frame, info, _ = _event_frame(tmp_path, event_dir)
     indexed = frame.set_index("driver_id")
 
@@ -504,6 +528,45 @@ def test_event_frame_uses_latest_rehearsal_roster_and_does_not_readd_fp1_reserve
     assert info["official_target_driver_ids"] == ["A", "SUB"]
     assert info["target_result_used_for_roster"] is False
     assert info["roster_source"] == "latest_target_aligned_pre_qualifying_session_only"
+    assert len(target_reads) == 1
+
+
+def test_qualifying_runner_target_io_requires_frozen_event_forecast(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    target_path = tmp_path / "q_results.csv"
+    calls: list[str] = []
+
+    def read_target(path):
+        calls.append(f"target_read:{path.name}")
+        return pd.DataFrame({"driver_id": ["AAA"]}), {
+            "official_target_driver_count": 1,
+            "official_target_driver_ids": ["AAA"],
+        }
+
+    monkeypatch.setattr(qualifying_runner, "_qualifying_target_frame", read_target)
+
+    with pytest.raises(RuntimeError, match="requires a frozen forecast artifact"):
+        _load_target_after_frozen_forecast(
+            target_path,
+            expected_event_key=202601,
+            frozen_forecast_artifact={},
+        )
+    assert calls == []
+
+    target, info = _load_target_after_frozen_forecast(
+        target_path,
+        expected_event_key=202601,
+        frozen_forecast_artifact={
+            "event_key": 202601,
+            "artifact_sha256": "b" * 64,
+        },
+    )
+
+    assert calls == ["target_read:q_results.csv"]
+    assert target["driver_id"].tolist() == ["AAA"]
+    assert info["official_target_driver_ids"] == ["AAA"]
 
 
 def test_walk_forward_helper_trains_only_on_prior_complete_events() -> None:

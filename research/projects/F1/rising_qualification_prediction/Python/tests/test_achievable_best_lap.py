@@ -6,6 +6,8 @@ import math
 import pandas as pd
 import pytest
 
+import run_best_estimated_lap_2026_backtest as best_runner
+
 from packages.f1.models.ultimate_lap_time.achievable import (
     ACTUAL_LAP_COLUMN,
     Q1_LAP_COLUMN,
@@ -108,6 +110,51 @@ def test_training_and_inference_fail_closed_on_target_leakage() -> None:
     )
     with pytest.raises(ValueError, match="target/outcome"):
         model.predict(leaked)
+
+
+def test_best_runner_target_io_requires_frozen_event_forecast(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    target_laps = tmp_path / "qualifying_laps.csv"
+    target_results = tmp_path / "qualifying_results.csv"
+    target_laps.write_text("target\n", encoding="utf-8")
+    target_results.write_text("target\n", encoding="utf-8")
+    calls: list[str] = []
+
+    def read_target(_path):
+        calls.append("target_read")
+        return pd.Series({"AAA": 90.0})
+
+    def hash_target(paths, *, root):
+        calls.append("target_hash")
+        return {str(path.relative_to(root)): "f" * 64 for path in paths}
+
+    monkeypatch.setattr(best_runner, "_official_driver_best_laps", read_target)
+    monkeypatch.setattr(best_runner, "_hash_manifest", hash_target)
+
+    with pytest.raises(RuntimeError, match="requires a frozen forecast artifact"):
+        best_runner._load_target_after_frozen_forecasts(
+            target_laps,
+            expected_event_key=202601,
+            frozen_forecast_artifact={},
+            root=tmp_path,
+        )
+    assert calls == []
+
+    actual, manifest = best_runner._load_target_after_frozen_forecasts(
+        target_laps,
+        expected_event_key=202601,
+        frozen_forecast_artifact={
+            "event_key": 202601,
+            "artifact_sha256": "a" * 64,
+        },
+        root=tmp_path,
+    )
+
+    assert calls == ["target_read", "target_hash"]
+    assert actual.to_dict() == {"AAA": 90.0}
+    assert set(manifest) == {"qualifying_laps.csv", "qualifying_results.csv"}
 
 
 def test_inference_rejects_wrong_target_event() -> None:

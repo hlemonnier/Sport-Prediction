@@ -83,6 +83,8 @@ class TabularQuantileConfig:
     season_column: str = "season"
     target_season: int | None = None
     same_season_only: bool = True
+    event_time_column: str = "event_as_of"
+    fit_before: str | None = None
     random_state: int = 42
     min_rows_for_boosting: int = 8
     n_estimators: int = 160
@@ -102,7 +104,9 @@ class TabularQuantileConfig:
             raise ValueError("the lap-time contract requires p05, p50 and p90")
         if any(not 0.0 < value < 1.0 for value in normalized_quantiles):
             raise ValueError("quantiles must be between zero and one")
-        if self.feature_columns is not None and len(set(self.feature_columns)) != len(self.feature_columns):
+        if not self.feature_columns:
+            raise ValueError("feature_columns must be an explicit non-empty causal allowlist")
+        if len(set(self.feature_columns)) != len(self.feature_columns):
             raise ValueError("feature_columns must not contain duplicates")
         if self.random_state < 0:
             raise ValueError("random_state must be non-negative")
@@ -114,6 +118,10 @@ class TabularQuantileConfig:
             raise ValueError("max_categories_per_feature must be positive")
         if self.target_season is not None and int(self.target_season) < 1950:
             raise ValueError("target_season must be a plausible four-digit season")
+        if self.fit_before is not None:
+            cutoff = pd.to_datetime(self.fit_before, errors="coerce", utc=True)
+            if pd.isna(cutoff):
+                raise ValueError("fit_before must be a valid timezone-aware timestamp")
 
     def to_payload(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -447,6 +455,28 @@ def fit_tabular_quantile_model(
     frame = raw_frame.copy()
     if frame.empty:
         raise ValueError("records must contain at least one training row")
+    excluded_at_or_after_cutoff = 0
+    training_max_time: str | None = None
+    if cfg.fit_before is not None:
+        if cfg.event_time_column not in frame.columns:
+            raise ValueError(
+                "chronological quantile training requires the configured event-time column"
+            )
+        event_times = pd.to_datetime(
+            frame[cfg.event_time_column], errors="coerce", utc=True
+        )
+        if event_times.isna().any():
+            raise ValueError("quantile event timestamps must all be valid")
+        cutoff = pd.to_datetime(cfg.fit_before, errors="raise", utc=True)
+        causal = event_times.lt(cutoff)
+        excluded_at_or_after_cutoff = int((~causal).sum())
+        frame = frame.loc[causal].copy()
+        event_times = event_times.loc[causal]
+        if frame.empty:
+            raise ValueError("no quantile training rows strictly precede fit_before")
+        training_max_time = pd.Timestamp(event_times.max()).isoformat().replace(
+            "+00:00", "Z"
+        )
     resolved_season: int | None = None
     excluded_other_season_rows = 0
     if cfg.same_season_only:
@@ -474,16 +504,7 @@ def fit_tabular_quantile_model(
     frame = frame.loc[finite_mask].reset_index(drop=True)
     y = y[finite_mask]
 
-    selected_features = cfg.feature_columns
-    if selected_features is None:
-        actual_target = _find_target_column(frame, cfg.target_column)
-        selected_features = tuple(
-            str(column)
-            for column in frame.columns
-            if str(column) != actual_target
-            and str(column) not in DEFAULT_EXCLUDED_FEATURE_COLUMNS
-            and not str(column).startswith("predicted_")
-        )
+    selected_features = tuple(cfg.feature_columns or ())
 
     encoder = TabularFeatureEncoder().fit(
         frame,
@@ -563,6 +584,10 @@ def fit_tabular_quantile_model(
                         else "explicit_multi_season_training_enabled"
                     ),
                     "other_season_rows_excluded_from_fit": excluded_other_season_rows,
+                    "rows_excluded_at_or_after_fit_before": excluded_at_or_after_cutoff,
+                    "fit_before": cfg.fit_before,
+                    "training_max_event_time": training_max_time,
+                    "chronological_cutoff_enforced": cfg.fit_before is not None,
                     "backend": backend,
                     "feature_count": int(X.shape[1]),
                     "feature_names": list(encoder.feature_names_out),

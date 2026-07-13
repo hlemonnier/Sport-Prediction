@@ -640,6 +640,13 @@ class GroupedRankingModel:
         values = self.encoder.transform(frame)
         if self.backend_name == "sklearn_pairwise":
             scores = self.estimator.predict(values)
+        elif self.backend_name == "lightgbm_lambdarank":
+            named_values = pd.DataFrame(
+                values,
+                columns=list(self.encoder.feature_names_out),
+                index=frame.index,
+            )
+            scores = np.asarray(self.estimator.predict(named_values), dtype=float)
         else:
             scores = np.asarray(self.estimator.predict(values), dtype=float)
         work = pd.DataFrame(
@@ -754,7 +761,10 @@ def _fit_backend(
             n_jobs=1,
             verbosity=-1,
         )
-        model.fit(dataset.values, dataset.relevance, group=list(dataset.group_sizes))
+        named_values = pd.DataFrame(
+            dataset.values, columns=list(dataset.encoder.feature_names_out)
+        )
+        model.fit(named_values, dataset.relevance, group=list(dataset.group_sizes))
     return model, {
         "package": package,
         "version": runtime.version,

@@ -166,3 +166,29 @@ def test_lightgbm_quantile_objectives_when_runtime_is_available() -> None:
     assert attempts[-1]["quantile_objectives"]["lap_p05"]["alpha"] == 0.05
     assert attempts[-1]["quantile_objectives"]["lap_p50"]["alpha"] == 0.50
     assert attempts[-1]["quantile_objectives"]["lap_p90"]["alpha"] == 0.90
+
+
+def test_quantile_fit_enforces_explicit_features_and_strict_event_cutoff() -> None:
+    with pytest.raises(ValueError, match="explicit non-empty causal allowlist"):
+        TabularQuantileConfig()
+
+    frame = _training_frame()
+    event_dates = {
+        "event-0": "2026-03-01T12:00:00Z",
+        "event-1": "2026-03-15T12:00:00Z",
+        "event-2": "2026-04-01T12:00:00Z",
+    }
+    frame["event_as_of"] = frame["event_key"].map(event_dates)
+    model = fit_tabular_quantile_model(
+        frame,
+        config=TabularQuantileConfig(
+            backend="empirical",
+            feature_columns=("tyre_age",),
+            fit_before="2026-04-01T12:00:00Z",
+        ),
+    )
+
+    assert model.training_summary["rows_used"] == 24
+    assert model.training_summary["rows_excluded_at_or_after_fit_before"] == 12
+    assert model.training_summary["training_max_event_time"] == "2026-03-15T12:00:00Z"
+    assert model.training_summary["chronological_cutoff_enforced"] is True

@@ -17,6 +17,9 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import pandas as pd
 
+from packages.f1.data.providers.telemetry_cache import (
+    audit_telemetry_cache_manifests,
+)
 from packages.f1.features.qualifying_lap import (
     build_quality_aware_rehearsal_features,
     finite_lap_seconds,
@@ -44,12 +47,16 @@ from packages.f1.orchestration.non_live_validation import validate_event_partiti
 from packages.sports_core.paths import find_repo_root
 
 
-SCHEMA_VERSION = "f1_best_estimated_lap_shared_latent_v4"
+SCHEMA_VERSION = "f1_best_estimated_lap_shared_latent_v5"
 MODEL_NAME = "shared_qualifying_latent_lap_huber_v3"
 QUALITY_LOCATION_MODEL_NAME = "shared_qualifying_latent_lap_location_v3"
 BASELINE_MODEL_NAME = "achievable_best_lap_rehearsal_shift_v1"
 ROUND_PATTERN = re.compile(r"^round_(\d{2})_")
 MIN_SUPPORTED_WEEKEND_YEAR = 2024
+TELEMETRY_MANIFEST_SCHEMA_VERSION = "f1_prequal_telemetry_cache_v2"
+TELEMETRY_READINESS_SCHEMA_VERSION = "f1_prequal_telemetry_cache_audit_v2"
+MINIMUM_DEEP_TELEMETRY_EVENTS = 20
+MINIMUM_DEEP_TELEMETRY_DRIVERS_PER_EVENT = 18
 
 
 def _repo_root() -> Path:
@@ -101,6 +108,7 @@ def _implementation_paths(root: Path) -> list[Path]:
         {
             Path(__file__).resolve(),
             (root / "packages/sports_core/paths.py").resolve(),
+            (root / "packages/f1/data/providers/telemetry_cache.py").resolve(),
             (root / "packages/f1/features/qualifying_lap.py").resolve(),
             *(path.resolve() for path in (root / "packages/f1/models/ultimate_lap_time").rglob("*.py")),
         }
@@ -109,6 +117,123 @@ def _implementation_paths(root: Path) -> list[Path]:
 
 def _hash_manifest(paths: Sequence[Path], *, root: Path) -> dict[str, str]:
     return {str(path.relative_to(root)): _sha256(path) for path in sorted(set(paths))}
+
+
+def _canonical_sha256(payload: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _telemetry_readiness_audit(
+    *,
+    root: Path,
+    year: int,
+    minimum_independent_events: int = MINIMUM_DEEP_TELEMETRY_EVENTS,
+    minimum_drivers_per_event: int = MINIMUM_DEEP_TELEMETRY_DRIVERS_PER_EVENT,
+) -> tuple[dict[str, Any], list[Path]]:
+    """Revalidate deep-model telemetry and bind every accessed file to provenance."""
+
+    telemetry_root = root / "data/f1/telemetry/pre_qualifying" / str(int(year))
+    manifest_paths = sorted(telemetry_root.glob("round_*/telemetry_manifest.json"))
+    manifest_evidence: list[dict[str, Any]] = []
+    records: list[Mapping[str, Any]] = []
+    tensor_paths: list[Path] = []
+    for manifest_path in manifest_paths:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if str(payload.get("schema_version") or "") != TELEMETRY_MANIFEST_SCHEMA_VERSION:
+            raise ValueError(f"unsupported telemetry manifest schema: {manifest_path}")
+        event_key = int(payload["event_key"])
+        manifest_year = int(payload.get("year", event_key // 100))
+        if manifest_year != int(year) or event_key // 100 != int(year):
+            raise ValueError(
+                f"telemetry manifest {manifest_path} does not belong to {int(year)}"
+            )
+        feature_records = payload.get("feature_records", [])
+        if not isinstance(feature_records, list) or not all(
+            isinstance(record, Mapping) for record in feature_records
+        ):
+            raise ValueError(f"telemetry manifest has invalid feature records: {manifest_path}")
+        manifest_evidence.append(
+            {
+                "path": str(manifest_path.relative_to(root)),
+                "sha256": _sha256(manifest_path),
+                "schema_version": TELEMETRY_MANIFEST_SCHEMA_VERSION,
+                "event_key": event_key,
+                "qualifying_start_utc": str(
+                    payload.get("qualifying_start_utc") or ""
+                ),
+                "feature_record_count": len(feature_records),
+                "rejected_feature_record_count": len(
+                    payload.get("rejected_feature_records", [])
+                ),
+            }
+        )
+        records.extend(feature_records)
+        for record in feature_records:
+            path_text = str(record.get("telemetry_path") or "").strip()
+            if not path_text:
+                continue
+            path = Path(path_text)
+            resolved = (path if path.is_absolute() else root / path).resolve()
+            try:
+                resolved.relative_to(root)
+            except ValueError as exc:
+                raise ValueError(
+                    f"telemetry input must be inside the repository: {resolved}"
+                ) from exc
+            tensor_paths.append(resolved)
+
+    audit = audit_telemetry_cache_manifests(
+        records,
+        root=root,
+        minimum_independent_events=int(minimum_independent_events),
+        minimum_drivers_per_event=int(minimum_drivers_per_event),
+    )
+    # Missing tensors are represented by the provider's blocker/count, but a
+    # nonexistent file cannot have a content digest in the input manifest.
+    existing_tensor_paths = [path for path in tensor_paths if path.is_file()]
+    accessed_paths = sorted(set([*manifest_paths, *existing_tensor_paths]))
+    accessed_manifest = _hash_manifest(accessed_paths, root=root)
+    return (
+        {
+            "schema_version": TELEMETRY_READINESS_SCHEMA_VERSION,
+            "year": int(year),
+            "source": "live_local_manifest_and_tensor_revalidation",
+            "manifests": manifest_evidence,
+            "manifest_set_sha256": _canonical_sha256(manifest_evidence),
+            "accessed_manifest_file_count": len(manifest_paths),
+            "accessed_tensor_file_count": len(set(existing_tensor_paths)),
+            "accessed_input_file_count": len(accessed_paths),
+            "accessed_input_manifest_sha256": _canonical_sha256(accessed_manifest),
+            "audit": audit.to_payload(),
+        },
+        accessed_paths,
+    )
+
+
+def _deep_model_readiness_decision(
+    telemetry_audit: Mapping[str, Any],
+) -> dict[str, Any]:
+    telemetry_blockers = [str(value) for value in telemetry_audit.get("blockers", [])]
+    ready = bool(telemetry_audit.get("ready_for_deep_model"))
+    blockers = list(telemetry_blockers)
+    if ready:
+        blockers.append("deep_model_challenger_not_trained_or_evaluated")
+    return {
+        "deep_model_evaluation_status": (
+            "telemetry_ready_but_challenger_not_trained_or_evaluated"
+            if ready
+            else "not_run_until_telemetry_readiness_gate_passes"
+        ),
+        "deep_model_telemetry_blockers": telemetry_blockers,
+        "deep_model_blockers": blockers,
+    }
 
 
 def _assert_manifest_unchanged(
@@ -856,7 +981,17 @@ def run_backtest(
     residual_selector["shared_cross_mode_selected_enable_robust_residual"] = (
         enable_selected_residual
     )
-    inference_input_files: list[Path] = [*prior_files, *selector_input_files]
+    telemetry_readiness, telemetry_input_files = _telemetry_readiness_audit(
+        root=root,
+        year=int(year),
+    )
+    telemetry_audit = telemetry_readiness["audit"]
+    deep_model_decision = _deep_model_readiness_decision(telemetry_audit)
+    inference_input_files: list[Path] = [
+        *prior_files,
+        *selector_input_files,
+        *telemetry_input_files,
+    ]
     evaluation_target_files: list[Path] = []
     for round_dir in selected:
         source, rehearsal_path, qualifying_path = _target_aligned_files(round_dir)
@@ -906,7 +1041,11 @@ def run_backtest(
     location_interval_calibration_rows: list[pd.DataFrame] = []
     robust_interval_calibration_rows: list[pd.DataFrame] = []
     frozen_point_predictor_sha256: str | None = None
-    input_files: list[Path] = [*prior_files, *selector_input_files]
+    input_files: list[Path] = [
+        *prior_files,
+        *selector_input_files,
+        *telemetry_input_files,
+    ]
 
     for round_dir in selected:
         round_number = _round_number(round_dir)
@@ -1475,6 +1614,7 @@ def run_backtest(
             "paired_event_bootstrap_vs_raw_rehearsal_conditional_matched_population": paired,
             "event_stability": stability,
             "promotion_gates": promotion_gates,
+            "deep_model_telemetry_readiness": telemetry_readiness,
             "decision": {
                 "conditional_point_estimate_retained": point_retained,
                 "full_mode_point_promoted": point_retained,
@@ -1482,6 +1622,7 @@ def run_backtest(
                     point_retained and interval_coverage_gate and width_gate
                 ),
                 "deep_model_promoted": False,
+                **deep_model_decision,
                 "reason": (
                     "quality-aware selected challenger cleared every declared promotion gate"
                     if point_retained
@@ -1500,11 +1641,6 @@ def run_backtest(
                         "interval_width_inflation_at_most_ten_percent": width_gate,
                     }.items()
                     if not passed
-                ],
-                "deep_model_blockers": [
-                    "no_2026_distance_normalized_car_telemetry_cache",
-                    "rehearsal_feature_time_and_separate_q_target_time_provenance_required",
-                    "deterministic_causal_baseline_must_be_beaten_first",
                 ],
             },
             "events": event_payloads,

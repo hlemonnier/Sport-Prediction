@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import hashlib
+import json
 import math
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -155,6 +158,108 @@ def test_best_runner_target_io_requires_frozen_event_forecast(
     assert calls == ["target_read", "target_hash"]
     assert actual.to_dict() == {"AAA": 90.0}
     assert set(manifest) == {"qualifying_laps.csv", "qualifying_results.csv"}
+
+
+def test_best_runner_revalidates_telemetry_and_binds_all_inputs(tmp_path) -> None:
+    event_dir = (
+        tmp_path
+        / "data/f1/telemetry/pre_qualifying/2026/round_01_test_grand_prix"
+    )
+    tensor_path = event_dir / "features/AAA_lap_001.npz"
+    tensor_path.parent.mkdir(parents=True)
+    feature_as_of = pd.Timestamp("2026-03-01T11:59:59Z")
+    np.savez_compressed(
+        tensor_path,
+        schema_version=np.asarray("f1_prequal_distance_tensor_v1"),
+        values=np.ones((6, 2), dtype=np.float32),
+        channel_names=np.asarray(("Speed", "RPM", "nGear", "Throttle", "Brake", "DRS")),
+        distance_grid_m=np.asarray([0.0, 1_000.0], dtype=np.float32),
+        sample_timestamp_ns=np.asarray(
+            [feature_as_of.value - 1_000_000_000, feature_as_of.value], dtype=np.int64
+        ),
+        feature_as_of_ns=np.asarray(feature_as_of.value, dtype=np.int64),
+        expected_lap_distance_m=np.asarray(1_000.0, dtype=np.float64),
+        distance_coverage=np.asarray(1.0, dtype=np.float64),
+    )
+    tensor_sha = hashlib.sha256(tensor_path.read_bytes()).hexdigest()
+    tensor_relative = str(tensor_path.relative_to(tmp_path))
+    record = {
+        "event_key": 202601,
+        "driver_id": "AAA",
+        "lap_number": 1,
+        "feature_as_of": "2026-03-01T11:59:59Z",
+        "qualifying_start_utc": "2026-03-01T12:00:00Z",
+        "telemetry_path": tensor_relative,
+        "telemetry_sha256": tensor_sha,
+        "tensor_schema_version": "f1_prequal_distance_tensor_v1",
+        "distance_normalized": True,
+        "telemetry_shape": [6, 2],
+        "distance_bins": 2,
+        "channels": ["Speed", "RPM", "nGear", "Throttle", "Brake", "DRS"],
+        "expected_lap_distance_m": 1_000.0,
+        "distance_coverage": 1.0,
+        "minimum_distance_coverage": 0.95,
+    }
+    manifest_path = event_dir / "telemetry_manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "f1_prequal_telemetry_cache_v2",
+                "event_key": 202601,
+                "year": 2026,
+                "qualifying_start_utc": "2026-03-01T12:00:00Z",
+                "feature_records": [record],
+                "rejected_feature_records": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    readiness, inputs = best_runner._telemetry_readiness_audit(
+        root=tmp_path,
+        year=2026,
+        minimum_independent_events=2,
+        minimum_drivers_per_event=1,
+    )
+
+    assert set(inputs) == {manifest_path, tensor_path}
+    assert readiness["accessed_manifest_file_count"] == 1
+    assert readiness["accessed_tensor_file_count"] == 1
+    assert readiness["accessed_input_file_count"] == 2
+    assert len(readiness["manifest_set_sha256"]) == 64
+    assert len(readiness["accessed_input_manifest_sha256"]) == 64
+    assert readiness["audit"]["record_count"] == 1
+    assert readiness["audit"]["validated_tensor_count"] == 1
+    assert readiness["audit"]["event_count"] == 1
+    assert readiness["audit"]["driver_event_count"] == 1
+    assert not readiness["audit"]["ready_for_deep_model"]
+    assert readiness["audit"]["blockers"] == [
+        "insufficient_independent_prequalifying_telemetry_events"
+    ]
+    input_manifest = best_runner._hash_manifest(inputs, root=tmp_path)
+    assert set(input_manifest) == {
+        str(manifest_path.relative_to(tmp_path)),
+        tensor_relative,
+    }
+    decision = best_runner._deep_model_readiness_decision(readiness["audit"])
+    assert decision["deep_model_telemetry_blockers"] == readiness["audit"]["blockers"]
+    assert decision["deep_model_blockers"] == [
+        "insufficient_independent_prequalifying_telemetry_events"
+    ]
+    assert "no_2026_distance_normalized_car_telemetry_cache" not in decision[
+        "deep_model_blockers"
+    ]
+
+
+def test_best_runner_keeps_ready_but_unevaluated_deep_model_fail_closed() -> None:
+    decision = best_runner._deep_model_readiness_decision(
+        {"ready_for_deep_model": True, "blockers": []}
+    )
+
+    assert decision["deep_model_telemetry_blockers"] == []
+    assert decision["deep_model_blockers"] == [
+        "deep_model_challenger_not_trained_or_evaluated"
+    ]
 
 
 def test_inference_rejects_wrong_target_event() -> None:

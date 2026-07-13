@@ -22,8 +22,38 @@ from run_race_survival_order_backtest import (  # noqa: E402
     _normalize_identity_token,
     _rolling_oof_qualifying_prior,
     _same_product_promotion_blockers,
+    _set_prediction_order_residual_weight,
     _stable_provisional_grid_positions,
 )
+from packages.f1.models.pre_race.joint import SurvivalAwareRaceModel
+from packages.f1.models.pre_race.ranking import (
+    BradleyTerryOrderRanker,
+    ConditionalOrderConfig,
+)
+
+
+def test_order_residual_weight_is_a_score_time_parameter_only() -> None:
+    ranker = BradleyTerryOrderRanker(
+        ConditionalOrderConfig(
+            regularization_c=0.7,
+            grid_prior_weight=2.5,
+            residual_weight=0.25,
+            max_iter=321,
+            random_state=19,
+        )
+    )
+    model = SurvivalAwareRaceModel(order_model=ranker)
+    ranker_identity = id(model.order_model)
+    original = model.order_model.config
+
+    _set_prediction_order_residual_weight(model, 0.65)
+
+    assert id(model.order_model) == ranker_identity
+    assert model.order_model.config.residual_weight == 0.65
+    assert model.order_model.config.regularization_c == original.regularization_c
+    assert model.order_model.config.grid_prior_weight == original.grid_prior_weight
+    assert model.order_model.config.max_iter == original.max_iter
+    assert model.order_model.config.random_state == original.random_state
 
 
 def test_qualifying_abbreviation_is_the_stable_longitudinal_driver_identity() -> None:

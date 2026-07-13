@@ -6,6 +6,7 @@ from __future__ import annotations
 import repo_bootstrap  # noqa: F401
 
 import argparse
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
@@ -1012,6 +1013,25 @@ def _binary_metrics(actual: np.ndarray, probability: np.ndarray) -> tuple[float,
     )
 
 
+def _set_prediction_order_residual_weight(
+    model: SurvivalAwareRaceModel,
+    residual_weight: float,
+) -> None:
+    """Set the score-time residual multiplier without refitting the ranker.
+
+    ``ConditionalOrderConfig.residual_weight`` is consumed only by
+    ``BradleyTerryOrderRanker.score``.  It is deliberately absent from its
+    training matrix, regularization, and optimizer.  Keeping this operation
+    explicit makes the event-level fit-cache contract reviewable and ensures a
+    future fit-time use cannot be introduced here silently.
+    """
+
+    model.order_model.config = replace(
+        model.order_model.config,
+        residual_weight=float(residual_weight),
+    )
+
+
 def _mean(events: Sequence[dict[str, Any]], key: str) -> float:
     return float(np.mean([float(event[key]) for event in events]))
 
@@ -1202,12 +1222,10 @@ def run(
         horizon = RacePredictionHorizon(event_info[event_key]["information_horizon"])
         return prior, current, order_history, prediction_as_of, horizon
 
-    # Hyperparameter selection changes only the conditional-order residual
-    # weight and Plackett-Luce sampling temperature.  Temperature is a
-    # prediction-time parameter, so refitting the same event/residual model for
-    # every temperature is both wasteful and a reproducibility risk.  Cache
-    # immutable, uncalibrated fitted models at the exact sufficient key.
-    fitted_model_cache: dict[tuple[int, float], SurvivalAwareRaceModel] = {}
+    # Residual weight and Plackett-Luce temperature are both prediction-time
+    # parameters.  The ranker fit is identical across the full selection grid,
+    # so one immutable uncalibrated fit per event is the exact sufficient key.
+    fitted_model_cache: dict[int, SurvivalAwareRaceModel] = {}
     model_fit_count = 0
     model_fit_cache_hits = 0
 
@@ -1223,7 +1241,7 @@ def run(
         prior, current, order_history, prediction_as_of, horizon = event_inputs(
             event_key
         )
-        cache_key = (int(event_key), float(residual_weight))
+        cache_key = int(event_key)
         cache_allowed = calibrator is None
         model = fitted_model_cache.get(cache_key) if cache_allowed else None
         if model is None:
@@ -1243,6 +1261,7 @@ def run(
                 fitted_model_cache[cache_key] = model
         else:
             model_fit_cache_hits += 1
+        _set_prediction_order_residual_weight(model, residual_weight)
         if calibrator is not None:
             model.terminal_model.set_terminal_calibrator(calibrator)
         forecast = model.predict_joint(
@@ -1750,8 +1769,9 @@ def run(
                 "selected_by_information_horizon": selected_by_horizon,
                 "cross_horizon_parameter_reuse": False,
                 "model_fit_cache": {
-                    "key": ["event_key", "order_residual_weight"],
+                    "key": ["event_key"],
                     "prediction_time_parameters_excluded": [
+                        "order_residual_weight",
                         "plackett_luce_temperature",
                         "forecast_simulations",
                         "seed",

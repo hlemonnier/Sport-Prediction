@@ -412,31 +412,75 @@ def _rolling_oof_qualifying_prior(
     }
 
 
+def _normalize_identity_token(value: object) -> str:
+    """Normalize provider identity aliases without changing text identities."""
+
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except (TypeError, ValueError):
+        pass
+    text = str(value).strip()
+    if not text or text.upper() in {"NAN", "NONE", "NULL", "<NA>"}:
+        return ""
+    numeric = pd.to_numeric(pd.Series([text]), errors="coerce").iloc[0]
+    if pd.notna(numeric) and np.isfinite(float(numeric)) and float(numeric).is_integer():
+        return str(int(numeric))
+    return text
+
+
 def _align_grid_driver_ids_from_qualifying(
     grid: pd.DataFrame,
     qualifying_roster: pd.DataFrame,
 ) -> pd.DataFrame:
     """Align FIA car numbers to model IDs using only pre-race Qualifying identity."""
 
+    if "driver_id" not in grid.columns or "driver_id" not in qualifying_roster.columns:
+        raise ValueError("grid alignment requires driver identity on both sources")
     out = grid.copy()
-    out["driver_id"] = out["driver_id"].astype(str)
-    target_ids = set(qualifying_roster["driver_id"].astype(str))
-    if set(out["driver_id"]) == target_ids:
+    out["driver_id"] = out["driver_id"].map(_normalize_identity_token)
+    target = qualifying_roster["driver_id"].map(_normalize_identity_token)
+    if out["driver_id"].eq("").any() or target.eq("").any():
+        raise ValueError("grid alignment contains incomplete driver identity")
+    if out["driver_id"].duplicated().any():
+        raise ValueError("final grid contains duplicate provider driver identities")
+    if target.duplicated().any():
+        raise ValueError("Qualifying roster contains duplicate canonical driver identities")
+    target_ids = set(target)
+    if len(out) == len(target) and set(out["driver_id"]) == target_ids:
+        out["grid_provider_driver_id"] = out["driver_id"]
+        out["grid_identity_mapping_source"] = (
+            "provider_driver_id_matches_pre_race_qualifying_canonical_id"
+        )
         return out
     if "grid_car_number" not in out.columns or "car_number" not in qualifying_roster.columns:
         raise ValueError(
             "first-seen final grid identity differs from Qualifying and lacks car-number evidence"
         )
     qualifying_identity = qualifying_roster[["driver_id", "car_number"]].copy()
-    qualifying_identity["driver_id"] = qualifying_identity["driver_id"].astype(str)
-    qualifying_identity["car_number"] = qualifying_identity["car_number"].astype(str)
+    qualifying_identity["driver_id"] = qualifying_identity["driver_id"].map(
+        _normalize_identity_token
+    )
+    qualifying_identity["car_number"] = qualifying_identity["car_number"].map(
+        _normalize_identity_token
+    )
+    if qualifying_identity["car_number"].eq("").any():
+        raise ValueError("Qualifying roster contains incomplete car-number identity")
     if qualifying_identity["car_number"].duplicated().any():
         raise ValueError("Qualifying roster contains duplicate car-number identity")
     mapping = dict(
         zip(qualifying_identity["car_number"], qualifying_identity["driver_id"])
     )
-    aligned = out["grid_car_number"].astype(str).map(mapping)
-    if aligned.isna().any() or set(aligned.astype(str)) != target_ids:
+    grid_car_numbers = out["grid_car_number"].map(_normalize_identity_token)
+    aligned = grid_car_numbers.map(mapping)
+    if (
+        aligned.isna().any()
+        or aligned.duplicated().any()
+        or len(aligned) != len(target)
+        or set(aligned.astype(str)) != target_ids
+    ):
         raise ValueError(
             "FIA final-grid car numbers do not map one-to-one to the pre-race Qualifying roster"
         )
@@ -470,20 +514,15 @@ def _canonicalize_qualifying_driver_identity(
             f"{missing}"
         )
     out = qualifying.copy()
-    provider_ids = out["driver_id"].astype("string").str.strip()
-    car_numbers = out["car_number"].astype("string").str.strip()
+    provider_ids = out["driver_id"].map(_normalize_identity_token)
+    car_numbers = out["car_number"].map(_normalize_identity_token)
     abbreviations = (
-        out["driver_abbreviation"].astype("string").str.strip().str.upper()
+        out["driver_abbreviation"]
+        .map(_normalize_identity_token)
+        .astype(str)
+        .str.upper()
     )
-    invalid_tokens = {"", "NAN", "NONE", "NULL", "<NA>"}
-    invalid = (
-        provider_ids.isna()
-        | car_numbers.isna()
-        | abbreviations.isna()
-        | provider_ids.str.upper().isin(invalid_tokens)
-        | car_numbers.str.upper().isin(invalid_tokens)
-        | abbreviations.isin(invalid_tokens)
-    )
+    invalid = provider_ids.eq("") | car_numbers.eq("") | abbreviations.eq("")
     if invalid.any():
         raise ValueError("causal Qualifying roster contains incomplete driver identity")
     if provider_ids.duplicated().any():
@@ -507,7 +546,7 @@ def _canonicalize_qualifying_driver_identity(
     ].itertuples(index=False):
         canonical = str(row.driver_id)
         for raw in (row.driver_id, row.provider_driver_id, row.car_number):
-            key = str(raw).strip()
+            key = _normalize_identity_token(raw)
             existing = lookup.get(key)
             if existing is not None and existing != canonical:
                 raise ValueError(
@@ -531,7 +570,7 @@ def _map_driver_ids_from_qualifying(
     if "driver_id" not in frame.columns:
         raise ValueError(f"{source_name} lacks driver identity")
     out = frame.copy()
-    provider_ids = out["driver_id"].astype("string").str.strip()
+    provider_ids = out["driver_id"].map(_normalize_identity_token)
     canonical = provider_ids.map(identity_lookup)
     unmapped = canonical.isna()
     if unmapped.any() and not allow_non_roster_rows:
@@ -777,9 +816,9 @@ def _build_event_rows(
         root, metadata
     )
     mechanical_stop_share = {
-        identity_lookup[raw_driver_id]: value
+        identity_lookup[_normalize_identity_token(raw_driver_id)]: value
         for raw_driver_id, value in raw_mechanical_stop_share.items()
-        if raw_driver_id in identity_lookup
+        if _normalize_identity_token(raw_driver_id) in identity_lookup
     }
     frame["race_current_weekend_mechanical_stop_share"] = (
         frame["driver_id"].astype(str).map(mechanical_stop_share)
@@ -1402,9 +1441,22 @@ def run(
             forecast_simulations=int(simulations),
             calibrator=(same_product_calibrator if calibration_applied else None),
         )
+        scored_identity_columns = [
+            column
+            for column in (
+                "driver_id",
+                "driver_abbreviation",
+                "provider_driver_id",
+                "car_number",
+                "grid_provider_driver_id",
+                "grid_identity_mapping_source",
+                "race_provider_driver_id",
+            )
+            if column in current.columns
+        ]
         scored = current[
             [
-                "driver_id",
+                *scored_identity_columns,
                 "grid_position",
                 "grid_baseline_position",
                 "finish_position",

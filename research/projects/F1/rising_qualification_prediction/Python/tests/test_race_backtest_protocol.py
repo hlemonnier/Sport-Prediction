@@ -19,6 +19,7 @@ from run_race_survival_order_backtest import (  # noqa: E402
     _canonicalize_qualifying_driver_identity,
     _fit_binary_terminal_calibrator,
     _map_driver_ids_from_qualifying,
+    _normalize_identity_token,
     _rolling_oof_qualifying_prior,
     _same_product_promotion_blockers,
     _stable_provisional_grid_positions,
@@ -82,6 +83,28 @@ def test_same_weekend_sources_map_only_through_frozen_qualifying_identity() -> N
             source_name="race",
             allow_non_roster_rows=False,
         )
+
+
+def test_numeric_identity_aliases_are_normalized_before_alignment() -> None:
+    canonical, lookup = _canonicalize_qualifying_driver_identity(
+        pd.DataFrame(
+            {
+                "driver_id": [1.0, 63.0],
+                "car_number": [1.0, 63.0],
+                "driver_abbreviation": ["ver", "rus"],
+            }
+        )
+    )
+    mapped = _map_driver_ids_from_qualifying(
+        pd.DataFrame({"driver_id": ["1.0", "63"]}),
+        lookup,
+        source_name="race",
+        allow_non_roster_rows=False,
+    )
+
+    assert _normalize_identity_token("1.0") == "1"
+    assert canonical["provider_driver_id"].tolist() == ["1", "63"]
+    assert mapped["driver_id"].tolist() == ["VER", "RUS"]
 
 
 def test_duplicate_stable_driver_identity_fails_closed() -> None:
@@ -198,6 +221,28 @@ def test_fia_car_number_maps_to_abbreviation_from_qualifying_only() -> None:
     }
 
 
+def test_already_canonical_grid_still_retains_identity_provenance() -> None:
+    aligned = _align_grid_driver_ids_from_qualifying(
+        pd.DataFrame(
+            {
+                "driver_id": ["VER", "RUS"],
+                "grid_position": [1, 2],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "driver_id": ["VER", "RUS"],
+                "car_number": ["3", "63"],
+            }
+        ),
+    )
+
+    assert aligned["grid_provider_driver_id"].tolist() == ["VER", "RUS"]
+    assert set(aligned["grid_identity_mapping_source"]) == {
+        "provider_driver_id_matches_pre_race_qualifying_canonical_id"
+    }
+
+
 def test_provisional_grid_resolves_provider_ties_by_official_source_order() -> None:
     frame = pd.DataFrame(
         {
@@ -252,8 +297,8 @@ def test_race_truth_is_read_only_after_causal_feature_roster_is_frozen(
             self.calls.append("practice")
             return pd.DataFrame(
                 {
-                    "driver_id": ["1", "2"],
-                    "fp_quali_sim_rank": [1.0, 2.0],
+                    "driver_id": ["1", "2", "99"],
+                    "fp_quali_sim_rank": [1.0, 2.0, 99.0],
                 }
             )
 
@@ -269,14 +314,14 @@ def test_race_truth_is_read_only_after_causal_feature_roster_is_frozen(
             self.calls.append("race_truth")
             return pd.DataFrame(
                 {
-                    "driver_id": ["1", "2"],
-                    "position": [1, 2],
-                    "team_name": ["LEAKED_A", "LEAKED_B"],
-                    "power_unit": ["LEAKED_PU_A", "LEAKED_PU_B"],
-                    "race_status_raw": ["Finished", "Engine"],
-                    "race_status_evidence_complete": [True, True],
-                    "retirement_fraction": [1.0, 0.5],
-                    "laps_completed": [60, 30],
+                    "driver_id": ["1"],
+                    "position": [1],
+                    "team_name": ["LEAKED_A"],
+                    "power_unit": ["LEAKED_PU_A"],
+                    "race_status_raw": ["Finished"],
+                    "race_status_evidence_complete": [True],
+                    "retirement_fraction": [1.0],
+                    "laps_completed": [60],
                 }
             )
 
@@ -295,7 +340,14 @@ def test_race_truth_is_read_only_after_causal_feature_roster_is_frozen(
     assert frame["power_unit"].tolist() == ["PU_A", "PU_B"]
     assert frame["driver_id"].tolist() == ["AAA", "BBB"]
     assert frame["provider_driver_id"].tolist() == ["1", "2"]
-    assert frame["race_provider_driver_id"].tolist() == ["1", "2"]
+    assert frame["fp_quali_sim_rank"].tolist() == [1.0, 2.0]
+    assert frame.loc[frame["driver_id"].eq("AAA"), "race_provider_driver_id"].iloc[0] == "1"
+    assert pd.isna(
+        frame.loc[frame["driver_id"].eq("BBB"), "race_provider_driver_id"].iloc[0]
+    )
+    assert frame.loc[frame["driver_id"].eq("BBB"), "race_status_raw"].iloc[0] == (
+        "Did not start"
+    )
     assert "race_team_name" not in frame.columns
     assert "race_power_unit" not in frame.columns
     assert "finish_position" not in info["causal_inference_columns"]

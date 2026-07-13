@@ -115,7 +115,9 @@ def _write_lap_tensor(
         channel: pd.to_numeric(telemetry[channel], errors="coerce").to_numpy(dtype=np.float32)
         for channel in REQUIRED_TELEMETRY_CHANNELS
     }
-    payload["Date"] = pd.to_datetime(telemetry["Date"], utc=True).view("int64").to_numpy()
+    payload["Date"] = (
+        pd.to_datetime(telemetry["Date"], utc=True).astype("int64").to_numpy()
+    )
     np.savez_compressed(path, **payload)
 
 

@@ -206,8 +206,7 @@ def evaluate_qualifying_promotion(
         "pole_non_regression": bool(pole_non_regression),
         "top3_non_regression": bool(top3_non_regression),
         "top10_non_regression": bool(top10_non_regression),
-        "all_weekend_strata_improve": bool(diagnostics.stratum_mean_deltas)
-        and all(delta < 0.0 for delta in diagnostics.stratum_mean_deltas.values()),
+        "all_weekend_strata_improve": _standard_and_sprint_improve(diagnostics),
         "tail_excluded_population_improves": float(tail_excluded_delta) < 0.0,
         "bootstrap_upper_bound_below_zero": diagnostics.ci95_delta[1] < 0.0,
         "gain_not_concentrated": diagnostics.largest_positive_gain_share <= 0.50,
@@ -238,6 +237,7 @@ def evaluate_race_promotion(
         "status_log_loss_improves": float(candidate_status_log_loss) < float(baseline_status_log_loss),
         "entrant_coverage_complete": math.isclose(float(entrant_coverage), 1.0, abs_tol=1e-12),
         "all_classifications_legal": bool(all_classifications_legal),
+        "all_weekend_strata_improve": _standard_and_sprint_improve(diagnostics),
         "bootstrap_upper_bound_below_zero": diagnostics.ci95_delta[1] < 0.0,
         "probability_of_improvement_at_least_0_95": diagnostics.probability_of_improvement >= 0.95,
         "gain_not_concentrated": diagnostics.largest_positive_gain_share <= 0.50,
@@ -265,6 +265,7 @@ def evaluate_best_lap_promotion(
         "entrant_output_coverage_complete": math.isclose(float(entrant_output_coverage), 1.0, abs_tol=1e-12),
         "fastest_driver_non_regression": bool(fastest_driver_non_regression),
         "top3_non_regression": bool(top3_non_regression),
+        "all_weekend_strata_improve": _standard_and_sprint_improve(diagnostics),
         "interval_coverage_within_5pct_points": abs(
             float(interval_coverage) - float(nominal_interval_coverage)
         ) <= 0.05,
@@ -275,6 +276,16 @@ def evaluate_best_lap_promotion(
         "leave_one_event_out_stable": diagnostics.leave_one_event_out_all_improve,
     }
     return _decision("best_estimated_lap", diagnostics, checks)
+
+
+def _standard_and_sprint_improve(diagnostics: PairedEventDiagnostics) -> bool:
+    """Require observed improvement in both current weekend-format strata."""
+
+    required = {"standard", "sprint"}
+    observed = diagnostics.stratum_mean_deltas
+    return required.issubset(observed) and all(
+        float(observed[stratum]) < 0.0 for stratum in required
+    )
 
 
 def _decision(

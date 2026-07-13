@@ -109,6 +109,35 @@ def test_race_gate_couples_status_order_coverage_and_legality() -> None:
     assert "gate_failed:all_classifications_legal" in rejected.reasons
 
 
+def test_race_gate_rejects_gain_that_does_not_hold_on_sprint_weekends() -> None:
+    events = _events()
+    events = [
+        EventError(
+            event.event_key,
+            event.baseline_error,
+            event.baseline_error + 0.1 if event.stratum == "sprint" else event.candidate_error,
+            event.stratum,
+        )
+        for event in events
+    ]
+
+    decision = evaluate_race_promotion(
+        events,
+        baseline_kendall=0.52,
+        candidate_kendall=0.53,
+        baseline_status_brier=0.20,
+        candidate_status_brier=0.17,
+        baseline_status_log_loss=0.60,
+        candidate_status_log_loss=0.54,
+        entrant_coverage=1.0,
+        all_classifications_legal=True,
+        bootstrap_samples=2_000,
+    )
+
+    assert decision.promoted is False
+    assert "gate_failed:all_weekend_strata_improve" in decision.reasons
+
+
 def test_best_lap_gate_checks_interval_calibration_and_width() -> None:
     promoted = evaluate_best_lap_promotion(
         _events(baseline=0.60, candidate=0.50),
@@ -137,6 +166,28 @@ def test_best_lap_gate_checks_interval_calibration_and_width() -> None:
     assert rejected.promoted is False
     assert "gate_failed:interval_coverage_within_5pct_points" in rejected.reasons
     assert "gate_failed:interval_width_inflation_at_most_10pct" in rejected.reasons
+
+
+def test_best_lap_gate_requires_both_weekend_formats() -> None:
+    standard_only = [
+        EventError(event.event_key, event.baseline_error, event.candidate_error, "standard")
+        for event in _events(baseline=0.60, candidate=0.50)
+    ]
+
+    decision = evaluate_best_lap_promotion(
+        standard_only,
+        entrant_output_coverage=1.0,
+        fastest_driver_non_regression=True,
+        top3_non_regression=True,
+        interval_coverage=0.85,
+        nominal_interval_coverage=0.85,
+        baseline_interval_width=1.0,
+        candidate_interval_width=1.0,
+        bootstrap_samples=2_000,
+    )
+
+    assert decision.promoted is False
+    assert "gate_failed:all_weekend_strata_improve" in decision.reasons
 
 
 def test_optional_runtime_doctor_rejects_unknown_package() -> None:

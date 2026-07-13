@@ -446,6 +446,29 @@ def _align_grid_driver_ids_from_qualifying(
     return out
 
 
+def _stable_provisional_grid_positions(frame: pd.DataFrame) -> pd.Series:
+    """Turn a provider Qualifying classification into one physical proxy grid.
+
+    Some archived FastF1 classifications contain tied numeric ``Position``
+    values even though their source-row order is a total official order. A
+    pre-grid forecast may use that order as a provisional grid, but it may not
+    pass duplicate physical slots into the simulator.
+    """
+
+    positions = pd.to_numeric(frame.get("qualy_position"), errors="coerce")
+    if positions.isna().any() or positions.le(0.0).any():
+        raise ValueError("provisional Qualifying grid contains unresolved positions")
+    order = pd.DataFrame(
+        {
+            "position": positions.to_numpy(dtype=float),
+            "source_row": np.arange(len(frame), dtype=int),
+        },
+        index=frame.index,
+    ).sort_values(["position", "source_row"], kind="mergesort")
+    ranks = pd.Series(np.arange(1, len(order) + 1, dtype=float), index=order.index)
+    return ranks.reindex(frame.index)
+
+
 def _build_event_rows(
     *,
     root: Path,
@@ -560,7 +583,7 @@ def _build_event_rows(
         horizon = RacePredictionHorizon.POST_GRID_PRE_RACE
         prediction_as_of = str(grid["grid_first_published_at"].iloc[0])
     else:
-        frame["grid_position"] = pd.to_numeric(frame["qualy_position"], errors="coerce")
+        frame["grid_position"] = _stable_provisional_grid_positions(frame)
         frame["grid_status"] = "grid"
         frame["grid_starter_eligible"] = 1.0
         frame["grid_pit_lane_start"] = False

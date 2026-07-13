@@ -19,6 +19,7 @@ from run_race_survival_order_backtest import (  # noqa: E402
     _fit_binary_terminal_calibrator,
     _rolling_oof_qualifying_prior,
     _same_product_promotion_blockers,
+    _stable_provisional_grid_positions,
 )
 
 
@@ -121,6 +122,21 @@ def test_fia_car_number_maps_to_abbreviation_from_qualifying_only() -> None:
     assert set(aligned["grid_identity_mapping_source"]) == {
         "pre_race_qualifying_car_number"
     }
+
+
+def test_provisional_grid_resolves_provider_ties_by_official_source_order() -> None:
+    frame = pd.DataFrame(
+        {
+            "driver_id": ["a", "b", "c", "d", "e"],
+            "qualy_position": [1.0, 2.0, 2.0, 3.0, 5.0],
+        },
+        index=[10, 20, 30, 40, 50],
+    )
+
+    positions = _stable_provisional_grid_positions(frame)
+
+    assert positions.tolist() == [1.0, 2.0, 3.0, 4.0, 5.0]
+    assert positions.index.tolist() == frame.index.tolist()
 
 
 def test_race_truth_is_read_only_after_causal_feature_roster_is_frozen(

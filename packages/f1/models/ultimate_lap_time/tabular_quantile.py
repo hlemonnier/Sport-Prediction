@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict, dataclass
+import hashlib
+import importlib.metadata
 import importlib.util
-from dataclasses import dataclass
+import json
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -11,10 +14,24 @@ import pandas as pd
 
 from packages.f1.models.ultimate_lap_time.datasets import TARGET_AND_PREDICTION_COLUMNS
 from packages.f1.models.ultimate_lap_time.schemas import UltimateLapTelemetryExample
+from packages.f1.orchestration.model_runtime import inspect_optional_model_runtime
 
 
 QUANTILES: tuple[float, ...] = (0.05, 0.50, 0.90)
 PREDICTION_COLUMNS: tuple[str, ...] = ("lap_p05", "lap_p50", "lap_p90")
+PREDICTION_COLUMN_BY_QUANTILE: dict[float, str] = {
+    0.05: "lap_p05",
+    0.50: "lap_p50",
+    0.90: "lap_p90",
+}
+TABULAR_QUANTILE_BACKENDS: tuple[str, ...] = (
+    "auto",
+    "lightgbm",
+    "xgboost",
+    "sklearn_hist",
+    "sklearn_gbr",
+    "empirical",
+)
 DEFAULT_EXCLUDED_FEATURE_COLUMNS: frozenset[str] = frozenset(
     set(TARGET_AND_PREDICTION_COLUMNS)
     | {
@@ -63,12 +80,73 @@ class TabularQuantileConfig:
     quantiles: tuple[float, ...] = QUANTILES
     feature_columns: tuple[str, ...] | None = None
     target_column: str = "lap_time_seconds"
+    season_column: str = "season"
+    target_season: int | None = None
+    same_season_only: bool = True
     random_state: int = 42
     min_rows_for_boosting: int = 8
     n_estimators: int = 160
     learning_rate: float = 0.04
     max_depth: int = 3
     max_categories_per_feature: int = 64
+    allow_requested_backend_fallback: bool = False
+
+    def __post_init__(self) -> None:
+        backend = str(self.backend).strip().lower()
+        if backend not in TABULAR_QUANTILE_BACKENDS:
+            raise ValueError(f"backend must be one of {TABULAR_QUANTILE_BACKENDS}")
+        normalized_quantiles = tuple(float(value) for value in self.quantiles)
+        if len(normalized_quantiles) != len(set(normalized_quantiles)):
+            raise ValueError("quantiles must be unique")
+        if set(normalized_quantiles) != set(QUANTILES):
+            raise ValueError("the lap-time contract requires p05, p50 and p90")
+        if any(not 0.0 < value < 1.0 for value in normalized_quantiles):
+            raise ValueError("quantiles must be between zero and one")
+        if self.feature_columns is not None and len(set(self.feature_columns)) != len(self.feature_columns):
+            raise ValueError("feature_columns must not contain duplicates")
+        if self.random_state < 0:
+            raise ValueError("random_state must be non-negative")
+        if self.min_rows_for_boosting < 1 or self.n_estimators < 1:
+            raise ValueError("row and estimator counts must be positive")
+        if self.learning_rate <= 0.0 or self.max_depth < 1:
+            raise ValueError("learning_rate and max_depth must be positive")
+        if self.max_categories_per_feature < 1:
+            raise ValueError("max_categories_per_feature must be positive")
+        if self.target_season is not None and int(self.target_season) < 1950:
+            raise ValueError("target_season must be a plausible four-digit season")
+
+    def to_payload(self) -> dict[str, Any]:
+        payload = asdict(self)
+        payload["backend"] = str(self.backend).strip().lower()
+        payload["quantiles"] = [float(value) for value in self.quantiles]
+        if self.feature_columns is not None:
+            payload["feature_columns"] = list(self.feature_columns)
+        return payload
+
+    @property
+    def fingerprint(self) -> str:
+        encoded = json.dumps(
+            self.to_payload(), sort_keys=True, separators=(",", ":"), default=str
+        ).encode("utf-8")
+        return hashlib.sha256(encoded).hexdigest()
+
+
+class TabularQuantileBackendUnavailable(RuntimeError):
+    """Raised when the explicitly requested challenger cannot be fitted."""
+
+    status = "unavailable"
+
+    def __init__(self, requested_backend: str, attempts: Sequence[Mapping[str, Any]]) -> None:
+        self.requested_backend = str(requested_backend)
+        self.attempts = tuple(dict(attempt) for attempt in attempts)
+        super().__init__(f"tabular quantile backend {requested_backend!r} is unavailable")
+
+    def to_payload(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "requested_backend": self.requested_backend,
+            "backend_attempts": [dict(attempt) for attempt in self.attempts],
+        }
 
 
 @dataclass
@@ -178,22 +256,66 @@ class _EmpiricalQuantileRegressor:
 
 
 def _module_available(name: str) -> bool:
-    return importlib.util.find_spec(name) is not None
+    try:
+        return importlib.util.find_spec(name) is not None
+    except (ImportError, ValueError):
+        return False
+
+
+def _package_version(name: str) -> str | None:
+    try:
+        return str(importlib.metadata.version(name))
+    except Exception:
+        return None
+
+
+def inspect_tabular_quantile_backend(backend: str) -> dict[str, Any]:
+    """Return an explicit serializable availability state for one backend."""
+
+    normalized = str(backend).strip().lower()
+    if normalized not in TABULAR_QUANTILE_BACKENDS or normalized == "auto":
+        raise ValueError("backend inspection requires one concrete tabular quantile backend")
+    if normalized in {"lightgbm", "xgboost"}:
+        runtime = inspect_optional_model_runtime(normalized)
+        return {
+            "backend": normalized,
+            "status": "available" if runtime.available else "unavailable",
+            "available": runtime.available,
+            "version": runtime.version,
+            "runtime": runtime.to_payload(),
+            "reason": runtime.issue,
+        }
+    if normalized.startswith("sklearn"):
+        available = _module_available("sklearn")
+        return {
+            "backend": normalized,
+            "status": "available" if available else "unavailable",
+            "available": available,
+            "version": _package_version("scikit-learn"),
+            "reason": None if available else "package_not_installed",
+        }
+    return {
+        "backend": "empirical",
+        "status": "available",
+        "available": True,
+        "version": "builtin",
+        "reason": None,
+    }
 
 
 def _backend_candidates(config: TabularQuantileConfig, row_count: int) -> tuple[str, ...]:
     requested = config.backend.strip().lower()
-    if row_count < int(config.min_rows_for_boosting):
+    if requested == "auto" and row_count < int(config.min_rows_for_boosting):
         return ("empirical",)
     if requested != "auto":
-        return (requested, "empirical")
+        if config.allow_requested_backend_fallback and requested != "empirical":
+            return (requested, "sklearn_gbr", "empirical")
+        return (requested,)
     return ("lightgbm", "xgboost", "sklearn_hist", "sklearn_gbr", "empirical")
 
 
 def _make_estimator(backend: str, quantile: float, config: TabularQuantileConfig) -> Any:
     if backend == "lightgbm":
-        if not _module_available("lightgbm"):
-            raise ImportError("LightGBM is not installed")
         from lightgbm import LGBMRegressor  # type: ignore
 
         return LGBMRegressor(
@@ -202,13 +324,17 @@ def _make_estimator(backend: str, quantile: float, config: TabularQuantileConfig
             n_estimators=int(config.n_estimators),
             learning_rate=float(config.learning_rate),
             max_depth=int(config.max_depth),
+            min_child_samples=5,
+            subsample=1.0,
+            colsample_bytree=1.0,
+            deterministic=True,
+            force_col_wise=True,
+            n_jobs=1,
             random_state=int(config.random_state),
             verbosity=-1,
         )
 
     if backend == "xgboost":
-        if not _module_available("xgboost"):
-            raise ImportError("XGBoost is not installed")
         from xgboost import XGBRegressor  # type: ignore
 
         return XGBRegressor(
@@ -219,6 +345,7 @@ def _make_estimator(backend: str, quantile: float, config: TabularQuantileConfig
             max_depth=int(config.max_depth),
             random_state=int(config.random_state),
             tree_method="hist",
+            n_jobs=1,
             verbosity=0,
         )
 
@@ -273,19 +400,38 @@ class TabularQuantileLapTimeModel:
         if frame.empty:
             return pd.DataFrame(columns=[*PREDICTION_COLUMNS, "model"])
         X = self.encoder.transform(frame)
-        predictions = []
-        for quantile in self.config.quantiles:
-            model = self.models[float(quantile)]
-            predictions.append(np.asarray(model.predict(X), dtype=float))
-        matrix = np.vstack(predictions).T
-        matrix = np.maximum.accumulate(matrix, axis=1)
-        output = pd.DataFrame(matrix, columns=PREDICTION_COLUMNS[: len(self.config.quantiles)], index=frame.index)
-        for column in PREDICTION_COLUMNS:
-            if column not in output.columns:
-                output[column] = np.nan
-        output = output.loc[:, list(PREDICTION_COLUMNS)]
+        ordered_quantiles = tuple(sorted(float(value) for value in self.config.quantiles))
+        def predict_one(quantile: float) -> np.ndarray:
+            estimator = self.models[quantile]
+            if self.backend_name == "lightgbm" and hasattr(estimator, "booster_"):
+                values = estimator.booster_.predict(X)
+            else:
+                values = estimator.predict(X)
+            return np.asarray(values, dtype=float)
+
+        raw = np.vstack(
+            [predict_one(quantile) for quantile in ordered_quantiles]
+        ).T
+        if raw.shape != (len(frame), len(ordered_quantiles)) or not np.isfinite(raw).all():
+            raise ValueError("quantile backend returned non-finite or malformed predictions")
+
+        # Independent quantile models can cross.  Row-wise monotone rearrangement
+        # preserves the three predicted values while restoring their alpha order;
+        # unlike cumulative clipping it does not manufacture a duplicated upper
+        # quantile.  Column labels are bound to alpha, never tuple position.
+        monotone = np.sort(raw, axis=1)
+        by_column = {
+            PREDICTION_COLUMN_BY_QUANTILE[quantile]: monotone[:, index]
+            for index, quantile in enumerate(ordered_quantiles)
+        }
+        output = pd.DataFrame(by_column, index=frame.index).loc[:, list(PREDICTION_COLUMNS)]
         output["model"] = f"ultimate_lap_time_tabular_quantile_{self.backend_name}"
         return output
+
+    def manifest(self) -> dict[str, Any]:
+        """Return a JSON-serializable copy of the frozen training manifest."""
+
+        return json.loads(json.dumps(self.training_summary, sort_keys=True, default=str))
 
 
 def fit_tabular_quantile_model(
@@ -296,12 +442,31 @@ def fit_tabular_quantile_model(
     """Fit a p05/p50/p90 tabular quantile challenger."""
 
     cfg = config or TabularQuantileConfig()
-    if tuple(cfg.quantiles) != QUANTILES:
-        raise ValueError("the current evaluation contract expects quantiles (0.05, 0.50, 0.90)")
 
-    frame = _as_dataframe(records)
+    raw_frame = _as_dataframe(records)
+    frame = raw_frame.copy()
     if frame.empty:
         raise ValueError("records must contain at least one training row")
+    resolved_season: int | None = None
+    excluded_other_season_rows = 0
+    if cfg.same_season_only:
+        if cfg.season_column not in frame.columns:
+            raise ValueError(
+                "same-season quantile training requires an explicit season column"
+            )
+        seasons = pd.to_numeric(frame[cfg.season_column], errors="coerce")
+        if seasons.isna().any() or not np.equal(seasons, np.floor(seasons)).all():
+            raise ValueError("season identifiers must be finite integers")
+        resolved_season = (
+            int(seasons.max()) if cfg.target_season is None else int(cfg.target_season)
+        )
+        same_season_mask = seasons.eq(float(resolved_season))
+        excluded_other_season_rows = int((~same_season_mask).sum())
+        frame = frame.loc[same_season_mask].copy()
+        if frame.empty:
+            raise ValueError(
+                f"no tabular quantile rows are available for target season {resolved_season}"
+            )
     y = _finite_target(frame, cfg.target_column).to_numpy(dtype=float)
     finite_mask = np.isfinite(y)
     if not finite_mask.any():
@@ -309,22 +474,70 @@ def fit_tabular_quantile_model(
     frame = frame.loc[finite_mask].reset_index(drop=True)
     y = y[finite_mask]
 
+    selected_features = cfg.feature_columns
+    if selected_features is None:
+        actual_target = _find_target_column(frame, cfg.target_column)
+        selected_features = tuple(
+            str(column)
+            for column in frame.columns
+            if str(column) != actual_target
+            and str(column) not in DEFAULT_EXCLUDED_FEATURE_COLUMNS
+            and not str(column).startswith("predicted_")
+        )
+
     encoder = TabularFeatureEncoder().fit(
         frame,
-        feature_columns=cfg.feature_columns,
+        feature_columns=selected_features,
         max_categories_per_feature=int(cfg.max_categories_per_feature),
     )
     X = encoder.transform(frame)
 
+    data_hash = hashlib.sha256()
+    data_hash.update(np.asarray(X.shape, dtype=np.int64).tobytes())
+    data_hash.update(np.ascontiguousarray(X, dtype=np.float32).tobytes())
+    data_hash.update(np.ascontiguousarray(y, dtype=np.float64).tobytes())
+
     notes: list[str] = []
-    last_error: Exception | None = None
+    attempts: list[dict[str, Any]] = []
     for backend in _backend_candidates(cfg, len(frame)):
         models: dict[float, Any] = {}
         try:
-            for quantile in cfg.quantiles:
+            availability = inspect_tabular_quantile_backend(backend)
+            if not bool(availability["available"]):
+                attempts.append(availability)
+                notes.append(
+                    f"{backend} unavailable: {availability.get('reason') or 'unknown reason'}"
+                )
+                continue
+            for quantile in sorted(float(value) for value in cfg.quantiles):
                 estimator = _make_estimator(backend, float(quantile), cfg)
                 estimator.fit(X, y)
                 models[float(quantile)] = estimator
+            requested_backend = str(cfg.backend).strip().lower()
+            fallback_used = (
+                (requested_backend != "auto" and backend != requested_backend)
+                or (
+                    requested_backend == "auto"
+                    and (backend != "lightgbm" or len(frame) < int(cfg.min_rows_for_boosting))
+                )
+            )
+            selected_attempt = {
+                **availability,
+                "status": "selected",
+                "quantile_objectives": {
+                    PREDICTION_COLUMN_BY_QUANTILE[quantile]: {
+                        "alpha": quantile,
+                        "objective": "quantile",
+                    }
+                    for quantile in sorted(float(value) for value in cfg.quantiles)
+                },
+            }
+            attempts.append(selected_attempt)
+            event_count = (
+                int(frame["event_key"].nunique(dropna=False))
+                if "event_key" in frame.columns
+                else None
+            )
             return TabularQuantileLapTimeModel(
                 config=cfg,
                 backend_name=backend,
@@ -332,20 +545,57 @@ def fit_tabular_quantile_model(
                 models=models,
                 target_column=_find_target_column(frame, cfg.target_column),
                 training_summary={
-                    "rows_seen": int(len(_as_dataframe(records))),
+                    "schema_version": "f1_tabular_quantile_manifest_v1",
+                    "status": "available_fallback" if fallback_used else "available",
+                    "requested_backend": str(cfg.backend).strip().lower(),
+                    "selected_backend": backend,
+                    "fallback_used": bool(fallback_used),
+                    "config": cfg.to_payload(),
+                    "config_sha256": cfg.fingerprint,
+                    "training_data_sha256": data_hash.hexdigest(),
+                    "rows_seen": int(len(raw_frame)),
                     "rows_used": int(len(frame)),
+                    "event_count": event_count,
+                    "training_season": resolved_season,
+                    "season_transfer_policy": (
+                        "same_season_absolute_lap_time_only"
+                        if cfg.same_season_only
+                        else "explicit_multi_season_training_enabled"
+                    ),
+                    "other_season_rows_excluded_from_fit": excluded_other_season_rows,
                     "backend": backend,
                     "feature_count": int(X.shape[1]),
                     "feature_names": list(encoder.feature_names_out),
+                    "target_column": _find_target_column(frame, cfg.target_column),
+                    "quantile_semantics": {
+                        "lap_p05": {
+                            "alpha": 0.05,
+                            "meaning": "fifth percentile; faster/lower lap-time tail",
+                        },
+                        "lap_p50": {"alpha": 0.50, "meaning": "median lap time"},
+                        "lap_p90": {
+                            "alpha": 0.90,
+                            "meaning": "ninetieth percentile; slower/upper lap-time tail",
+                        },
+                        "p05_to_p90_nominal_coverage": 0.85,
+                        "monotonicity_repair": "rowwise_monotone_rearrangement",
+                    },
+                    "backend_attempts": attempts,
                     "notes": notes,
                 },
             )
-        except Exception as exc:  # pragma: no cover - depends on optional backend versions
-            last_error = exc
+        except Exception as exc:  # depends on optional backend versions and native libraries
+            attempt = {
+                "backend": backend,
+                "status": "unavailable",
+                "available": False,
+                "reason": f"{type(exc).__name__}: {exc}"[:3000],
+            }
+            attempts.append(attempt)
             notes.append(f"{backend} unavailable or failed: {exc}")
             continue
 
-    raise RuntimeError(f"could not fit any tabular quantile backend: {last_error}")
+    raise TabularQuantileBackendUnavailable(str(cfg.backend).strip().lower(), attempts)
 
 
 def predict_tabular_quantiles(
@@ -361,10 +611,14 @@ def predict_tabular_quantiles(
 
 __all__ = [
     "PREDICTION_COLUMNS",
+    "PREDICTION_COLUMN_BY_QUANTILE",
     "QUANTILES",
+    "TABULAR_QUANTILE_BACKENDS",
     "TabularFeatureEncoder",
+    "TabularQuantileBackendUnavailable",
     "TabularQuantileConfig",
     "TabularQuantileLapTimeModel",
     "fit_tabular_quantile_model",
+    "inspect_tabular_quantile_backend",
     "predict_tabular_quantiles",
 ]

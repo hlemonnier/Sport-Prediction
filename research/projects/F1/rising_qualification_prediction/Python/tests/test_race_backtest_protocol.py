@@ -16,11 +16,85 @@ if str(SCRIPT_DIR) not in sys.path:
 from run_race_survival_order_backtest import (  # noqa: E402
     _align_grid_driver_ids_from_qualifying,
     _build_event_rows,
+    _canonicalize_qualifying_driver_identity,
     _fit_binary_terminal_calibrator,
+    _map_driver_ids_from_qualifying,
     _rolling_oof_qualifying_prior,
     _same_product_promotion_blockers,
     _stable_provisional_grid_positions,
 )
+
+
+def test_qualifying_abbreviation_is_the_stable_longitudinal_driver_identity() -> None:
+    first, first_lookup = _canonicalize_qualifying_driver_identity(
+        pd.DataFrame(
+            {
+                "driver_id": ["1", "63"],
+                "car_number": ["1", "63"],
+                "driver_abbreviation": ["VER", "RUS"],
+            }
+        )
+    )
+    later, later_lookup = _canonicalize_qualifying_driver_identity(
+        pd.DataFrame(
+            {
+                "driver_id": ["3", "63"],
+                "car_number": ["3", "63"],
+                "driver_abbreviation": ["VER", "RUS"],
+            }
+        )
+    )
+
+    assert first["driver_id"].tolist() == ["VER", "RUS"]
+    assert later["driver_id"].tolist() == ["VER", "RUS"]
+    assert first_lookup["1"] == later_lookup["3"] == "VER"
+    assert first["provider_driver_id"].tolist() == ["1", "63"]
+
+
+def test_same_weekend_sources_map_only_through_frozen_qualifying_identity() -> None:
+    _, lookup = _canonicalize_qualifying_driver_identity(
+        pd.DataFrame(
+            {
+                "driver_id": ["1", "63"],
+                "car_number": ["1", "63"],
+                "driver_abbreviation": ["VER", "RUS"],
+            }
+        )
+    )
+    practice = _map_driver_ids_from_qualifying(
+        pd.DataFrame(
+            {
+                "driver_id": ["1", "63", "99"],
+                "fp_mean_rank": [1.0, 2.0, 3.0],
+            }
+        ),
+        lookup,
+        source_name="practice",
+        allow_non_roster_rows=True,
+    )
+
+    assert practice["driver_id"].tolist() == ["VER", "RUS"]
+    assert practice["practice_provider_driver_id"].tolist() == ["1", "63"]
+    with pytest.raises(ValueError, match="absent from the causal pre-race roster"):
+        _map_driver_ids_from_qualifying(
+            pd.DataFrame({"driver_id": ["1", "99"]}),
+            lookup,
+            source_name="race",
+            allow_non_roster_rows=False,
+        )
+
+
+def test_duplicate_stable_driver_identity_fails_closed() -> None:
+    with pytest.raises(ValueError, match="duplicate stable driver identities"):
+        _canonicalize_qualifying_driver_identity(
+            pd.DataFrame(
+                {
+                    "driver_id": ["1", "3"],
+                    "car_number": ["1", "3"],
+                    "driver_abbreviation": ["VER", "VER"],
+                }
+            )
+        )
 
 
 def test_signed_qualifying_prior_is_rolling_out_of_event_and_target_blind() -> None:
@@ -219,11 +293,15 @@ def test_race_truth_is_read_only_after_causal_feature_roster_is_frozen(
     assert provider.calls[-1] == "race_truth"
     assert frame["team_name"].tolist() == ["CAUSAL_A", "CAUSAL_B"]
     assert frame["power_unit"].tolist() == ["PU_A", "PU_B"]
+    assert frame["driver_id"].tolist() == ["AAA", "BBB"]
+    assert frame["provider_driver_id"].tolist() == ["1", "2"]
+    assert frame["race_provider_driver_id"].tolist() == ["1", "2"]
     assert "race_team_name" not in frame.columns
     assert "race_power_unit" not in frame.columns
     assert "finish_position" not in info["causal_inference_columns"]
     assert "terminal_status" not in info["causal_inference_columns"]
     assert info["race_truth_attached_after_inference_freeze"] is True
+    assert info["driver_identity_contract"]["race_truth_allowed_to_repair_identity"] is False
 
 
 def test_post_grid_promotion_fails_closed_without_same_product_protocol() -> None:

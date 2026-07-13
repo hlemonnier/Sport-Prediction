@@ -446,6 +446,110 @@ def _align_grid_driver_ids_from_qualifying(
     return out
 
 
+def _canonicalize_qualifying_driver_identity(
+    qualifying: pd.DataFrame,
+) -> tuple[pd.DataFrame, dict[str, str]]:
+    """Freeze one stable driver identity from the causal Qualifying roster.
+
+    FastF1's primary ``driver_id`` is normally the car number.  Car numbers are
+    not longitudinal driver identities (for example, a reigning champion may
+    switch between number 1 and their permanent number).  The FIA three-letter
+    abbreviation is present in the immutable Qualifying classification and is
+    stable across the seasons covered by this walk-forward study.
+
+    The returned lookup accepts the provider ID, car number, or canonical
+    abbreviation so every other same-weekend source can be aligned without
+    opening Race truth for identity repair.
+    """
+
+    required = {"driver_id", "car_number", "driver_abbreviation"}
+    missing = sorted(required - set(qualifying.columns))
+    if missing:
+        raise ValueError(
+            "causal Qualifying roster lacks stable driver identity fields: "
+            f"{missing}"
+        )
+    out = qualifying.copy()
+    provider_ids = out["driver_id"].astype("string").str.strip()
+    car_numbers = out["car_number"].astype("string").str.strip()
+    abbreviations = (
+        out["driver_abbreviation"].astype("string").str.strip().str.upper()
+    )
+    invalid_tokens = {"", "NAN", "NONE", "NULL", "<NA>"}
+    invalid = (
+        provider_ids.isna()
+        | car_numbers.isna()
+        | abbreviations.isna()
+        | provider_ids.str.upper().isin(invalid_tokens)
+        | car_numbers.str.upper().isin(invalid_tokens)
+        | abbreviations.isin(invalid_tokens)
+    )
+    if invalid.any():
+        raise ValueError("causal Qualifying roster contains incomplete driver identity")
+    if provider_ids.duplicated().any():
+        raise ValueError("causal Qualifying roster contains duplicate provider identities")
+    if car_numbers.duplicated().any():
+        raise ValueError("causal Qualifying roster contains duplicate car numbers")
+    if abbreviations.duplicated().any():
+        raise ValueError("causal Qualifying roster contains duplicate stable driver identities")
+
+    out["provider_driver_id"] = provider_ids.astype(str)
+    out["car_number"] = car_numbers.astype(str)
+    out["driver_abbreviation"] = abbreviations.astype(str)
+    out["driver_id"] = abbreviations.astype(str)
+    out["driver_identity_source"] = (
+        "pre_race_qualifying_fia_driver_abbreviation"
+    )
+
+    lookup: dict[str, str] = {}
+    for row in out[
+        ["driver_id", "provider_driver_id", "car_number"]
+    ].itertuples(index=False):
+        canonical = str(row.driver_id)
+        for raw in (row.driver_id, row.provider_driver_id, row.car_number):
+            key = str(raw).strip()
+            existing = lookup.get(key)
+            if existing is not None and existing != canonical:
+                raise ValueError(
+                    "Qualifying identity aliases do not map one-to-one to drivers"
+                )
+            lookup[key] = canonical
+    return out, lookup
+
+
+def _map_driver_ids_from_qualifying(
+    frame: pd.DataFrame,
+    identity_lookup: dict[str, str],
+    *,
+    source_name: str,
+    allow_non_roster_rows: bool,
+) -> pd.DataFrame:
+    """Map a same-weekend provider frame through the frozen Qualifying roster."""
+
+    if frame.empty:
+        return frame.copy()
+    if "driver_id" not in frame.columns:
+        raise ValueError(f"{source_name} lacks driver identity")
+    out = frame.copy()
+    provider_ids = out["driver_id"].astype("string").str.strip()
+    canonical = provider_ids.map(identity_lookup)
+    unmapped = canonical.isna()
+    if unmapped.any() and not allow_non_roster_rows:
+        unresolved = sorted(provider_ids.loc[unmapped].dropna().astype(str).unique())
+        raise ValueError(
+            f"{source_name} contains entrants absent from the causal pre-race roster: "
+            f"{unresolved}"
+        )
+    out[f"{source_name}_provider_driver_id"] = provider_ids.astype(str)
+    out = out.loc[~unmapped].copy()
+    out["driver_id"] = canonical.loc[~unmapped].astype(str)
+    if out["driver_id"].duplicated().any():
+        raise ValueError(
+            f"{source_name} maps multiple provider rows to one stable driver identity"
+        )
+    return out
+
+
 def _stable_provisional_grid_positions(frame: pd.DataFrame) -> pd.Series:
     """Turn a provider Qualifying classification into one physical proxy grid.
 
@@ -505,10 +609,15 @@ def _build_event_rows(
             "power_unit_source": "qualy_power_unit_source",
         }
     )
-    if q["driver_id"].astype(str).duplicated().any():
-        raise ValueError("causal Qualifying roster contains duplicate driver identities")
+    q, identity_lookup = _canonicalize_qualifying_driver_identity(q)
     frame = q.copy()
     if not practice.empty:
+        practice = _map_driver_ids_from_qualifying(
+            practice,
+            identity_lookup,
+            source_name="practice",
+            allow_non_roster_rows=True,
+        )
         # Qualifying owns entrant identity; practice may expose convenience
         # copies of team/name fields which must not suffix or replace it.
         overlapping_identity = sorted(
@@ -664,9 +773,17 @@ def _build_event_rows(
     frame["race_circuit_dnf_rate"] = frame["circuit_id"].map(circuit_dnf)
     frame["race_weekend_stoppage_count"] = float(_pre_race_red_flag_count(root, metadata))
     frame["race_wet_probability"] = _pre_race_wet_evidence(root, metadata)
-    frame["race_current_weekend_mechanical_stop_share"] = frame["driver_id"].astype(
-        str
-    ).map(_pre_race_driver_mechanical_stop_share(root, metadata))
+    raw_mechanical_stop_share = _pre_race_driver_mechanical_stop_share(
+        root, metadata
+    )
+    mechanical_stop_share = {
+        identity_lookup[raw_driver_id]: value
+        for raw_driver_id, value in raw_mechanical_stop_share.items()
+        if raw_driver_id in identity_lookup
+    }
+    frame["race_current_weekend_mechanical_stop_share"] = (
+        frame["driver_id"].astype(str).map(mechanical_stop_share)
+    )
     track_stats = provider.get_track_stats(year, round_number) or {}
     for key, value in track_stats.items():
         frame[key] = value
@@ -755,8 +872,12 @@ def _build_event_rows(
     race_targets = race[target_columns].copy().rename(
         columns={"position": "finish_position"}
     )
-    if "driver_id" not in race_targets.columns or race_targets["driver_id"].duplicated().any():
-        raise ValueError("Race truth requires unique driver identities")
+    race_targets = _map_driver_ids_from_qualifying(
+        race_targets,
+        identity_lookup,
+        source_name="race",
+        allow_non_roster_rows=False,
+    )
     feature_ids = set(inference_snapshot["driver_id"].astype(str))
     race_ids = set(race_targets["driver_id"].astype(str))
     target_only_ids = sorted(race_ids - feature_ids)
@@ -833,6 +954,12 @@ def _build_event_rows(
         "causal_inference_columns": list(inference_columns),
         "race_truth_attached_after_inference_freeze": True,
         "signed_qualifying_surprise_prior": qualifying_prior_manifest,
+        "driver_identity_contract": {
+            "canonical_field": "driver_id",
+            "canonical_source": "pre_race_qualifying_fia_driver_abbreviation",
+            "provider_identity_retained_as": "provider_driver_id",
+            "race_truth_allowed_to_repair_identity": False,
+        },
     }
     return frame, info, input_paths
 
@@ -1015,6 +1142,7 @@ def run(
         "retirement_fraction",
         "laps_completed",
         "terminal_label_granularity",
+        "race_provider_driver_id",
     ]
 
     def event_inputs(

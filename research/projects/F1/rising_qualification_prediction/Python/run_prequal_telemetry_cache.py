@@ -245,9 +245,20 @@ def capture_round(
     return manifest_path
 
 
-def _load_records(output_root: Path) -> Iterable[dict[str, Any]]:
-    for path in sorted(output_root.glob("*/round_*/telemetry_manifest.json")):
+def _load_records(
+    output_root: Path,
+    *,
+    year: int | None = None,
+) -> Iterable[dict[str, Any]]:
+    search_root = output_root / str(int(year)) if year is not None else output_root
+    pattern = "round_*/telemetry_manifest.json" if year is not None else "*/round_*/telemetry_manifest.json"
+    for path in sorted(search_root.glob(pattern)):
         payload = json.loads(path.read_text(encoding="utf-8"))
+        manifest_year = int(payload.get("year", int(payload["event_key"]) // 100))
+        if year is not None and manifest_year != int(year):
+            raise ValueError(
+                f"telemetry manifest {path} declares year {manifest_year}, expected {year}"
+            )
         yield from payload.get("feature_records", [])
 
 
@@ -265,6 +276,11 @@ def main() -> int:
     parser.add_argument("--audit-only", action="store_true")
     parser.add_argument("--minimum-independent-events", type=int, default=20)
     parser.add_argument("--minimum-drivers-per-event", type=int, default=18)
+    parser.add_argument(
+        "--audit-output",
+        type=Path,
+        help="write the immutable audit payload with exclusive-create semantics",
+    )
     args = parser.parse_args()
 
     manifests: list[str] = []
@@ -283,12 +299,27 @@ def main() -> int:
             manifests.append(str(path))
 
     audit = audit_telemetry_cache_manifests(
-        _load_records(args.output_root),
+        _load_records(args.output_root, year=args.year),
         root=root,
         minimum_independent_events=args.minimum_independent_events,
         minimum_drivers_per_event=args.minimum_drivers_per_event,
     )
-    print(json.dumps({"manifests": manifests, "audit": audit.to_payload()}, indent=2))
+    payload = {
+        "schema_version": "f1_prequal_telemetry_cache_audit_v1",
+        "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "year": int(args.year),
+        "manifests": manifests,
+        "audit": audit.to_payload(),
+    }
+    if args.audit_output is not None:
+        output = args.audit_output.expanduser()
+        if not output.is_absolute():
+            output = root / output
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with output.open("x", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, sort_keys=True, allow_nan=False)
+            handle.write("\n")
+    print(json.dumps(payload, indent=2))
     return 0
 
 

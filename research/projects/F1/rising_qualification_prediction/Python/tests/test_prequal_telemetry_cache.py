@@ -11,7 +11,7 @@ from packages.f1.data.providers.telemetry_cache import (
     select_representative_push_laps,
     validate_telemetry_frame,
 )
-from run_prequal_telemetry_cache import _rehearsal_contract, _training_targets
+from run_prequal_telemetry_cache import _load_records, _rehearsal_contract, _training_targets
 
 
 def test_push_lap_selection_rejects_deleted_pit_inaccurate_and_flagged_laps() -> None:
@@ -148,6 +148,21 @@ def test_training_targets_are_separate_and_stage_labels_are_nested() -> None:
     assert bool(targets.loc["AAA", "has_q2_time"])
     assert not bool(targets.loc["BBB", "has_q2_time"])
     assert targets["target_available_after_qualifying"].all()
+
+
+def test_cache_record_loading_is_scoped_to_requested_season(tmp_path: Path) -> None:
+    for year in (2025, 2026):
+        directory = tmp_path / str(year) / "round_01_test"
+        directory.mkdir(parents=True)
+        (directory / "telemetry_manifest.json").write_text(
+            '{"year": %d, "event_key": %d, "feature_records": [{"driver_id": "D%d"}]}'
+            % (year, year * 100 + 1, year),
+            encoding="utf-8",
+        )
+
+    records = list(_load_records(tmp_path, year=2026))
+
+    assert records == [{"driver_id": "D2026"}]
 
 
 # Suggested commit name: test(f1-telemetry): enforce causal cache readiness

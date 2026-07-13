@@ -2,9 +2,9 @@
 
 Created: 2026-07-13 Europe/Paris.
 
-Status: final evidence regeneration is in progress. The checked count is only
-final after the cutoff-safe Qualifying/Best-Lap artifacts, Race v4 artifact,
-and cross-service suites have all been verified.
+Status: complete. All 31 requirements are verified, including the cutoff-safe
+Qualifying/Best-Lap artifacts, Race v4 artifact, cross-service suites, and
+synchronized final branch.
 
 This document converts the original non-live recommendation into a
 requirement-by-requirement implementation contract. A checked item requires
@@ -101,7 +101,7 @@ and chronological evidence. Passing isolated unit tests is not sufficient.
   hashes, and a registered whole-artifact SHA-256.
 - [x] Promotion gates from the original recommendation are enforced exactly;
   failed challengers remain shadow/diagnostic implementations.
-- [ ] Research, platform, and prediction-service suites pass from their correct
+- [x] Research, platform, and prediction-service suites pass from their correct
   working directories, and the final branch is clean and synchronized.
 
 Suggested commit name: `docs(f1): define full non-live implementation contract`

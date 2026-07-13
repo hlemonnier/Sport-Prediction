@@ -36,11 +36,10 @@ residual path when it fails selection-block evidence. Best Lap reads marginal
 seconds; Qualifying applies valid/stage outcomes to every joint field draw and
 converts those draws into legal official classifications.
 
-The pre-boundary reference artifacts match on driver IDs, joint-sample count
-and hash, model and model-manifest hashes, Best-Lap and Qualifying output
-hashes, position-marginal hash, and shared-artifact hash for all nine events.
-The cutoff-safe regeneration must reproduce those nine integrity fields per
-round before this report is finalized.
+The final cutoff-safe Qualifying v6 and Best-Lap v6 artifacts match on driver
+IDs, joint-sample count and hash, model and model-manifest hashes, Best-Lap and
+Qualifying output hashes, position-marginal hash, and shared-artifact hash for
+every round 1-9.
 
 The causal rehearsal record separates valid clean pace from deleted potential
 and includes compatible sectors, lap dispersion, push-lap count, session
@@ -102,7 +101,10 @@ LambdaRank and LightGBM quantile challengers run only on chronological blocks
 with exact champion-artifact alignment. Telemetry v2 validates 550 fixed-shape,
 distance-normalized tensors across 9 independent events and 191 driver-events,
 with zero cutoff, missing-file, SHA, shape, schema, or content failures. The
-declared minimum is 20 events, so the TCN remains blocked.
+declared minimum is 20 events, so the TCN remains blocked. Best-Lap v6
+revalidates those tensors directly, binds all 9 manifests and 550 tensors to
+its input inventory, and reproduces the independent manifest-set and
+validated-cache digests exactly.
 
 ## Prediction versus reality by round
 
@@ -220,8 +222,8 @@ unchanged.
 
 | Mode | Local immutable artifact | Schema | SHA-256 |
 | --- | --- | --- | --- |
-| Qualifying | `artifacts/backtests/f1/qualifying/shared_latent_v6_20260713.json` | `f1_shared_qualifying_latent_event_block_v3` | pending cutoff-safe regeneration |
-| Best Lap | `artifacts/backtests/f1/best_estimated_lap/shared_latent_v5_20260713.json` | `f1_best_estimated_lap_shared_latent_v4` | pending cutoff-safe regeneration |
+| Qualifying | `artifacts/backtests/f1/qualifying/shared_latent_v6_20260713.json` | `f1_shared_qualifying_latent_event_block_v3` | `70806f3ba28c52382622576272878bbd1b534a3e68dd2639607d238319c703ea` |
+| Best Lap | `artifacts/backtests/f1/best_estimated_lap/shared_latent_v6_20260713.json` | `f1_best_estimated_lap_shared_latent_v5` | `4d3d399433f13f12979b7d8bc913335c15e3ecf0406c70c1f01d371f400940a9` |
 | Race | `artifacts/backtests/f1/race_final_position/survival_order_v4_20260713.json` | `f1_race_survival_order_event_block_v3` | `2e8c8448af407b4d86ec38e34121c3f427556fdb5092ceb7ecbb2f3ed71d6c6e` |
 | Optional | `artifacts/backtests/f1/optional_models/2026_event_block_challengers_v3_20260713.json` | `f1_optional_non_live_event_block_evidence_v2` | `bd9edafff0b70297e7a547426389d0e7a9ed946f37c49d791fc634d361a46f6a` |
 | Telemetry audit | `artifacts/backtests/f1/telemetry/prequal_cache_audit_v2_20260713.json` | `f1_prequal_telemetry_cache_audit_v2` | `56a994a43cc025b0b63198bd6951eb6ecfe814d7c123194fdaf89e77183fc733` |
@@ -238,10 +240,10 @@ artifact by its whole-file SHA-256.
 
 ## Validation
 
-Final full-suite counts are inserted after the cutoff-safe shared-model reruns.
-Focused Race protocol, survival, grid and capture validation currently passes
-81 tests. Race v4 completed in `8391.57 s` wall time under the bounded
-single-process policy.
+Final validation passed 480 research tests; 108 platform tests with 7 optional
+FastAPI skips; and 36 prediction-service tests. Repository-wide `compileall`
+and `git diff --check` also passed. Race v4 completed in `8391.57 s` wall time
+under the bounded single-process policy.
 
 Primary technical references: [FastF1](https://docs.fastf1.dev/core.html),
 [OpenF1](https://openf1.org/docs/),

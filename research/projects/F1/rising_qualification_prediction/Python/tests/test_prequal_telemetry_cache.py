@@ -7,11 +7,61 @@ import pandas as pd
 import pytest
 
 from packages.f1.data.providers.telemetry_cache import (
+    NORMALIZED_TELEMETRY_CHANNELS,
     audit_telemetry_cache_manifests,
     select_representative_push_laps,
+    sha256_file,
+    validate_cached_telemetry_tensor,
     validate_telemetry_frame,
 )
-from run_prequal_telemetry_cache import _load_records, _rehearsal_contract, _training_targets
+from run_prequal_telemetry_cache import (
+    _load_records,
+    _manifest_evidence,
+    _rehearsal_contract,
+    _training_targets,
+    _write_lap_tensor,
+)
+
+
+def _telemetry() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "Date": pd.date_range("2026-07-12T10:00:00Z", periods=12, freq="1s"),
+            "Distance": np.linspace(0.0, 5000.0, num=12),
+            "Speed": np.linspace(100.0, 300.0, num=12),
+            "RPM": np.linspace(8000.0, 12000.0, num=12),
+            "nGear": np.linspace(2.0, 8.0, num=12),
+            "Throttle": np.linspace(0.0, 100.0, num=12),
+            "Brake": np.r_[np.ones(2), np.zeros(10)],
+            "DRS": np.r_[np.zeros(6), np.full(6, 12.0)],
+        }
+    )
+
+
+def _cache_record(
+    tmp_path: Path,
+    *,
+    event_key: int,
+    driver_id: str,
+) -> dict[str, object]:
+    path = tmp_path / f"{event_key}_{driver_id}.npz"
+    metadata = _write_lap_tensor(
+        _telemetry(),
+        path=path,
+        expected_lap_distance_m=5000.0,
+        distance_bins=8,
+        minimum_distance_coverage=0.95,
+    )
+    return {
+        "event_key": event_key,
+        "driver_id": driver_id,
+        "lap_number": 1,
+        "feature_as_of": "2026-07-12T10:00:11Z",
+        "qualifying_start_utc": "2026-07-12T12:00:00Z",
+        "telemetry_path": path.name,
+        "telemetry_sha256": sha256_file(path),
+        **metadata,
+    }
 
 
 def test_push_lap_selection_rejects_deleted_pit_inaccurate_and_flagged_laps() -> None:
@@ -70,17 +120,7 @@ def test_cache_audit_requires_complete_independent_events_and_existing_files(
     manifests: list[dict[str, object]] = []
     for event in (202601, 202602):
         for index in range(3):
-            path = tmp_path / f"{event}_{index}.npz"
-            path.write_bytes(b"evidence")
-            manifests.append(
-                {
-                    "event_key": event,
-                    "driver_id": f"D{index}",
-                    "feature_as_of": "2026-01-01T10:00:00Z",
-                    "qualifying_start_utc": "2026-01-01T12:00:00Z",
-                    "telemetry_path": path.name,
-                }
-            )
+            manifests.append(_cache_record(tmp_path, event_key=event, driver_id=f"D{index}"))
     ready = audit_telemetry_cache_manifests(
         manifests,
         root=tmp_path,
@@ -89,8 +129,33 @@ def test_cache_audit_requires_complete_independent_events_and_existing_files(
     )
     assert ready.ready_for_deep_model
     assert ready.event_count == 2
+    assert ready.driver_event_count == 6
+    assert ready.record_count == 6
+    assert ready.validated_tensor_count == 6
+    assert ready.hash_mismatch_count == 0
+    assert ready.invalid_tensor_count == 0
+    assert ready.complete_event_keys == ("202601", "202602")
+    assert len(ready.validated_cache_sha256) == 64
 
-    manifests[0]["feature_as_of"] = "2026-01-01T12:00:00Z"
+    reordered = audit_telemetry_cache_manifests(
+        reversed(manifests),
+        root=tmp_path,
+        minimum_independent_events=2,
+        minimum_drivers_per_event=3,
+    )
+    assert reordered.validated_cache_sha256 == ready.validated_cache_sha256
+
+    insufficient = audit_telemetry_cache_manifests(
+        manifests,
+        root=tmp_path,
+        minimum_independent_events=3,
+        minimum_drivers_per_event=3,
+    )
+    assert insufficient.blockers == (
+        "insufficient_independent_prequalifying_telemetry_events",
+    )
+
+    manifests[0]["qualifying_start_utc"] = "2026-07-12T10:00:11Z"
     (tmp_path / str(manifests[1]["telemetry_path"])).unlink()
     rejected = audit_telemetry_cache_manifests(
         manifests,
@@ -100,8 +165,58 @@ def test_cache_audit_requires_complete_independent_events_and_existing_files(
     )
     assert not rejected.ready_for_deep_model
     assert set(rejected.blockers) == {
+        "insufficient_independent_prequalifying_telemetry_events",
         "telemetry_cutoff_violations",
         "telemetry_files_missing",
+        "telemetry_tensor_content_or_shape_invalid",
+    }
+
+
+def test_tensor_cache_is_distance_normalized_timestamped_and_self_describing(
+    tmp_path: Path,
+) -> None:
+    record = _cache_record(tmp_path, event_key=202601, driver_id="AAA")
+    validation = validate_cached_telemetry_tensor(record, root=tmp_path)
+
+    assert validation["shape"] == [len(NORMALIZED_TELEMETRY_CHANNELS), 8]
+    assert validation["channels"] == list(NORMALIZED_TELEMETRY_CHANNELS)
+    assert validation["feature_as_of"] == "2026-07-12T10:00:11Z"
+    with np.load(tmp_path / str(record["telemetry_path"]), allow_pickle=False) as payload:
+        np.testing.assert_allclose(payload["distance_grid_m"], np.linspace(0.0, 5000.0, 8))
+        assert payload["values"].shape == (len(NORMALIZED_TELEMETRY_CHANNELS), 8)
+        assert payload["sample_timestamp_ns"].shape == (8,)
+        assert int(payload["sample_timestamp_ns"].max()) == int(
+            payload["feature_as_of_ns"]
+        )
+
+
+def test_cache_audit_fails_closed_on_hash_and_tensor_shape_corruption(
+    tmp_path: Path,
+) -> None:
+    hash_record = _cache_record(tmp_path, event_key=202601, driver_id="AAA")
+    hash_path = tmp_path / str(hash_record["telemetry_path"])
+    hash_path.write_bytes(hash_path.read_bytes() + b"tampered")
+
+    shape_record = _cache_record(tmp_path, event_key=202602, driver_id="BBB")
+    shape_path = tmp_path / str(shape_record["telemetry_path"])
+    np.savez_compressed(shape_path, values=np.zeros((1, 1), dtype=np.float32))
+    shape_record["telemetry_sha256"] = sha256_file(shape_path)
+
+    rejected = audit_telemetry_cache_manifests(
+        [hash_record, shape_record],
+        root=tmp_path,
+        minimum_independent_events=1,
+        minimum_drivers_per_event=1,
+    )
+
+    assert not rejected.ready_for_deep_model
+    assert rejected.event_count == 0
+    assert rejected.hash_mismatch_count == 1
+    assert rejected.invalid_tensor_count == 1
+    assert set(rejected.blockers) == {
+        "insufficient_independent_prequalifying_telemetry_events",
+        "telemetry_hash_mismatches",
+        "telemetry_tensor_content_or_shape_invalid",
     }
 
 
@@ -161,8 +276,13 @@ def test_cache_record_loading_is_scoped_to_requested_season(tmp_path: Path) -> N
         )
 
     records = list(_load_records(tmp_path, year=2026))
+    evidence = _manifest_evidence(tmp_path, year=2026, root=tmp_path)
 
     assert records == [{"driver_id": "D2026"}]
+    assert len(evidence) == 1
+    assert evidence[0]["event_key"] == 202601
+    assert evidence[0]["feature_record_count"] == 1
+    assert len(evidence[0]["sha256"]) == 64
 
 
 # Suggested commit name: test(f1-telemetry): enforce causal cache readiness

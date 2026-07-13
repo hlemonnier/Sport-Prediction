@@ -109,7 +109,7 @@ def select_representative_push_laps(
     )
     selected = selected.groupby("driver_id", sort=False, as_index=False).head(
         int(maximum_laps_per_driver)
-    )
+    ).copy()
     selected["push_lap_rank"] = (
         selected.groupby("driver_id", sort=False).cumcount() + 1
     )

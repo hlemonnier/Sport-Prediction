@@ -26,6 +26,7 @@ from packages.f1.features.race import (
     race_grid_snapshot_frame,
 )
 from packages.f1.models.pre_race import (
+    BinaryTerminalCalibrator,
     BradleyTerryOrderRanker,
     PartialPooledTerminalHazard,
     SurvivalAwareRaceModel,
@@ -315,6 +316,42 @@ def test_terminal_evaluation_reports_brier_logloss_calibration_and_reason_recall
     assert isinstance(metrics["terminal_calibration"], list)
 
 
+def test_terminal_evaluation_separates_exact_coarse_and_retirement_timing() -> None:
+    model = PartialPooledTerminalHazard().fit(
+        _history(),
+        cutoff="2025-04-01T00:00:00Z",
+    )
+    roster = _final_roster()
+    probabilities = model.predict_proba(
+        roster,
+        prediction_as_of="2025-05-01T00:00:00Z",
+    )
+    actual = pd.DataFrame(
+        {
+            "driver_id": ["A", "B", "C", "D"],
+            "terminal_status": [
+                "classified_finish",
+                "non_classified",
+                "mechanical_power_unit",
+                "dns_withdrawal",
+            ],
+            "terminal_label_granularity": [
+                "classified",
+                "coarse_terminal",
+                "exact_cause",
+                "prestart",
+            ],
+            "retirement_fraction": [1.0, 0.7, 0.4, 0.0],
+        }
+    )
+    metrics = evaluate_terminal_status_probabilities(actual, probabilities)
+
+    assert metrics["exact_reason_rows"] == 1
+    assert metrics["coarse_terminal_rows"] == 1
+    assert metrics["retirement_timing_rows"] == 2
+    assert metrics["retirement_fraction_mae"] is not None
+
+
 def test_joint_model_emits_probabilities_and_legal_permutation_with_dns_and_pitlane() -> None:
     model = SurvivalAwareRaceModel().fit(
         _history(),
@@ -329,6 +366,10 @@ def test_joint_model_emits_probabilities_and_legal_permutation_with_dns_and_pitl
 
     point = forecast.point_classification.set_index("driver_id")
     assert sorted(point["predicted_position"].tolist()) == [1, 2, 3, 4]
+    assert sorted(point["global_meal_position"].tolist()) == [1, 2, 3, 4]
+    assert point["dns_constrained_meal_position"].tolist() == point[
+        "predicted_position"
+    ].tolist()
     assert point.loc["D", "predicted_terminal_status"] == "dns_withdrawal"
     assert int(point.loc["D", "predicted_position"]) == 4
     assert point.loc["C", "starter_eligible"]
@@ -339,6 +380,101 @@ def test_joint_model_emits_probabilities_and_legal_permutation_with_dns_and_pitl
     status_sums = forecast.status_probabilities.filter(regex=r"^p_(?!terminal$)").sum(axis=1)
     assert position_sums.tolist() == pytest.approx([1.0] * 4)
     assert status_sums.tolist() == pytest.approx([1.0] * 4)
+    assert set(forecast.status_probabilities["status_probability_source"]) == {
+        "empirical_post_shared_shock_joint_samples"
+    }
+    for status in TerminalStatus:
+        empirical = np.mean(forecast.status_samples == status.value, axis=1)
+        assert forecast.status_probabilities[f"p_{status.value}"].to_numpy() == pytest.approx(
+            empirical
+        )
+
+
+def test_person_period_hazard_learns_regularized_causal_covariate_effects() -> None:
+    rows = []
+    for event in range(1, 13):
+        for driver in range(8):
+            mechanical = driver < 2
+            incident = 2 <= driver < 4
+            coarse = driver == 4
+            status = (
+                TerminalStatus.MECHANICAL_POWER_UNIT.value
+                if mechanical
+                else TerminalStatus.COLLISION_INCIDENT.value
+                if incident
+                else TerminalStatus.NON_CLASSIFIED.value
+                if coarse
+                else TerminalStatus.CLASSIFIED_FINISH.value
+            )
+            rows.append(
+                {
+                    "event_key": event,
+                    "event_as_of": f"2024-{event:02d}-01T12:00:00Z",
+                    "driver_id": f"D{driver}",
+                    "team_name": "SAME_TEAM",
+                    "power_unit": "SAME_PU",
+                    "circuit_id": "SAME_TRACK",
+                    "grid_position": driver + 1,
+                    "grid_status": "grid",
+                    "grid_starter_eligible": True,
+                    "terminal_status": status,
+                    "retirement_fraction": (
+                        1.0 if status == "classified_finish" else 0.15 + 0.05 * driver
+                    ),
+                    "race_team_mechanical_rate": 0.9 if mechanical else 0.1,
+                    "race_power_unit_mechanical_rate": 0.9 if mechanical else 0.1,
+                    "race_driver_incident_rate": 0.9 if incident else 0.1,
+                    "race_circuit_dnf_rate": 0.4,
+                }
+            )
+    model = PartialPooledTerminalHazard().fit(pd.DataFrame(rows))
+    card = model.model_card
+    fitted = set(card["covariate_model"]["fitted_causes"])
+
+    assert {
+        "mechanical_power_unit",
+        "collision_incident",
+        "non_classified",
+    }.issubset(fitted)
+    assert (
+        card["covariate_model"]["coefficients"]["mechanical_power_unit"][
+            "race_team_mechanical_rate"
+        ]
+        > 0.0
+    )
+    predicted = model.predict_proba(pd.DataFrame(rows[:2]))
+    assert len(predicted.filter(regex=r"^terminal_interval_hazard_").columns) == 12
+    assert len(predicted.filter(regex=r"^survival_through_interval_").columns) == 12
+
+
+def test_calibration_mapping_changes_terminal_hazard_without_breaking_probability_sum() -> None:
+    model = PartialPooledTerminalHazard().fit(
+        _history(),
+        cutoff="2025-04-01T00:00:00Z",
+    )
+    roster = _final_roster().iloc[:3].copy()
+    raw = model.predict_proba(
+        roster,
+        prediction_as_of="2025-05-01T00:00:00Z",
+    )
+    model.set_terminal_calibrator(
+        BinaryTerminalCalibrator(
+            intercept=-1.5,
+            slope=0.7,
+            calibration_rows=80,
+            calibration_event_keys=("202501", "202502", "202503", "202504"),
+        )
+    )
+    calibrated = model.predict_proba(
+        roster,
+        prediction_as_of="2025-05-01T00:00:00Z",
+    )
+
+    assert not np.allclose(raw["p_terminal"], calibrated["p_terminal"])
+    assert calibrated.filter(regex=r"^p_(?!terminal$)").sum(axis=1).tolist() == pytest.approx(
+        [1.0] * len(calibrated)
+    )
+    assert model.model_card["binary_terminal_calibration"]["calibration_rows"] == 80
 
 
 def test_joint_all_terminal_roster_remains_a_legal_permutation() -> None:

@@ -23,6 +23,7 @@ class ConditionalOrderConfig:
     residual_weight: float = 0.45
     max_iter: int = 800
     random_state: int = 17
+    include_missing_indicators: bool = True
 
     def __post_init__(self) -> None:
         if self.regularization_c <= 0.0:
@@ -86,6 +87,7 @@ class BradleyTerryOrderRanker:
         self._medians = pd.Series(dtype=float)
         self._scales = pd.Series(dtype=float)
         self._model: object | None = None
+        self._design_columns: tuple[str, ...] = ()
         self.backend = "unfitted"
         self.training_events = 0
         self.training_pairs = 0
@@ -94,14 +96,39 @@ class BradleyTerryOrderRanker:
     def _matrix(self, frame: pd.DataFrame, *, fit: bool) -> np.ndarray:
         values = pd.DataFrame(index=frame.index)
         for column in self.feature_columns:
-            values[column] = pd.to_numeric(frame.get(column), errors="coerce")
+            source = (
+                frame[column]
+                if column in frame.columns
+                else pd.Series(np.nan, index=frame.index, dtype=float)
+            )
+            numeric = pd.to_numeric(source, errors="coerce")
+            values[column] = numeric
+            if self.config.include_missing_indicators:
+                values[f"{column}__missing"] = numeric.isna().astype(float)
         if fit:
+            self._design_columns = tuple(values.columns)
             self._medians = values.median(axis=0, skipna=True).fillna(0.0)
             filled = values.fillna(self._medians)
             scales = filled.std(axis=0, ddof=0).replace(0.0, 1.0).fillna(1.0)
             self._scales = scales
         filled = values.fillna(self._medians).fillna(0.0)
         return ((filled - self._medians) / self._scales).to_numpy(dtype=float)
+
+    def fit_grid_prior_only(self, frame: pd.DataFrame) -> "BradleyTerryOrderRanker":
+        """Initialize a zero-residual model when no same-regime event exists."""
+
+        if frame.empty:
+            raise ValueError("grid-prior initialization requires a non-empty roster")
+        engineered = engineer_survival_aware_race_features(frame.reset_index(drop=True))
+        matrix = self._matrix(engineered, fit=True)
+        model = _NumpyLogistic(c=self.config.regularization_c, max_iter=1)
+        model.coef_ = np.zeros((1, matrix.shape[1]), dtype=float)
+        self._model = model
+        self.backend = "fixed_grid_prior_no_same_regime_pairs"
+        self.training_events = 0
+        self.training_pairs = 0
+        self.training_max_as_of = None
+        return self
 
     def fit(
         self,
@@ -195,7 +222,7 @@ class BradleyTerryOrderRanker:
         if self._model is None:
             raise RuntimeError("conditional-order ranker must be fitted")
         coefficients = np.asarray(getattr(self._model, "coef_"), dtype=float).reshape(-1)
-        return dict(zip(self.feature_columns, coefficients.tolist(), strict=True))
+        return dict(zip(self._design_columns, coefficients.tolist(), strict=True))
 
     def score(
         self,

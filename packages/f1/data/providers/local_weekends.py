@@ -32,6 +32,45 @@ from .base import (
     time,
 )
 from .practice_features import FP_FEATURE_CONTRACT_VERSION, PracticeFeatureConfig, build_session_pace_features
+from packages.f1.features.race import (
+    aggregate_race_practice_evidence,
+    derive_race_practice_evidence,
+)
+from packages.f1.domain.starting_grid import (
+    GridEntryStatus,
+    RaceGridCapture,
+    load_race_grid_capture,
+)
+
+
+def _season_entry_list_power_unit(year: int, team_name: object) -> str | None:
+    """Causal constructor-to-PU contract from the season entry list."""
+
+    team = re.sub(r"[^a-z0-9]+", " ", str(team_name).lower()).strip()
+    if not team or team in {"nan", "none", "null"}:
+        return None
+    if int(year) >= 2026:
+        if "audi" in team:
+            return "Audi"
+        if any(token in team for token in ("ferrari", "haas", "cadillac")):
+            return "Ferrari"
+        if "aston martin" in team:
+            return "Honda"
+        if "red bull" in team or "racing bulls" in team:
+            return "Red Bull Ford Powertrains"
+        if any(token in team for token in ("mercedes", "mclaren", "williams", "alpine")):
+            return "Mercedes"
+        return None
+    if "alpine" in team:
+        return "Renault"
+    if any(token in team for token in ("red bull", "alphatauri", "racing bulls")) or team == "rb":
+        return "Honda RBPT"
+    if any(token in team for token in ("ferrari", "haas", "alfa romeo", "sauber")):
+        return "Ferrari"
+    if any(token in team for token in ("mercedes", "mclaren", "aston martin", "williams")):
+        return "Mercedes"
+    return None
+
 
 class LocalWeekendProvider(BaseProvider):
     SLOW_LAP_DELTA_SEC = 5.0
@@ -600,9 +639,24 @@ class LocalWeekendProvider(BaseProvider):
             session_frame = self._session_pace_features(laps, label=label)
             if session_frame.empty:
                 continue
+            race_evidence = derive_race_practice_evidence(
+                laps,
+                session_label=label,
+            ).drop(columns=["session"], errors="ignore")
+            if not race_evidence.empty:
+                session_frame = session_frame.merge(
+                    race_evidence,
+                    on="driver_id",
+                    how="left",
+                    validate="one_to_one",
+                )
             frames.append(session_frame)
         merged = merge_fp_frames(frames)
         if not merged.empty:
+            merged = aggregate_race_practice_evidence(
+                merged,
+                expected_sessions=len(selected),
+            )
             merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
             merged["fp_feature_source"] = "local_weekends"
             merged["session_cutoff_resolved"] = cutoff_label
@@ -633,9 +687,19 @@ class LocalWeekendProvider(BaseProvider):
         pos_col = first_available(results, ["Position", "ClassifiedPosition", "GridPosition"])
         q3_col = first_available(results, ["Q3", "q3_time"])
         team_col = first_available(results, ["TeamName", "Team", "team_name"])
+        power_unit_col = first_available(
+            results,
+            ["PowerUnit", "PowerUnitManufacturer", "EngineManufacturer", "power_unit"],
+        )
 
         frame = pd.DataFrame()
         frame["driver_id"] = results[driver_col].map(self._normalize_driver_id)
+        car_number_col = first_available(results, ["DriverNumber", "driver_number"])
+        if car_number_col:
+            frame["car_number"] = results[car_number_col].map(self._normalize_driver_id)
+        abbreviation_col = first_available(results, ["Abbreviation", "driver_abbreviation"])
+        if abbreviation_col:
+            frame["driver_abbreviation"] = results[abbreviation_col].astype("string").str.strip()
         if name_col:
             frame["driver_name"] = results[name_col].fillna(frame["driver_id"]).astype(str)
         else:
@@ -646,6 +710,14 @@ class LocalWeekendProvider(BaseProvider):
             frame["q3_time"] = pd.to_numeric(results[q3_col], errors="coerce")
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
+        if power_unit_col:
+            frame["power_unit"] = results[power_unit_col].astype("string").str.strip()
+            frame["power_unit_source"] = "provider_result_field"
+        elif "team_name" in frame.columns:
+            frame["power_unit"] = frame["team_name"].map(
+                lambda value: _season_entry_list_power_unit(int(year), value)
+            )
+            frame["power_unit_source"] = "causal_season_entry_list_team_mapping"
         frame = frame[frame["driver_id"] != ""]
         return complete_classification_positions(frame)
 
@@ -670,6 +742,10 @@ class LocalWeekendProvider(BaseProvider):
 
         name_col = first_available(results, ["Abbreviation", "BroadcastName", "FullName", "Driver"])
         team_col = first_available(results, ["TeamName", "Team", "team_name"])
+        power_unit_col = first_available(
+            results,
+            ["PowerUnit", "PowerUnitManufacturer", "EngineManufacturer", "power_unit"],
+        )
         grid_col = first_available(results, ["GridPosition", "Grid", "StartingGridPosition", "grid_position"])
         status_col = first_available(results, ["Status", "status", "ResultStatus"])
         laps_col = first_available(results, ["Laps", "laps", "LapsCompleted"])
@@ -687,6 +763,14 @@ class LocalWeekendProvider(BaseProvider):
             frame = _assign_pit_lane_grid_positions(frame)
         if team_col:
             frame["team_name"] = results[team_col].astype(str)
+        if power_unit_col:
+            frame["power_unit"] = results[power_unit_col].astype("string").str.strip()
+            frame["power_unit_source"] = "provider_result_field"
+        elif "team_name" in frame.columns:
+            frame["power_unit"] = frame["team_name"].map(
+                lambda value: _season_entry_list_power_unit(int(year), value)
+            )
+            frame["power_unit_source"] = "causal_season_entry_list_team_mapping"
         if status_col:
             raw_status = results[status_col].astype("string").str.strip()
             valid_status = raw_status.notna() & raw_status.ne("") & ~raw_status.str.lower().isin(
@@ -714,6 +798,131 @@ class LocalWeekendProvider(BaseProvider):
         frame = frame[frame["driver_id"] != ""]
         return complete_classification_positions(frame)
 
+    @staticmethod
+    def _capture_frame(capture: RaceGridCapture, path: Path) -> pd.DataFrame:
+        snapshot = capture.snapshot
+        raw_rows = (
+            capture.raw_payload.get("grid_rows", [])
+            if isinstance(capture.raw_payload, dict)
+            else []
+        )
+        raw_identity = {
+            str(row.get("driver_number")): row
+            for row in raw_rows
+            if isinstance(row, dict) and row.get("driver_number") is not None
+        }
+        rows: list[dict[str, object]] = []
+        for entry in snapshot.entries:
+            identity = raw_identity.get(str(entry.driver_id), {})
+            rows.append(
+                {
+                    "driver_id": entry.driver_id,
+                    "grid_car_number": str(
+                        identity.get("driver_number", entry.driver_id)
+                    ),
+                    "grid_official_driver_name": identity.get("driver_name"),
+                    "grid_position": entry.grid_position,
+                    "grid_status": entry.status.value,
+                    "grid_starter_eligible": entry.starter_eligible,
+                    "grid_pit_lane_start": entry.pit_lane_start,
+                    "grid_source": "first_seen_official_grid",
+                    "grid_revision_phase": capture.revision_phase.value,
+                    "grid_evidence_as_of": capture.first_published_at,
+                    "grid_evidence_id": "|".join(snapshot.revision_ids),
+                    "grid_evidence_complete": bool(
+                        snapshot.available and entry.evidence_complete
+                    ),
+                    "grid_resolution_status": snapshot.resolution_status.value,
+                    "grid_snapshot_available": snapshot.available,
+                    "race_information_horizon": snapshot.horizon.value,
+                    "grid_capture_id": capture.capture_id,
+                    "grid_capture_path": str(path),
+                    "grid_captured_at": capture.captured_at,
+                    "grid_first_published_at": capture.first_published_at,
+                    "grid_race_start_at": capture.race_start_at,
+                    "grid_publication_pre_race_verified": (
+                        capture.publication_pre_race_verified
+                    ),
+                    "grid_publication_time_semantics": (
+                        capture.publication_time_semantics
+                    ),
+                    "grid_provider": capture.provider,
+                    "grid_source_endpoint": capture.source_endpoint,
+                    "grid_source_document_url": capture.source_document_url,
+                    "grid_source_document_sha256": capture.source_document_sha256,
+                    "grid_raw_payload_sha256": capture.raw_payload_sha256,
+                    "grid_penalty_evidence_ids": "|".join(
+                        adjustment.evidence_id
+                        for adjustment in entry.penalty_evidence
+                    ),
+                    "grid_penalty_kinds": "|".join(
+                        adjustment.kind.value
+                        for adjustment in entry.penalty_evidence
+                    ),
+                    "grid_penalty_reasons": "|".join(
+                        adjustment.reason or ""
+                        for adjustment in entry.penalty_evidence
+                    ),
+                }
+            )
+        return pd.DataFrame(rows)
+
+    def _first_seen_starting_grid(
+        self,
+        weekend_dir: Path,
+        *,
+        year: int,
+        round_number: int,
+        prediction_as_of: Optional[str],
+    ) -> tuple[bool, pd.DataFrame]:
+        capture_dir = weekend_dir / "first_seen_grid_snapshots"
+        paths = sorted(capture_dir.glob("grid_*.json")) if capture_dir.exists() else []
+        if not paths:
+            return False, pd.DataFrame()
+        cutoff = None
+        if prediction_as_of is not None:
+            cutoff = pd.to_datetime(prediction_as_of, errors="coerce", utc=True)
+            if pd.isna(cutoff):
+                return True, pd.DataFrame()
+        candidates: list[tuple[pd.Timestamp, pd.Timestamp, Path, RaceGridCapture]] = []
+        try:
+            for path in paths:
+                capture = load_race_grid_capture(path)
+                if capture.year != int(year) or capture.round_number != int(round_number):
+                    raise ValueError("grid capture event identity does not match weekend directory")
+                published = pd.to_datetime(
+                    capture.first_published_at, errors="coerce", utc=True
+                )
+                captured = pd.to_datetime(capture.captured_at, errors="coerce", utc=True)
+                if pd.isna(published) or pd.isna(captured):
+                    raise ValueError("grid capture has invalid causal timestamps")
+                if cutoff is not None and published > cutoff:
+                    continue
+                candidates.append((pd.Timestamp(published), pd.Timestamp(captured), path, capture))
+        except (OSError, TypeError, ValueError):
+            # Once a first-seen store exists, corrupt provenance must not be
+            # bypassed by a retrospective metadata/grid fallback.
+            return True, pd.DataFrame()
+        if not candidates:
+            return True, pd.DataFrame()
+        latest_publication = max(item[0] for item in candidates)
+        latest = [item for item in candidates if item[0] == latest_publication]
+        signatures = {
+            (
+                item[3].raw_payload_sha256,
+                tuple(item[3].snapshot.revision_ids),
+                item[3].snapshot.available,
+            )
+            for item in latest
+        }
+        if len(signatures) != 1:
+            return True, pd.DataFrame()
+        # Earliest observation of the same authoritative publication is the
+        # immutable first-seen representative; later identical downloads add
+        # no information.
+        chosen = min(latest, key=lambda item: (item[1], str(item[2])))
+        return True, self._capture_frame(chosen[3], chosen[2])
+
     def get_starting_grid(
         self,
         year: int,
@@ -727,6 +936,14 @@ class LocalWeekendProvider(BaseProvider):
         weekend_dir = weekend.get("event_dir")
         if not isinstance(weekend_dir, Path):
             weekend_dir = Path(str(weekend_dir))
+        capture_store_exists, captured = self._first_seen_starting_grid(
+            weekend_dir,
+            year=int(year),
+            round_number=int(round_number),
+            prediction_as_of=prediction_as_of,
+        )
+        if capture_store_exists:
+            return captured
         meta = self._read_weekend_meta(weekend_dir)
         sessions_raw = meta.get("sessions") if meta else weekend.get("sessions")
         entries = [dict(entry) for entry in sessions_raw if isinstance(entry, dict)] if isinstance(sessions_raw, list) else []

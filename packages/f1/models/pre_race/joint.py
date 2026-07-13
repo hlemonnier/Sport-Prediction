@@ -12,10 +12,10 @@ from packages.f1.features.race import engineer_survival_aware_race_features
 from packages.f1.models.pre_race.ranking import BradleyTerryOrderRanker
 from packages.f1.models.pre_race.status import TERMINAL_STATUSES, TerminalStatus
 from packages.f1.models.pre_race.status import reason_code_terminal_status
-from packages.f1.models.pre_race.survival import PartialPooledTerminalHazard
-
-
-_STATUS_COLUMNS = tuple(f"p_{status.value}" for status in TERMINAL_STATUSES)
+from packages.f1.models.pre_race.survival import (
+    PartialPooledTerminalHazard,
+    SharedRaceShocks,
+)
 
 
 def expected_classified_lap_deficit(
@@ -262,6 +262,7 @@ class JointRaceForecast:
     position_probabilities: pd.DataFrame
     position_samples: np.ndarray
     status_samples: np.ndarray
+    retirement_fraction_samples: np.ndarray
     horizon: RacePredictionHorizon
     prediction_as_of: str | None
     simulations: int
@@ -270,6 +271,7 @@ class JointRaceForecast:
     def __post_init__(self) -> None:
         self.position_samples.setflags(write=False)
         self.status_samples.setflags(write=False)
+        self.retirement_fraction_samples.setflags(write=False)
 
 
 class SurvivalAwareRaceModel:
@@ -294,6 +296,7 @@ class SurvivalAwareRaceModel:
         retirement_fraction_col: str = "retirement_fraction",
         event_as_of_col: str = "event_as_of",
         cutoff: object | None = None,
+        order_history: pd.DataFrame | None = None,
     ) -> "SurvivalAwareRaceModel":
         """Fit both factors on past complete events using one causal cutoff."""
 
@@ -341,14 +344,33 @@ class SurvivalAwareRaceModel:
             cutoff=cutoff,
             retirement_fraction_col=retirement_fraction_col,
         )
-        self.order_model.fit(
-            rows,
-            event_col=event_col,
-            target_col=finish_position_col,
-            terminal_status_col=terminal_status_col,
-            event_as_of_col=event_as_of_col,
-            cutoff=cutoff,
-        )
+        order_rows = rows if order_history is None else order_history.copy()
+        if order_history is not None and cutoff is not None and not order_rows.empty:
+            if event_as_of_col not in order_rows.columns:
+                raise ValueError("same-regime order history requires event_as_of evidence")
+            order_times = pd.to_datetime(
+                order_rows[event_as_of_col], errors="coerce", utc=True
+            )
+            cutoff_time = pd.to_datetime(cutoff, errors="coerce", utc=True)
+            if pd.isna(cutoff_time) or order_times.isna().any():
+                raise ValueError("same-regime order history has invalid causal timestamps")
+            order_rows = order_rows.loc[order_times < cutoff_time].copy()
+        if order_rows.empty:
+            self.order_model.fit_grid_prior_only(rows)
+        else:
+            try:
+                self.order_model.fit(
+                    order_rows,
+                    event_col=event_col,
+                    target_col=finish_position_col,
+                    terminal_status_col=terminal_status_col,
+                    event_as_of_col=event_as_of_col,
+                    cutoff=cutoff,
+                )
+            except ValueError as exc:
+                if "no classified finishers" not in str(exc) and "no within-event pairs" not in str(exc):
+                    raise
+                self.order_model.fit_grid_prior_only(order_rows)
         self._fitted = True
         return self
 
@@ -358,6 +380,10 @@ class SurvivalAwareRaceModel:
             raise RuntimeError("joint race model must be fitted before inspection")
         return {
             "factorization": "terminal_status_time_x_conditional_running_order",
+            "older_season_policy": (
+                "all causal seasons may inform reliability; constructor/order fit "
+                "must be supplied through explicit same-regime order_history"
+            ),
             "terminal": self.terminal_model.model_card,
             "conditional_order": {
                 "backend": self.order_model.backend,
@@ -461,8 +487,6 @@ class SurvivalAwareRaceModel:
         ).reset_index(drop=True)
         drivers = rows["driver_id"].astype(str).to_numpy()
         n_drivers = len(drivers)
-        probability_matrix = terminal.loc[:, _STATUS_COLUMNS].to_numpy(dtype=float)
-        probability_matrix /= probability_matrix.sum(axis=1, keepdims=True)
         conditional_scores = order["conditional_order_score"].to_numpy(dtype=float)
         grid = pd.to_numeric(rows.get("grid_position"), errors="coerce").fillna(
             n_drivers + 1
@@ -503,29 +527,67 @@ class SurvivalAwareRaceModel:
         rng = np.random.default_rng(seed)
         position_samples = np.empty((n_drivers, simulations), dtype=np.int16)
         status_samples = np.empty((n_drivers, simulations), dtype="U24")
-        cumulative = probability_matrix.cumsum(axis=1)
+        retirement_fraction_samples = np.empty((n_drivers, simulations), dtype=np.float32)
+        uncertainty = pd.to_numeric(
+            rows.get(
+                "race_long_run_uncertainty",
+                pd.Series(0.0, index=rows.index, dtype=float),
+            ),
+            errors="coerce",
+        ).fillna(0.0).clip(lower=0.0).to_numpy(dtype=float)
+        if np.nanmax(uncertainty, initial=0.0) > 0.0:
+            uncertainty = uncertainty / max(float(np.nanmax(uncertainty)), 1e-9)
+        mobility = pd.to_numeric(
+            rows.get(
+                "race_circuit_mobility",
+                pd.Series(0.5, index=rows.index, dtype=float),
+            ),
+            errors="coerce",
+        ).fillna(0.5).clip(0.0, 1.0).to_numpy(dtype=float)
+        surprise = pd.to_numeric(
+            rows.get(
+                "race_signed_qualifying_surprise_score",
+                pd.Series(0.0, index=rows.index, dtype=float),
+            ),
+            errors="coerce",
+        ).fillna(0.0).to_numpy(dtype=float)
+        surprise_scale = max(float(np.nanstd(surprise)), 1.0)
+        surprise = surprise / surprise_scale
+        wet_probability = pd.to_numeric(
+            rows.get(
+                "race_wet_probability",
+                pd.Series(0.0, index=rows.index, dtype=float),
+            ),
+            errors="coerce",
+        ).fillna(0.0).clip(0.0, 1.0).to_numpy(dtype=float)
+        team_values = rows.get(
+            "team_name", pd.Series("", index=rows.index, dtype=object)
+        ).fillna("").astype(str).to_numpy()
         for simulation in range(simulations):
-            draws = rng.random(n_drivers)
-            status_indices = np.asarray(
-                [np.searchsorted(cumulative[row], draws[row], side="right") for row in range(n_drivers)],
-                dtype=int,
+            shared = self.terminal_model.draw_shared_shocks(rows, rng)
+            statuses, retirement_fraction, _ = self.terminal_model.sample_joint_outcomes(
+                rows,
+                rng,
+                shocks=shared,
             )
-            status_indices = np.minimum(status_indices, len(TERMINAL_STATUSES) - 1)
-            statuses = [TERMINAL_STATUSES[index] for index in status_indices]
             status_samples[:, simulation] = [status.value for status in statuses]
-
-            retirement_fraction = np.ones(n_drivers, dtype=float)
-            for row, status in enumerate(statuses):
-                if status is TerminalStatus.CLASSIFIED_FINISH:
-                    continue
-                alpha, beta = self.terminal_model.retirement_beta(status)
-                retirement_fraction[row] = rng.beta(alpha, beta)
+            retirement_fraction_samples[:, simulation] = retirement_fraction.astype(
+                np.float32
+            )
             gumbel = rng.gumbel(0.0, plackett_luce_temperature, size=n_drivers)
+            team_pace = np.asarray(
+                [shared.team_pace.get(value, 0.0) for value in team_values], dtype=float
+            )
+            shared_order = (
+                team_pace * (0.25 + 0.75 * uncertainty)
+                + shared.event_chaos * mobility * surprise * 0.20
+                + shared.weather * wet_probability * uncertainty * 0.15
+            )
             classification, _ = sample_fia_classification_order(
                 statuses=statuses,
                 terminal_retirement_fraction=retirement_fraction,
                 conditional_scores=conditional_scores,
-                order_shocks=gumbel,
+                order_shocks=gumbel + shared_order,
                 expected_lap_deficit=classified_lap_deficit,
                 scheduled_laps=scheduled_laps,
                 grid_positions=grid,
@@ -534,6 +596,18 @@ class SurvivalAwareRaceModel:
             for position, row in enumerate(classification.tolist(), start=1):
                 position_samples[row, simulation] = position
 
+        # These are the predictive status marginals of the *same* posterior
+        # draws that generated the classification samples.  The row-level
+        # hazard output above is conditional on zero shared shock; exposing it
+        # as the forecast probability would score a different distribution
+        # from the one used for final-position prediction.
+        probability_matrix = np.column_stack(
+            [
+                np.mean(status_samples == status.value, axis=1)
+                for status in TERMINAL_STATUSES
+            ]
+        )
+        probability_matrix /= probability_matrix.sum(axis=1, keepdims=True)
         modal_indices = np.argmax(probability_matrix, axis=1)
         modal_statuses = [TERMINAL_STATUSES[index] for index in modal_indices]
         status_groups = np.asarray(
@@ -543,6 +617,7 @@ class SurvivalAwareRaceModel:
             ],
             dtype=int,
         )
+        global_point_positions = minimum_expected_absolute_assignment(position_samples)
         point_positions = minimum_expected_absolute_assignment(
             position_samples,
             status_groups=status_groups,
@@ -555,14 +630,43 @@ class SurvivalAwareRaceModel:
             }
         )
         position_probability.insert(0, "driver_id", drivers)
-        status_probability = terminal.loc[
-            :,
-            ["driver_id", "p_terminal", "expected_retirement_fraction", *_STATUS_COLUMNS],
-        ].copy()
+        status_probability = pd.DataFrame({"driver_id": drivers})
+        for status_index, status in enumerate(TERMINAL_STATUSES):
+            status_probability[f"p_{status.value}"] = probability_matrix[:, status_index]
+            conditional_fraction = np.full(n_drivers, np.nan, dtype=float)
+            for driver_index in range(n_drivers):
+                mask = status_samples[driver_index] == status.value
+                if mask.any():
+                    conditional_fraction[driver_index] = float(
+                        retirement_fraction_samples[driver_index, mask].mean()
+                    )
+            status_probability[
+                f"expected_retirement_fraction_{status.value}"
+            ] = conditional_fraction
+        classified_index = TERMINAL_STATUSES.index(TerminalStatus.CLASSIFIED_FINISH)
+        status_probability["p_terminal"] = 1.0 - probability_matrix[:, classified_index]
+        status_probability["expected_retirement_fraction"] = (
+            retirement_fraction_samples.mean(axis=1).astype(float)
+        )
+        status_probability["status_probability_source"] = (
+            "empirical_post_shared_shock_joint_samples"
+        )
+        status_probability["status_probability_simulations"] = int(simulations)
+        # Preserve the row-level hazard trace only as an explicitly named
+        # conditional diagnostic.  It is not the scored posterior marginal.
+        for column in terminal.columns:
+            if column.startswith("terminal_interval_hazard_") or column.startswith(
+                "survival_through_interval_"
+            ):
+                status_probability[f"zero_shared_shock_{column}"] = terminal[
+                    column
+                ].to_numpy()
         point = pd.DataFrame(
             {
                 "driver_id": drivers,
                 "predicted_position": point_positions,
+                "global_meal_position": global_point_positions,
+                "dns_constrained_meal_position": point_positions,
                 "predicted_terminal_status": [status.value for status in modal_statuses],
                 "predicted_status_probability": probability_matrix[
                     np.arange(n_drivers), modal_indices
@@ -594,6 +698,7 @@ class SurvivalAwareRaceModel:
             position_probabilities=position_probability,
             position_samples=position_samples,
             status_samples=status_samples,
+            retirement_fraction_samples=retirement_fraction_samples,
             horizon=horizon,
             prediction_as_of=prediction_text,
             simulations=simulations,

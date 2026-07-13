@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+from typing import Sequence
+
 from .base import (
     BaseProvider,
     Dict,
@@ -32,6 +35,22 @@ from .base import (
     time,
 )
 from .practice_features import FP_FEATURE_CONTRACT_VERSION, build_session_pace_features
+from packages.f1.features.race import (
+    aggregate_race_practice_evidence,
+    derive_race_practice_evidence,
+)
+from packages.f1.domain.starting_grid import (
+    GridAdjustmentKind,
+    GridEntryStatus,
+    GridRevisionPhase,
+    OfficialGridDecision,
+    OfficialGridEntry,
+    OfficialGridRevision,
+    RaceGridCapture,
+    build_race_grid_capture,
+    persist_race_grid_capture,
+)
+from packages.f1.domain.weekend import build_weekend_contract
 
 class OpenF1Provider(BaseProvider):
     def __init__(
@@ -94,6 +113,254 @@ class OpenF1Provider(BaseProvider):
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(data, f)
         return data
+
+    def _get_json_first_seen(
+        self,
+        endpoint: str,
+        params: Dict[str, object],
+    ) -> List[Dict[str, object]]:
+        """Fetch mutable evidence without replaying a stale response cache."""
+
+        cache_dir = self.cache_dir
+        self.cache_dir = None
+        try:
+            return self._get_json(endpoint, params)
+        finally:
+            self.cache_dir = cache_dir
+
+    @staticmethod
+    def _capture_timestamp(value: object | None) -> str:
+        parsed = pd.to_datetime(
+            value if value is not None else datetime.now(timezone.utc),
+            errors="coerce",
+            utc=True,
+        )
+        if pd.isna(parsed):
+            raise ValueError("grid capture timestamp must be timezone-aware")
+        return pd.Timestamp(parsed).isoformat().replace("+00:00", "Z")
+
+    @staticmethod
+    def _first_value(row: Dict[str, object], *keys: str) -> object | None:
+        for key in keys:
+            if key in row and row[key] is not None and str(row[key]).strip():
+                return row[key]
+        return None
+
+    @classmethod
+    def _official_grid_entry(
+        cls,
+        row: Dict[str, object],
+        *,
+        revision_id: str,
+    ) -> OfficialGridEntry | None:
+        raw_driver = cls._first_value(
+            row,
+            "driver_number",
+            "driver_id",
+            "DriverNumber",
+        )
+        if raw_driver is None:
+            return None
+        driver_id = str(raw_driver).strip()
+        if re.fullmatch(r"\d+(?:\.0+)?", driver_id):
+            driver_id = str(int(float(driver_id)))
+        raw_position = cls._first_value(
+            row,
+            "position",
+            "grid_position",
+            "starting_grid_position",
+            "GridPosition",
+        )
+        status_text = str(
+            cls._first_value(row, "status", "grid_status", "start_status") or ""
+        ).strip().lower().replace("-", "_").replace(" ", "_")
+        numeric_position = pd.to_numeric(pd.Series([raw_position]), errors="coerce").iloc[0]
+        position = None if pd.isna(numeric_position) else int(numeric_position)
+        if "pit" in status_text or position == 0:
+            status = GridEntryStatus.PIT_LANE
+            position = None
+        elif any(token in status_text for token in ("withdraw", "wd")):
+            status = GridEntryStatus.WITHDRAWN
+            position = None
+        elif any(token in status_text for token in ("did_not_start", "dns", "nonstarter")):
+            status = GridEntryStatus.DID_NOT_START
+            position = None
+        elif any(token in status_text for token in ("disqual", "dsq", "excluded")):
+            status = GridEntryStatus.DISQUALIFIED
+            position = None
+        elif position is not None and position > 0:
+            status = GridEntryStatus.GRID
+        else:
+            status = GridEntryStatus.UNRESOLVED
+            position = None
+
+        decisions: list[OfficialGridDecision] = []
+        status_decision = {
+            GridEntryStatus.PIT_LANE: GridAdjustmentKind.PIT_LANE_START,
+            GridEntryStatus.WITHDRAWN: GridAdjustmentKind.WITHDRAWAL,
+            GridEntryStatus.DISQUALIFIED: GridAdjustmentKind.DISQUALIFICATION,
+        }.get(status)
+        penalty_places_raw = cls._first_value(row, "penalty_places", "grid_drop_places")
+        penalty_places_numeric = pd.to_numeric(
+            pd.Series([penalty_places_raw]), errors="coerce"
+        ).iloc[0]
+        penalty_places = (
+            None
+            if pd.isna(penalty_places_numeric) or int(penalty_places_numeric) <= 0
+            else int(penalty_places_numeric)
+        )
+        reason_raw = cls._first_value(row, "penalty_reason", "reason", "decision_reason")
+        reason = None if reason_raw is None else str(reason_raw).strip() or None
+        if status_decision is not None:
+            decisions.append(
+                OfficialGridDecision(
+                    kind=status_decision,
+                    evidence_id=revision_id,
+                    reason=reason,
+                )
+            )
+        elif penalty_places is not None:
+            decisions.append(
+                OfficialGridDecision(
+                    kind=GridAdjustmentKind.GRID_DROP,
+                    places=penalty_places,
+                    reason=reason,
+                    evidence_id=revision_id,
+                )
+            )
+        evidence_complete = status is not GridEntryStatus.UNRESOLVED
+        return OfficialGridEntry(
+            driver_id=driver_id,
+            position=position,
+            status=status,
+            decisions=tuple(decisions),
+            evidence_complete=evidence_complete,
+        )
+
+    def capture_starting_grid_snapshot(
+        self,
+        year: int,
+        round_number: int,
+        *,
+        output_dir: str | Path,
+        revision_phase: GridRevisionPhase = GridRevisionPhase.PROVISIONAL_PRE_RACE,
+        captured_at: object | None = None,
+        first_published_at: object | None = None,
+        source_document_url: str | None = None,
+        source_document_sha256: str | None = None,
+        expected_position_driver_pairs: Sequence[tuple[int, str]] | None = None,
+    ) -> tuple[RaceGridCapture, Path]:
+        """Capture the mutable OpenF1 starting-grid response exactly once.
+
+        By default the capture is provisional and therefore unavailable to the
+        ``post_grid_pre_race`` model.  Passing an authoritative FIA publication
+        timestamp plus document URL/hash permits later download/backfill while
+        keeping the causal publication time distinct from ``captured_at``.
+        The optional PDF-extracted pairs must match the OpenF1 structured order.
+        """
+
+        if not isinstance(revision_phase, GridRevisionPhase):
+            raise TypeError("revision_phase must be a GridRevisionPhase")
+        captured_text = self._capture_timestamp(captured_at)
+        if first_published_at is None:
+            published_text = captured_text
+            semantics = "first_seen_upper_bound"
+        else:
+            published_text = self._capture_timestamp(first_published_at)
+            semantics = "authoritative_document_timestamp"
+        meeting_name, country_name = self._meeting_filters(round_number)
+        meeting = self._meeting_for_round(year, round_number, meeting_name, country_name)
+        meeting_key = meeting.get("meeting_key")
+        if meeting_key is None:
+            raise ValueError("OpenF1 meeting is missing meeting_key")
+        session_key = self._session_key(int(meeting_key), "Race")
+        if session_key is None:
+            raise ValueError("OpenF1 meeting has no Race session")
+        session_rows = self._get_json("sessions", {"meeting_key": int(meeting_key)})
+        race_session = next(
+            (
+                row
+                for row in session_rows
+                if int(row.get("session_key") or -1) == int(session_key)
+            ),
+            None,
+        )
+        race_start_at = None if race_session is None else race_session.get("date_start")
+        if race_start_at is None or pd.isna(
+            pd.to_datetime(race_start_at, errors="coerce", utc=True)
+        ):
+            raise ValueError("OpenF1 Race session lacks a provable start timestamp")
+        raw_rows = self._get_json_first_seen("starting_grid", {"session_key": int(session_key)})
+        if not raw_rows:
+            raise ValueError("OpenF1 starting_grid endpoint returned no rows")
+        raw_hash = hashlib.sha256(
+            json.dumps(raw_rows, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        revision_id = (
+            f"openf1:{session_key}:{published_text}:"
+            f"{(source_document_sha256 or raw_hash)[:16]}"
+        )
+        entries = tuple(
+            entry
+            for entry in (
+                self._official_grid_entry(dict(row), revision_id=revision_id)
+                for row in raw_rows
+            )
+            if entry is not None
+        )
+        expected_field_size = build_weekend_contract(int(year)).eligible_cars
+        driver_ids = [entry.driver_id for entry in entries]
+        positions = [
+            entry.position
+            for entry in entries
+            if entry.status is GridEntryStatus.GRID and entry.position is not None
+        ]
+        complete = bool(
+            len(entries) == expected_field_size
+            and len(driver_ids) == len(set(driver_ids))
+            and len(positions) == len(set(positions))
+            and all(entry.evidence_complete for entry in entries)
+        )
+        if expected_position_driver_pairs is not None:
+            expected_pairs = sorted(
+                (int(position), str(driver_id))
+                for position, driver_id in expected_position_driver_pairs
+            )
+            observed_pairs = sorted(
+                (int(entry.position), entry.driver_id)
+                for entry in entries
+                if entry.position is not None
+            )
+            if observed_pairs != expected_pairs:
+                raise ValueError(
+                    "OpenF1 starting grid does not match FIA document position/driver pairs"
+                )
+        revision = OfficialGridRevision(
+            revision_id=revision_id,
+            phase=revision_phase,
+            entries=entries,
+            as_of=published_text,
+            evidence_complete=complete,
+        )
+        capture = build_race_grid_capture(
+            build_weekend_contract(int(year)),
+            year=int(year),
+            round_number=int(round_number),
+            provider="openf1",
+            source_endpoint=f"{self.base_url}/starting_grid?session_key={session_key}",
+            meeting_key=str(meeting_key),
+            session_key=str(session_key),
+            captured_at=captured_text,
+            first_published_at=published_text,
+            race_start_at=str(race_start_at),
+            publication_time_semantics=semantics,
+            source_document_url=source_document_url,
+            source_document_sha256=source_document_sha256,
+            revision=revision,
+            raw_payload=raw_rows,
+        )
+        output = persist_race_grid_capture(capture, output_dir)
+        return capture, output
 
     def list_rounds(self, year: int) -> List[Dict[str, object]]:
         meetings = self._get_json("meetings", {"year": year})
@@ -227,12 +494,13 @@ class OpenF1Provider(BaseProvider):
         meeting = self._meeting_for_round(year, round_number, meeting_name, country_name)
         meeting_key = meeting.get("meeting_key")
         frames: List[pd.DataFrame] = []
-        for session_key, label in self._pre_qualifying_sessions(
+        selected_sessions = self._pre_qualifying_sessions(
             int(meeting_key),
             year=year,
             session_cutoff=session_cutoff,
             prediction_target=prediction_target,
-        ):
+        )
+        for session_key, label in selected_sessions:
             lap_rows = self._get_json("laps", {"session_key": session_key})
             if not lap_rows:
                 continue
@@ -249,9 +517,25 @@ class OpenF1Provider(BaseProvider):
                 stints=stints,
             )
             if not feature_rows.empty:
+                race_evidence = derive_race_practice_evidence(
+                    laps,
+                    session_label=label,
+                    stints=stints,
+                ).drop(columns=["session"], errors="ignore")
+                if not race_evidence.empty:
+                    feature_rows = feature_rows.merge(
+                        race_evidence,
+                        on="driver_id",
+                        how="left",
+                        validate="one_to_one",
+                    )
                 frames.append(feature_rows)
         merged = merge_fp_frames(frames)
         if not merged.empty:
+            merged = aggregate_race_practice_evidence(
+                merged,
+                expected_sessions=len(selected_sessions),
+            )
             merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
             merged["fp_feature_source"] = "openf1"
             merged["session_cutoff_resolved"] = getattr(

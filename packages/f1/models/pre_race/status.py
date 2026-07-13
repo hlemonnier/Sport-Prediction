@@ -17,6 +17,15 @@ class TerminalStatus(str, Enum):
     CLASSIFIED_FINISH = "classified_finish"
 
 
+class TerminalLabelGranularity(str, Enum):
+    """How much causal reason information the provider actually supplied."""
+
+    EXACT_CAUSE = "exact_cause"
+    COARSE_TERMINAL = "coarse_terminal"
+    PRESTART_OUTCOME = "prestart_outcome"
+    CLASSIFIED_OUTCOME = "classified_outcome"
+
+
 TERMINAL_STATUSES: tuple[TerminalStatus, ...] = tuple(TerminalStatus)
 
 
@@ -139,6 +148,21 @@ def reason_code_terminal_status(value: object) -> TerminalStatus | None:
     return None
 
 
+def terminal_label_granularity(value: object) -> TerminalLabelGranularity | None:
+    """Describe label precision without upgrading ``DNF`` to a fake cause."""
+
+    status = reason_code_terminal_status(value)
+    if status is None:
+        return None
+    if status is TerminalStatus.NON_CLASSIFIED:
+        return TerminalLabelGranularity.COARSE_TERMINAL
+    if status is TerminalStatus.DNS_WITHDRAWAL:
+        return TerminalLabelGranularity.PRESTART_OUTCOME
+    if status is TerminalStatus.CLASSIFIED_FINISH:
+        return TerminalLabelGranularity.CLASSIFIED_OUTCOME
+    return TerminalLabelGranularity.EXACT_CAUSE
+
+
 def add_reason_coded_terminal_targets(
     frame: pd.DataFrame,
     *,
@@ -161,12 +185,21 @@ def add_reason_coded_terminal_targets(
         )
     out[output_col] = encoded.map(lambda value: value.value if isinstance(value, TerminalStatus) else None)
     out["terminal_status_evidence_complete"] = ~unknown
+    granularity = out[raw_status_col].map(terminal_label_granularity)
+    out["terminal_label_granularity"] = granularity.map(
+        lambda value: value.value if isinstance(value, TerminalLabelGranularity) else None
+    )
+    out["terminal_exact_reason_observed"] = granularity.eq(
+        TerminalLabelGranularity.EXACT_CAUSE
+    )
     return out
 
 
 __all__ = [
     "TERMINAL_STATUSES",
     "TerminalStatus",
+    "TerminalLabelGranularity",
     "add_reason_coded_terminal_targets",
     "reason_code_terminal_status",
+    "terminal_label_granularity",
 ]

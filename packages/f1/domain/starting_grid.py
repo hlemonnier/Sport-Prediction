@@ -20,7 +20,11 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Union
+import hashlib
+import json
+from pathlib import Path
+import re
+from typing import Any, Mapping, Union
 
 from packages.f1.domain.weekend import GridTarget, Session, WeekendContract
 
@@ -90,6 +94,44 @@ class GridAdjustmentKind(str, Enum):
     PIT_LANE_START = "pit_lane_start"
     DISQUALIFICATION = "disqualification"
     WITHDRAWAL = "withdrawal"
+
+
+@dataclass(frozen=True)
+class OfficialGridDecision:
+    """One decision explicitly carried by an official grid publication.
+
+    A fully published grid can contain the effect of a penalty while still
+    exposing its reason.  Keeping that decision on the row avoids the former
+    loss of ``places`` and ``reason`` when an :class:`OfficialGridEntry` was
+    converted into model evidence.
+    """
+
+    kind: GridAdjustmentKind
+    evidence_id: str
+    places: int | None = None
+    reason: str | None = None
+    evidence_complete: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.kind, GridAdjustmentKind):
+            raise TypeError("official grid decision kind must be a GridAdjustmentKind")
+        evidence_id = str(self.evidence_id).strip()
+        if not evidence_id:
+            raise ValueError("official grid decision evidence_id must be non-empty")
+        object.__setattr__(self, "evidence_id", evidence_id)
+        object.__setattr__(
+            self,
+            "evidence_complete",
+            _require_bool(self.evidence_complete, "official grid decision evidence_complete"),
+        )
+        if self.places is not None:
+            if isinstance(self.places, bool) or not isinstance(self.places, int) or self.places <= 0:
+                raise ValueError("official grid decision places must be a positive integer or None")
+            if self.kind not in {GridAdjustmentKind.GRID_DROP, GridAdjustmentKind.BACK_OF_GRID}:
+                raise ValueError("official grid decision places only apply to grid penalties")
+        if self.reason is not None:
+            reason = str(self.reason).strip()
+            object.__setattr__(self, "reason", reason or None)
 
 
 class ActualStartStatus(str, Enum):
@@ -220,6 +262,7 @@ class OfficialGridEntry:
     position: int | None
     status: GridEntryStatus = GridEntryStatus.GRID
     adjustments: tuple[GridAdjustmentKind, ...] = ()
+    decisions: tuple[OfficialGridDecision, ...] = ()
     evidence_complete: bool = True
 
     def __post_init__(self) -> None:
@@ -239,6 +282,14 @@ class OfficialGridEntry:
         object.__setattr__(self, "adjustments", tuple(self.adjustments))
         if any(not isinstance(kind, GridAdjustmentKind) for kind in self.adjustments):
             raise TypeError("official grid adjustments must be GridAdjustmentKind values")
+        object.__setattr__(self, "decisions", tuple(self.decisions))
+        if any(not isinstance(decision, OfficialGridDecision) for decision in self.decisions):
+            raise TypeError("official grid decisions must be OfficialGridDecision values")
+        decision_kinds = tuple(decision.kind for decision in self.decisions)
+        if self.decisions and self.adjustments and decision_kinds != self.adjustments:
+            raise ValueError("official grid decisions and adjustment kinds disagree")
+        if self.decisions and not self.adjustments:
+            object.__setattr__(self, "adjustments", decision_kinds)
 
 
 @dataclass(frozen=True)
@@ -585,6 +636,458 @@ class RaceGridSnapshot:
         return self
 
 
+GRID_CAPTURE_SCHEMA_VERSION = "f1_first_seen_post_grid_pre_race_v1"
+
+
+def _canonical_json(value: object) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def _require_mapping(value: object, label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{label} must be a JSON object")
+    return value
+
+
+@dataclass(frozen=True)
+class RaceGridCapture:
+    """Durable first-seen envelope around one immutable grid snapshot.
+
+    ``captured_at`` is an observation timestamp, not a retrospectively inferred
+    publication timestamp.  The canonical provider response is retained and
+    hashed so a backtest can prove exactly what was first observed.  Captures
+    are append-only; :func:`persist_race_grid_capture` never overwrites a file.
+    """
+
+    capture_id: str
+    year: int
+    round_number: int
+    provider: str
+    source_endpoint: str
+    captured_at: Timestamp
+    first_published_at: Timestamp
+    race_start_at: Timestamp
+    publication_pre_race_verified: bool
+    raw_payload_json: str
+    raw_payload_sha256: str
+    snapshot: RaceGridSnapshot
+    revision_phase: GridRevisionPhase
+    meeting_key: str | None = None
+    session_key: str | None = None
+    source_document_url: str | None = None
+    source_document_sha256: str | None = None
+    publication_time_semantics: str = "first_seen_upper_bound"
+    schema_version: str = GRID_CAPTURE_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        capture_id = str(self.capture_id).strip()
+        if not capture_id:
+            raise ValueError("grid capture_id must be non-empty")
+        object.__setattr__(self, "capture_id", capture_id)
+        if isinstance(self.year, bool) or int(self.year) < 1950:
+            raise ValueError("grid capture year is invalid")
+        object.__setattr__(self, "year", int(self.year))
+        if isinstance(self.round_number, bool) or int(self.round_number) <= 0:
+            raise ValueError("grid capture round_number must be positive")
+        object.__setattr__(self, "round_number", int(self.round_number))
+        provider = str(self.provider).strip()
+        endpoint = str(self.source_endpoint).strip()
+        if not provider or not endpoint:
+            raise ValueError("grid capture provider and source_endpoint must be non-empty")
+        object.__setattr__(self, "provider", provider)
+        object.__setattr__(self, "source_endpoint", endpoint)
+        _, captured_text = _timestamp(self.captured_at, "grid captured_at")
+        object.__setattr__(self, "captured_at", captured_text)
+        published_time, published_text = _timestamp(
+            self.first_published_at, "grid first_published_at"
+        )
+        captured_time, _ = _timestamp(captured_text, "grid captured_at")
+        if published_time > captured_time:
+            raise ValueError("grid first_published_at cannot be after captured_at")
+        object.__setattr__(self, "first_published_at", published_text)
+        race_start_time, race_start_text = _timestamp(self.race_start_at, "grid race_start_at")
+        object.__setattr__(self, "race_start_at", race_start_text)
+        verified = _require_bool(
+            self.publication_pre_race_verified,
+            "grid publication_pre_race_verified",
+        )
+        if verified != bool(published_time < race_start_time):
+            raise ValueError("grid pre-race verification disagrees with publication/start times")
+        object.__setattr__(self, "publication_pre_race_verified", verified)
+        if not isinstance(self.snapshot, RaceGridSnapshot):
+            raise TypeError("grid capture snapshot must be a RaceGridSnapshot")
+        if not isinstance(self.revision_phase, GridRevisionPhase):
+            raise TypeError("grid capture revision_phase must be a GridRevisionPhase")
+        if self.snapshot.horizon is not RacePredictionHorizon.POST_GRID_PRE_RACE:
+            raise ValueError("first-seen grid capture must use post_grid_pre_race horizon")
+        snapshot_time, _ = _timestamp(self.snapshot.prediction_as_of, "snapshot prediction_as_of")
+        if snapshot_time != published_time:
+            raise ValueError("snapshot prediction_as_of must equal first_published_at")
+        if self.snapshot.publication_as_of != published_text:
+            raise ValueError("snapshot publication_as_of must equal first_published_at")
+        if self.snapshot.available and not verified:
+            raise ValueError("post-grid snapshot cannot be available without proven pre-race publication")
+        raw_text = str(self.raw_payload_json)
+        try:
+            decoded = json.loads(raw_text)
+        except json.JSONDecodeError as exc:
+            raise ValueError("grid capture raw_payload_json is invalid") from exc
+        canonical = _canonical_json(decoded)
+        object.__setattr__(self, "raw_payload_json", canonical)
+        digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        if str(self.raw_payload_sha256).strip().lower() != digest:
+            raise ValueError("grid capture raw payload hash mismatch")
+        object.__setattr__(self, "raw_payload_sha256", digest)
+        for field_name in ("meeting_key", "session_key"):
+            value = getattr(self, field_name)
+            if value is not None:
+                normalized = str(value).strip()
+                object.__setattr__(self, field_name, normalized or None)
+        document_url = (
+            None if self.source_document_url is None else str(self.source_document_url).strip()
+        )
+        object.__setattr__(self, "source_document_url", document_url or None)
+        document_hash = (
+            None
+            if self.source_document_sha256 is None
+            else str(self.source_document_sha256).strip().lower()
+        )
+        if document_hash is not None and not re.fullmatch(r"[0-9a-f]{64}", document_hash):
+            raise ValueError("source_document_sha256 must be a lowercase SHA-256 digest")
+        object.__setattr__(self, "source_document_sha256", document_hash)
+        semantics = str(self.publication_time_semantics).strip()
+        if semantics not in {
+            "first_seen_upper_bound",
+            "authoritative_document_timestamp",
+        }:
+            raise ValueError("unsupported grid publication_time_semantics")
+        if semantics == "first_seen_upper_bound" and published_time != captured_time:
+            raise ValueError("first-seen publication time must equal captured_at")
+        if semantics == "authoritative_document_timestamp" and (
+            not document_url or not document_hash
+        ):
+            raise ValueError(
+                "authoritative publication time requires source document URL and SHA-256"
+            )
+        object.__setattr__(self, "publication_time_semantics", semantics)
+        if self.schema_version != GRID_CAPTURE_SCHEMA_VERSION:
+            raise ValueError(f"unsupported grid capture schema: {self.schema_version!r}")
+
+    @property
+    def raw_payload(self) -> object:
+        return json.loads(self.raw_payload_json)
+
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "capture_id": self.capture_id,
+            "year": self.year,
+            "round_number": self.round_number,
+            "provider": self.provider,
+            "source_endpoint": self.source_endpoint,
+            "meeting_key": self.meeting_key,
+            "session_key": self.session_key,
+            "captured_at": self.captured_at,
+            "first_published_at": self.first_published_at,
+            "race_start_at": self.race_start_at,
+            "publication_pre_race_verified": self.publication_pre_race_verified,
+            "publication_time_semantics": self.publication_time_semantics,
+            "source_document_url": self.source_document_url,
+            "source_document_sha256": self.source_document_sha256,
+            "raw_payload_sha256": self.raw_payload_sha256,
+            "revision_phase": self.revision_phase.value,
+            "raw_payload": self.raw_payload,
+            "snapshot": _race_grid_snapshot_payload(self.snapshot),
+        }
+
+
+def _resolved_adjustment_payload(value: ResolvedGridAdjustment) -> dict[str, object]:
+    return {
+        "kind": value.kind.value,
+        "places": value.places,
+        "reason": value.reason,
+        "status": value.status.value,
+        "source": value.source.value,
+        "as_of": value.as_of,
+        "evidence_complete": value.evidence_complete,
+        "evidence_id": value.evidence_id,
+    }
+
+
+def _race_grid_snapshot_payload(snapshot: RaceGridSnapshot) -> dict[str, object]:
+    return {
+        "horizon": snapshot.horizon.value,
+        "prediction_as_of": snapshot.prediction_as_of,
+        "publication_as_of": snapshot.publication_as_of,
+        "resolution_status": snapshot.resolution_status.value,
+        "source": snapshot.source.value,
+        "revision_ids": list(snapshot.revision_ids),
+        "available": snapshot.available,
+        "evidence_complete": snapshot.evidence_complete,
+        "unresolved_state_flags": list(snapshot.unresolved_state_flags),
+        "entries": [
+            {
+                "driver_id": entry.driver_id,
+                "grid_position": entry.grid_position,
+                "status": entry.status.value,
+                "starter_eligible": entry.starter_eligible,
+                "pit_lane_start": entry.pit_lane_start,
+                "penalty_evidence": [
+                    _resolved_adjustment_payload(adjustment)
+                    for adjustment in entry.penalty_evidence
+                ],
+                "evidence_ids": list(entry.evidence_ids),
+                "evidence_complete": entry.evidence_complete,
+            }
+            for entry in snapshot.entries
+        ],
+    }
+
+
+def _resolved_adjustment_from_payload(value: object) -> ResolvedGridAdjustment:
+    row = _require_mapping(value, "grid adjustment evidence")
+    return ResolvedGridAdjustment(
+        kind=GridAdjustmentKind(str(row.get("kind"))),
+        places=(None if row.get("places") is None else int(row["places"])),
+        reason=(None if row.get("reason") is None else str(row["reason"])),
+        status=GridEntryStatus(str(row.get("status"))),
+        source=EvidenceSource(str(row.get("source"))),
+        as_of=str(row.get("as_of")),
+        evidence_complete=_require_bool(
+            row.get("evidence_complete"), "grid adjustment evidence_complete"
+        ),
+        evidence_id=str(row.get("evidence_id")),
+    )
+
+
+def _race_grid_snapshot_from_payload(value: object) -> RaceGridSnapshot:
+    payload = _require_mapping(value, "grid snapshot")
+    raw_entries = payload.get("entries")
+    if not isinstance(raw_entries, list):
+        raise ValueError("grid snapshot entries must be a list")
+    entries: list[RaceGridSnapshotEntry] = []
+    for raw_entry in raw_entries:
+        row = _require_mapping(raw_entry, "grid snapshot entry")
+        penalty_evidence = row.get("penalty_evidence", [])
+        if not isinstance(penalty_evidence, list):
+            raise ValueError("grid snapshot penalty_evidence must be a list")
+        evidence_ids = row.get("evidence_ids", [])
+        if not isinstance(evidence_ids, list):
+            raise ValueError("grid snapshot evidence_ids must be a list")
+        entries.append(
+            RaceGridSnapshotEntry(
+                driver_id=str(row.get("driver_id")),
+                grid_position=(
+                    None if row.get("grid_position") is None else int(row["grid_position"])
+                ),
+                status=GridEntryStatus(str(row.get("status"))),
+                starter_eligible=_require_bool(
+                    row.get("starter_eligible"), "snapshot starter_eligible"
+                ),
+                pit_lane_start=_require_bool(
+                    row.get("pit_lane_start"), "snapshot pit_lane_start"
+                ),
+                penalty_evidence=tuple(
+                    _resolved_adjustment_from_payload(item) for item in penalty_evidence
+                ),
+                evidence_ids=tuple(str(item) for item in evidence_ids),
+                evidence_complete=_require_bool(
+                    row.get("evidence_complete"), "snapshot entry evidence_complete"
+                ),
+            )
+        )
+    revision_ids = payload.get("revision_ids", [])
+    flags = payload.get("unresolved_state_flags", [])
+    if not isinstance(revision_ids, list) or not isinstance(flags, list):
+        raise ValueError("grid snapshot revision_ids and flags must be lists")
+    return RaceGridSnapshot(
+        horizon=RacePredictionHorizon(str(payload.get("horizon"))),
+        prediction_as_of=str(payload.get("prediction_as_of")),
+        publication_as_of=(
+            None
+            if payload.get("publication_as_of") is None
+            else str(payload.get("publication_as_of"))
+        ),
+        resolution_status=ResolutionStatus(str(payload.get("resolution_status"))),
+        source=EvidenceSource(str(payload.get("source"))),
+        entries=tuple(entries),
+        revision_ids=tuple(str(item) for item in revision_ids),
+        available=_require_bool(payload.get("available"), "snapshot available"),
+        evidence_complete=_require_bool(
+            payload.get("evidence_complete"), "snapshot evidence_complete"
+        ),
+        unresolved_state_flags=tuple(str(item) for item in flags),
+    )
+
+
+def race_grid_capture_from_payload(value: object) -> RaceGridCapture:
+    """Validate and reconstruct a first-seen capture payload."""
+
+    payload = _require_mapping(value, "grid capture")
+    raw_payload = payload.get("raw_payload")
+    return RaceGridCapture(
+        schema_version=str(payload.get("schema_version")),
+        capture_id=str(payload.get("capture_id")),
+        year=int(payload.get("year", 0)),
+        round_number=int(payload.get("round_number", 0)),
+        provider=str(payload.get("provider")),
+        source_endpoint=str(payload.get("source_endpoint")),
+        meeting_key=(
+            None if payload.get("meeting_key") is None else str(payload.get("meeting_key"))
+        ),
+        session_key=(
+            None if payload.get("session_key") is None else str(payload.get("session_key"))
+        ),
+        captured_at=str(payload.get("captured_at")),
+        first_published_at=str(payload.get("first_published_at")),
+        race_start_at=str(payload.get("race_start_at")),
+        publication_pre_race_verified=_require_bool(
+            payload.get("publication_pre_race_verified"),
+            "grid publication_pre_race_verified",
+        ),
+        publication_time_semantics=str(payload.get("publication_time_semantics")),
+        source_document_url=(
+            None
+            if payload.get("source_document_url") is None
+            else str(payload.get("source_document_url"))
+        ),
+        source_document_sha256=(
+            None
+            if payload.get("source_document_sha256") is None
+            else str(payload.get("source_document_sha256"))
+        ),
+        raw_payload_json=_canonical_json(raw_payload),
+        raw_payload_sha256=str(payload.get("raw_payload_sha256")),
+        revision_phase=GridRevisionPhase(str(payload.get("revision_phase"))),
+        snapshot=_race_grid_snapshot_from_payload(payload.get("snapshot")),
+    )
+
+
+def load_race_grid_capture(path: str | Path) -> RaceGridCapture:
+    """Load one capture with schema, provenance-hash, and type validation."""
+
+    capture_path = Path(path)
+    try:
+        payload = json.loads(capture_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"invalid first-seen grid capture: {capture_path}") from exc
+    return race_grid_capture_from_payload(payload)
+
+
+def persist_race_grid_capture(
+    capture: RaceGridCapture,
+    directory: str | Path,
+) -> Path:
+    """Append one capture and refuse every overwrite or content mutation."""
+
+    if not isinstance(capture, RaceGridCapture):
+        raise TypeError("capture must be a RaceGridCapture")
+    output_dir = Path(directory)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    timestamp_token = re.sub(r"[^0-9A-Za-z]+", "", str(capture.captured_at))
+    filename = f"grid_{timestamp_token}_{capture.capture_id}.json"
+    output = output_dir / filename
+    encoded = json.dumps(capture.to_payload(), indent=2, sort_keys=True) + "\n"
+    if output.exists():
+        if output.read_text(encoding="utf-8") != encoded:
+            raise FileExistsError(f"immutable grid capture already exists with other content: {output}")
+        return output
+    try:
+        with output.open("x", encoding="utf-8") as handle:
+            handle.write(encoded)
+    except FileExistsError:
+        if output.read_text(encoding="utf-8") != encoded:
+            raise
+    return output
+
+
+def build_race_grid_capture(
+    contract: WeekendContract,
+    *,
+    year: int,
+    round_number: int,
+    provider: str,
+    source_endpoint: str,
+    captured_at: Timestamp,
+    first_published_at: Timestamp,
+    race_start_at: Timestamp,
+    revision: OfficialGridRevision,
+    raw_payload: object,
+    meeting_key: str | None = None,
+    session_key: str | None = None,
+    publication_time_semantics: str = "first_seen_upper_bound",
+    source_document_url: str | None = None,
+    source_document_sha256: str | None = None,
+) -> RaceGridCapture:
+    """Resolve and envelope an official grid revision without result leakage.
+
+    The structured rows must come from the supplied publication; this helper
+    never reads a race-result file and never repairs positions from a later
+    classification.  A provisional or incomplete revision is still stored,
+    but its nested snapshot remains unavailable for model inference.
+    """
+
+    if not isinstance(contract, WeekendContract):
+        raise TypeError("contract must be a WeekendContract")
+    if not isinstance(revision, OfficialGridRevision):
+        raise TypeError("revision must be an OfficialGridRevision")
+    _, published_text = _timestamp(first_published_at, "grid first_published_at")
+    published_time, _ = _timestamp(published_text, "grid first_published_at")
+    race_start_time, race_start_text = _timestamp(race_start_at, "grid race_start_at")
+    publication_pre_race_verified = bool(published_time < race_start_time)
+    _, revision_text = _timestamp(revision.as_of, "official grid revision as_of")
+    if revision_text != published_text:
+        raise ValueError("official grid revision as_of must equal first_published_at")
+    effective_revision = (
+        revision
+        if publication_pre_race_verified
+        else replace(revision, evidence_complete=False)
+    )
+    resolution = resolve_grand_prix_start(
+        contract,
+        as_of=published_text,
+        official_grid_revisions=(effective_revision,),
+    )
+    snapshot = build_race_grid_snapshot(
+        resolution,
+        horizon=RacePredictionHorizon.POST_GRID_PRE_RACE,
+    )
+    raw_json = _canonical_json(raw_payload)
+    raw_hash = hashlib.sha256(raw_json.encode("utf-8")).hexdigest()
+    identity = _canonical_json(
+        {
+            "year": int(year),
+            "round_number": int(round_number),
+            "provider": str(provider),
+            "source_endpoint": str(source_endpoint),
+            "first_published_at": published_text,
+            "revision_id": revision.revision_id,
+            "raw_payload_sha256": raw_hash,
+        }
+    )
+    capture_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:20]
+    return RaceGridCapture(
+        capture_id=capture_id,
+        year=int(year),
+        round_number=int(round_number),
+        provider=provider,
+        source_endpoint=source_endpoint,
+        meeting_key=meeting_key,
+        session_key=session_key,
+        captured_at=captured_at,
+        first_published_at=published_text,
+        race_start_at=race_start_text,
+        publication_pre_race_verified=publication_pre_race_verified,
+        publication_time_semantics=publication_time_semantics,
+        source_document_url=source_document_url,
+        source_document_sha256=source_document_sha256,
+        raw_payload_json=raw_json,
+        raw_payload_sha256=raw_hash,
+        snapshot=snapshot,
+        revision_phase=revision.phase,
+    )
+
+
 def _source_for_session(session: Session) -> EvidenceSource:
     if session is Session.QUALIFYING:
         return EvidenceSource.QUALIFYING_CLASSIFICATION
@@ -622,6 +1125,16 @@ def _revision_signature(revision: OfficialGridRevision) -> tuple[object, ...]:
                     entry.position,
                     entry.status.value,
                     tuple(kind.value for kind in entry.adjustments),
+                    tuple(
+                        (
+                            decision.kind.value,
+                            decision.places,
+                            decision.reason,
+                            decision.evidence_id,
+                            bool(decision.evidence_complete),
+                        )
+                        for decision in entry.decisions
+                    ),
                     bool(entry.evidence_complete),
                 )
                 for entry in revision.entries
@@ -939,6 +1452,34 @@ def _order_from_official_revision(
             row_complete = False
         if entry.status in {GridEntryStatus.PENALTY_PENDING, GridEntryStatus.UNRESOLVED}:
             row_complete = False
+        if entry.decisions:
+            adjustment_evidence = tuple(
+                ResolvedGridAdjustment(
+                    kind=decision.kind,
+                    places=decision.places,
+                    reason=decision.reason,
+                    status=_adjustment_status(decision.kind),
+                    source=EvidenceSource.OFFICIAL_GRID_REVISION,
+                    as_of=evidence_text,
+                    evidence_complete=bool(row_complete and decision.evidence_complete),
+                    evidence_id=decision.evidence_id,
+                )
+                for decision in entry.decisions
+            )
+        else:
+            adjustment_evidence = tuple(
+                ResolvedGridAdjustment(
+                    kind=kind,
+                    places=None,
+                    reason=None,
+                    status=_adjustment_status(kind),
+                    source=EvidenceSource.OFFICIAL_GRID_REVISION,
+                    as_of=evidence_text,
+                    evidence_complete=row_complete,
+                    evidence_id=str(revision.revision_id),
+                )
+                for kind in entry.adjustments
+            )
         rows.append(
             ResolvedOrderEntry(
                 driver_id=entry.driver_id,
@@ -949,19 +1490,7 @@ def _order_from_official_revision(
                 evidence_complete=row_complete,
                 evidence_ids=(str(revision.revision_id),),
                 adjustments=entry.adjustments,
-                adjustment_evidence=tuple(
-                    ResolvedGridAdjustment(
-                        kind=kind,
-                        places=None,
-                        reason=None,
-                        status=_adjustment_status(kind),
-                        source=EvidenceSource.OFFICIAL_GRID_REVISION,
-                        as_of=evidence_text,
-                        evidence_complete=row_complete,
-                        evidence_id=str(revision.revision_id),
-                    )
-                    for kind in entry.adjustments
-                ),
+                adjustment_evidence=adjustment_evidence,
                 issues=tuple(row_issues),
             )
         )
@@ -1539,9 +2068,12 @@ __all__ = [
     "GridAdjustmentKind",
     "GridEntryStatus",
     "GridRevisionPhase",
+    "GRID_CAPTURE_SCHEMA_VERSION",
     "OfficialGridEntry",
+    "OfficialGridDecision",
     "OfficialGridRevision",
     "OrderResolution",
+    "RaceGridCapture",
     "RaceGridSnapshot",
     "RaceGridSnapshotEntry",
     "RacePredictionHorizon",
@@ -1550,5 +2082,9 @@ __all__ = [
     "ResolvedGridAdjustment",
     "ResolvedOrderEntry",
     "build_race_grid_snapshot",
+    "build_race_grid_capture",
+    "load_race_grid_capture",
+    "persist_race_grid_capture",
+    "race_grid_capture_from_payload",
     "resolve_grand_prix_start",
 ]

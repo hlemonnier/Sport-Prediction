@@ -20,9 +20,21 @@ from packages.f1.domain.starting_grid import RacePredictionHorizon
 from packages.f1.models.pre_race.evaluate import evaluate_terminal_status_probabilities
 from packages.f1.models.pre_race.joint import SurvivalAwareRaceModel
 from packages.f1.models.pre_race.ranking import BradleyTerryOrderRanker, ConditionalOrderConfig
-from packages.f1.models.pre_race.status import TerminalStatus, reason_code_terminal_status
+from packages.f1.models.pre_race.status import (
+    TerminalStatus,
+    reason_code_terminal_status,
+    terminal_label_granularity,
+)
+from packages.f1.models.pre_race.survival import (
+    BinaryTerminalCalibrator,
+    PartialPooledTerminalHazard,
+)
 from packages.f1.orchestration.model_runtime import f1_model_runtime_doctor
-from packages.f1.orchestration.non_live_validation import EventError, evaluate_race_promotion
+from packages.f1.orchestration.non_live_validation import (
+    EventError,
+    evaluate_race_promotion,
+    validate_event_partitions,
+)
 
 
 def _root() -> Path:
@@ -74,7 +86,9 @@ def _rolling_group_mean(
     values = pd.to_numeric(history[value_column], errors="coerce")
     global_mean = float(values.mean()) if values.notna().any() else 0.0
     output: dict[str, float] = {}
-    for key, indexes in history.groupby(key_column, dropna=False).groups.items():
+    keys = history[key_column].astype("string").str.strip()
+    valid_keys = keys.notna() & keys.ne("")
+    for key, indexes in history.loc[valid_keys].groupby(keys.loc[valid_keys]).groups.items():
         group = values.loc[indexes].dropna()
         if group.empty:
             continue
@@ -96,7 +110,9 @@ def _rolling_rate(
         return {}
     labels = mask.reindex(history.index).fillna(False).astype(float)
     output: dict[str, float] = {}
-    for key, indexes in history.groupby(key_column, dropna=False).groups.items():
+    keys = history[key_column].astype("string").str.strip()
+    valid_keys = keys.notna() & keys.ne("")
+    for key, indexes in history.loc[valid_keys].groupby(keys.loc[valid_keys]).groups.items():
         output[str(key)] = float((labels.loc[indexes].sum() + alpha) / (len(indexes) + alpha + beta))
     return output
 
@@ -156,8 +172,278 @@ def _pre_race_wet_evidence(root: Path, metadata: dict[str, Any]) -> float:
     return float(max(evidence, default=0.0))
 
 
+def _pre_race_driver_mechanical_stop_share(
+    root: Path,
+    metadata: dict[str, Any],
+) -> dict[str, float]:
+    counts: dict[str, int] = {}
+    mechanical: dict[str, int] = {}
+    for session in metadata.get("sessions", []):
+        if str(session.get("session_type", "")).strip().lower() == "race":
+            continue
+        reference = session.get("results_path")
+        if not reference:
+            continue
+        path = Path(str(reference))
+        path = path if path.is_absolute() else root / path
+        if not path.exists():
+            continue
+        frame = pd.read_csv(path)
+        driver_col = next(
+            (
+                column
+                for column in (
+                    "DriverNumber",
+                    "driver_number",
+                    "driver_id",
+                    "Abbreviation",
+                )
+                if column in frame.columns
+            ),
+            None,
+        )
+        status_col = next(
+            (
+                column
+                for column in ("Status", "status", "ResultStatus")
+                if column in frame.columns
+            ),
+            None,
+        )
+        if driver_col is None or status_col is None:
+            continue
+        for _, row in frame.iterrows():
+            driver = str(row.get(driver_col, "")).strip()
+            numeric = pd.to_numeric(pd.Series([driver]), errors="coerce").iloc[0]
+            if pd.notna(numeric) and float(numeric).is_integer():
+                driver = str(int(numeric))
+            if not driver or driver.lower() in {"nan", "none", "null"}:
+                continue
+            counts[driver] = counts.get(driver, 0) + 1
+            if reason_code_terminal_status(row.get(status_col)) is TerminalStatus.MECHANICAL_POWER_UNIT:
+                mechanical[driver] = mechanical.get(driver, 0) + 1
+    return {
+        driver: float(mechanical.get(driver, 0) / count)
+        for driver, count in counts.items()
+        if count > 0
+    }
+
+
+def _legal_grid_baseline(frame: pd.DataFrame) -> pd.Series:
+    status = frame["grid_status"].astype(str).str.lower()
+    physical = pd.to_numeric(frame["grid_position"], errors="coerce")
+    group = np.where(
+        status.eq("grid"),
+        0,
+        np.where(status.eq("pit_lane"), 1, 2),
+    )
+    order = pd.DataFrame(
+        {
+            "group": group,
+            "physical": physical.fillna(np.inf),
+            "driver_id": frame["driver_id"].astype(str),
+        },
+        index=frame.index,
+    ).sort_values(["group", "physical", "driver_id"], kind="mergesort")
+    return pd.Series(
+        np.arange(1, len(order) + 1, dtype=float), index=order.index
+    ).reindex(frame.index)
+
+
+def _causal_rolling_terminal_probability(
+    prior: pd.DataFrame,
+    current: pd.DataFrame,
+) -> np.ndarray:
+    """Beta-smoothed binary hazard baseline with no current-weekend covariates."""
+
+    terminal = prior["terminal_status"].astype(str).ne(
+        TerminalStatus.CLASSIFIED_FINISH.value
+    ).astype(float)
+    global_probability = float((terminal.sum() + 2.0) / (len(terminal) + 10.0))
+    output = np.full(len(current), global_probability, dtype=float)
+    for output_index, (_, row) in enumerate(current.iterrows()):
+        logits: list[tuple[float, float]] = [(global_probability, 1.0)]
+        for column, strength, weight in (
+            ("team_name", 8.0, 0.45),
+            ("power_unit", 10.0, 0.30),
+            ("driver_id", 10.0, 0.25),
+        ):
+            if column not in prior.columns or column not in row.index or pd.isna(row[column]):
+                continue
+            mask = prior[column].astype(str).eq(str(row[column]))
+            support = int(mask.sum())
+            if support == 0:
+                continue
+            probability = float(
+                (terminal.loc[mask].sum() + strength * global_probability)
+                / (support + strength)
+            )
+            reliability = support / (support + strength)
+            logits.append((probability, weight * reliability))
+        base_logit = np.log(global_probability / max(1e-9, 1.0 - global_probability))
+        blended_logit = base_logit
+        for probability, weight in logits[1:]:
+            value = np.clip(probability, 1e-6, 1.0 - 1e-6)
+            blended_logit += weight * (
+                np.log(value / (1.0 - value)) - base_logit
+            )
+        output[output_index] = 1.0 / (1.0 + np.exp(-blended_logit))
+    return output
+
+
 def _team_column(frame: pd.DataFrame) -> str | None:
     return next((column for column in ("team_name", "fp_team_name", "fp1_team_name") if column in frame.columns), None)
+
+
+_QUALIFYING_PRIOR_FEATURES: tuple[str, ...] = (
+    "fp_quali_sim_rank",
+    "fp_mean_rank",
+    "fp1_quali_sim_rank",
+    "fp2_quali_sim_rank",
+    "fp3_quali_sim_rank",
+    "fp_quali_sim_delta",
+    "fp_mean_delta",
+    "fp_quali_sim_evidence_share",
+    "fp_lap_quality_ratio",
+)
+
+
+def _deterministic_rank(values: np.ndarray, driver_ids: pd.Series) -> np.ndarray:
+    numeric = np.asarray(values, dtype=float)
+    finite = np.isfinite(numeric)
+    replacement = float(np.nanmedian(numeric[finite])) if finite.any() else 0.0
+    order = np.lexsort(
+        (
+            driver_ids.fillna("").astype(str).to_numpy(),
+            np.where(finite, numeric, replacement),
+        )
+    )
+    ranks = np.empty(len(numeric), dtype=float)
+    ranks[order] = np.arange(1, len(numeric) + 1, dtype=float)
+    return ranks
+
+
+def _rolling_oof_qualifying_prior(
+    history: pd.DataFrame,
+    current: pd.DataFrame,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Predict Qualifying rank from completed FP evidence using only prior events."""
+
+    feature_columns = [
+        column
+        for column in _QUALIFYING_PRIOR_FEATURES
+        if column in history.columns
+        and column in current.columns
+        and pd.to_numeric(history[column], errors="coerce").notna().any()
+    ]
+    training = (
+        history.loc[
+            pd.to_numeric(history["qualy_position"], errors="coerce").notna()
+        ].copy()
+        if not history.empty and "qualy_position" in history.columns
+        else pd.DataFrame(columns=history.columns)
+    )
+    training_events = int(training["event_key"].nunique()) if not training.empty else 0
+    if feature_columns and training_events >= 4:
+        train_numeric = training[feature_columns].apply(pd.to_numeric, errors="coerce")
+        current_numeric = current[feature_columns].apply(pd.to_numeric, errors="coerce")
+        medians = train_numeric.median(axis=0, skipna=True).fillna(0.0)
+        scales = train_numeric.std(axis=0, skipna=True).replace(0.0, np.nan).fillna(1.0)
+        train_missing = train_numeric.isna().astype(float)
+        current_missing = current_numeric.isna().astype(float)
+        train_x = np.column_stack(
+            [
+                ((train_numeric.fillna(medians) - medians) / scales).to_numpy(dtype=float),
+                train_missing.to_numpy(dtype=float),
+            ]
+        )
+        current_x = np.column_stack(
+            [
+                ((current_numeric.fillna(medians) - medians) / scales).to_numpy(dtype=float),
+                current_missing.to_numpy(dtype=float),
+            ]
+        )
+        event_sizes = training.groupby("event_key", dropna=False)["driver_id"].transform(
+            "size"
+        )
+        target = (
+            pd.to_numeric(training["qualy_position"], errors="coerce") - 1.0
+        ) / (pd.to_numeric(event_sizes, errors="coerce").clip(lower=2.0) - 1.0)
+        try:
+            from sklearn.linear_model import Ridge
+
+            estimator = Ridge(alpha=10.0, fit_intercept=True)
+            estimator.fit(train_x, target.to_numpy(dtype=float))
+            score = estimator.predict(current_x)
+            return _deterministic_rank(score, current["driver_id"]), {
+                "source": "rolling_out_of_event_ridge_from_pre_qualifying_practice",
+                "training_events": training_events,
+                "features": feature_columns,
+                "regularization_alpha": 10.0,
+                "strictly_prior_event_keys": True,
+            }
+        except Exception:
+            pass
+
+    fallback_column = next(
+        (
+            column
+            for column in ("fp_quali_sim_rank", "fp_mean_rank")
+            if column in current.columns
+            and pd.to_numeric(current[column], errors="coerce").notna().any()
+        ),
+        None,
+    )
+    fallback_values = (
+        pd.to_numeric(current[fallback_column], errors="coerce").to_numpy(dtype=float)
+        if fallback_column is not None
+        else np.zeros(len(current), dtype=float)
+    )
+    return _deterministic_rank(fallback_values, current["driver_id"]), {
+        "source": (
+            f"causal_practice_rank_fallback:{fallback_column}"
+            if fallback_column is not None
+            else "driver_id_tie_break_no_pre_qualifying_rank_evidence"
+        ),
+        "training_events": training_events,
+        "features": [fallback_column] if fallback_column is not None else [],
+        "regularization_alpha": None,
+        "strictly_prior_event_keys": True,
+    }
+
+
+def _align_grid_driver_ids_from_qualifying(
+    grid: pd.DataFrame,
+    qualifying_roster: pd.DataFrame,
+) -> pd.DataFrame:
+    """Align FIA car numbers to model IDs using only pre-race Qualifying identity."""
+
+    out = grid.copy()
+    out["driver_id"] = out["driver_id"].astype(str)
+    target_ids = set(qualifying_roster["driver_id"].astype(str))
+    if set(out["driver_id"]) == target_ids:
+        return out
+    if "grid_car_number" not in out.columns or "car_number" not in qualifying_roster.columns:
+        raise ValueError(
+            "first-seen final grid identity differs from Qualifying and lacks car-number evidence"
+        )
+    qualifying_identity = qualifying_roster[["driver_id", "car_number"]].copy()
+    qualifying_identity["driver_id"] = qualifying_identity["driver_id"].astype(str)
+    qualifying_identity["car_number"] = qualifying_identity["car_number"].astype(str)
+    if qualifying_identity["car_number"].duplicated().any():
+        raise ValueError("Qualifying roster contains duplicate car-number identity")
+    mapping = dict(
+        zip(qualifying_identity["car_number"], qualifying_identity["driver_id"])
+    )
+    aligned = out["grid_car_number"].astype(str).map(mapping)
+    if aligned.isna().any() or set(aligned.astype(str)) != target_ids:
+        raise ValueError(
+            "FIA final-grid car numbers do not map one-to-one to the pre-race Qualifying roster"
+        )
+    out["grid_provider_driver_id"] = out["driver_id"]
+    out["driver_id"] = aligned.astype(str)
+    out["grid_identity_mapping_source"] = "pre_race_qualifying_car_number"
+    return out
 
 
 def _build_event_rows(
@@ -171,87 +457,156 @@ def _build_event_rows(
 ) -> tuple[pd.DataFrame, dict[str, Any], list[Path]]:
     metadata, metadata_path = _metadata(weekends_dir, year, round_number)
     qualifying = provider.get_qualifying_results(year, round_number)
-    race = provider.get_race_results(year, round_number)
     practice = provider.get_fp_features(year, round_number, prediction_target="race")
-    if qualifying.empty or race.empty:
-        raise ValueError(f"{year} round {round_number} has incomplete Q/Race classifications")
+    if qualifying.empty:
+        raise ValueError(f"{year} round {round_number} has no causal Qualifying roster")
 
-    q = qualifying[[column for column in ("driver_id", "position", "team_name") if column in qualifying]].copy()
-    q = q.rename(columns={"position": "qualy_position"})
-    r = race[
+    q = qualifying[
         [
             column
             for column in (
                 "driver_id",
                 "position",
                 "team_name",
-                "race_status_raw",
-                "race_status_evidence_complete",
-                "retirement_fraction",
+                "power_unit",
+                "power_unit_source",
+                "car_number",
+                "driver_abbreviation",
             )
-            if column in race
+            if column in qualifying
         ]
     ].copy()
-    r = r.rename(columns={"position": "finish_position", "team_name": "race_team_name"})
-    frame = q.merge(r, on="driver_id", how="outer", validate="one_to_one")
-    if not practice.empty:
-        frame = frame.merge(practice, on="driver_id", how="left", validate="one_to_one")
-    frame["team_name"] = frame.get("team_name", pd.Series(index=frame.index, dtype=object)).where(
-        frame.get("team_name", pd.Series(index=frame.index, dtype=object)).notna(),
-        frame.get("race_team_name", pd.Series(index=frame.index, dtype=object)),
+    q = q.rename(
+        columns={
+            "position": "qualy_position",
+            "power_unit_source": "qualy_power_unit_source",
+        }
     )
-    frame["team_name"] = frame["team_name"].fillna("unknown_team").astype(str)
+    if q["driver_id"].astype(str).duplicated().any():
+        raise ValueError("causal Qualifying roster contains duplicate driver identities")
+    frame = q.copy()
+    if not practice.empty:
+        # Qualifying owns entrant identity; practice may expose convenience
+        # copies of team/name fields which must not suffix or replace it.
+        overlapping_identity = sorted(
+            (set(frame.columns) & set(practice.columns)) - {"driver_id"}
+        )
+        practice_features = practice.drop(
+            columns=overlapping_identity,
+            errors="ignore",
+        )
+        frame = frame.merge(
+            practice_features,
+            on="driver_id",
+            how="left",
+            validate="one_to_one",
+        )
+    frame["team_name"] = frame.get(
+        "team_name", pd.Series(index=frame.index, dtype=object)
+    ).fillna("unknown_team").astype(str)
+    frame["power_unit"] = frame.get(
+        "power_unit", pd.Series(index=frame.index, dtype=object)
+    )
+    frame["power_unit_source"] = frame.get(
+        "qualy_power_unit_source", pd.Series(index=frame.index, dtype=object)
+    )
+    frame["causal_roster_source"] = "pre_race_qualifying_classification"
     event_key = int(year) * 100 + int(round_number)
     frame["event_key"] = event_key
     frame["event_as_of"] = _event_as_of(metadata)
-    frame["feature_as_of"] = _event_as_of(metadata)
     frame["circuit_id"] = _normalized_circuit(metadata)
-    frame["grid_position"] = pd.to_numeric(frame["qualy_position"], errors="coerce")
-    frame["grid_status"] = "grid"
-    frame["grid_starter_eligible"] = 1.0
-    frame["grid_pit_lane_start"] = False
-    frame["race_information_horizon"] = RacePredictionHorizon.POST_QUALIFYING_PRE_GRID.value
-    race_only = frame["qualy_position"].isna() & frame["finish_position"].notna()
-    if race_only.any():
-        drivers = sorted(frame.loc[race_only, "driver_id"].astype(str).tolist())
-        raise ValueError(
-            "post-Qualifying proxy cannot score Race-only entrants without a causal grid anchor: "
-            f"{drivers}"
+    starting_grid = provider.get_starting_grid(year, round_number)
+    required_capture_columns = {
+        "driver_id",
+        "grid_position",
+        "grid_status",
+        "grid_starter_eligible",
+        "grid_pit_lane_start",
+        "grid_source",
+        "grid_capture_id",
+        "grid_evidence_complete",
+        "grid_snapshot_available",
+        "grid_publication_pre_race_verified",
+        "grid_first_published_at",
+        "grid_resolution_status",
+        "race_information_horizon",
+    }
+    final_capture = bool(
+        not starting_grid.empty
+        and required_capture_columns.issubset(starting_grid.columns)
+        and starting_grid["grid_source"].astype(str).eq("first_seen_official_grid").all()
+        and starting_grid["grid_snapshot_available"].fillna(False).astype(bool).all()
+        and starting_grid["grid_evidence_complete"].fillna(False).astype(bool).all()
+        and starting_grid["grid_publication_pre_race_verified"].fillna(False).astype(bool).all()
+        and starting_grid["grid_resolution_status"].astype(str).eq("resolved").all()
+        and starting_grid["race_information_horizon"].astype(str).eq(
+            RacePredictionHorizon.POST_GRID_PRE_RACE.value
+        ).all()
+    )
+    if final_capture:
+        grid = _align_grid_driver_ids_from_qualifying(starting_grid, q)
+        if set(grid["driver_id"]) != set(frame["driver_id"].astype(str)):
+            raise ValueError("first-seen final grid roster does not match event roster")
+        grid_columns = [
+            column
+            for column in grid.columns
+            if column == "driver_id" or column.startswith("grid_")
+            or column == "race_information_horizon"
+        ]
+        frame = frame.drop(
+            columns=[column for column in frame.columns if column.startswith("grid_")],
+            errors="ignore",
+        ).merge(grid[grid_columns], on="driver_id", how="left", validate="one_to_one")
+        horizon = RacePredictionHorizon.POST_GRID_PRE_RACE
+        prediction_as_of = str(grid["grid_first_published_at"].iloc[0])
+    else:
+        frame["grid_position"] = pd.to_numeric(frame["qualy_position"], errors="coerce")
+        frame["grid_status"] = "grid"
+        frame["grid_starter_eligible"] = 1.0
+        frame["grid_pit_lane_start"] = False
+        frame["race_information_horizon"] = (
+            RacePredictionHorizon.POST_QUALIFYING_PRE_GRID.value
         )
-    qualifying_only = frame["race_status_raw"].isna() & frame["qualy_position"].notna()
-    if qualifying_only.any():
-        # A Qualifying entrant absent from the authoritative Race classification
-        # is retained as a target-population DNS/withdrawal at the tail.  This
-        # target repair is never exposed to the inference feature frame.
-        frame.loc[qualifying_only, "race_status_raw"] = "Did not start"
-        frame.loc[qualifying_only, "race_status_evidence_complete"] = True
-        used = {
-            int(value)
-            for value in pd.to_numeric(frame["finish_position"], errors="coerce").dropna()
-        }
-        next_position = 1
-        for index in frame.index[qualifying_only]:
-            while next_position in used:
-                next_position += 1
-            frame.loc[index, "finish_position"] = next_position
-            frame.loc[index, "retirement_fraction"] = 0.0
-            used.add(next_position)
-    frame["terminal_status"] = frame["race_status_raw"].map(reason_code_terminal_status)
-    if frame["terminal_status"].isna().any():
-        unresolved = sorted(frame.loc[frame["terminal_status"].isna(), "race_status_raw"].astype(str).unique())
-        raise ValueError(f"unresolved terminal status labels: {unresolved}")
-    frame["terminal_status"] = frame["terminal_status"].map(lambda value: value.value)
+        horizon = RacePredictionHorizon.POST_QUALIFYING_PRE_GRID
+        prediction_as_of = _event_as_of(metadata)
+    frame["feature_as_of"] = prediction_as_of
+    frame["grid_baseline_position"] = _legal_grid_baseline(frame)
 
-    places_gained = pd.to_numeric(history.get("grid_position"), errors="coerce") - pd.to_numeric(
-        history.get("finish_position"), errors="coerce"
-    ) if not history.empty else pd.Series(dtype=float)
+    classified_history = (
+        history.get("terminal_status", pd.Series(index=history.index, dtype=object))
+        .astype(str)
+        .eq(TerminalStatus.CLASSIFIED_FINISH.value)
+        if not history.empty
+        else pd.Series(dtype=bool)
+    )
+    places_gained = (
+        pd.to_numeric(history.get("grid_baseline_position"), errors="coerce")
+        - pd.to_numeric(history.get("finish_position"), errors="coerce")
+        if not history.empty
+        else pd.Series(dtype=float)
+    )
+    places_gained = places_gained.where(classified_history)
     prior = history.copy()
     prior["places_gained"] = places_gained
+    if prior.empty or "event_key" not in prior.columns:
+        same_season_prior = prior.copy()
+    else:
+        same_season_prior = prior.loc[
+            pd.to_numeric(prior["event_key"], errors="coerce")
+            .floordiv(100)
+            .eq(int(year))
+        ].copy()
     team_strength = _rolling_group_mean(
-        prior, key_column="team_name", value_column="places_gained", prior_strength=8.0
+        same_season_prior,
+        key_column="team_name",
+        value_column="places_gained",
+        prior_strength=8.0,
     )
     driver_strength = _rolling_group_mean(
-        prior, key_column="driver_id", value_column="places_gained", prior_strength=5.0
+        same_season_prior,
+        key_column="driver_id",
+        value_column="places_gained",
+        prior_strength=5.0,
     )
     terminal_mask = (
         prior.get("terminal_status", pd.Series(index=prior.index, dtype=object)).astype(str)
@@ -269,30 +624,70 @@ def _build_event_rows(
     driver_incident = _rolling_rate(
         prior, key_column="driver_id", mask=incident_mask
     )
+    power_unit_mechanical = _rolling_rate(
+        prior,
+        key_column="power_unit",
+        mask=mechanical_mask,
+    )
     circuit_dnf = _rolling_rate(prior, key_column="circuit_id", mask=terminal_mask)
 
     frame["race_team_strength_score"] = frame["team_name"].map(team_strength).fillna(0.0)
     frame["race_driver_strength_score"] = frame["driver_id"].astype(str).map(driver_strength).fillna(0.0)
     frame["race_team_mechanical_rate"] = frame["team_name"].map(team_mechanical)
+    frame["race_power_unit_mechanical_rate"] = frame["power_unit"].astype(str).map(
+        power_unit_mechanical
+    )
     frame["race_driver_incident_rate"] = frame["driver_id"].astype(str).map(driver_incident)
     frame["race_circuit_dnf_rate"] = frame["circuit_id"].map(circuit_dnf)
     frame["race_weekend_stoppage_count"] = float(_pre_race_red_flag_count(root, metadata))
     frame["race_wet_probability"] = _pre_race_wet_evidence(root, metadata)
+    frame["race_current_weekend_mechanical_stop_share"] = frame["driver_id"].astype(
+        str
+    ).map(_pre_race_driver_mechanical_stop_share(root, metadata))
+    track_stats = provider.get_track_stats(year, round_number) or {}
+    for key, value in track_stats.items():
+        frame[key] = value
+    if "track_safety_car_propensity" in frame.columns:
+        frame["race_safety_car_probability"] = pd.to_numeric(
+            frame["track_safety_car_propensity"], errors="coerce"
+        )
+    if "track_weather_uncertainty" in frame.columns:
+        frame["race_weather_uncertainty"] = pd.to_numeric(
+            frame["track_weather_uncertainty"], errors="coerce"
+        )
+
+    oof_qualifying_rank, qualifying_prior_manifest = _rolling_oof_qualifying_prior(
+        history,
+        frame,
+    )
+    frame["qualy_pred_rank"] = oof_qualifying_rank
+    frame["qualy_prior_source"] = str(qualifying_prior_manifest["source"])
+    frame["qualy_prior_training_events"] = int(
+        qualifying_prior_manifest["training_events"]
+    )
 
     if "fp_race_sim_delta" in frame.columns:
         frame["race_long_run_pace_delta"] = pd.to_numeric(frame["fp_race_sim_delta"], errors="coerce")
         frame["race_teammate_long_run_delta"] = frame["race_long_run_pace_delta"] - frame.groupby(
             "team_name", dropna=False
         )["race_long_run_pace_delta"].transform("median")
-    if "fp_race_sim_evidence_share" in frame.columns:
+    if "race_practice_evidence_share" in frame.columns:
+        frame["race_long_run_evidence_share"] = pd.to_numeric(
+            frame["race_practice_evidence_share"], errors="coerce"
+        )
+    elif "fp_race_sim_evidence_share" in frame.columns:
         frame["race_long_run_evidence_share"] = pd.to_numeric(
             frame["fp_race_sim_evidence_share"], errors="coerce"
         )
-    if "fp_race_sim_laps" in frame.columns:
+    if "race_longest_clean_stint_laps" not in frame.columns and "fp_race_sim_laps" in frame.columns:
         frame["race_longest_clean_stint_laps"] = pd.to_numeric(
             frame["fp_race_sim_laps"], errors="coerce"
         )
-    if "fp_race_sim_raw_degradation_mad" in frame.columns:
+    if "race_practice_uncertainty" in frame.columns:
+        frame["race_long_run_uncertainty"] = pd.to_numeric(
+            frame["race_practice_uncertainty"], errors="coerce"
+        )
+    elif "fp_race_sim_raw_degradation_mad" in frame.columns:
         frame["race_long_run_uncertainty"] = pd.to_numeric(
             frame["fp_race_sim_raw_degradation_mad"], errors="coerce"
         )
@@ -308,13 +703,88 @@ def _build_event_rows(
             mobility = float(
                 (
                     pd.to_numeric(same_circuit["finish_position"], errors="coerce")
-                    - pd.to_numeric(same_circuit["grid_position"], errors="coerce")
+                    - pd.to_numeric(same_circuit["grid_baseline_position"], errors="coerce")
                 ).abs().mean()
                 / max(1.0, len(frame))
             )
         frame["track_finish_order_mobility"] = float(np.clip(mobility, 0.0, 1.0))
 
+    # Freeze the entire inference frame before opening the target-session
+    # classification.  Race rows contribute labels only: they can never repair
+    # the roster, team, PU identity, grid, or any model feature.
+    inference_columns = tuple(frame.columns)
+    inference_snapshot = frame.loc[:, inference_columns].copy()
+    race = provider.get_race_results(year, round_number)
+    if race.empty:
+        raise ValueError(f"{year} round {round_number} has no Race target classification")
+    target_columns = [
+        column
+        for column in (
+            "driver_id",
+            "position",
+            "race_status_raw",
+            "race_status_evidence_complete",
+            "retirement_fraction",
+            "laps_completed",
+        )
+        if column in race
+    ]
+    race_targets = race[target_columns].copy().rename(
+        columns={"position": "finish_position"}
+    )
+    if "driver_id" not in race_targets.columns or race_targets["driver_id"].duplicated().any():
+        raise ValueError("Race truth requires unique driver identities")
+    feature_ids = set(inference_snapshot["driver_id"].astype(str))
+    race_ids = set(race_targets["driver_id"].astype(str))
+    target_only_ids = sorted(race_ids - feature_ids)
+    if target_only_ids:
+        raise ValueError(
+            "Race target contains entrants absent from the causal pre-race roster: "
+            f"{target_only_ids}"
+        )
+    frame = inference_snapshot.merge(
+        race_targets,
+        on="driver_id",
+        how="left",
+        validate="one_to_one",
+    )
+    qualifying_only = frame["race_status_raw"].isna()
+    if qualifying_only.any():
+        # A causal roster entrant absent from the authoritative Race
+        # classification is retained as a target-population DNS at the tail.
+        # This repair occurs only after the inference snapshot is immutable.
+        frame.loc[qualifying_only, "race_status_raw"] = "Did not start"
+        frame.loc[qualifying_only, "race_status_evidence_complete"] = True
+        used = {
+            int(value)
+            for value in pd.to_numeric(frame["finish_position"], errors="coerce").dropna()
+        }
+        next_position = 1
+        for index in frame.index[qualifying_only]:
+            while next_position in used:
+                next_position += 1
+            frame.loc[index, "finish_position"] = next_position
+            frame.loc[index, "retirement_fraction"] = 0.0
+            frame.loc[index, "laps_completed"] = 0.0
+            used.add(next_position)
+    frame["terminal_status"] = frame["race_status_raw"].map(reason_code_terminal_status)
+    if frame["terminal_status"].isna().any():
+        unresolved = sorted(
+            frame.loc[frame["terminal_status"].isna(), "race_status_raw"]
+            .astype(str)
+            .unique()
+        )
+        raise ValueError(f"unresolved terminal status labels: {unresolved}")
+    frame["terminal_status"] = frame["terminal_status"].map(lambda value: value.value)
+    frame["terminal_label_granularity"] = frame["race_status_raw"].map(
+        terminal_label_granularity
+    ).map(lambda value: value.value if value is not None else None)
+
     input_paths = [metadata_path]
+    if final_capture and "grid_capture_path" in starting_grid.columns:
+        capture_path = Path(str(starting_grid["grid_capture_path"].iloc[0]))
+        if capture_path.exists():
+            input_paths.append(capture_path)
     for session in metadata.get("sessions", []):
         for key in ("laps_path", "results_path", "weather_path", "race_control_messages_path"):
             reference = session.get(key)
@@ -331,8 +801,15 @@ def _build_event_rows(
         "event_name": str(metadata.get("event_name") or f"Round {round_number}"),
         "event_format": str(metadata.get("event_format") or "unknown"),
         "field_size": int(len(frame)),
-        "information_horizon": RacePredictionHorizon.POST_QUALIFYING_PRE_GRID.value,
-        "final_grid_snapshot_used": False,
+        "information_horizon": horizon.value,
+        "prediction_as_of": prediction_as_of,
+        "final_grid_snapshot_used": final_capture,
+        "grid_capture_id": (
+            str(starting_grid["grid_capture_id"].iloc[0]) if final_capture else None
+        ),
+        "causal_inference_columns": list(inference_columns),
+        "race_truth_attached_after_inference_freeze": True,
+        "signed_qualifying_surprise_prior": qualifying_prior_manifest,
     }
     return frame, info, input_paths
 
@@ -350,16 +827,98 @@ def _mean(events: Sequence[dict[str, Any]], key: str) -> float:
     return float(np.mean([float(event[key]) for event in events]))
 
 
+def _optional_mean(events: Sequence[dict[str, Any]], key: str) -> float | None:
+    values = [
+        float(event[key])
+        for event in events
+        if event.get(key) is not None and np.isfinite(float(event[key]))
+    ]
+    return float(np.mean(values)) if values else None
+
+
+def _same_product_promotion_blockers(
+    *,
+    audit_event_count: int,
+    same_product_selection_evidence: bool,
+    same_product_calibration_evidence: bool,
+) -> tuple[str, ...]:
+    """Return protocol blockers before any metric-based promotion decision."""
+
+    reasons: list[str] = []
+    if int(audit_event_count) < 2:
+        reasons.append("fewer_than_two_same_horizon_audit_events")
+    if not bool(same_product_selection_evidence):
+        reasons.append("missing_same_product_selection_evidence")
+    if not bool(same_product_calibration_evidence):
+        reasons.append("missing_same_product_calibration_evidence")
+    return tuple(reasons)
+
+
+def _fit_binary_terminal_calibrator(
+    rows: pd.DataFrame,
+) -> BinaryTerminalCalibrator:
+    required = {"event_key", "actual_terminal", "predicted_terminal"}
+    if not required.issubset(rows.columns) or rows.empty:
+        raise ValueError("terminal calibration rows are incomplete")
+    actual = pd.to_numeric(rows["actual_terminal"], errors="coerce").to_numpy(
+        dtype=float
+    )
+    probability = np.clip(
+        pd.to_numeric(rows["predicted_terminal"], errors="coerce").to_numpy(
+            dtype=float
+        ),
+        1e-6,
+        1.0 - 1e-6,
+    )
+    if not np.isfinite(actual).all() or not np.isfinite(probability).all():
+        raise ValueError("terminal calibration rows contain non-finite values")
+    if len(np.unique(actual)) != 2:
+        raise ValueError("terminal calibration requires both outcome classes")
+    logit = np.log(probability / (1.0 - probability)).reshape(-1, 1)
+    try:
+        from sklearn.linear_model import LogisticRegression
+    except Exception as exc:
+        raise RuntimeError("terminal calibration requires scikit-learn") from exc
+    estimator = LogisticRegression(
+        C=10.0,
+        solver="lbfgs",
+        max_iter=1000,
+        random_state=0,
+    )
+    estimator.fit(logit, actual.astype(int))
+    slope = float(estimator.coef_[0, 0])
+    intercept = float(estimator.intercept_[0])
+    if slope < 0.0:
+        # Preserve monotonicity fail-closed; an inverse calibration curve is
+        # evidence that this small block supports only its base rate.
+        base_rate = float(np.clip(actual.mean(), 1e-6, 1.0 - 1e-6))
+        slope = 0.0
+        intercept = float(np.log(base_rate / (1.0 - base_rate)))
+    return BinaryTerminalCalibrator(
+        intercept=intercept,
+        slope=slope,
+        calibration_rows=len(rows),
+        calibration_event_keys=tuple(
+            str(value) for value in sorted(rows["event_key"].astype(str).unique())
+        ),
+    )
+
+
 def run(
     *,
     weekends_dir: Path,
     years: Sequence[int],
     evaluation_years: Sequence[int],
     simulations: int,
-    plackett_luce_temperature: float,
-    order_residual_weight: float,
     bootstrap_samples: int,
     seed: int,
+    temperature_candidates: Sequence[float] = (0.18, 0.25, 0.35),
+    order_residual_candidates: Sequence[float] = (0.25, 0.45, 0.65),
+    selection_simulations: int = 400,
+    development_years: Sequence[int] = (2022, 2023),
+    selection_years: Sequence[int] = (2024,),
+    calibration_years: Sequence[int] = (2025,),
+    audit_years: Sequence[int] = (2026,),
 ) -> dict[str, Any]:
     root = _root()
     provider = LocalWeekendProvider(str(weekends_dir))
@@ -383,47 +942,317 @@ def run(
             inputs.update(event_inputs)
             history = pd.concat([history, frame], ignore_index=True)
 
+    partition_years = {
+        "development": set(int(value) for value in development_years),
+        "selection": set(int(value) for value in selection_years),
+        "calibration": set(int(value) for value in calibration_years),
+        "audit": set(int(value) for value in audit_years),
+    }
+    partition_events = {
+        name: [
+            str(event_key)
+            for event_key in sorted(event_frames)
+            if event_key // 100 in years_for_partition
+        ]
+        for name, years_for_partition in partition_years.items()
+    }
+    partition_issues = validate_event_partitions(
+        development=partition_events["development"],
+        selection=partition_events["selection"],
+        calibration=partition_events["calibration"],
+        audit=partition_events["audit"],
+    )
+    if partition_issues:
+        raise ValueError(
+            "invalid Race event partitions: " + ", ".join(partition_issues)
+        )
+    for raw_event_key in partition_events["audit"]:
+        audit_frame = event_frames[int(raw_event_key)]
+        prior_source = str(
+            event_info[int(raw_event_key)]["signed_qualifying_surprise_prior"][
+                "source"
+            ]
+        )
+        if not prior_source.startswith("rolling_out_of_event_ridge"):
+            raise ValueError(
+                f"audit event {raw_event_key} lacks OOF Qualifying-prior provenance"
+            )
+        if "power_unit" not in audit_frame.columns or audit_frame[
+            "power_unit"
+        ].isna().any():
+            raise ValueError(
+                f"audit event {raw_event_key} lacks complete causal power-unit identity"
+            )
+
+    target_columns = [
+        "finish_position",
+        "terminal_status",
+        "race_status_raw",
+        "race_status_evidence_complete",
+        "retirement_fraction",
+        "laps_completed",
+        "terminal_label_granularity",
+    ]
+
+    def event_inputs(
+        event_key: int,
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, str, RacePredictionHorizon]:
+        prior = history.loc[
+            pd.to_numeric(history["event_key"], errors="coerce").lt(event_key)
+        ].copy()
+        current = event_frames[event_key].copy()
+        prediction_as_of = str(event_info[event_key]["prediction_as_of"])
+        current_year = event_key // 100
+        order_history = prior.loc[
+            pd.to_numeric(prior["event_key"], errors="coerce")
+            .floordiv(100)
+            .eq(current_year)
+        ].copy()
+        inference = current.drop(columns=target_columns, errors="ignore")
+        horizon = RacePredictionHorizon(event_info[event_key]["information_horizon"])
+        return prior, current, order_history, prediction_as_of, horizon
+
+    def event_forecast(
+        event_key: int,
+        *,
+        temperature: float,
+        residual_weight: float,
+        forecast_simulations: int,
+        calibrator: BinaryTerminalCalibrator | None = None,
+    ) -> tuple[Any, pd.DataFrame, pd.DataFrame]:
+        prior, current, order_history, prediction_as_of, horizon = event_inputs(
+            event_key
+        )
+        terminal_model = PartialPooledTerminalHazard()
+        model = SurvivalAwareRaceModel(
+            terminal_model=terminal_model,
+            order_model=BradleyTerryOrderRanker(
+                ConditionalOrderConfig(residual_weight=float(residual_weight))
+            ),
+        ).fit(
+            prior,
+            cutoff=prediction_as_of,
+            order_history=order_history,
+        )
+        if calibrator is not None:
+            terminal_model.set_terminal_calibrator(calibrator)
+        forecast = model.predict_joint(
+            current.drop(columns=target_columns, errors="ignore"),
+            horizon=horizon,
+            prediction_as_of=prediction_as_of,
+            simulations=int(forecast_simulations),
+            seed=int(seed) + event_key,
+            plackett_luce_temperature=float(temperature),
+        )
+        return forecast, prior, current
+
+    temperatures = tuple(sorted({float(value) for value in temperature_candidates}))
+    residual_weights = tuple(
+        sorted({float(value) for value in order_residual_candidates})
+    )
+    if (
+        not temperatures
+        or len(temperatures) > 6
+        or any(not np.isfinite(value) or value <= 0.0 for value in temperatures)
+    ):
+        raise ValueError("temperature candidate grid must contain 1-6 positive values")
+    if (
+        not residual_weights
+        or len(residual_weights) > 6
+        or any(not np.isfinite(value) or value < 0.0 for value in residual_weights)
+    ):
+        raise ValueError("order residual candidate grid must contain 1-6 non-negative values")
+    bounded_selection_simulations = max(100, int(selection_simulations))
+    horizon_values = tuple(horizon.value for horizon in RacePredictionHorizon)
+    diagnostic_temperature = 0.25 if 0.25 in temperatures else temperatures[0]
+    diagnostic_residual_weight = 0.45 if 0.45 in residual_weights else residual_weights[0]
+    selection_trace: list[dict[str, Any]] = []
+    selected_by_horizon: dict[str, dict[str, Any]] = {}
+    for horizon_value in horizon_values:
+        selection_keys = [
+            int(value)
+            for value in partition_events["selection"]
+            if event_info[int(value)]["information_horizon"] == horizon_value
+        ]
+        local_trace: list[dict[str, Any]] = []
+        for temperature in temperatures:
+            for residual_weight in residual_weights:
+                errors: list[float] = []
+                scored_keys: list[str] = []
+                for event_key in selection_keys:
+                    prior = history.loc[
+                        pd.to_numeric(history["event_key"], errors="coerce").lt(event_key)
+                    ]
+                    if prior["event_key"].nunique() < 4:
+                        continue
+                    forecast, _, current = event_forecast(
+                        event_key,
+                        temperature=temperature,
+                        residual_weight=residual_weight,
+                        forecast_simulations=bounded_selection_simulations,
+                    )
+                    paired = current[["driver_id", "finish_position"]].merge(
+                        forecast.point_classification[
+                            ["driver_id", "predicted_position"]
+                        ],
+                        on="driver_id",
+                        validate="one_to_one",
+                    )
+                    errors.append(
+                        float(
+                            (
+                                pd.to_numeric(
+                                    paired["finish_position"], errors="coerce"
+                                )
+                                - pd.to_numeric(
+                                    paired["predicted_position"], errors="coerce"
+                                )
+                            )
+                            .abs()
+                            .mean()
+                        )
+                    )
+                    scored_keys.append(str(event_key))
+                if errors:
+                    record = {
+                        "information_horizon": horizon_value,
+                        "plackett_luce_temperature": temperature,
+                        "order_residual_weight": residual_weight,
+                        "mean_position_mae": float(np.mean(errors)),
+                        "event_count": len(errors),
+                        "event_keys": scored_keys,
+                    }
+                    local_trace.append(record)
+                    selection_trace.append(record)
+        if local_trace:
+            selected = min(
+                local_trace,
+                key=lambda row: (
+                    float(row["mean_position_mae"]),
+                    float(row["plackett_luce_temperature"]),
+                    float(row["order_residual_weight"]),
+                ),
+            )
+            selected_by_horizon[horizon_value] = {
+                **selected,
+                "same_product_selection_evidence": True,
+                "parameter_source": "declared_same_horizon_selection_partition",
+            }
+        else:
+            selected_by_horizon[horizon_value] = {
+                "information_horizon": horizon_value,
+                "plackett_luce_temperature": diagnostic_temperature,
+                "order_residual_weight": diagnostic_residual_weight,
+                "mean_position_mae": None,
+                "event_count": 0,
+                "event_keys": [],
+                "same_product_selection_evidence": False,
+                "parameter_source": "fixed_diagnostic_default_no_same_product_selection",
+            }
+
+    terminal_calibrators: dict[str, BinaryTerminalCalibrator | None] = {}
+    calibration_locks: dict[str, dict[str, Any]] = {}
+    for horizon_value in horizon_values:
+        calibration_records: list[dict[str, object]] = []
+        selected = selected_by_horizon[horizon_value]
+        calibration_keys = [
+            int(value)
+            for value in partition_events["calibration"]
+            if event_info[int(value)]["information_horizon"] == horizon_value
+        ]
+        for event_key in calibration_keys:
+            prior, current, _, _, _ = event_inputs(event_key)
+            if prior["event_key"].nunique() < 4:
+                continue
+            forecast, _, current = event_forecast(
+                event_key,
+                temperature=float(selected["plackett_luce_temperature"]),
+                residual_weight=float(selected["order_residual_weight"]),
+                forecast_simulations=bounded_selection_simulations,
+            )
+            probability = forecast.status_probabilities.set_index("driver_id")
+            for _, row in current.iterrows():
+                driver_id = str(row["driver_id"])
+                calibration_records.append(
+                    {
+                        "event_key": str(event_key),
+                        "actual_terminal": float(
+                            str(row["terminal_status"])
+                            != TerminalStatus.CLASSIFIED_FINISH.value
+                        ),
+                        "predicted_terminal": float(
+                            probability.loc[driver_id, "p_terminal"]
+                        ),
+                    }
+                )
+        calibration_frame = pd.DataFrame.from_records(calibration_records)
+        calibrator: BinaryTerminalCalibrator | None = None
+        calibration_error: str | None = None
+        try:
+            calibrator = _fit_binary_terminal_calibrator(calibration_frame)
+        except ValueError as exc:
+            calibration_error = str(exc)
+        terminal_calibrators[horizon_value] = calibrator
+        calibration_locks[horizon_value] = {
+            "information_horizon": horizon_value,
+            "same_product_calibration_evidence": calibrator is not None,
+            "status_probability_source": "empirical_post_shared_shock_joint_samples",
+            "simulations_per_event": bounded_selection_simulations,
+            "rows": 0 if calibrator is None else calibrator.calibration_rows,
+            "event_keys": (
+                [] if calibrator is None else list(calibrator.calibration_event_keys)
+            ),
+            "intercept": None if calibrator is None else calibrator.intercept,
+            "slope": None if calibrator is None else calibrator.slope,
+            "error": calibration_error,
+        }
+
     evaluation_set = set(int(value) for value in evaluation_years)
     events: list[dict[str, Any]] = []
     prediction_rows: list[dict[str, Any]] = []
     for event_key in sorted(event_frames):
         if event_key // 100 not in evaluation_set:
             continue
-        prior = history.loc[pd.to_numeric(history["event_key"], errors="coerce").lt(event_key)].copy()
-        current = event_frames[event_key].copy()
+        prior = history.loc[
+            pd.to_numeric(history["event_key"], errors="coerce").lt(event_key)
+        ].copy()
         if prior["event_key"].nunique() < 4:
             continue
-        model = SurvivalAwareRaceModel(
-            order_model=BradleyTerryOrderRanker(
-                ConditionalOrderConfig(residual_weight=float(order_residual_weight))
-            )
-        ).fit(
-            prior,
-            cutoff=current["event_as_of"].iloc[0],
+        horizon_value = str(event_info[event_key]["information_horizon"])
+        selected = selected_by_horizon[horizon_value]
+        same_product_calibrator = terminal_calibrators[horizon_value]
+        calibration_applied = bool(
+            event_key // 100 in partition_years["audit"]
+            and same_product_calibrator is not None
         )
-        forecast = model.predict_joint(
-            current.drop(
-                columns=[
-                    "finish_position",
-                    "terminal_status",
-                    "race_status_raw",
-                    "race_status_evidence_complete",
-                    "retirement_fraction",
-                    "laps_completed",
-                ],
-                errors="ignore",
-            ),
-            horizon=RacePredictionHorizon.POST_QUALIFYING_PRE_GRID,
-            prediction_as_of=current["event_as_of"].iloc[0],
-            simulations=int(simulations),
-            seed=int(seed) + event_key,
-            plackett_luce_temperature=float(plackett_luce_temperature),
+        forecast, prior, current = event_forecast(
+            event_key,
+            temperature=float(selected["plackett_luce_temperature"]),
+            residual_weight=float(selected["order_residual_weight"]),
+            forecast_simulations=int(simulations),
+            calibrator=(same_product_calibrator if calibration_applied else None),
         )
         scored = current[
-            ["driver_id", "grid_position", "finish_position", "terminal_status"]
+            [
+                "driver_id",
+                "grid_position",
+                "grid_baseline_position",
+                "finish_position",
+                "terminal_status",
+                "terminal_label_granularity",
+                "race_status_raw",
+                "retirement_fraction",
+            ]
         ].merge(
             forecast.point_classification[
-                ["driver_id", "predicted_position", "predicted_terminal_status", "expected_position"]
+                [
+                    "driver_id",
+                    "predicted_position",
+                    "global_meal_position",
+                    "dns_constrained_meal_position",
+                    "predicted_terminal_status",
+                    "expected_position",
+                ]
             ],
             on="driver_id",
             validate="one_to_one",
@@ -436,18 +1265,28 @@ def run(
             on="driver_id",
             validate="one_to_one",
         )
+        baseline_by_driver = current[["driver_id"]].copy()
+        baseline_by_driver["baseline_terminal_probability"] = (
+            _causal_rolling_terminal_probability(prior, current)
+        )
+        scored = scored.merge(
+            baseline_by_driver,
+            on="driver_id",
+            validate="one_to_one",
+        )
         actual_position = pd.to_numeric(scored["finish_position"], errors="coerce")
-        baseline_position = pd.to_numeric(scored["grid_position"], errors="coerce")
+        baseline_position = pd.to_numeric(
+            scored["grid_baseline_position"], errors="coerce"
+        )
         candidate_position = pd.to_numeric(scored["predicted_position"], errors="coerce")
+        global_meal_position = pd.to_numeric(
+            scored["global_meal_position"], errors="coerce"
+        )
         actual_terminal = scored["terminal_status"].ne(TerminalStatus.CLASSIFIED_FINISH.value).astype(float)
         candidate_terminal = pd.to_numeric(scored["p_terminal"], errors="coerce")
-        historical_terminal = prior["terminal_status"].astype(str).ne(
-            TerminalStatus.CLASSIFIED_FINISH.value
-        ).astype(float)
-        baseline_terminal_probability = float(
-            (historical_terminal.sum() + 2.0) / (len(historical_terminal) + 10.0)
-        )
-        baseline_probability = np.full(len(scored), baseline_terminal_probability, dtype=float)
+        baseline_probability = pd.to_numeric(
+            scored["baseline_terminal_probability"], errors="coerce"
+        ).to_numpy(dtype=float)
         baseline_brier, baseline_log_loss = _binary_metrics(
             actual_terminal.to_numpy(dtype=float), baseline_probability
         )
@@ -455,14 +1294,45 @@ def run(
             actual_terminal.to_numpy(dtype=float), candidate_terminal.to_numpy(dtype=float)
         )
         status_evaluation = evaluate_terminal_status_probabilities(
-            scored[["driver_id", "terminal_status"]],
+            scored[
+                [
+                    "driver_id",
+                    "terminal_status",
+                    "terminal_label_granularity",
+                    "race_status_raw",
+                    "retirement_fraction",
+                ]
+            ],
             forecast.status_probabilities,
         )
         event = {
             **event_info[event_key],
             "training_events": int(prior["event_key"].nunique()),
+            "terminal_calibration_applied": calibration_applied,
+            "same_product_selection_evidence": bool(
+                selected["same_product_selection_evidence"]
+            ),
+            "same_product_calibration_evidence": bool(
+                calibration_locks[horizon_value][
+                    "same_product_calibration_evidence"
+                ]
+            ),
+            "plackett_luce_temperature": float(
+                selected["plackett_luce_temperature"]
+            ),
+            "order_residual_weight": float(selected["order_residual_weight"]),
             "baseline_mae": float((baseline_position - actual_position).abs().mean()),
             "candidate_mae": float((candidate_position - actual_position).abs().mean()),
+            "global_meal_mae": float(
+                (global_meal_position - actual_position).abs().mean()
+            ),
+            "dns_constrained_meal_mae": float(
+                (candidate_position - actual_position).abs().mean()
+            ),
+            "dns_constrained_minus_global_meal_mae": float(
+                (candidate_position - actual_position).abs().mean()
+                - (global_meal_position - actual_position).abs().mean()
+            ),
             "baseline_kendall": float(baseline_position.corr(actual_position, method="kendall")),
             "candidate_kendall": float(candidate_position.corr(actual_position, method="kendall")),
             "baseline_status_brier": baseline_brier,
@@ -471,10 +1341,31 @@ def run(
             "candidate_status_log_loss": candidate_log_loss,
             "candidate_status_multiclass_brier": status_evaluation["multiclass_brier"],
             "candidate_status_multiclass_log_loss": status_evaluation["multiclass_log_loss"],
+            "candidate_status_terminal_ece": status_evaluation[
+                "terminal_expected_calibration_error"
+            ],
+            "candidate_exact_reason_log_loss": status_evaluation[
+                "exact_reason_log_loss"
+            ],
+            "candidate_exact_reason_rows": status_evaluation["exact_reason_rows"],
+            "candidate_coarse_terminal_rows": status_evaluation[
+                "coarse_terminal_rows"
+            ],
+            "candidate_retirement_timing_rows": status_evaluation[
+                "retirement_timing_rows"
+            ],
+            "candidate_retirement_fraction_mae": status_evaluation[
+                "retirement_fraction_mae"
+            ],
+            "candidate_retirement_fraction_mae_by_cause": status_evaluation[
+                "retirement_fraction_mae_by_cause"
+            ],
             "candidate_reason_recall": status_evaluation["reason_recall"],
             "candidate_terminal_calibration": status_evaluation["terminal_calibration"],
             "actual_terminal_rate": float(actual_terminal.mean()),
-            "baseline_terminal_probability": baseline_terminal_probability,
+            "baseline_mean_terminal_probability": float(
+                np.mean(baseline_probability)
+            ),
             "candidate_mean_terminal_probability": float(candidate_terminal.mean()),
             "legal_permutation": sorted(candidate_position.astype(int).tolist()) == list(range(1, len(scored) + 1)),
             "entrant_coverage": float(len(scored) / len(current)),
@@ -486,82 +1377,213 @@ def run(
 
     if not events:
         raise ValueError("no Race evaluation events were scored")
-    audit_year = max(evaluation_set)
-    audit_events = [event for event in events if int(event["year"]) == audit_year]
+    audit_year_set = partition_years["audit"]
+    audit_events = [event for event in events if int(event["year"]) in audit_year_set]
     if len(audit_events) < 2:
-        raise ValueError(f"audit year {audit_year} has fewer than two scored events")
-    promotion = evaluate_race_promotion(
-        [
-            EventError(
-                str(event["event_key"]),
-                float(event["baseline_mae"]),
-                float(event["candidate_mae"]),
-                "sprint" if "sprint" in str(event["event_format"]).lower() else "standard",
-            )
+        raise ValueError("declared audit partition has fewer than two scored events")
+
+    def promotion_for(group: Sequence[dict[str, Any]]) -> dict[str, Any]:
+        decision = evaluate_race_promotion(
+            [
+                EventError(
+                    str(event["event_key"]),
+                    float(event["baseline_mae"]),
+                    float(event["candidate_mae"]),
+                    (
+                        "sprint"
+                        if "sprint" in str(event["event_format"]).lower()
+                        else "standard"
+                    ),
+                )
+                for event in group
+            ],
+            baseline_kendall=_mean(group, "baseline_kendall"),
+            candidate_kendall=_mean(group, "candidate_kendall"),
+            baseline_status_brier=_mean(group, "baseline_status_brier"),
+            candidate_status_brier=_mean(group, "candidate_status_brier"),
+            baseline_status_log_loss=_mean(group, "baseline_status_log_loss"),
+            candidate_status_log_loss=_mean(group, "candidate_status_log_loss"),
+            entrant_coverage=min(float(event["entrant_coverage"]) for event in group),
+            all_classifications_legal=all(
+                bool(event["legal_permutation"]) for event in group
+            ),
+            bootstrap_samples=int(bootstrap_samples),
+            seed=int(seed),
+        )
+        return decision.to_payload()
+
+    promotion_by_horizon: dict[str, dict[str, Any]] = {}
+    for horizon_value in (
+        RacePredictionHorizon.POST_GRID_PRE_RACE.value,
+        RacePredictionHorizon.POST_QUALIFYING_PRE_GRID.value,
+    ):
+        group = [
+            event
             for event in audit_events
-        ],
-        baseline_kendall=_mean(audit_events, "baseline_kendall"),
-        candidate_kendall=_mean(audit_events, "candidate_kendall"),
-        baseline_status_brier=_mean(audit_events, "baseline_status_brier"),
-        candidate_status_brier=_mean(audit_events, "candidate_status_brier"),
-        baseline_status_log_loss=_mean(audit_events, "baseline_status_log_loss"),
-        candidate_status_log_loss=_mean(audit_events, "candidate_status_log_loss"),
-        entrant_coverage=min(float(event["entrant_coverage"]) for event in audit_events),
-        all_classifications_legal=all(bool(event["legal_permutation"]) for event in audit_events),
-        bootstrap_samples=int(bootstrap_samples),
-        seed=int(seed),
+            if event["information_horizon"] == horizon_value
+        ]
+        protocol_reasons = _same_product_promotion_blockers(
+            audit_event_count=len(group),
+            same_product_selection_evidence=bool(
+                selected_by_horizon[horizon_value][
+                    "same_product_selection_evidence"
+                ]
+            ),
+            same_product_calibration_evidence=bool(
+                calibration_locks[horizon_value][
+                    "same_product_calibration_evidence"
+                ]
+            ),
+        )
+        if protocol_reasons:
+            promotion_by_horizon[horizon_value] = {
+                "mode": "race_final_position",
+                "promoted": False,
+                "status": "not_evaluated",
+                "reasons": protocol_reasons,
+                "event_count": len(group),
+                "information_horizon": horizon_value,
+                "diagnostic_only": True,
+            }
+        else:
+            promotion_by_horizon[horizon_value] = promotion_for(group)
+    post_grid_horizon = RacePredictionHorizon.POST_GRID_PRE_RACE.value
+    primary_horizon = (
+        post_grid_horizon
+        if any(
+            event["information_horizon"] == post_grid_horizon
+            for event in audit_events
+        )
+        else RacePredictionHorizon.POST_QUALIFYING_PRE_GRID.value
     )
+    promotion = promotion_by_horizon[primary_horizon]
+
+    def aggregate_group(group: Sequence[dict[str, Any]]) -> dict[str, Any]:
+        return {
+            "events": len(group),
+            "baseline_mean_mae": _mean(group, "baseline_mae"),
+            "candidate_mean_mae": _mean(group, "candidate_mae"),
+            "baseline_mean_kendall": _mean(group, "baseline_kendall"),
+            "candidate_mean_kendall": _mean(group, "candidate_kendall"),
+            "baseline_status_brier": _mean(group, "baseline_status_brier"),
+            "candidate_status_brier": _mean(group, "candidate_status_brier"),
+            "baseline_status_log_loss": _mean(group, "baseline_status_log_loss"),
+            "candidate_status_log_loss": _mean(group, "candidate_status_log_loss"),
+            "candidate_status_terminal_ece": _mean(
+                group, "candidate_status_terminal_ece"
+            ),
+            "candidate_retirement_fraction_mae": _optional_mean(
+                group, "candidate_retirement_fraction_mae"
+            ),
+            "global_meal_mae": _mean(group, "global_meal_mae"),
+            "dns_constrained_meal_mae": _mean(
+                group, "dns_constrained_meal_mae"
+            ),
+            "dns_constrained_minus_global_meal_mae": _mean(
+                group, "dns_constrained_minus_global_meal_mae"
+            ),
+        }
+
     implementation_paths = [
         Path(__file__).resolve(),
+        root / "research/projects/F1/rising_qualification_prediction/Python/capture_fia_final_grid_snapshot.py",
+        root / "packages/f1/domain/starting_grid.py",
+        root / "packages/f1/data/providers/local_weekends.py",
         root / "packages/f1/models/pre_race/joint.py",
         root / "packages/f1/models/pre_race/ranking.py",
         root / "packages/f1/models/pre_race/survival.py",
         root / "packages/f1/models/pre_race/status.py",
+        root / "packages/f1/models/pre_race/evaluate.py",
         root / "packages/f1/features/race.py",
         root / "packages/f1/orchestration/non_live_validation.py",
     ]
     return {
-        "schema_version": "f1_race_survival_order_event_block_v1",
+        "schema_version": "f1_race_survival_order_event_block_v2",
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": "race_final_position",
         "target": "official_terminal_race_classification_and_status",
         "protocol": {
             "training": "strictly_earlier_complete_events",
+            "older_season_policy": (
+                "older seasons inform partial-pooled reliability only; conditional "
+                "constructor/driver order uses current-season history or the legal grid prior"
+            ),
             "years_loaded": sorted(set(int(value) for value in years)),
             "evaluation_years": sorted(evaluation_set),
-            "promotion_audit_year": audit_year,
-            "horizon": RacePredictionHorizon.POST_QUALIFYING_PRE_GRID.value,
-            "baseline_order": "grand_prix_qualifying_order_proxy",
-            "baseline_status": "causal_beta_smoothed_rolling_terminal_rate",
-            "final_grid_claimed": False,
+            "event_partitions": partition_events,
+            "event_partition_issues": list(partition_issues),
+            "audit_oof_qualifying_prior_verified": True,
+            "audit_power_unit_identity_verified": True,
+            "promotion_audit_years": sorted(audit_year_set),
+            "promotion_primary_horizon": primary_horizon,
+            "hyperparameter_lock": {
+                "locked_after_event": max(partition_events["selection"]),
+                "locked_before_event": min(partition_events["calibration"]),
+                "selection_partition_only": True,
+                "constant_for_calibration_and_audit": True,
+                "audit_targets_read_for_tuning": False,
+                "selection_objective": "mean_complete_event_final_position_mae",
+                "selection_simulations": bounded_selection_simulations,
+                "candidate_results": selection_trace,
+                "selected_by_information_horizon": selected_by_horizon,
+                "cross_horizon_parameter_reuse": False,
+                "hazard_covariate_l2_c": 0.25,
+                "qualifying_prior_ridge_alpha": 10.0,
+            },
+            "probability_calibration_lock": {
+                "backend": "base_hazard_platt_then_post_shock_joint_integration",
+                "scored_probability_source": (
+                    "empirical_post_shared_shock_joint_samples"
+                ),
+                "calibration_partition_only": True,
+                "locked_after_event": max(partition_events["calibration"]),
+                "locked_before_event": min(partition_events["audit"]),
+                "audit_targets_read_for_calibration": False,
+                "calibration_by_information_horizon": calibration_locks,
+                "cross_horizon_calibration_reuse": False,
+            },
+            "inference_target_boundary": {
+                "feature_roster": "qualifying_or_immutable_final_grid_plus_pre_race_practice",
+                "race_result_read_after_inference_freeze": True,
+                "race_result_fields_allowed": list(target_columns),
+                "race_result_team_or_power_unit_fallback": False,
+            },
+            "horizons": sorted(
+                {str(event["information_horizon"]) for event in events}
+            ),
+            "baseline_order": "legal_full_grid_permutation_at_matching_horizon",
+            "baseline_status": (
+                "causal_partial_pooled_rolling_binary_hazard_by_team_power_unit_driver"
+            ),
+            "final_grid_snapshot_events": int(
+                sum(bool(event["final_grid_snapshot_used"]) for event in events)
+            ),
             "simulations": int(simulations),
-            "plackett_luce_temperature": float(plackett_luce_temperature),
-            "order_residual_weight": float(order_residual_weight),
+            "parameters_by_information_horizon": selected_by_horizon,
         },
         "aggregate": {
-            "events": len(events),
-            "baseline_mean_mae": _mean(events, "baseline_mae"),
-            "candidate_mean_mae": _mean(events, "candidate_mae"),
-            "baseline_mean_kendall": _mean(events, "baseline_kendall"),
-            "candidate_mean_kendall": _mean(events, "candidate_kendall"),
-            "baseline_status_brier": _mean(events, "baseline_status_brier"),
-            "candidate_status_brier": _mean(events, "candidate_status_brier"),
-            "baseline_status_log_loss": _mean(events, "baseline_status_log_loss"),
-            "candidate_status_log_loss": _mean(events, "candidate_status_log_loss"),
+            **aggregate_group(events),
             "by_year": {
-                str(year): {
-                    "events": len([event for event in events if int(event["year"]) == year]),
-                    "baseline_mean_mae": _mean(
-                        [event for event in events if int(event["year"]) == year], "baseline_mae"
-                    ),
-                    "candidate_mean_mae": _mean(
-                        [event for event in events if int(event["year"]) == year], "candidate_mae"
-                    ),
-                }
+                str(year): aggregate_group(
+                    [event for event in events if int(event["year"]) == year]
+                )
                 for year in sorted({int(event["year"]) for event in events})
             },
+            "by_horizon": {
+                horizon_value: aggregate_group(
+                    [
+                        event
+                        for event in events
+                        if event["information_horizon"] == horizon_value
+                    ]
+                )
+                for horizon_value in sorted(
+                    {str(event["information_horizon"]) for event in events}
+                )
+            },
         },
-        "promotion": promotion.to_payload(),
+        "promotion": promotion,
+        "promotion_by_horizon": promotion_by_horizon,
         "runtime": f1_model_runtime_doctor(),
         "events": events,
         "predictions": prediction_rows,
@@ -580,25 +1602,39 @@ def _csv_ints(value: str) -> tuple[int, ...]:
     return tuple(int(part.strip()) for part in value.split(",") if part.strip())
 
 
+def _csv_floats(value: str) -> tuple[float, ...]:
+    return tuple(float(part.strip()) for part in value.split(",") if part.strip())
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--weekends-dir", type=Path, default=_root() / "data/f1/raw/weekends")
     parser.add_argument("--years", type=_csv_ints, default=(2022, 2023, 2024, 2025, 2026))
-    parser.add_argument("--evaluation-years", type=_csv_ints, default=(2025, 2026))
+    parser.add_argument("--evaluation-years", type=_csv_ints, default=(2024, 2025, 2026))
+    parser.add_argument("--development-years", type=_csv_ints, default=(2022, 2023))
+    parser.add_argument("--selection-years", type=_csv_ints, default=(2024,))
+    parser.add_argument("--calibration-years", type=_csv_ints, default=(2025,))
+    parser.add_argument("--audit-years", type=_csv_ints, default=(2026,))
     parser.add_argument("--simulations", type=int, default=2_000)
-    parser.add_argument("--plackett-luce-temperature", type=float, default=0.25)
     parser.add_argument(
-        "--order-residual-weight",
-        type=float,
-        default=0.45,
-        help="fixed on 2025 transfer validation before the 2026 audit",
+        "--temperature-candidates",
+        type=_csv_floats,
+        default=(0.18, 0.25, 0.35),
+        help="bounded grid selected only on the declared selection partition",
     )
+    parser.add_argument(
+        "--order-residual-candidates",
+        type=_csv_floats,
+        default=(0.25, 0.45, 0.65),
+        help="bounded grid selected only on the declared selection partition",
+    )
+    parser.add_argument("--selection-simulations", type=int, default=400)
     parser.add_argument("--bootstrap-samples", type=int, default=20_000)
     parser.add_argument("--seed", type=int, default=20260713)
     parser.add_argument(
         "--output",
         type=Path,
-        default=_root() / "artifacts/backtests/f1/race_final_position/survival_order_v1.json",
+        default=_root() / "artifacts/backtests/f1/race_final_position/survival_order_v2.json",
     )
     args = parser.parse_args()
     payload = run(
@@ -606,10 +1642,15 @@ def main() -> int:
         years=args.years,
         evaluation_years=args.evaluation_years,
         simulations=args.simulations,
-        plackett_luce_temperature=args.plackett_luce_temperature,
-        order_residual_weight=args.order_residual_weight,
+        temperature_candidates=args.temperature_candidates,
+        order_residual_candidates=args.order_residual_candidates,
+        selection_simulations=args.selection_simulations,
         bootstrap_samples=args.bootstrap_samples,
         seed=args.seed,
+        development_years=args.development_years,
+        selection_years=args.selection_years,
+        calibration_years=args.calibration_years,
+        audit_years=args.audit_years,
     )
     output = args.output.expanduser()
     if not output.is_absolute():

@@ -93,6 +93,7 @@ def build_quality_aware_rehearsal_features(
     entrants: pd.DataFrame | Sequence[str] | None = None,
     earlier_laps: pd.DataFrame | None = None,
     team_priors: pd.DataFrame | Mapping[str, float] | None = None,
+    official_session_timing: bool = False,
     as_of: Any | None = None,
     config: QualityAwareLapConfig | None = None,
 ) -> pd.DataFrame:
@@ -102,7 +103,10 @@ def build_quality_aware_rehearsal_features(
     Qualifying). ``earlier_laps`` is optional and is consulted only after
     official, valid, and potential target-aligned evidence are absent.
     ``entrants`` should be supplied for production inference so missing-timing
-    entrants are preserved rather than silently removed.
+    entrants are preserved rather than silently removed. Raw lap tables are
+    *not* assumed official by default. Production callers may set
+    ``official_session_timing=True`` only for a completed provider session
+    snapshot; an explicit per-lap classification flag always takes precedence.
     """
 
     if not isinstance(laps, pd.DataFrame):
@@ -110,9 +114,19 @@ def build_quality_aware_rehearsal_features(
     if earlier_laps is not None and not isinstance(earlier_laps, pd.DataFrame):
         raise TypeError("earlier_laps must be a pandas DataFrame when supplied")
     cfg = config or QualityAwareLapConfig()
-    current = _prepare_laps(laps, as_of=as_of, config=cfg)
+    current = _prepare_laps(
+        laps,
+        as_of=as_of,
+        config=cfg,
+        official_session_timing=official_session_timing,
+    )
     earlier = (
-        _prepare_laps(earlier_laps, as_of=as_of, config=cfg)
+        _prepare_laps(
+            earlier_laps,
+            as_of=as_of,
+            config=cfg,
+            official_session_timing=official_session_timing,
+        )
         if earlier_laps is not None and not earlier_laps.empty
         else pd.DataFrame()
     )
@@ -219,7 +233,7 @@ def build_quality_aware_rehearsal_features(
     result["evidence_item_count"] = result[evidence_fields].notna().sum(axis=1).astype(int)
     result["evidence_coverage_rate"] = result[evidence_fields].notna().mean(axis=1)
     result["feature_as_of"] = _as_of_label(as_of)
-    result["feature_contract"] = "quality_aware_rehearsal_lap_v1"
+    result["feature_contract"] = "quality_aware_rehearsal_lap_v2"
     return result.reindex(columns=_OUTPUT_COLUMNS)
 
 
@@ -228,6 +242,7 @@ def _prepare_laps(
     *,
     as_of: Any | None,
     config: QualityAwareLapConfig,
+    official_session_timing: bool,
 ) -> pd.DataFrame:
     if laps.empty:
         return pd.DataFrame()
@@ -278,9 +293,15 @@ def _prepare_laps(
     official_column = _first_existing(
         frame, ("is_official_classified", "official_classified", "IsOfficialClassified")
     )
-    frame["_official"] = (
-        _bool_series(frame[official_column], default=False) if official_column else False
-    )
+    if official_column:
+        frame["_official"] = _bool_series(frame[official_column], default=False)
+        frame["_official_provenance"] = "explicit_lap_classification_flag"
+    elif official_session_timing:
+        frame["_official"] = True
+        frame["_official_provenance"] = "completed_provider_session_timing"
+    else:
+        frame["_official"] = False
+        frame["_official_provenance"] = "not_declared_official"
     frame["_valid_clean"] = (
         frame["_lap_seconds"].notna()
         & ~frame["_deleted"]
@@ -325,6 +346,11 @@ def _aggregate_session(frame: pd.DataFrame, cfg: QualityAwareLapConfig) -> pd.Da
                 "session_priority": _session_priority(source),
                 "official_classified_rehearsal_best_seconds": _first_finite(
                     official["_lap_seconds"]
+                ),
+                "official_rehearsal_evidence_provenance": (
+                    str(official.iloc[0]["_official_provenance"])
+                    if not official.empty
+                    else str(group.iloc[0]["_official_provenance"])
                 ),
                 "valid_clean_best_seconds": valid_best,
                 "deleted_potential_best_seconds": deleted_best,
@@ -823,6 +849,7 @@ _OUTPUT_COLUMNS: tuple[str, ...] = (
     "team_id",
     "rehearsal_source",
     "official_classified_rehearsal_best_seconds",
+    "official_rehearsal_evidence_provenance",
     "valid_clean_best_seconds",
     "deleted_potential_best_seconds",
     "compatible_sector_potential_seconds",

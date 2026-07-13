@@ -7,8 +7,8 @@ single opaque classifier from conflating invalid laps with lack of pace.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
+from dataclasses import dataclass, field
+from typing import Any, Mapping
 
 import numpy as np
 import pandas as pd
@@ -127,11 +127,29 @@ class _BinaryProbabilityModel:
     observed_rows: int
     positive_rows: int
     observed_event_keys: tuple[int, ...]
+    driver_logit_effects: Mapping[str, float] = field(default_factory=dict)
+    team_logit_effects: Mapping[str, float] = field(default_factory=dict)
 
-    def predict(self, values: np.ndarray) -> np.ndarray:
+    def predict(
+        self,
+        values: np.ndarray,
+        *,
+        driver_ids: pd.Series,
+        team_ids: pd.Series | None = None,
+    ) -> np.ndarray:
         if self.estimator is None:
-            return np.full(values.shape[0], self.constant_probability, dtype=float)
-        return np.asarray(self.estimator.predict_proba(values)[:, 1], dtype=float)
+            base = np.full(values.shape[0], self.constant_probability, dtype=float)
+        else:
+            base = np.asarray(self.estimator.predict_proba(values)[:, 1], dtype=float)
+        logits = _logit(base)
+        logits += driver_ids.astype(str).map(self.driver_logit_effects).fillna(0.0).to_numpy(
+            dtype=float
+        )
+        if team_ids is not None:
+            logits += team_ids.astype(str).map(self.team_logit_effects).fillna(0.0).to_numpy(
+                dtype=float
+            )
+        return _sigmoid(logits)
 
 
 @dataclass
@@ -167,9 +185,24 @@ class QualifyingStageProbabilityModel:
             raise ValueError("stage inference driver ids must be non-empty and unique")
 
         values = self.design.transform(frame, self.config)
-        p_valid = np.clip(self.valid_model.predict(values), 0.0, 1.0)
-        p_q2_conditional = np.clip(self.q2_given_valid_model.predict(values), 0.0, 1.0)
-        p_q3_conditional = np.clip(self.q3_given_q2_model.predict(values), 0.0, 1.0)
+        teams = (
+            frame["team_id"].fillna("").astype(str)
+            if "team_id" in frame.columns
+            else None
+        )
+        p_valid = np.clip(
+            self.valid_model.predict(values, driver_ids=drivers, team_ids=teams), 0.0, 1.0
+        )
+        p_q2_conditional = np.clip(
+            self.q2_given_valid_model.predict(values, driver_ids=drivers, team_ids=teams),
+            0.0,
+            1.0,
+        )
+        p_q3_conditional = np.clip(
+            self.q3_given_q2_model.predict(values, driver_ids=drivers, team_ids=teams),
+            0.0,
+            1.0,
+        )
         p_q2 = p_valid * p_q2_conditional
         p_q3 = p_q2 * p_q3_conditional
         return pd.DataFrame(
@@ -276,6 +309,8 @@ def _fit_binary_probability(
     labels: pd.Series,
     eligible: pd.Series,
     events: pd.Series,
+    drivers: pd.Series,
+    teams: pd.Series | None,
     config: StageProbabilityConfig,
 ) -> _BinaryProbabilityModel:
     observed = eligible.fillna(False).astype(bool) & labels.notna()
@@ -306,13 +341,86 @@ def _fit_binary_probability(
             random_state=int(config.random_state),
         )
         estimator.fit(values[positions], y, sample_weight=weights)
+    fitted_probability = (
+        np.full(len(y), float(constant), dtype=float)
+        if estimator is None
+        else np.asarray(estimator.predict_proba(values[positions])[:, 1], dtype=float)
+    )
+    team_effects = (
+        _partial_pooled_logit_effects(
+            labels=y,
+            fitted_probability=fitted_probability,
+            groups=teams.iloc[positions].astype(str).to_numpy(),
+            shrinkage=12.0,
+            prior_alpha=float(config.prior_alpha),
+        )
+        if teams is not None
+        else {}
+    )
+    driver_expected = fitted_probability
+    if teams is not None and team_effects:
+        team_offsets = (
+            teams.iloc[positions].astype(str).map(team_effects).fillna(0.0).to_numpy(dtype=float)
+        )
+        driver_expected = _sigmoid(_logit(fitted_probability) + team_offsets)
+    driver_effects = _partial_pooled_logit_effects(
+        labels=y,
+        fitted_probability=driver_expected,
+        groups=drivers.iloc[positions].astype(str).to_numpy(),
+        shrinkage=8.0,
+        prior_alpha=float(config.prior_alpha),
+    )
     return _BinaryProbabilityModel(
         estimator=estimator,
         constant_probability=float(constant),
         observed_rows=int(len(y)),
         positive_rows=positives,
         observed_event_keys=unique_events,
+        driver_logit_effects=driver_effects,
+        team_logit_effects=team_effects,
     )
+
+
+def _logit(probability: np.ndarray) -> np.ndarray:
+    clipped = np.clip(np.asarray(probability, dtype=float), 1e-6, 1.0 - 1e-6)
+    return np.log(clipped / (1.0 - clipped))
+
+
+def _sigmoid(logits: np.ndarray) -> np.ndarray:
+    values = np.clip(np.asarray(logits, dtype=float), -30.0, 30.0)
+    return 1.0 / (1.0 + np.exp(-values))
+
+
+def _partial_pooled_logit_effects(
+    *,
+    labels: np.ndarray,
+    fitted_probability: np.ndarray,
+    groups: np.ndarray,
+    shrinkage: float,
+    prior_alpha: float,
+) -> dict[str, float]:
+    """Estimate conservative driver/team execution offsets.
+
+    The numeric model remains the population prior. Repeated driver outcomes
+    only move its log-odds through a beta-smoothed, explicitly shrunk residual.
+    This conditions each hurdle on the entrant without exploding the design
+    matrix or failing for rookies.
+    """
+
+    effects: dict[str, float] = {}
+    labels = np.asarray(labels, dtype=float)
+    fitted_probability = np.asarray(fitted_probability, dtype=float)
+    for group in sorted(set(str(value) for value in groups)):
+        mask = np.asarray([str(value) == group for value in groups], dtype=bool)
+        count = int(mask.sum())
+        if count == 0 or not group:
+            continue
+        observed = float((labels[mask].sum() + prior_alpha) / (count + 2.0 * prior_alpha))
+        expected = float(np.mean(fitted_probability[mask]))
+        raw = float(_logit(np.asarray([observed]))[0] - _logit(np.asarray([expected]))[0])
+        weight = float(count / (count + float(shrinkage)))
+        effects[group] = float(np.clip(raw * weight, -1.5, 1.5))
+    return effects
 
 
 def fit_qualifying_stage_probability_model(
@@ -337,6 +445,12 @@ def fit_qualifying_stage_probability_model(
         raise ValueError("stage history must be strictly earlier than target_event_key")
 
     design, values = _fit_stage_design(history, config)
+    drivers = history[config.driver_column].fillna("").astype(str).reset_index(drop=True)
+    teams = (
+        history["team_id"].fillna("").astype(str).reset_index(drop=True)
+        if "team_id" in history.columns
+        else None
+    )
     valid = _binary_labels(history[config.valid_label_column], label=config.valid_label_column).reset_index(
         drop=True
     )
@@ -357,6 +471,8 @@ def fit_qualifying_stage_probability_model(
             labels=valid,
             eligible=all_rows,
             events=events,
+            drivers=drivers,
+            teams=teams,
             config=config,
         ),
         q2_given_valid_model=_fit_binary_probability(
@@ -364,6 +480,8 @@ def fit_qualifying_stage_probability_model(
             labels=q2,
             eligible=valid_eligible,
             events=events,
+            drivers=drivers,
+            teams=teams,
             config=config,
         ),
         q3_given_q2_model=_fit_binary_probability(
@@ -371,6 +489,8 @@ def fit_qualifying_stage_probability_model(
             labels=q3,
             eligible=q2_eligible,
             events=events,
+            drivers=drivers,
+            teams=teams,
             config=config,
         ),
         training_event_keys=unique_events,

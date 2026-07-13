@@ -16,6 +16,8 @@ from .pairwise import (
     quality_aware_pairwise_config,
 )
 from .predict import run_prediction
+from .predict import predict_shared_qualifying_event
+from .train import train_shared_qualifying_latent_model
 from .selection import (
     FrozenSelectorConfig,
     QualifyingModelEvidence,
@@ -38,6 +40,8 @@ __all__ = [
     "fit_qualifying_stage_probability_model",
     "quality_aware_pairwise_config",
     "quality_aware_stage_probability_config",
+    "predict_shared_qualifying_event",
     "run_prediction",
     "select_frozen_qualifying_model",
+    "train_shared_qualifying_latent_model",
 ]

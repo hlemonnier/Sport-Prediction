@@ -15,6 +15,10 @@ from packages.f1.models.pre_quali.pairwise import (
     fit_pairwise_qualifying_ranker,
 )
 from packages.f1.models.training import train_model
+from packages.f1.models.ultimate_lap_time.achievable import (
+    AchievableBestLapModel,
+    fit_achievable_best_lap_model,
+)
 
 
 def train_pre_quali_model(*args: object, **kwargs: object) -> object:
@@ -53,9 +57,28 @@ def train_pre_quali_stage_model(
     )
 
 
+def train_shared_qualifying_latent_model(
+    history: pd.DataFrame,
+    *,
+    target_event_key: int,
+    calibration_event_keys: tuple[int, ...],
+    enable_robust_residual: bool = True,
+) -> AchievableBestLapModel:
+    """Fit the single latent-time/hurdle model used by both non-live modes."""
+
+    return fit_achievable_best_lap_model(
+        history,
+        target_event_key=int(target_event_key),
+        calibration_event_keys=calibration_event_keys,
+        enable_robust_residual=enable_robust_residual,
+        model_name="shared_qualifying_latent_lap_v3",
+    )
+
+
 __all__ = [
     "train_pre_quali_model",
     "train_pre_quali_pairwise_ranker",
     "train_pre_quali_stage_model",
+    "train_shared_qualifying_latent_model",
     "train_model",
 ]

@@ -24,18 +24,29 @@ from packages.f1.features.qualifying_lap import (
 from packages.f1.models.ultimate_lap_time.achievable import (
     ACTUAL_LAP_COLUMN,
     LATENT_POTENTIAL_ANCHOR_COLUMN,
+    Q1_LAP_COLUMN,
+    Q2_LAP_COLUMN,
+    Q3_LAP_COLUMN,
+    SHARED_QUALIFYING_ENABLE_ROBUST_RESIDUAL,
+    SHARED_QUALIFYING_SAMPLE_COUNT,
+    SHARED_QUALIFYING_SAMPLE_SEED_BASE,
+    build_shared_qualifying_event_forecast,
+    calibrate_achievable_best_lap_model,
     fit_achievable_best_lap_model,
+    shared_qualifying_forecast_artifact,
+    shared_point_predictor_sha256,
 )
 from packages.f1.models.ultimate_lap_time.schemas import (
     ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
     TARGET_CONTRACT_SEMANTICS,
 )
+from packages.f1.orchestration.non_live_validation import validate_event_partitions
 from packages.sports_core.paths import find_repo_root
 
 
-SCHEMA_VERSION = "f1_best_estimated_lap_walk_forward_v3_quality_aware"
-MODEL_NAME = "achievable_best_lap_quality_aware_huber_v2"
-QUALITY_LOCATION_MODEL_NAME = "achievable_best_lap_quality_aware_location_v2"
+SCHEMA_VERSION = "f1_best_estimated_lap_shared_latent_v4"
+MODEL_NAME = "shared_qualifying_latent_lap_huber_v3"
+QUALITY_LOCATION_MODEL_NAME = "shared_qualifying_latent_lap_location_v3"
 BASELINE_MODEL_NAME = "achievable_best_lap_rehearsal_shift_v1"
 ROUND_PATTERN = re.compile(r"^round_(\d{2})_")
 MIN_SUPPORTED_WEEKEND_YEAR = 2024
@@ -169,6 +180,111 @@ def _clean_driver_best_laps(path: Path) -> pd.Series:
     return clean.groupby("driver_id", sort=False)["lap_time_seconds"].min()
 
 
+def _qualifying_results_path(qualifying_laps_path: Path) -> Path:
+    candidate = qualifying_laps_path.with_name(
+        qualifying_laps_path.name.replace("_laps.csv", "_results.csv")
+    )
+    if not candidate.exists():
+        raise FileNotFoundError(f"missing official stage labels: {candidate}")
+    return candidate
+
+
+def _session_results_path(laps_path: Path) -> Path:
+    candidate = laps_path.with_name(laps_path.name.replace("_laps.csv", "_results.csv"))
+    if not candidate.exists():
+        raise FileNotFoundError(f"missing pre-session roster snapshot: {candidate}")
+    return candidate
+
+
+def _qualifying_stage_labels(qualifying_laps_path: Path) -> pd.DataFrame:
+    """Load labels for history/evaluation only, never the inference roster."""
+
+    path = _qualifying_results_path(qualifying_laps_path)
+    frame = pd.read_csv(path)
+    driver_column = next(
+        (
+            column
+            for column in ("Abbreviation", "Driver", "DriverId", "DriverNumber")
+            if column in frame.columns
+        ),
+        None,
+    )
+    if driver_column is None:
+        raise ValueError(f"{path} has no driver identifier")
+
+    def has_time(column: str) -> pd.Series:
+        if column not in frame.columns:
+            return pd.Series(False, index=frame.index)
+        seconds = _lap_seconds(frame[column])
+        return seconds.between(40.0, 180.0) & np.isfinite(seconds)
+
+    q1 = has_time("Q1")
+    q2 = has_time("Q2")
+    q3 = has_time("Q3")
+    stage_seconds = {
+        column: (
+            _lap_seconds(frame[column])
+            if column in frame.columns
+            else pd.Series(np.nan, index=frame.index)
+        )
+        for column in ("Q1", "Q2", "Q3")
+    }
+    labels = pd.DataFrame(
+        {
+            "driver_id": frame[driver_column].astype(str).str.strip(),
+            "has_valid_qualifying_lap": (q1 | q2 | q3).astype(int),
+            "reached_q2": (q2 | q3).astype(int),
+            "reached_q3": q3.astype(int),
+            Q1_LAP_COLUMN: stage_seconds["Q1"],
+            Q2_LAP_COLUMN: stage_seconds["Q2"],
+            Q3_LAP_COLUMN: stage_seconds["Q3"],
+            ACTUAL_LAP_COLUMN: pd.concat(
+                list(stage_seconds.values()), axis=1
+            ).min(axis=1, skipna=True),
+        }
+    )
+    return labels.drop_duplicates("driver_id", keep="first").set_index("driver_id")
+
+
+def _official_driver_best_laps(qualifying_laps_path: Path) -> pd.Series:
+    """Use the same official Q1/Q2/Q3 target consumed by Qualifying mode."""
+
+    return pd.to_numeric(
+        _qualifying_stage_labels(qualifying_laps_path)[ACTUAL_LAP_COLUMN],
+        errors="coerce",
+    ).dropna()
+
+
+def _label_quality_history(
+    features: pd.DataFrame,
+    *,
+    actual: pd.Series,
+    qualifying_laps_path: Path,
+    history_weight: float,
+    weak_transfer_prior: bool,
+) -> pd.DataFrame:
+    labelled = features.copy()
+    stages = _qualifying_stage_labels(qualifying_laps_path)
+    labelled[ACTUAL_LAP_COLUMN] = labelled["driver_id"].map(
+        stages[ACTUAL_LAP_COLUMN]
+    )
+    labelled[ACTUAL_LAP_COLUMN] = labelled[ACTUAL_LAP_COLUMN].fillna(
+        labelled["driver_id"].map(actual)
+    )
+    for column in ("has_valid_qualifying_lap", "reached_q2", "reached_q3"):
+        labelled[column] = pd.to_numeric(
+            labelled["driver_id"].map(stages[column]), errors="coerce"
+        )
+    for column in (Q1_LAP_COLUMN, Q2_LAP_COLUMN, Q3_LAP_COLUMN):
+        labelled[column] = pd.to_numeric(
+            labelled["driver_id"].map(stages[column]), errors="coerce"
+        )
+    labelled["rehearsal_lap_time_seconds"] = labelled["valid_clean_best_seconds"]
+    labelled["history_weight"] = float(history_weight)
+    labelled["weak_transfer_prior"] = bool(weak_transfer_prior)
+    return labelled
+
+
 def _quality_aware_rehearsal(
     path: Path,
     *,
@@ -180,6 +296,7 @@ def _quality_aware_rehearsal(
     if "Driver" not in frame.columns:
         raise ValueError(f"{path} is missing Driver")
     earlier_parts: list[pd.DataFrame] = []
+    roster_sources: list[pd.DataFrame] = [pd.read_csv(_session_results_path(path))]
     for earlier_path in (
         _earlier_evidence_paths(path, source=source) if include_earlier_evidence else []
     ):
@@ -188,18 +305,51 @@ def _quality_aware_rehearsal(
             continue
         earlier["rehearsal_source"] = _source_from_filename(earlier_path)
         earlier_parts.append(earlier)
+        earlier_results_path = _session_results_path(earlier_path)
+        roster_sources.append(pd.read_csv(earlier_results_path))
     earlier_laps = pd.concat(earlier_parts, ignore_index=True) if earlier_parts else None
-    roster_source = (
-        pd.concat([frame, *earlier_parts], ignore_index=True, sort=False)
-        if earlier_parts
-        else frame
+    roster_parts: list[pd.DataFrame] = []
+    for roster_source in roster_sources:
+        roster_driver = next(
+            (
+                column
+                for column in ("Abbreviation", "Driver", "DriverId", "DriverNumber")
+                if column in roster_source.columns
+            ),
+            None,
+        )
+        if roster_driver is None:
+            continue
+        roster_team = next(
+            (
+                column
+                for column in ("TeamName", "Team", "team_id")
+                if column in roster_source.columns
+            ),
+            None,
+        )
+        roster_parts.append(
+            pd.DataFrame(
+                {
+                    "driver_id": roster_source[roster_driver].astype(str).str.strip(),
+                    "team_id": (
+                        roster_source[roster_team].astype(str).str.strip()
+                        if roster_team is not None
+                        else "unknown_team"
+                    ),
+                }
+            )
+        )
+    if not roster_parts:
+        raise ValueError(f"{path} has no pre-Q roster driver identifier")
+    roster = pd.concat(roster_parts, ignore_index=True).drop_duplicates(
+        "driver_id", keep="first"
     )
-    roster_columns = ["Driver"] + (["Team"] if "Team" in roster_source.columns else [])
-    roster = roster_source[roster_columns].drop_duplicates("Driver", keep="first")
     features = build_quality_aware_rehearsal_features(
         frame,
         entrants=roster,
         earlier_laps=earlier_laps,
+        official_session_timing=True,
     )
     features["event_key"] = int(event_key)
     features["rehearsal_source"] = str(source)
@@ -275,12 +425,11 @@ def _build_weak_transfer_history(
     ``weak_transfer_prior`` contract.
     """
 
-    default_weights = {2022: 0.05, 2023: 0.08, 2024: 0.15, 2025: 0.30}
     parts: list[pd.DataFrame] = []
     files: list[Path] = []
     summary: list[dict[str, Any]] = []
     for season in range(max(2022, int(target_year) - 4), int(target_year)):
-        weight = float(default_weights.get(season, max(0.03, 0.30 / (target_year - season))))
+        weight = float(max(0.03, 0.30 / max(1, target_year - season)))
         used_events = 0
         skipped_events = 0
         rows = 0
@@ -297,16 +446,33 @@ def _build_weak_transfer_history(
                 rehearsal_path,
                 event_key=event_key,
                 source=source,
-                include_earlier_evidence=False,
+                include_earlier_evidence=True,
             )
-            actual = _clean_driver_best_laps(qualifying_path)
-            quality[ACTUAL_LAP_COLUMN] = quality["driver_id"].map(actual)
-            quality["has_valid_qualifying_lap"] = quality[ACTUAL_LAP_COLUMN].notna()
-            quality["rehearsal_lap_time_seconds"] = quality["valid_clean_best_seconds"]
-            quality["history_weight"] = weight
-            quality["weak_transfer_prior"] = True
-            parts.append(quality)
-            files.extend([rehearsal_path, qualifying_path])
+            actual = _official_driver_best_laps(qualifying_path)
+            parts.append(
+                _label_quality_history(
+                    quality,
+                    actual=actual,
+                    qualifying_laps_path=qualifying_path,
+                    history_weight=weight,
+                    weak_transfer_prior=True,
+                )
+            )
+            files.extend(
+                [
+                    rehearsal_path,
+                    _session_results_path(rehearsal_path),
+                    qualifying_path,
+                    _qualifying_results_path(qualifying_path),
+                    *_earlier_evidence_paths(rehearsal_path, source=source),
+                    *(
+                        _session_results_path(value)
+                        for value in _earlier_evidence_paths(
+                            rehearsal_path, source=source
+                        )
+                    ),
+                ]
+            )
             used_events += 1
             rows += len(quality)
         summary.append(
@@ -335,10 +501,11 @@ def _validate_robust_residual_selector(
     """Freeze residual on/off using the season before the target audit."""
 
     validation_year = int(target_year) - 1
-    prior_parts, _, _ = _build_weak_transfer_history(
+    prior_parts, prior_files, _ = _build_weak_transfer_history(
         weekends_dir, target_year=validation_year
     )
     history_parts = list(prior_parts)
+    input_files: list[Path] = list(prior_files)
     location_event_mae: list[float] = []
     robust_event_mae: list[float] = []
     used_rounds: list[int] = []
@@ -355,7 +522,22 @@ def _validate_robust_residual_selector(
             source=source,
             include_earlier_evidence=False,
         )
-        actual = _clean_driver_best_laps(qualifying_path)
+        actual = _official_driver_best_laps(qualifying_path)
+        input_files.extend(
+            [
+                rehearsal_path,
+                _session_results_path(rehearsal_path),
+                qualifying_path,
+                _qualifying_results_path(qualifying_path),
+                *_earlier_evidence_paths(rehearsal_path, source=source),
+                *(
+                    _session_results_path(value)
+                    for value in _earlier_evidence_paths(
+                        rehearsal_path, source=source
+                    )
+                ),
+            ]
+        )
         history = pd.concat(history_parts, ignore_index=True) if history_parts else pd.DataFrame()
         location_model = fit_achievable_best_lap_model(
             history,
@@ -366,26 +548,40 @@ def _validate_robust_residual_selector(
         robust_model = fit_achievable_best_lap_model(
             history, target_event_key=event_key, enable_robust_residual=True
         )
-        location = location_model.predict(features).set_index("driver_id")["lap_p50"]
-        robust = robust_model.predict(features).set_index("driver_id")["lap_p50"]
+        joint_seed = 20260713 + int(event_key)
+        location = location_model.predict_qualifying(
+            features,
+            samples=2_000,
+            seed=joint_seed,
+            allow_diagnostic_stage_fallback=True,
+        ).lap_predictions.set_index("driver_id")["lap_p50"]
+        robust = robust_model.predict_qualifying(
+            features,
+            samples=2_000,
+            seed=joint_seed,
+            allow_diagnostic_stage_fallback=True,
+        ).lap_predictions.set_index("driver_id")["lap_p50"]
         common = actual.index.intersection(location.dropna().index).intersection(robust.dropna().index)
         if len(common):
             location_event_mae.append(float((location.loc[common] - actual.loc[common]).abs().mean()))
             robust_event_mae.append(float((robust.loc[common] - actual.loc[common]).abs().mean()))
             used_rounds.append(round_number)
-        labelled = features.copy()
-        labelled[ACTUAL_LAP_COLUMN] = labelled["driver_id"].map(actual)
-        labelled["has_valid_qualifying_lap"] = labelled[ACTUAL_LAP_COLUMN].notna()
-        labelled["rehearsal_lap_time_seconds"] = labelled["valid_clean_best_seconds"]
-        labelled["history_weight"] = 1.0
-        labelled["weak_transfer_prior"] = False
-        history_parts.append(labelled)
+        history_parts.append(
+            _label_quality_history(
+                features,
+                actual=actual,
+                qualifying_laps_path=qualifying_path,
+                history_weight=1.0,
+                weak_transfer_prior=False,
+            )
+        )
     if not location_event_mae:
         return {
             "validation_year": validation_year,
             "selected_enable_robust_residual": False,
             "status": "unavailable_no_validation_events_fail_closed",
             "rounds": [],
+            "_input_files": [str(path.resolve()) for path in sorted(set(input_files))],
         }
     location_mae = float(np.mean(location_event_mae))
     robust_mae = float(np.mean(robust_event_mae))
@@ -412,6 +608,10 @@ def _validate_robust_residual_selector(
         "minimum_relative_gain": 0.05,
         "selected_enable_robust_residual": selected,
         "status": "frozen_before_target_audit",
+        "selection_rule": (
+            "at_least_five_percent_event_mean_mae_gain_and_all_leave_one_event_out_deltas_negative"
+        ),
+        "_input_files": [str(path.resolve()) for path in sorted(set(input_files))],
     }
 
 
@@ -511,6 +711,41 @@ def _event_stability(event_metrics: Sequence[Mapping[str, Any]]) -> dict[str, An
     }
 
 
+def _locked_best_lap_partitions(
+    prior_parts: Sequence[pd.DataFrame],
+    *,
+    target_event_keys: Sequence[int],
+    target_year: int,
+) -> dict[str, tuple[int, ...]]:
+    prior_keys = tuple(
+        sorted(
+            {
+                int(value)
+                for part in prior_parts
+                for value in pd.to_numeric(part.get("event_key"), errors="coerce").dropna()
+            }
+        )
+    )
+    target_keys = tuple(sorted({int(value) for value in target_event_keys}))
+    if len(target_keys) < 6:
+        raise ValueError(
+            "Best Lap requires at least six target-season events: two frozen point-fit, "
+            "two held-out calibration, and at least two audit events"
+        )
+    partitions = {
+        "development": prior_keys,
+        "selection": target_keys[:2],
+        "calibration": target_keys[2:4],
+        "audit": target_keys[4:],
+    }
+    issues = validate_event_partitions(
+        **{name: [str(value) for value in values] for name, values in partitions.items()}
+    )
+    if issues:
+        raise ValueError(f"invalid Best Lap event partitions: {list(issues)}")
+    return partitions
+
+
 def _json_safe(value: Any) -> Any:
     if isinstance(value, dict):
         return {str(key): _json_safe(item) for key, item in value.items()}
@@ -521,6 +756,23 @@ def _json_safe(value: Any) -> Any:
     if isinstance(value, float) and not np.isfinite(value):
         return None
     return value
+
+
+def _build_shared_event_forecast(
+    history: pd.DataFrame,
+    inference: pd.DataFrame,
+    *,
+    target_event_key: int,
+    interval_calibration_predictions: pd.DataFrame | None = None,
+):
+    """Best-Lap runner adapter to the cross-mode frozen forecast path."""
+
+    return build_shared_qualifying_event_forecast(
+        history,
+        inference,
+        target_event_key=int(target_event_key),
+        interval_calibration_predictions=interval_calibration_predictions,
+    )
 
 
 def run_backtest(
@@ -552,35 +804,74 @@ def run_backtest(
         if use_weak_transfer_priors
         else ([], [], [])
     )
+    target_event_keys = tuple(
+        int(year) * 100 + _round_number(path) for path in selected
+    )
+    partitions = _locked_best_lap_partitions(
+        prior_parts,
+        target_event_keys=target_event_keys,
+        target_year=int(year),
+    )
+    selector_payload = _validate_robust_residual_selector(
+        weekends_dir,
+        target_year=int(year),
+    )
+    selector_input_files = [
+        Path(value) for value in selector_payload.pop("_input_files", [])
+    ]
     residual_selector = {
-        "validation_year": int(year) - 1,
-        "selected_enable_robust_residual": False,
-        "status": "frozen_fail_closed_quality_location_default",
-        "selection_rule": (
-            "enable only after at least five percent validation MAE gain and "
-            "directionally stable leave-one-event-out results"
-        ),
+        **selector_payload,
         "validation_function": "_validate_robust_residual_selector",
+        "reproducible_selector_executed": True,
     }
-    enable_selected_residual = False
-    selected_input_files: list[Path] = list(prior_files)
+    enable_selected_residual = SHARED_QUALIFYING_ENABLE_ROBUST_RESIDUAL
+    residual_selector["shared_cross_mode_selected_enable_robust_residual"] = (
+        enable_selected_residual
+    )
+    selected_input_files: list[Path] = [*prior_files, *selector_input_files]
     for round_dir in selected:
         source, rehearsal_path, qualifying_path = _target_aligned_files(round_dir)
         selected_input_files.extend(
             [
                 rehearsal_path,
+                _session_results_path(rehearsal_path),
                 qualifying_path,
+                _qualifying_results_path(qualifying_path),
                 *_earlier_evidence_paths(rehearsal_path, source=source),
+                *(
+                    _session_results_path(value)
+                    for value in _earlier_evidence_paths(
+                        rehearsal_path, source=source
+                    )
+                ),
             ]
         )
     input_manifest_before = _hash_manifest(selected_input_files, root=root)
 
-    baseline_history_parts: list[pd.DataFrame] = []
+    baseline_history_parts: list[pd.DataFrame] = [
+        part[
+            [
+                "event_key",
+                "driver_id",
+                "rehearsal_source",
+                "rehearsal_lap_time_seconds",
+                ACTUAL_LAP_COLUMN,
+                "history_weight",
+                "weak_transfer_prior",
+            ]
+        ].copy()
+        for part in prior_parts
+    ]
     challenger_history_parts: list[pd.DataFrame] = list(prior_parts)
     event_payloads: list[dict[str, Any]] = []
     all_scored: list[pd.DataFrame] = []
     all_challenger_scored: list[pd.DataFrame] = []
-    input_files: list[Path] = list(prior_files)
+    shared_forecast_artifacts: list[dict[str, object]] = []
+    baseline_interval_calibration_rows: list[pd.DataFrame] = []
+    location_interval_calibration_rows: list[pd.DataFrame] = []
+    robust_interval_calibration_rows: list[pd.DataFrame] = []
+    frozen_point_predictor_sha256: str | None = None
+    input_files: list[Path] = [*prior_files, *selector_input_files]
 
     for round_dir in selected:
         round_number = _round_number(round_dir)
@@ -589,12 +880,20 @@ def run_backtest(
         input_files.extend(
             [
                 rehearsal_path,
+                _session_results_path(rehearsal_path),
                 qualifying_path,
+                _qualifying_results_path(qualifying_path),
                 *_earlier_evidence_paths(rehearsal_path, source=source),
+                *(
+                    _session_results_path(value)
+                    for value in _earlier_evidence_paths(
+                        rehearsal_path, source=source
+                    )
+                ),
             ]
         )
         rehearsal = _clean_driver_best_laps(rehearsal_path)
-        actual = _clean_driver_best_laps(qualifying_path)
+        actual = _official_driver_best_laps(qualifying_path)
         quality_features = _quality_aware_rehearsal(
             rehearsal_path, event_key=event_key, source=source
         )
@@ -614,23 +913,70 @@ def run_backtest(
             if challenger_history_parts
             else pd.DataFrame()
         )
+        calibration_keys_available = (
+            tuple(partitions["calibration"])
+            if event_key in set(partitions["audit"])
+            else ()
+        )
         baseline_model = fit_achievable_best_lap_model(
             baseline_history,
             target_event_key=event_key,
             enable_robust_residual=False,
+            calibration_event_keys=(),
         )
         location_model = fit_achievable_best_lap_model(
             challenger_history,
             target_event_key=event_key,
             enable_robust_residual=False,
-            model_name=QUALITY_LOCATION_MODEL_NAME,
+            calibration_event_keys=(),
+            model_name="shared_qualifying_latent_lap_v3",
         )
         robust_model = fit_achievable_best_lap_model(
             challenger_history,
             target_event_key=event_key,
             enable_robust_residual=True,
+            calibration_event_keys=(),
         )
-        challenger_model = robust_model if enable_selected_residual else location_model
+        if event_key in set(partitions["audit"]):
+            if not (
+                baseline_interval_calibration_rows
+                and location_interval_calibration_rows
+                and robust_interval_calibration_rows
+            ):
+                raise RuntimeError("audit reached before held-out interval calibration completed")
+            baseline_model = calibrate_achievable_best_lap_model(
+                baseline_model,
+                pd.concat(baseline_interval_calibration_rows, ignore_index=True),
+            )
+            location_model = calibrate_achievable_best_lap_model(
+                location_model,
+                pd.concat(location_interval_calibration_rows, ignore_index=True),
+            )
+            robust_model = calibrate_achievable_best_lap_model(
+                robust_model,
+                pd.concat(robust_interval_calibration_rows, ignore_index=True),
+            )
+        held_out_interval_rows = (
+            pd.concat(location_interval_calibration_rows, ignore_index=True)
+            if event_key in set(partitions["audit"])
+            else None
+        )
+        challenger_model, shared_forecast, artifact = _build_shared_event_forecast(
+            challenger_history,
+            quality_features,
+            target_event_key=event_key,
+            interval_calibration_predictions=held_out_interval_rows,
+        )
+        if shared_point_predictor_sha256(challenger_model) != shared_point_predictor_sha256(
+            location_model
+        ):
+            raise RuntimeError("Best Lap diverged from common shared point-model builder")
+        current_point_hash = shared_point_predictor_sha256(challenger_model)
+        if event_key >= min(partitions["calibration"]):
+            if frozen_point_predictor_sha256 is None:
+                frozen_point_predictor_sha256 = current_point_hash
+            elif current_point_hash != frozen_point_predictor_sha256:
+                raise RuntimeError("complete Best Lap point predictor changed after freeze")
         baseline_inference = pd.DataFrame(
             {
                 "event_key": event_key,
@@ -641,12 +987,31 @@ def run_backtest(
                 ].to_numpy(dtype=float),
             }
         )
-        baseline_predictions = baseline_model.predict(baseline_inference)
+        joint_seed = SHARED_QUALIFYING_SAMPLE_SEED_BASE + int(event_key)
+        baseline_predictions = baseline_model.predict_qualifying(
+            baseline_inference,
+            samples=5_000,
+            seed=joint_seed,
+            allow_diagnostic_stage_fallback=True,
+        ).lap_predictions
         baseline_indexed = baseline_predictions.set_index("driver_id")
         baseline_by_driver = baseline_indexed["lap_p50"]
-        predictions = challenger_model.predict(quality_features)
-        robust_diagnostic = robust_model.predict(quality_features).set_index("driver_id")
-        location_diagnostic = location_model.predict(quality_features).set_index("driver_id")
+        shared_forecast_artifacts.append(artifact)
+        predictions = shared_forecast.lap_predictions.copy()
+        predictions["shared_forecast_artifact_sha256"] = artifact["artifact_sha256"]
+        predictions["shared_joint_samples_sha256"] = artifact["joint_samples_sha256"]
+        robust_diagnostic = robust_model.predict_qualifying(
+            quality_features,
+            samples=5_000,
+            seed=joint_seed,
+            allow_diagnostic_stage_fallback=True,
+        ).lap_predictions.set_index("driver_id")
+        location_diagnostic = location_model.predict_qualifying(
+            quality_features,
+            samples=5_000,
+            seed=joint_seed,
+            allow_diagnostic_stage_fallback=True,
+        ).lap_predictions.set_index("driver_id")
         evaluated = predictions.copy()
         evaluated["quality_location_lap_p50"] = evaluated["driver_id"].map(
             location_diagnostic["lap_p50"]
@@ -661,6 +1026,9 @@ def run_backtest(
         )
         evaluated["baseline_lap_p90"] = evaluated["driver_id"].map(
             baseline_indexed["lap_p90"]
+        )
+        evaluated["baseline_interval_status"] = evaluated["driver_id"].map(
+            baseline_indexed["interval_status"]
         )
         evaluated[ACTUAL_LAP_COLUMN] = evaluated["driver_id"].map(actual)
         evaluated["target_observed"] = evaluated[ACTUAL_LAP_COLUMN].notna()
@@ -690,6 +1058,28 @@ def run_backtest(
                 evaluated["baseline_lap_p50"] - evaluated[ACTUAL_LAP_COLUMN]
             ).abs(),
         )
+        if event_key in set(partitions["calibration"]):
+            def interval_rows(values: pd.Series) -> pd.DataFrame:
+                rows = pd.DataFrame(
+                    {
+                        "event_key": event_key,
+                        "driver_id": inference_ids.astype(str),
+                        "rehearsal_source": source,
+                        "lap_p50": inference_ids.astype(str).map(values),
+                        ACTUAL_LAP_COLUMN: inference_ids.astype(str).map(actual),
+                    }
+                )
+                return rows.dropna(subset=["lap_p50", ACTUAL_LAP_COLUMN])
+
+            baseline_interval_calibration_rows.append(
+                interval_rows(baseline_indexed["lap_p50"])
+            )
+            location_interval_calibration_rows.append(
+                interval_rows(location_diagnostic["lap_p50"])
+            )
+            robust_interval_calibration_rows.append(
+                interval_rows(robust_diagnostic["lap_p50"])
+            )
         event_payloads.append(
             {
                 "round": int(round_number),
@@ -715,6 +1105,15 @@ def run_backtest(
                 "missing_rehearsal_drivers": sorted(set(actual.index) - set(inference_ids)),
                 "baseline_training_event_keys": list(baseline_model.training_event_keys),
                 "challenger_training_event_keys": list(challenger_model.training_event_keys),
+                "event_partition_role": (
+                    "point_fit"
+                    if event_key in set(partitions["selection"])
+                    else "calibration"
+                    if event_key in set(partitions["calibration"])
+                    else "audit"
+                ),
+                "interval_calibration_event_keys": list(calibration_keys_available),
+                "shared_forecast_artifact": artifact,
                 "residual_selector": residual_selector,
                 "metrics": metrics,
                 "prediction_vs_reality": comparison_rows.to_dict(orient="records"),
@@ -723,34 +1122,44 @@ def run_backtest(
         )
         all_scored.append(scored)
         all_challenger_scored.append(challenger_scored)
-        baseline_history_parts.append(
-            pd.DataFrame(
-                {
-                    "event_key": event_key,
-                    "driver_id": common.astype(str),
-                    "rehearsal_source": source,
-                    "rehearsal_lap_time_seconds": rehearsal.loc[common].to_numpy(dtype=float),
-                    ACTUAL_LAP_COLUMN: actual.loc[common].to_numpy(dtype=float),
-                }
+        # Only the two declared point-fit events enter the complete predictor.
+        # Calibration changes interval residuals only; audit outcomes are never
+        # reused. The complete point predictor is frozen before calibration.
+        if event_key in set(partitions["selection"]):
+            baseline_history_parts.append(
+                pd.DataFrame(
+                    {
+                        "event_key": event_key,
+                        "driver_id": common.astype(str),
+                        "rehearsal_source": source,
+                        "rehearsal_lap_time_seconds": rehearsal.loc[common].to_numpy(dtype=float),
+                        ACTUAL_LAP_COLUMN: actual.loc[common].to_numpy(dtype=float),
+                        "history_weight": 1.0,
+                        "weak_transfer_prior": False,
+                    }
+                )
             )
-        )
-        labelled_quality = quality_features.copy()
-        labelled_quality[ACTUAL_LAP_COLUMN] = labelled_quality["driver_id"].map(actual)
-        labelled_quality["has_valid_qualifying_lap"] = labelled_quality[
-            ACTUAL_LAP_COLUMN
-        ].notna()
-        # Retain the raw rehearsal lap for baseline diagnostics, even though
-        # the challenger fits against the latent potential-adjusted anchor.
-        labelled_quality["rehearsal_lap_time_seconds"] = labelled_quality[
-            "valid_clean_best_seconds"
-        ]
-        labelled_quality["history_weight"] = 1.0
-        labelled_quality["weak_transfer_prior"] = False
-        challenger_history_parts.append(labelled_quality)
+            challenger_history_parts.append(
+                _label_quality_history(
+                    quality_features,
+                    actual=actual,
+                    qualifying_laps_path=qualifying_path,
+                    history_weight=1.0,
+                    weak_transfer_prior=False,
+                )
+            )
 
     joined = pd.concat(all_scored, ignore_index=True)
     joined_challenger = pd.concat(all_challenger_scored, ignore_index=True)
-    event_metrics = [payload["metrics"] for payload in event_payloads]
+    audit_key_set = set(partitions["audit"])
+    audit_payloads = [
+        payload for payload in event_payloads if int(payload["event_key"]) in audit_key_set
+    ]
+    event_metrics = [payload["metrics"] for payload in audit_payloads]
+    joined = joined.loc[pd.to_numeric(joined["event_key"], errors="coerce").isin(audit_key_set)]
+    joined_challenger = joined_challenger.loc[
+        pd.to_numeric(joined_challenger["event_key"], errors="coerce").isin(audit_key_set)
+    ]
     paired = _paired_bootstrap(
         [float(item["p50_mae_seconds"]) for item in event_metrics],
         [float(item["raw_rehearsal_mae_seconds"]) for item in event_metrics],
@@ -767,9 +1176,13 @@ def run_backtest(
         if baseline_event_mae > 0.0
         else float("nan")
     )
-    target_rows = sum(item["target_driver_count"] for item in event_payloads)
+    target_rows = sum(item["target_driver_count"] for item in audit_payloads)
     observed_target_coverage = float(len(joined_challenger) / target_rows)
-    interval_rows = joined_challenger["lap_p05"].notna() & joined_challenger["lap_p90"].notna()
+    interval_rows = (
+        joined_challenger["lap_p05"].notna()
+        & joined_challenger["lap_p90"].notna()
+        & joined_challenger["interval_status"].eq("calibrated_disjoint_event_partition")
+    )
     interval_coverage = (
         float(
             (
@@ -794,7 +1207,12 @@ def run_backtest(
         if interval_rows.any()
         else float("nan")
     )
-    baseline_interval_rows = joined["baseline_lap_p05"].notna() & joined["baseline_lap_p90"].notna()
+    validated_interval_rate = float(interval_rows.mean()) if len(interval_rows) else 0.0
+    baseline_interval_rows = (
+        joined["baseline_lap_p05"].notna()
+        & joined["baseline_lap_p90"].notna()
+        & joined["baseline_interval_status"].eq("calibrated_disjoint_event_partition")
+    )
     baseline_interval_width = (
         float(
             (
@@ -817,6 +1235,28 @@ def run_backtest(
         and np.isfinite(baseline_interval_width)
         and interval_width <= baseline_interval_width * 1.10
     )
+    weekend_stratum_deltas: dict[str, list[float]] = {"standard": [], "sprint": []}
+    for payload in audit_payloads:
+        stratum = (
+            "sprint"
+            if str(payload["rehearsal_source"]) == "sprint_qualifying"
+            else "standard"
+        )
+        weekend_stratum_deltas[stratum].append(
+            float(payload["metrics"]["challenger_minus_baseline_mae_seconds"])
+        )
+    weekend_stratum_mean_deltas = {
+        name: float(np.mean(values))
+        for name, values in weekend_stratum_deltas.items()
+        if values
+    }
+    all_weekend_strata_improve = bool(
+        {"standard", "sprint"}.issubset(weekend_stratum_mean_deltas)
+        and all(
+            weekend_stratum_mean_deltas[name] < 0.0
+            for name in ("standard", "sprint")
+        )
+    )
     promotion_gates = {
         "mae_improves_at_least_five_percent": bool(relative_mae_gain >= 0.05),
         "event_bootstrap_upper_bound_below_zero": bool(paired["ci95_seconds"][1] < 0.0),
@@ -826,7 +1266,11 @@ def run_backtest(
         "observed_target_coverage_is_100_percent": bool(observed_target_coverage >= 1.0),
         "fastest_driver_non_worse": bool(fastest_non_worse),
         "top3_non_worse": bool(top3_non_worse),
+        "all_weekend_strata_improve": all_weekend_strata_improve,
         "interval_coverage_within_five_points_of_85_percent": interval_coverage_gate,
+        "validated_interval_coverage_is_100_percent": bool(
+            validated_interval_rate >= 1.0
+        ),
         "interval_width_inflation_at_most_ten_percent": width_gate,
         "leave_one_event_out_directionally_stable": bool(
             stability["leave_one_event_out_directionally_stable"]
@@ -857,9 +1301,9 @@ def run_backtest(
             "robust_residual_diagnostic_model": MODEL_NAME,
             "baseline_model": BASELINE_MODEL_NAME,
             "model_family": (
-                "quality_aware_anchor_plus_huber_hierarchical_residual_and_event_block_conformal"
+                "shared_latent_lap_nested_driver_hurdles_learned_stage_mixture_huber_conformal"
                 if enable_selected_residual
-                else "quality_aware_anchor_with_validation_rejected_huber_residual_and_event_block_conformal"
+                else "shared_latent_lap_nested_driver_hurdles_learned_stage_mixture_location_conformal"
             ),
             "target_contract": ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
             "target_semantics": TARGET_CONTRACT_SEMANTICS[
@@ -884,32 +1328,50 @@ def run_backtest(
                 "source": "locked_local_weekend_csv",
             },
             "protocol": {
-                "same_season_only": True,
-                "training_window": "strictly_earlier_completed_2026_events",
+                "event_specific_pace_training": "first_two_target_season_point_fit_events_only",
+                "older_season_use": "weak_invariant_session_transition_and_reliability_priors_only",
+                "training_window": (
+                    "point_predictor_frozen_after_events_1_2; events_3_4_interval_"
+                    "calibration_only; audit_outcomes_never_reused"
+                ),
                 "round_order": "ascending_sequential",
                 "standard_weekend_rehearsal": "FP3",
                 "sprint_weekend_rehearsal": "Sprint Qualifying",
                 "supported_weekend_era": "2024_plus",
                 "target_outcome_available_to_inference": False,
                 "validation_unit": "complete_chronological_event_block",
+                "event_partitions": {
+                    name: list(values) for name, values in partitions.items()
+                },
+                "partition_validation_issues": [],
+                "interval_quantile_semantics": {
+                    "lap_p05": 0.05,
+                    "lap_p50": 0.50,
+                    "lap_p90": 0.90,
+                    "nominal_mass": 0.85,
+                },
                 "weak_transfer_prior_summary": prior_summary,
                 "robust_residual_selector": residual_selector,
+                "frozen_complete_point_predictor_sha256": frozen_point_predictor_sha256,
+                "held_out_interval_calibration_uses_final_predictor_residuals": True,
+                "audit_weekend_stratum_mean_deltas_seconds": weekend_stratum_mean_deltas,
                 "baseline_and_challenger_scored_on_same_rows": True,
                 "deleted_laps_are_potential_only": True,
                 "one_heavy_training_job_at_a_time": True,
             },
             "aggregate": {
-                "rounds": len(event_payloads),
+                "rounds": len(audit_payloads),
+                "all_prediction_rounds": len(event_payloads),
                 "rows": int(len(joined_challenger)),
                 "paired_baseline_rows": int(len(joined)),
                 "causal_inference_rows": int(
-                    sum(item["causal_inference_driver_count"] for item in event_payloads)
+                    sum(item["causal_inference_driver_count"] for item in audit_payloads)
                 ),
                 "observed_target_rows": int(
-                    sum(item["target_driver_count"] for item in event_payloads)
+                    sum(item["target_driver_count"] for item in audit_payloads)
                 ),
                 "evaluation_union_rows": int(
-                    sum(item["evaluation_union_driver_count"] for item in event_payloads)
+                    sum(item["evaluation_union_driver_count"] for item in audit_payloads)
                 ),
                 "conditional_event_mean_p50_mae_seconds": float(
                     challenger_event_mae
@@ -939,14 +1401,15 @@ def run_backtest(
                 ),
                 "target_observed_given_inference_rate": float(
                     len(joined_challenger)
-                    / sum(item["causal_inference_driver_count"] for item in event_payloads)
+                    / sum(item["causal_inference_driver_count"] for item in audit_payloads)
                 ),
                 "inference_coverage_of_observed_target_rate": observed_target_coverage,
                 "end_to_end_scored_union_rate": float(
                     len(joined_challenger)
-                    / sum(item["evaluation_union_driver_count"] for item in event_payloads)
+                    / sum(item["evaluation_union_driver_count"] for item in audit_payloads)
                 ),
                 "interval_rows": int(interval_rows.sum()),
+                "validated_interval_row_rate": validated_interval_rate,
                 "interval_coverage": interval_coverage,
                 "interval_mean_width_seconds": interval_width,
                 "baseline_interval_mean_width_seconds": baseline_interval_width,
@@ -988,6 +1451,7 @@ def run_backtest(
                 ],
             },
             "events": event_payloads,
+            "shared_forecast_artifacts": shared_forecast_artifacts,
             "input_manifest": input_manifest_before,
             "implementation_manifest": implementation_manifest,
         }

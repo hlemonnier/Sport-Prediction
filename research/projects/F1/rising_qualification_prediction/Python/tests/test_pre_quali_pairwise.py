@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -23,6 +25,12 @@ from packages.f1.models.pre_quali.selection import (
     FrozenSelectorConfig,
     QualifyingModelEvidence,
     select_frozen_qualifying_model,
+)
+from run_qualifying_pairwise_challenger_backtest import (
+    _event_frame,
+    _locked_event_partitions,
+    _pre_qualifying_roster,
+    _qualifying_contract_gates,
 )
 def _rank_history(*, event_keys: tuple[int, ...] = (202601, 202602, 202603, 202604)) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
@@ -214,6 +222,82 @@ def test_stage_models_are_separate_conditional_monotone_and_source_aware() -> No
     assert "quality_anchor_delta__x_sprint_rehearsal" in model.design.names
 
 
+def test_stage_hurdles_are_driver_conditioned_after_partial_pooling() -> None:
+    rows: list[dict[str, object]] = []
+    outcomes = {
+        "always_q3": (1, 1, 1),
+        "q2_only": (1, 1, 0),
+        "q1_only": (1, 0, 0),
+        "invalid": (0, 0, 0),
+    }
+    for event in range(202501, 202507):
+        for driver, (valid, q2, q3) in outcomes.items():
+            rows.append(
+                {
+                    "event_key": event,
+                    "driver_id": driver,
+                    "latest_qualifying_rehearsal_source": "practice_3",
+                    "same_feature": 1.0,
+                    "has_valid_qualifying_lap": valid,
+                    "reached_q2": q2,
+                    "reached_q3": q3,
+                }
+            )
+    history = pd.DataFrame(rows)
+    config = StageProbabilityConfig(feature_columns=("same_feature",), minimum_training_events=3)
+    model = fit_qualifying_stage_probability_model(
+        history,
+        config=config,
+        target_event_key=202601,
+    )
+    inference = history.loc[history["event_key"].eq(202506)].drop(
+        columns=list(config.label_columns)
+    )
+    inference["event_key"] = 202601
+    predicted = model.predict_event(inference).set_index("driver_id")
+
+    assert predicted.loc["always_q3", "p_valid_qualifying_lap"] > predicted.loc[
+        "invalid", "p_valid_qualifying_lap"
+    ]
+    assert predicted.loc["always_q3", "p_q2_given_valid"] > predicted.loc[
+        "q1_only", "p_q2_given_valid"
+    ]
+    assert predicted.loc["always_q3", "p_q3_given_q2"] > predicted.loc[
+        "q2_only", "p_q3_given_q2"
+    ]
+
+
+def test_pre_q_roster_and_partitions_fail_closed_without_target_results() -> None:
+    fp3 = pd.DataFrame(
+        {"Driver": ["A", "B"], "Team": ["red", "blue"], "LapTime": [90.0, 91.0]}
+    )
+    fp2 = pd.DataFrame(
+        {"Driver": ["C"], "Team": ["green"], "LapTime": [92.0]}
+    )
+    roster = _pre_qualifying_roster(fp3, fp2)
+    assert roster["driver_id"].tolist() == ["A", "B", "C"]
+
+    partitions = _locked_event_partitions(
+        (
+            202401,
+            202402,
+            202501,
+            202502,
+            202601,
+            202602,
+            202603,
+            202604,
+            202605,
+            202606,
+        ),
+        audit_year=2026,
+    )
+    assert partitions["selection"] == (202501, 202502)
+    assert partitions["point_fit"] == (202601, 202602)
+    assert partitions["calibration"] == (202603, 202604)
+    assert partitions["audit"] == (202605, 202606)
+
+
 def _evidence(
     event_keys: tuple[int, ...],
     *,
@@ -286,6 +370,139 @@ def test_selector_requires_matched_minimum_evidence_and_freezes_switches() -> No
     mismatched[1] = QualifyingModelEvidence("challenger", 1.7, tuple(range(2, 10)))
     with pytest.raises(ValueError, match="identical event blocks"):
         select_frozen_qualifying_model(mismatched, config=config)
+
+
+def test_qualifying_contract_gates_require_complete_legal_field_and_fail_close_probabilities() -> None:
+    predictions = pd.DataFrame(
+        {
+            "event_key": [202601, 202601, 202601],
+            "driver_id": ["a", "b", "c"],
+            "predicted_qualifying_position": [1, 2, 3],
+            "p_position_1": [1.0, 0.0, 0.0],
+            "p_position_2": [0.0, 1.0, 0.0],
+            "p_position_3": [0.0, 0.0, 1.0],
+            "position_marginals_calibrated": [False, False, False],
+            "probability_calibration_status": [
+                "uncalibrated_joint_latent_samples"
+            ]
+            * 3,
+        }
+    )
+
+    gates = _qualifying_contract_gates(
+        predictions,
+        event_info={
+            202601: {
+                "field_size": 3,
+                "official_target_driver_ids": ["a", "b", "c"],
+            }
+        },
+        event_keys=(202601,),
+    )
+
+    assert gates["pre_q_entrant_coverage_is_100_percent"]
+    assert gates["every_event_is_legal_full_field_permutation"]
+    assert not gates["position_probabilities_calibrated"]
+    assert not gates["position_probability_outputs_promoted"]
+    assert gates["uncalibrated_probability_outputs_fail_closed"]
+    assert gates["point_contract_gates_passed"]
+
+    target_mismatch = _qualifying_contract_gates(
+        predictions,
+        event_info={
+            202601: {
+                "field_size": 3,
+                "official_target_driver_ids": ["a", "b", "substitute"],
+            }
+        },
+        event_keys=(202601,),
+    )
+    assert not target_mismatch["pre_q_entrant_coverage_is_100_percent"]
+    assert not target_mismatch["point_contract_gates_passed"]
+
+
+def test_event_frame_unions_all_completed_pre_q_result_rosters_before_target_open(
+    tmp_path,
+) -> None:
+    event_dir = tmp_path / "round_01_test"
+    event_dir.mkdir()
+    pd.DataFrame(
+        {
+            "Driver": ["A"],
+            "Team": ["Old Team"],
+            "LapTime": [92.0],
+            "Deleted": [False],
+            "IsAccurate": [True],
+        }
+    ).to_csv(event_dir / "p1_laps.csv", index=False)
+    pd.DataFrame(
+        {
+            "Abbreviation": ["A", "SUB"],
+            "TeamName": ["Old Team", "Sub Team"],
+        }
+    ).to_csv(event_dir / "p1_results.csv", index=False)
+    pd.DataFrame(
+        {
+            "Driver": ["A"],
+            "Team": ["New Team"],
+            "LapTime": [90.0],
+            "Deleted": [False],
+            "IsAccurate": [True],
+        }
+    ).to_csv(event_dir / "fp3_laps.csv", index=False)
+    pd.DataFrame(
+        {"Abbreviation": ["A"], "TeamName": ["New Team"]}
+    ).to_csv(event_dir / "fp3_results.csv", index=False)
+    pd.DataFrame(
+        {
+            "Abbreviation": ["A", "SUB"],
+            "TeamName": ["New Team", "Sub Team"],
+            "Position": [1, 2],
+            "Q1": ["0:59.0", "1:00.0"],
+            "Q2": ["0:58.5", "0:59.5"],
+            "Q3": ["0:58.0", "0:59.0"],
+        }
+    ).to_csv(event_dir / "q_results.csv", index=False)
+    metadata = {
+        "year": 2026,
+        "round_number": 1,
+        "event_name": "Test GP",
+        "event_format": "conventional",
+        "sessions": [
+            {
+                "session_type": "practice",
+                "session_name": "Practice 1",
+                "session_order": 1,
+                "completed": True,
+                "laps_path": "p1_laps.csv",
+                "results_path": "p1_results.csv",
+            },
+            {
+                "session_type": "practice",
+                "session_name": "Practice 3",
+                "session_order": 3,
+                "completed": True,
+                "laps_path": "fp3_laps.csv",
+                "results_path": "fp3_results.csv",
+            },
+            {
+                "session_type": "qualifying",
+                "session_name": "Qualifying",
+                "session_order": 4,
+                "completed": True,
+                "results_path": "q_results.csv",
+            },
+        ],
+    }
+    (event_dir / "weekend_metadata.json").write_text(json.dumps(metadata))
+
+    frame, info, _ = _event_frame(tmp_path, event_dir)
+    indexed = frame.set_index("driver_id")
+
+    assert set(indexed.index) == {"A", "SUB"}
+    assert indexed.loc["A", "team_id"] == "New Team"
+    assert info["official_target_driver_ids"] == ["A", "SUB"]
+    assert info["target_result_used_for_roster"] is False
 
 
 def test_walk_forward_helper_trains_only_on_prior_complete_events() -> None:

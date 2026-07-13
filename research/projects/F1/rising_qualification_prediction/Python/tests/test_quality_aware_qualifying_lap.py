@@ -9,6 +9,7 @@ from packages.f1.features.qualifying_lap import (
     build_quality_aware_rehearsal_features,
     finite_lap_seconds,
 )
+from run_best_estimated_lap_2026_backtest import _quality_aware_rehearsal
 
 
 def test_one_finite_lap_is_not_discarded_by_cleaner_or_aggregation() -> None:
@@ -30,6 +31,76 @@ def test_one_finite_lap_is_not_discarded_by_cleaner_or_aggregation() -> None:
     assert features.loc[0, "quality_aware_anchor_seconds"] == pytest.approx(92.4)
     assert features.loc[0, "valid_clean_lap_count"] == 1
     assert math.isnan(features.loc[0, "best_two_spread_seconds"])
+
+
+def test_completed_provider_timing_is_official_only_when_explicitly_declared() -> None:
+    laps = pd.DataFrame(
+        {
+            "Driver": ["ONE"],
+            "Team": ["Solo"],
+            "LapTime": [92.4],
+            "Deleted": [False],
+            "IsAccurate": [True],
+        }
+    )
+
+    arbitrary = build_quality_aware_rehearsal_features(laps)
+    completed = build_quality_aware_rehearsal_features(
+        laps,
+        official_session_timing=True,
+    )
+
+    assert math.isnan(
+        arbitrary.loc[0, "official_classified_rehearsal_best_seconds"]
+    )
+    assert (
+        arbitrary.loc[0, "official_rehearsal_evidence_provenance"]
+        == "not_declared_official"
+    )
+    assert arbitrary.loc[0, "anchor_source"] == "valid_clean_rehearsal"
+    assert completed.loc[
+        0, "official_classified_rehearsal_best_seconds"
+    ] == pytest.approx(92.4)
+    assert (
+        completed.loc[0, "official_rehearsal_evidence_provenance"]
+        == "completed_provider_session_timing"
+    )
+    assert completed.loc[0, "anchor_source"] == "official_classified_rehearsal"
+    assert completed.loc[0, "feature_contract"] == "quality_aware_rehearsal_lap_v2"
+
+
+def test_best_lap_production_adapter_declares_completed_provider_timing(
+    tmp_path,
+) -> None:
+    laps_path = tmp_path / "event_practice_3_laps.csv"
+    results_path = tmp_path / "event_practice_3_results.csv"
+    pd.DataFrame(
+        {
+            "Driver": ["ONE"],
+            "Team": ["Solo"],
+            "LapTime": [92.4],
+            "Deleted": [False],
+            "IsAccurate": [True],
+        }
+    ).to_csv(laps_path, index=False)
+    pd.DataFrame(
+        {"Abbreviation": ["ONE"], "TeamName": ["Solo"]}
+    ).to_csv(results_path, index=False)
+
+    features = _quality_aware_rehearsal(
+        laps_path,
+        event_key=202601,
+        source="practice_3",
+        include_earlier_evidence=False,
+    )
+
+    assert features.loc[
+        0, "official_classified_rehearsal_best_seconds"
+    ] == pytest.approx(92.4)
+    assert (
+        features.loc[0, "official_rehearsal_evidence_provenance"]
+        == "completed_provider_session_timing"
+    )
 
 
 def test_deleted_lap_stays_potential_but_can_repair_unrepresentative_valid_anchor() -> None:

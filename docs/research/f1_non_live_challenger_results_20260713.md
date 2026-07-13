@@ -1,197 +1,251 @@
-# F1 Non-Live Challenger Results
+# F1 Non-Live Full Implementation and Evidence Report
 
-Finalized: 2026-07-13 Europe/Paris. Evaluation cutoff: completed 2026 rounds
-1-9. These are retrospective research results on the exact new challenger
-paths, not production claims.
+Finalized: 2026-07-13 Europe/Paris. Audit population: completed 2026 rounds
+1-9. This is a chronological research decision record, not a claim that every
+new model is better than its retained baseline.
 
-## Executive decision
+## Bottom line
 
-| Mode | Retained baseline | New challenger result | Decision |
-| --- | --- | --- | --- |
-| Qualifying Prediction | Latest target-aligned valid rehearsal rank | MAE 2.1414 vs 1.8687; Kendall 0.7518 vs 0.7729 on 2026 | Reject point challenger; retain baseline and keep stage probabilities uncalibrated |
-| Race Final Position | Grand Prix Qualifying order proxy at `post_qualifying_pre_grid` | MAE 3.7677 vs 3.7374; terminal Brier 0.1765 vs 0.1828 | Reject joint point challenger; retain proxy baseline and keep improved terminal model diagnostic |
-| Best Estimated Lap | Valid-rehearsal shift | MAE 0.4179 s vs 0.5240 s, a 20.24% gain; 195/195 observed targets covered | Keep quality-aware challenger diagnostic because bootstrap CI still crosses zero by 0.0065 s |
+The recommendation is implemented across Qualifying Prediction, Race Final
+Position, and Best Estimated Lap. Optional LambdaRank/quantile paths and the
+telemetry deep-model gate are also implemented. RL remains confined to Live
+Race Intelligence.
 
-No retained policy is silently replaced. The code, datasets, backtests, and
-promotion gates are now in place so future rounds can accumulate genuinely
-prospective evidence.
+Implementation completeness and model promotion are different outcomes:
 
-## What was implemented
+| Mode | Locked comparison | Evidence decision |
+| --- | --- | --- |
+| Qualifying Prediction | Shared latent challenger MAE 2.9899 vs baseline 1.8687 over rounds 1-9 | Rejected; point and uncalibrated probability outputs are not promoted |
+| Race Final Position | Stable-identity candidate MAE 4.3737 vs grid baseline 3.7172 over rounds 1-9 | Diagnostic only; worse on all four primary aggregates and blocked by missing same-product post-grid selection/calibration plus retrospective Qualifying evidence |
+| Best Estimated Lap | Audit-five event MAE 0.4470 s vs baseline 0.4090 s | Point, interval, and deep paths remain diagnostic |
+| Optional ranking/quantile | LightGBM/XGBoost paths ran with healthy native runtimes | Fail-closed diagnostic evidence only |
+| Live Race Intelligence | RL remains the action/strategy tool | Outside this non-live rerun; no passive forecast was converted to RL |
 
-### Shared Qualifying and Best-Lap evidence
+No production policy is silently replaced. A completed challenger that loses
+or lacks point-in-time evidence remains shadow/diagnostic.
 
-`packages/f1/features/qualifying_lap.py` now creates one causal row per entrant
-and keeps the following concepts separate:
+## What is now implemented
 
-- official/valid clean lap;
-- deleted or track-limits potential evidence;
-- compatible-sector potential;
-- credible-potential checks and potential penalties;
-- best-two/best-three consistency, push-lap count and progress;
-- track evolution, tyre, track-status and speed-trap evidence;
-- teammate/field-relative evidence;
-- earlier-session and team fallback provenance;
-- quality anchor versus latent potential-adjusted anchor.
+### One shared Qualifying and Best-Lap engine
 
-The Miami failure is explicitly fixed. Alonso's valid but unrepresentative
-101.311 s lap remains recorded as valid evidence, while his credible 92.490 s
-deleted lap informs a 92.439 s latent anchor. Stroll's 129.082 s deleted outlier
-is rejected and falls back to the teammate latent anchor instead of becoming a
-129 s forecast.
+The two modes now consume the same event model and the same joint samples. The
+engine owns the quality-aware rehearsal anchor, common event/session shift,
+the frozen-selected team/driver residual path, valid-lap hurdle, nested
+Q1/Q2/Q3 stages, and uncertainty distribution. The selector disables the
+residual path when it fails selection-block evidence. Best Lap reads marginal
+seconds; Qualifying applies valid/stage outcomes to every joint field draw and
+converts those draws into legal official classifications.
+
+The pre-boundary reference artifacts match on driver IDs, joint-sample count
+and hash, model and model-manifest hashes, Best-Lap and Qualifying output
+hashes, position-marginal hash, and shared-artifact hash for all nine events.
+The cutoff-safe regeneration must reproduce those nine integrity fields per
+round before this report is finalized.
+
+The causal rehearsal record separates valid clean pace from deleted potential
+and includes compatible sectors, lap dispersion, push-lap count, session
+progress, track status/interruption, compound, tyre life/freshness, speed trap,
+teammate/field-relative pace, missingness, uncertainty, and source provenance.
+Deleted laps can influence latent potential but can never become legal targets.
+
+Absolute target-season pace is fitted from target-season evidence. Older
+seasons are restricted to weak invariant transition/reliability priors; old
+constructor pace is not transferred as current pace.
+
+### Race as survival times conditional order
+
+The Race model implements
+
+`P(status, retirement time | causal evidence) * P(running order | survival, evidence)`
+
+rather than one final-position regressor. It contains:
+
+- driver-conditioned discrete-time terminal hazards with team, power unit,
+  driver-incident, circuit, weather, missed-practice and current-weekend inputs;
+- cause and retirement-fraction distributions with explicit coarse-label
+  handling;
+- a regularized Bradley-Terry conditional order using the legal grid, signed
+  Qualifying surprise, teammate/field-relative long-run pace, compound and
+  tyre-age pace, adjusted degradation, representative stint length, evidence
+  uncertainty, circuit mobility, and Sprint pace;
+- shared team, power-unit, weather, incident and pace shocks;
+- FIA-style complete classifications and exact minimum-expected-absolute-loss
+  assignment.
+
+`post_qualifying_pre_grid` and `post_grid_pre_race` are separate products. The
+capture command stores document publication and local capture times, revisions,
+document/raw hashes, penalties, pit-lane starts, withdrawals, DNS/eligibility
+and source provenance. All nine 2026 evaluations use official FIA final-grid
+documents whose publication timestamps predate the Race; rounds 2, 4, 5 and 7
+contain one pit-lane starter. The local documents were captured retrospectively
+on July 13, so this report does not call them contemporaneous first-seen
+captures.
+
+The final audit also fixed three silent integrity problems:
+
+- car numbers are event-specific, so longitudinal `driver_id` is now the FIA
+  abbreviation while car/provider IDs remain artifact provenance;
+- an entrant absent from a provider Race file is no longer invented as a DNS;
+  2025 round 9 is excluded because STR lacks authoritative nonstarter evidence;
+- all 1,210 examined input files resolve through the same legacy path rules as
+  the provider and enter the hashed input manifest.
+
+Historical provider Qualifying/practice snapshots are retrospective captures,
+not verified first-seen files. Their capture semantics are recorded explicitly
+and block promotion. The official 2026 final grids do have verified pre-race
+publication times. This distinction is intentional.
+
+### Optional and deep paths
+
+OpenMP, XGBoost 3.3.0, and LightGBM 4.6.0 load successfully. Event-grouped
+LambdaRank and LightGBM quantile challengers run only on chronological blocks
+with exact champion-artifact alignment. Telemetry v2 validates 550 fixed-shape,
+distance-normalized tensors across 9 independent events and 191 driver-events,
+with zero cutoff, missing-file, SHA, shape, schema, or content failures. The
+declared minimum is 20 events, so the TCN remains blocked.
+
+## Prediction versus reality by round
+
+Every artifact contains full driver-level rows. These tables give the complete
+event-level comparison and the most interpretable predicted-versus-actual
+leaders.
 
 ### Qualifying Prediction
 
-- event-pure Bradley-Terry/logistic pairwise training;
-- equal event weighting and explicit feature allowlist;
-- strong rehearsal-rank prior with a configurable ±3 movement cap;
-- exact assignment to a legal full-field permutation;
-- standard/Sprint source interactions;
-- distinct `P(valid lap)`, `P(Q2|valid)` and `P(Q3|Q2)` models;
-- joint samples and position marginals marked uncalibrated;
-- frozen selector that requires matched events and explicit promotion gates.
+| Rd | Event | Base MAE | Shared MAE | Base Kendall | Shared Kendall | Predicted top 3 | Actual top 3 |
+| ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
+| 1 | Australia | 2.636 | 2.545 | .671 | .680 | RUS / HAM / LEC | RUS / ANT / HAD |
+| 2 | China | .909 | .818 | .896 | .905 | RUS / ANT / HAM | ANT / RUS / HAM |
+| 3 | Japan | 1.727 | 3.909 | .801 | .550 | HAM / ANT / HAD | ANT / RUS / PIA |
+| 4 | Miami | 2.909 | 3.000 | .610 | .602 | LEC / ANT / PIA | ANT / VER / LEC |
+| 5 | Canada | 2.000 | 3.182 | .758 | .593 | RUS / LEC / HAM | RUS / ANT / NOR |
+| 6 | Monaco | 2.545 | 2.727 | .697 | .662 | LEC / HAM / ANT | ANT / VER / HAM |
+| 7 | Barcelona | 1.727 | 4.818 | .801 | .411 | PIA / LEC / HAD | RUS / HAM / ANT |
+| 8 | Austria | .909 | 4.182 | .887 | .463 | HAM / LEC / HAD | RUS / LEC / HAM |
+| 9 | Britain | 1.455 | 1.727 | .835 | .801 | HAM / ANT / NOR | ANT / LEC / HAM |
+| **Mean** |  | **1.869** | **2.990** | **.773** | **.630** |  |  |
 
-The 2025 transfer arm showed a small MAE gain, 3.3583 to 3.3083. That gain did
-not transfer to 2026: the challenger worsened MAE by 0.2727 positions. This is
-exactly why selection is frozen across event blocks rather than switched after
-one encouraging season.
+Across all nine rounds, pole hit is 66.67% vs 22.22%, top-three overlap
+59.26% vs 51.85%, and top-ten overlap 90.00% vs 84.44%. On the locked audit
+rounds 5-9, challenger-minus-baseline MAE is `+1.6000`, 95% CI
+`[+0.4182, +2.7818]`, with 0% improvement probability. The rejection is
+decisive.
 
-### Race Final Position
+Stage diagnostics cover 198 driver-rounds:
 
-- immutable `post_grid_pre_race` snapshot contract for revisions, penalties,
-  pit-lane starts, withdrawals, DNS and starter eligibility;
-- explicit retention of the separate `post_qualifying_pre_grid` proxy;
-- reason-coded, partial-pooled terminal hazard with recency and causal cutoffs;
-- conditional Bradley-Terry order with grid, signed Qualifying surprise,
-  strength, long-run, degradation, evidence and mobility interfaces;
-- joint Monte Carlo status/distance/order sampling;
-- exact minimum-expected-absolute-loss assignment to a legal permutation;
-- binary and multiclass Brier/log-loss, calibration bins and reason recall;
-- raw race status, completed laps and retirement fraction preserved by the
-  local provider.
-
-A critical mathematical bug found during the audit was fixed: classified
-finishers initially received independent Beta distance draws, which randomized
-lapped distance and sent a grid-P2 car to P16. Classified distance is now tied
-to conditional pace, defaults to zero deficit without causal evidence, and
-uses the same order shock when an explicit deficit exists. Terminal cars retain
-hazard distance, so a late retiree can still classify ahead of a genuinely
-lapped finisher.
-
-The corrected 2025 selector arm was essentially neutral. The frozen 2026 arm
-also remained neutral on order while slightly improving status calibration.
-That is useful decomposition evidence, but not enough to replace the grid
-baseline.
-
-### Best Estimated Lap
-
-- full quality-aware entrant roster with earlier-session fallbacks;
-- latent potential-adjusted location model;
-- event-balanced valid-lap hurdle and stage-mixture interface;
-- robust hierarchical Huber residual model retained as a diagnostic;
-- Huber on/off selection frozen on 2025 before the 2026 audit;
-- recency-weighted weak 2022-2025 invariant-feature priors;
-- rolling event-block conformal intervals;
-- full per-round and per-driver prediction-versus-reality evidence.
-
-The Huber residual was rejected on 2025 (1.2344 s versus 1.2183 s for the
-quality-location model), so the 2026 run used the frozen location model. The
-quality-aware representation itself produced the 20.24% 2026 MAE gain.
-
-## 2026 prediction versus reality by round
-
-Every underlying artifact also contains driver-level predicted and actual
-values. The tables below report event-level error on the complete scored
-population.
-
-### Qualifying Prediction
-
-| Rd | Event | Baseline MAE | Pairwise MAE | Baseline Kendall | Pairwise Kendall |
-| ---: | --- | ---: | ---: | ---: | ---: |
-| 1 | Australia | 2.636 | 2.455 | 0.671 | 0.714 |
-| 2 | China | 0.909 | 1.545 | 0.896 | 0.844 |
-| 3 | Japan | 1.727 | 1.727 | 0.801 | 0.784 |
-| 4 | Miami | 2.909 | 3.455 | 0.610 | 0.576 |
-| 5 | Canada | 2.000 | 1.727 | 0.758 | 0.784 |
-| 6 | Monaco | 2.545 | 3.000 | 0.697 | 0.662 |
-| 7 | Barcelona | 1.727 | 1.727 | 0.801 | 0.801 |
-| 8 | Austria | 0.909 | 1.636 | 0.887 | 0.827 |
-| 9 | Britain | 1.455 | 2.000 | 0.835 | 0.775 |
-| **Mean** |  | **1.869** | **2.141** | **0.773** | **0.752** |
-
-Paired event-bootstrap challenger-minus-baseline MAE: `+0.2727`, 95% CI
-`[+0.0303, +0.5051]`, improvement probability `1.01%`. The frozen selector
-retains `qualifying_rehearsal_rank_baseline_v1`.
-
-The separate stage models were evaluated on 678 2025-2026 entrant rows:
-
-| Output | Brier | Log loss | Mean probability | Observed rate |
+| Output | Brier | Log loss | Mean probability | Observed |
 | --- | ---: | ---: | ---: | ---: |
-| Valid classified lap | 0.0168 | 0.0936 | 0.9881 | 0.9838 |
-| Reaches Q2 | 0.1505 | 0.4654 | 0.7144 | 0.7301 |
-| Reaches Q3 | 0.1661 | 0.5142 | 0.4463 | 0.4779 |
+| Valid classified lap | .031925 | .269176 | .912116 | .984848 |
+| Reaches Q2 | .174811 | .531151 | .724751 | .722222 |
+| Reaches Q3 | .157185 | .487714 | .454545 | .444444 |
 
-These probabilities remain explicitly uncalibrated until a disjoint
-calibration block exists.
-
-### Race Final Position
-
-| Rd | Event | Grid-proxy MAE | Joint MAE | Rolling-status Brier | Hazard Brier |
-| ---: | --- | ---: | ---: | ---: | ---: |
-| 1 | Australia | 4.545 | 4.455 | 0.1834 | 0.1788 |
-| 2 | China | 4.182 | 4.273 | 0.2487 | 0.2407 |
-| 3 | Japan | 2.000 | 2.000 | 0.0853 | 0.0876 |
-| 4 | Miami | 3.455 | 3.727 | 0.1504 | 0.1492 |
-| 5 | Canada | 5.273 | 5.182 | 0.2154 | 0.2064 |
-| 6 | Monaco | 5.091 | 5.091 | 0.2475 | 0.2346 |
-| 7 | Barcelona | 3.091 | 3.273 | 0.2468 | 0.2295 |
-| 8 | Austria | 1.818 | 1.727 | 0.1500 | 0.1423 |
-| 9 | Britain | 4.182 | 4.182 | 0.1179 | 0.1194 |
-| **Mean** |  | **3.737** | **3.768** | **0.1828** | **0.1765** |
-
-Mean Kendall is 0.5257 for both policies. Status log loss improves from 0.5617
-to 0.5389, but the joint position MAE does not. Paired position delta is
-`+0.0303`, 95% CI `[-0.0404, +0.1111]`, improvement probability `26.16%`.
-The full joint challenger is rejected. The terminal component remains a
-diagnostic until status-specific uncertainty is promoted separately.
-
-This is still a `post_qualifying_pre_grid` evaluation. No local 2026 event has
-an immutable first-seen final-grid snapshot, so the code deliberately makes no
-historical `post_grid_pre_race` accuracy claim.
+The joint position matrix is legal, but it is explicitly uncalibrated and
+fail-closed.
 
 ### Best Estimated Lap
 
-| Rd | Rehearsal | Baseline MAE (s) | Quality-aware MAE (s) | Fastest hit | Interval coverage |
-| ---: | --- | ---: | ---: | --- | ---: |
-| 1 | FP3 | 0.700 | 0.300 | yes | 68.4% |
-| 2 | Sprint Qualifying | 0.404 | 0.510 | no | 61.9% |
-| 3 | FP3 | 0.303 | 0.295 | yes | 100.0% |
-| 4 | Sprint Qualifying | 1.089 | 0.586 | no | 90.5% |
-| 5 | Sprint Qualifying | 0.355 | 0.254 | yes | 95.0% |
-| 6 | FP3 | 0.532 | 0.533 | yes | 81.8% |
-| 7 | FP3 | 0.613 | 0.543 | yes | 77.3% |
-| 8 | FP3 | 0.225 | 0.222 | yes | 100.0% |
-| 9 | Sprint Qualifying | 0.494 | 0.518 | no | 90.9% |
-| **Mean** |  | **0.524** | **0.418** | **6/9** | **84.62%** |
+| Rd | Role / rehearsal | Candidate MAE (s) | Baseline MAE (s) | Predicted fastest | Actual fastest | Predicted top 3 | Actual top 3 |
+| ---: | --- | ---: | ---: | --- | --- | --- | --- |
+| 1 | Fit / FP3 | .555760 | .299796 | RUS 77.912 | RUS 78.518 | RUS / HAM / LEC | RUS / ANT / HAD |
+| 2 | Fit / Sprint Q | .456453 | .491958 | RUS 91.061 | ANT 92.064 | RUS / ANT / NOR | ANT / RUS / HAM |
+| 3 | Calibration / FP3 | .285753 | .294106 | ANT 88.700 | ANT 88.778 | ANT / RUS / HAM | ANT / RUS / PIA |
+| 4 | Calibration / Sprint Q | .621836 | .567835 | NOR 87.440 | ANT 87.798 | NOR / ANT / PIA | ANT / VER / LEC |
+| 5 | Audit / Sprint Q | .393693 | .282077 | RUS 72.492 | RUS 72.578 | RUS / ANT / HAM | RUS / ANT / NOR |
+| 6 | Audit / FP3 | .486679 | .532485 | ANT 72.046 | ANT 72.051 | ANT / LEC / HAM | ANT / VER / HAM |
+| 7 | Audit / FP3 | .556935 | .534999 | RUS 75.074 | RUS 74.679 | RUS / LEC / PIA | RUS / HAM / ANT |
+| 8 | Audit / FP3 | .269948 | .223575 | RUS 66.357 | RUS 66.113 | RUS / HAM / ANT | RUS / LEC / HAM |
+| 9 | Audit / Sprint Q | .527984 | .472047 | ANT 87.900 | ANT 88.111 | ANT / HAM / VER | ANT / LEC / HAM |
 
-The quality-aware model scores all 195 observed targets. Its event-mean gain is
-20.24%, fastest-driver hit remains 6/9, top-three overlap is unchanged, and
-interval width increases only 3.06%. Leave-one-event-out deltas are all
-negative and the largest event supplies 46.40% of positive gain.
+The promotion aggregate is the untouched audit block, rounds 5-9: event-mean
+MAE `0.447048 s` vs `0.409037 s` baseline, or 9.29% worse. Row-weighted MAE is
+`0.487791 s`; Spearman is `.930226`; fastest hit is 100% vs 80%; top-three
+overlap is 60.00% vs 66.67%. P05/P90 coverage is 97.27% with `2.714819 s`
+width, versus `1.999628 s` baseline width. The interval is too wide and
+overcovers the nominal 85% target.
 
-Paired event-bootstrap delta is `-0.1061 s`, 95% CI
-`[-0.2424, +0.0065]`, improvement probability `96.29%`. Every declared gate
-passes except the requirement that the upper confidence bound be below zero.
-The challenger therefore remains diagnostic until more prospective rounds
-remove that last uncertainty.
+Paired delta is `+0.038011 s`, CI `[-0.008935, +0.080631]`, improvement
+probability 5.50%. Point, interval, and deep promotion all fail closed.
 
-## Evidence artifacts
+### Race Final Position
 
-- Qualifying: `artifacts/backtests/f1/qualifying/quality_aware_pairwise_v1_20260713.json`
-- Race: `artifacts/backtests/f1/race_final_position/survival_order_v2_20260713.json`
-- Best Lap: `artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_quality_aware_huber_v2_20260713.json`
+<!-- RACE_V4_START -->
+| Rd | Event | Base MAE | Candidate MAE | Base Kendall | Candidate Kendall | Base/Candidate Brier | Predicted top 3 | Actual top 3 |
+| ---: | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
+| 1 | Australia | 4.545 | 4.545 | .385 | .385 | .1885 / .1850 | RUS / ANT / HAD | RUS / ANT / LEC |
+| 2 | China | 3.818 | 5.000 | .489 | .342 | .2535 / .2666 | LEC / HAM / ANT | ANT / RUS / HAM |
+| 3 | Japan | 2.000 | 2.091 | .784 | .758 | .0851 / .0755 | ANT / RUS / NOR | ANT / PIA / LEC |
+| 4 | Miami | 3.455 | 3.727 | .541 | .558 | .1502 / .1508 | ANT / LEC / NOR | ANT / NOR / PIA |
+| 5 | Canada | 5.273 | 5.182 | .359 | .359 | .2169 / .2047 | RUS / ANT / HAM | ANT / HAM / VER |
+| 6 | Monaco | 5.091 | 7.273 | .316 | -.022 | .2494 / .4163 | LEC / HAM / NOR | ANT / HAM / GAS |
+| 7 | Barcelona | 3.091 | 4.091 | .619 | .472 | .2411 / .2319 | RUS / PIA / ANT | HAM / RUS / NOR |
+| 8 | Austria | 1.818 | 2.909 | .801 | .628 | .1400 / .1680 | LEC / RUS / NOR | RUS / VER / ANT |
+| 9 | Britain | 4.364 | 4.545 | .463 | .489 | .1177 / .1181 | ANT / HAM / LEC | LEC / RUS / HAM |
+| **Mean** |  | **3.717** | **4.374** | **.529** | **.441** | **.1825 / .2019** |  |  |
 
-Each artifact records input and implementation hashes, exact protocol,
-per-event metrics, and per-driver predictions. They are local immutable run
-outputs; this report is the versioned decision record.
+Candidate MAE is 17.66% worse. Terminal log loss also worsens from `.562626`
+to `.604372`; retirement-fraction MAE is `.256683` and terminal ECE is
+`.136525`. Canada is the only round with a lower candidate position MAE;
+Australia ties and the other seven rounds regress.
 
-Suggested commit name: `docs(f1): record non-live challenger decisions`
+All nine point outputs are legal 22-driver permutations, use an official FIA
+final-grid document, have complete target coverage, and attach Race truth only
+after inference freeze. The artifact uses stable FIA abbreviations for
+longitudinal identity while retaining provider/car-number provenance. It
+content-verifies all 1,210 input files and records 56 event-model fits plus 192
+safe cache hits.
+
+Promotion is not evaluated: the `post_grid_pre_race` product lacks same-product
+selection and calibration blocks, and the historical Qualifying inputs are
+retrospective rather than verified first-seen snapshots. Independently of
+those evidence blockers, the candidate loses all four aggregate comparisons:
+position MAE, Kendall, terminal Brier, and terminal log loss. Production is
+therefore unchanged.
+<!-- RACE_V4_END -->
+
+## Optional challenger evidence
+
+- LightGBM LambdaRank: MAE `2.290909`, Kendall `.745455` vs the rejected shared
+  champion `3.327273` / `.586147`, but the retained rehearsal baseline is still
+  better at `1.727273`. CI versus the shared champion crosses zero.
+- XGBoost LambdaRank: MAE `3.127273`, Kendall `.600000`; Sprint performance
+  worsens and the paired CI crosses zero.
+- LightGBM raw quantile: MAE `.507133 s` vs shared champion `.487791 s`, 70.00%
+  coverage vs 97.27%, and `1.595980 s` width vs `2.714819 s`. It is raw,
+  non-conformal diagnostic output.
+
+Overall decision: `fail_closed_diagnostic_evidence_only`; production remains
+unchanged.
+
+## Evidence register
+
+| Mode | Local immutable artifact | Schema | SHA-256 |
+| --- | --- | --- | --- |
+| Qualifying | `artifacts/backtests/f1/qualifying/shared_latent_v6_20260713.json` | `f1_shared_qualifying_latent_event_block_v3` | pending cutoff-safe regeneration |
+| Best Lap | `artifacts/backtests/f1/best_estimated_lap/shared_latent_v5_20260713.json` | `f1_best_estimated_lap_shared_latent_v4` | pending cutoff-safe regeneration |
+| Race | `artifacts/backtests/f1/race_final_position/survival_order_v4_20260713.json` | `f1_race_survival_order_event_block_v3` | `2e8c8448af407b4d86ec38e34121c3f427556fdb5092ceb7ecbb2f3ed71d6c6e` |
+| Optional | `artifacts/backtests/f1/optional_models/2026_event_block_challengers_v3_20260713.json` | `f1_optional_non_live_event_block_evidence_v2` | `bd9edafff0b70297e7a547426389d0e7a9ed946f37c49d791fc634d361a46f6a` |
+| Telemetry audit | `artifacts/backtests/f1/telemetry/prequal_cache_audit_v2_20260713.json` | `f1_prequal_telemetry_cache_audit_v2` | `56a994a43cc025b0b63198bd6951eb6ecfe814d7c123194fdaf89e77183fc733` |
+
+The large run files remain local and ignored by repository policy. Their exact
+hashes and decisions are versioned here. The Qualifying and Best-Lap artifacts
+contain nine round-level records and 198 driver-level prediction/reality rows,
+SHA-256 inventories for accessed inputs and selected implementation files, and
+embedded run, partition, and protocol metadata. Per-event shared forecasts hash
+the fitted model, training partition, joint samples, and mode outputs. Race v4
+additionally records separate canonical input-manifest, implementation,
+configuration, and protocol hashes. The evidence register pins every complete
+artifact by its whole-file SHA-256.
+
+## Validation
+
+Final full-suite counts are inserted after the cutoff-safe shared-model reruns.
+Focused Race protocol, survival, grid and capture validation currently passes
+81 tests. Race v4 completed in `8391.57 s` wall time under the bounded
+single-process policy.
+
+Primary technical references: [FastF1](https://docs.fastf1.dev/core.html),
+[OpenF1](https://openf1.org/docs/),
+[XGBoost learning-to-rank](https://xgboost.readthedocs.io/en/stable/tutorials/learning_to_rank.html),
+and [LightGBM parameters](https://lightgbm.readthedocs.io/en/latest/Parameters.html).
+
+Suggested commit name: `docs(f1): record final non-live evidence decisions`

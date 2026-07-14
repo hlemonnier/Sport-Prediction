@@ -83,6 +83,29 @@ class DistanceTelemetryTCNConfig:
     lambda_mono: float = 0.0
 
 
+@dataclass(frozen=True)
+class DistanceTelemetryResidualTCNConfig:
+    """Small TCN used only for event-blocked telemetry residual research.
+
+    The production ``DistanceTelemetryTCN`` has a six-output physical lap-time
+    contract.  Pre-Qualifying telemetry bags instead have a much narrower
+    estimand: a bounded driver correction on top of a train-only
+    rehearsal-to-Qualifying source shift.  Keeping that adapter explicit
+    prevents the residual experiment from pretending that its labels are
+    sector/quantile targets.
+    """
+
+    input_channels: int
+    distance_bins: int
+    static_feature_dim: int = 0
+    hidden_channels: int = 4
+    kernel_size: int = 3
+    dilations: tuple[int, ...] = (1, 2)
+    dropout: float = 0.0
+    head_hidden_dim: int = 4
+    max_abs_correction_seconds: float = 2.0
+
+
 if nn is not None:
 
     class _TCNBlock(nn.Module):  # type: ignore[misc]
@@ -201,11 +224,124 @@ if nn is not None:
                 dim=1,
             )
 
+
+    class DistanceTelemetryResidualTCN(nn.Module):  # type: ignore[misc]
+        """Low-capacity dilated TCN for a bounded scalar residual correction."""
+
+        def __init__(self, config: DistanceTelemetryResidualTCNConfig) -> None:
+            super().__init__()
+            if int(config.input_channels) <= 0:
+                raise ValueError("input_channels must be positive")
+            if int(config.distance_bins) <= 1:
+                raise ValueError("distance_bins must be greater than one")
+            if int(config.static_feature_dim) < 0:
+                raise ValueError("static_feature_dim cannot be negative")
+            if int(config.hidden_channels) <= 0:
+                raise ValueError("hidden_channels must be positive")
+            if int(config.head_hidden_dim) <= 0:
+                raise ValueError("head_hidden_dim must be positive")
+            if int(config.kernel_size) <= 0 or int(config.kernel_size) % 2 == 0:
+                raise ValueError("kernel_size must be a positive odd integer")
+            dilations = tuple(int(dilation) for dilation in config.dilations)
+            if not dilations or any(dilation <= 0 for dilation in dilations):
+                raise ValueError(
+                    "dilations must be a non-empty sequence of positive integers"
+                )
+            if dilations != tuple(sorted(set(dilations))):
+                raise ValueError("dilations must be strictly increasing and unique")
+            if not np.isfinite(float(config.dropout)) or not (
+                0.0 <= float(config.dropout) < 1.0
+            ):
+                raise ValueError("dropout must be finite and in [0, 1)")
+            if (
+                not np.isfinite(float(config.max_abs_correction_seconds))
+                or float(config.max_abs_correction_seconds) <= 0.0
+            ):
+                raise ValueError(
+                    "max_abs_correction_seconds must be finite and positive"
+                )
+            self.config = config
+            hidden = int(max(2, config.hidden_channels))
+            self.input_projection = nn.Conv1d(
+                int(config.input_channels), hidden, kernel_size=1
+            )
+            self.blocks = nn.ModuleList(
+                [
+                    _TCNBlock(
+                        hidden,
+                        kernel_size=int(config.kernel_size),
+                        dilation=int(dilation),
+                        dropout=float(config.dropout),
+                        activation="gelu",
+                    )
+                    for dilation in config.dilations
+                ]
+            )
+            self.attention = nn.Linear(hidden, 1)
+            head_input = hidden + int(config.static_feature_dim)
+            head_hidden = int(max(2, config.head_hidden_dim))
+            self.head = nn.Sequential(
+                nn.Linear(head_input, head_hidden),
+                nn.GELU(),
+                nn.Linear(head_hidden, 1),
+            )
+
+        def forward(
+            self,
+            telemetry: "torch.Tensor",
+            static_features: "torch.Tensor | None" = None,
+        ) -> "torch.Tensor":  # type: ignore[override]
+            if telemetry.ndim != 3:
+                raise ValueError(
+                    "telemetry must have shape batch x channels x distance_bins"
+                )
+            x = self.input_projection(telemetry)
+            for block in self.blocks:
+                x = block(x)
+            sequence = x.transpose(1, 2)
+            weights = torch.softmax(self.attention(sequence), dim=1)
+            pooled = torch.sum(weights * sequence, dim=1)
+            static_dim = int(self.config.static_feature_dim)
+            if static_dim:
+                if static_features is None:
+                    raise ValueError(
+                        "static_features are required by the residual TCN config"
+                    )
+                if static_features.ndim != 2 or static_features.shape != (
+                    telemetry.shape[0],
+                    static_dim,
+                ):
+                    raise ValueError(
+                        "static_features must have shape batch x static_feature_dim"
+                    )
+                pooled = torch.cat([pooled, static_features], dim=1)
+            correction = self.head(pooled).squeeze(1)
+            return torch.tanh(correction) * float(
+                self.config.max_abs_correction_seconds
+            )
+
 else:
 
     class DistanceTelemetryTCN:  # pragma: no cover - exercised when torch missing
         def __init__(self, *_: object, **__: object) -> None:
             raise RuntimeError("PyTorch is not installed")
+
+
+    class DistanceTelemetryResidualTCN:  # pragma: no cover - torch missing
+        def __init__(self, *_: object, **__: object) -> None:
+            raise RuntimeError("PyTorch is not installed")
+
+
+def trainable_parameter_count(model: object) -> int:
+    """Return the exact learned scalar count for an instantiated torch model."""
+
+    if torch is None:
+        raise RuntimeError("PyTorch is not installed")
+    if not hasattr(model, "parameters"):
+        raise TypeError("model must expose torch parameters")
+    return int(
+        sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+    )
 
 
 def pinball_loss_tensor(
@@ -359,6 +495,8 @@ __all__ = [
     "OUTPUT_COLUMNS",
     "DistanceTelemetryTCN",
     "DistanceTelemetryTCNConfig",
+    "DistanceTelemetryResidualTCN",
+    "DistanceTelemetryResidualTCNConfig",
     "deep_output_contract_issues",
     "fastest_lap_pairwise_rank_loss",
     "monotonic_quantile_penalty",
@@ -367,5 +505,6 @@ __all__ = [
     "sector_mae_tensor",
     "seed_torch",
     "torch_available",
+    "trainable_parameter_count",
     "ultimate_lap_time_deep_loss",
 ]

@@ -16,7 +16,12 @@ fastf1 = ["fastf1>=3.4,<4"]
 fia = ["pypdf>=6,<7"]
 optional-models = ["lightgbm>=4.6,<5", "xgboost>=3.3,<4"]
 plots = ["matplotlib>=3.8,<4"]
-test = ["pytest>=8,<9"]
+notebooks = [
+  "ipykernel>=6,<8",
+  "nbclient>=0.10,<1",
+  "nbformat>=5.10,<6",
+]
+test = ["pytest>=8,<9", "pypdf>=6,<7"]
 
 [build-system]
 requires = ["setuptools>=69"]

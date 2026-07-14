@@ -434,7 +434,15 @@ def main() -> int:
     )
     parser.add_argument("--include-training-targets", action="store_true")
     parser.add_argument("--audit-only", action="store_true")
-    parser.add_argument("--minimum-independent-events", type=int, default=20)
+    parser.add_argument(
+        "--minimum-independent-events",
+        type=int,
+        default=1,
+        help=(
+            "caller-defined complete-event requirement for a concrete split; "
+            "this is not a neural-network capacity or promotion threshold"
+        ),
+    )
     parser.add_argument("--minimum-drivers-per-event", type=int, default=18)
     parser.add_argument(
         "--audit-output",

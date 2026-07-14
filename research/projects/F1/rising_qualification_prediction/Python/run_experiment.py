@@ -734,6 +734,15 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
     cmd.extend(["--dl-arch", str(base["dl_arch"])])
     cmd.extend(["--dl-hyperparams", json.dumps(base["dl_hyperparams"])])
     cmd.extend(["--dl-seed", str(base["dl_seed"])])
+    cmd.extend(["--f1-model", str(base["f1_model"])])
+    cmd.extend(["--f1-listwise", str(base["f1_listwise"])])
+    cmd.extend(["--f1-pl-samples", str(base["f1_pl_samples"])])
+    cmd.extend(["--f1-pl-temperature", str(base["f1_pl_temperature"])])
+    cmd.extend(["--f1-listwise-seed", str(base["f1_listwise_seed"])])
+    cmd.extend(
+        ["--qualifying-information-horizon", str(base["qualifying_information_horizon"])]
+    )
+    cmd.extend(["--race-information-horizon", str(base["race_information_horizon"])])
     cmd.extend(["--f1-mode", str(base["f1_mode"])])
     cmd.extend(["--f1-live-source", str(base["f1_live_source"])])
     cmd.extend(["--f1-live-model", str(base["f1_live_model"])])
@@ -789,6 +798,13 @@ def _run_weekend_phase(profile: dict[str, Any], args: argparse.Namespace) -> dic
             "dl_arch": str(base["dl_arch"]),
             "dl_hyperparams": dict(base["dl_hyperparams"]),
             "dl_seed": int(base["dl_seed"]),
+            "f1_model": str(base["f1_model"]),
+            "f1_listwise": str(base["f1_listwise"]),
+            "f1_pl_samples": int(base["f1_pl_samples"]),
+            "f1_pl_temperature": float(base["f1_pl_temperature"]),
+            "f1_listwise_seed": int(base["f1_listwise_seed"]),
+            "qualifying_information_horizon": str(base["qualifying_information_horizon"]),
+            "race_information_horizon": str(base["race_information_horizon"]),
             "f1_mode": str(base["f1_mode"]),
             "f1_live_source": str(base["f1_live_source"]),
             "f1_live_model": str(base["f1_live_model"]),

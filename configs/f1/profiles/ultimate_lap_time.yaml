@@ -1,10 +1,10 @@
 profile_name: best_estimated_lap_time_2026
-profile_version: best_estimated_lap_time_v4_quality_aware_shadow
+profile_version: best_estimated_lap_time_v6_tcn_sensitivity_audited
 model_family: ultimate_lap_time
 source: locked_local_current_evidence
 candidate_provider_scope: local_or_fastf1_or_openf1_after_provider_specific_validation
 baseline_model: achievable_best_lap_rehearsal_shift_v1
-challenger_model: achievable_best_lap_quality_aware_location_v2
+challenger_model: shared_qualifying_latent_lap_location_v4
 theoretical_diagnostic_model: ultimate_lap_time_deterministic_baseline_v1
 user_facing_mode: best_estimated_lap_time
 dataset:
@@ -55,28 +55,48 @@ targets:
     output: p05_p50_p90_best_valid_qualifying_lap_seconds
     semantics: best_valid_representative_lap_achieved_by_session_end
     point_model: achievable_best_lap_rehearsal_shift_v1
-    status: conditional_point_estimate_retained_full_mode_not_promoted
-    challenger_point_model: achievable_best_lap_quality_aware_location_v2
-    challenger_status: diagnostic_all_gates_except_bootstrap_upper_bound
+    status: retained_rehearsal_shift_baseline_full_mode_not_promoted
+    challenger_point_model: shared_qualifying_latent_lap_location_v4
+    challenger_status: evaluated_not_promoted_on_postdevelopment_rounds_7_to_9_replay
 evaluation:
   conditional_point_evidence:
-    artifact: artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_rehearsal_shift_v2_20260712e.json
-    protocol: same_season_strict_event_walk_forward
-    rounds: 9
-    matched_rows: 191
-    causal_inference_rows: 192
-    observed_target_rows: 195
-    evaluation_union_rows: 196
-    conditional_event_mean_p50_mae_seconds: 0.5133200235437062
-    conditional_raw_rehearsal_mean_mae_seconds: 0.763862255385939
-    paired_event_mean_mae_delta_seconds: -0.2505422318422328
-    end_to_end_scored_union_rate: 0.9744897959183674
-    conditional_event_mean_spearman: 0.9313375665778412
+    artifact: artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json
+    protocol: same_season_chronological_current_replay_with_postdevelopment_audit_block
+    prospective_development_evidence: false
+    audit_rounds: 3
+    all_prediction_rounds: 9
+    matched_rows: 66
+    causal_inference_rows: 66
+    observed_target_rows: 66
+    evaluation_union_rows: 66
+    conditional_event_mean_p50_mae_seconds: 0.37791858100367026
+    conditional_event_mean_raw_rehearsal_mae_seconds: 0.8053030303030294
+    matched_baseline_event_mean_p50_mae_seconds: 0.3713795297848222
+    paired_event_mean_mae_delta_seconds: 0.006539051218848023
+    relative_event_mean_mae_gain: -0.0176074627016648
+    paired_delta_ci95_seconds:
+      - -0.0025276191255559632
+      - 0.01680685897704076
+    bootstrap_probability_of_improvement: 0.03737
+    bootstrap_samples: 200000
+    end_to_end_scored_union_rate: 1.0
+    conditional_event_mean_spearman: 0.9540749105966498
     conditional_fastest_driver_hit_rate: 0.6666666666666666
-    interval_coverage: 0.7748344370860927
-    decision: retain_conditional_point_estimate_only_full_mode_blocked
+    retained_baseline_interval_coverage: 0.8636363636363636
+    retained_baseline_interval_mean_width_seconds: 1.3950000000000102
+    candidate_interval_coverage: 0.9090909090909091
+    candidate_interval_mean_width_seconds: 1.8337811378131619
+    interval_calibration_events: 4
+    interval_audit_events: 3
+    decision: reject_shared_latent_challenger_retain_rehearsal_shift_baseline
   future_probabilistic_and_deep_gate:
-    status: not_run_no_complete_report
+    status: evaluated_not_promoted
+    interval_blocker: no_distinct_non_tautological_interval_width_comparator
+    tcn_status: evaluated_parameter_sensitive_inconclusive
+    tcn_profile_design_status: postdevelopment_outer_target_informed_not_promotion_evidence
+    tcn_fold_target_contract: current_outer_event_excluded_from_fit_early_stopping_and_inner_selection
+    tcn_artifact: artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json
+    tcn_sensitivity_matrix: artifacts/backtests/f1/telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json
     required_metrics:
       - p50_mae
       - p50_rmse
@@ -86,28 +106,70 @@ evaluation:
       - interval_coverage
       - fastest_lap_winner_hit_rate
       - top3_fastest_lap_accuracy
-  quality_aware_challenger_evidence:
-    artifact: artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_quality_aware_huber_v2_20260713.json
-    protocol: multi_season_weak_prior_plus_strict_2026_walk_forward
-    observed_target_rows: 195
+  shared_latent_challenger_evidence:
+    artifact: artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json
+    protocol: same_season_chronological_current_replay_with_postdevelopment_audit_block
+    prospective_development_evidence: false
+    observed_target_rows: 66
     observed_target_coverage: 1.0
-    event_mean_p50_mae_seconds: 0.4179188302342961
-    matched_baseline_event_mean_p50_mae_seconds: 0.5239968546964834
-    relative_event_mean_mae_gain: 0.2024401931260279
-    event_mean_spearman: 0.9313375665778412
+    event_mean_p50_mae_seconds: 0.37791858100367026
+    matched_baseline_event_mean_p50_mae_seconds: 0.3713795297848222
+    relative_event_mean_mae_gain: -0.0176074627016648
+    event_mean_spearman: 0.9540749105966498
     fastest_driver_hit_rate: 0.6666666666666666
-    interval_coverage: 0.8461538461538461
-    interval_width_inflation: 0.030640618600653184
+    retained_baseline_interval_coverage: 0.8636363636363636
+    retained_baseline_interval_mean_width_seconds: 1.3950000000000102
     paired_delta_ci95_seconds:
-      - -0.24243809660369303
-      - 0.006459896681313653
-    bootstrap_probability_of_improvement: 0.9629
-    decision: diagnostic_not_promoted_ci_upper_crosses_zero
+      - -0.0025276191255559632
+      - 0.01680685897704076
+    bootstrap_probability_of_improvement: 0.03737
+    decision: evaluated_not_promoted_retain_rehearsal_shift_baseline
+  telemetry_sequence_evidence:
+    artifact: artifacts/backtests/f1/telemetry/prequal_telemetry_residual_sequence_v6_repository_bound_2026.json
+    independent_events: 9
+    validated_tensors: 550
+    driver_event_bags: 191
+    selected_candidate: zero_telemetry_correction
+  true_tcn_evidence:
+    artifact: artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json
+    schema_version: f1_prequal_telemetry_true_tcn_research_v2
+    sensitivity_matrix_artifact: artifacts/backtests/f1/telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json
+    status: evaluated_parameter_sensitive_inconclusive
+    profile_design_status: d0_pre_sensitivity_control_other_six_profiles_outer_target_informed_and_promotion_ineligible
+    current_fold_target_leakage: false
+    independent_events: 9
+    scored_events: 5
+    scored_driver_events: 108
+    trainable_parameters: 274
+    source_shift_event_balanced_mae_seconds: 0.4306204545454547
+    tcn_event_balanced_mae_seconds: 0.4299030050021292
+    tcn_delta_seconds: -0.0007174495433255323
+    tcn_relative_improvement: 0.0016660832892456134
+    tcn_events_beating_source_shift: 3
+    fixed_seed_repeat_event_balanced_mae_seconds: 0.4320078178464522
+    fixed_seed_mean_absolute_event_delta_seconds: 0.002294463466625385
+    equal_architecture_sham_event_balanced_mae_seconds: 0.4321697115120119
+    reference_vs_sham_mean_event_mae_seconds: -0.0022667065098827045
+    reference_gain_is_smaller_than_seed_variation: true
+    locked_zero_correction_fold_count: 5
+    deployment_changed: false
 promotion:
   fail_closed_on_missing_metrics: true
   fail_closed_on_leakage_issues: true
   probabilistic_intervals_promoted: false
   deep_model_promoted: false
-  quality_aware_point_challenger_promoted: false
-  quality_aware_point_challenger_blocker: event_bootstrap_upper_bound_not_below_zero
-  deep_model_blocker: no_2026_distance_normalized_rehearsal_telemetry_with_separate_pre_q_feature_and_q_target_timestamps
+  shared_latent_point_challenger_promoted: false
+  shared_latent_point_challenger_blockers:
+    - mae_does_not_improve_at_least_five_percent
+    - event_bootstrap_upper_bound_not_below_zero
+    - weekend_strata_and_leave_one_event_out_not_stable
+  interval_blocker: no_distinct_non_tautological_interval_width_comparator
+  deep_model_blockers:
+    - profile_hyperparameters_tuned_after_same_outer_targets_were_observed
+    - postdevelopment_profile_matrix_is_descriptive_not_selection_evidence
+    - locked_inner_selector_retained_zero_telemetry_correction_in_all_folds
+    - reference_gain_smaller_than_fixed_seed_variation
+    - fixed_seed_repeat_failed_incremental_gain
+    - no_independent_post_development_season_or_regime_holdout
+    - insufficient_independent_events_for_promotion_grade_tcn_evidence
+    - telemetry_vs_equal_architecture_sham_is_descriptive_not_confirmatory

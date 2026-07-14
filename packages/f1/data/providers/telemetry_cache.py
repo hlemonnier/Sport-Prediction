@@ -364,6 +364,8 @@ class TelemetryCacheAudit:
     invalid_tensor_count: int
     minimum_independent_events: int
     minimum_drivers_per_event: int
+    cache_integrity_ready: bool
+    ready_for_requested_event_protocol: bool
     ready_for_deep_model: bool
     blockers: tuple[str, ...]
 
@@ -381,6 +383,18 @@ class TelemetryCacheAudit:
             "invalid_tensor_count": int(self.invalid_tensor_count),
             "minimum_independent_events": int(self.minimum_independent_events),
             "minimum_drivers_per_event": int(self.minimum_drivers_per_event),
+            "cache_integrity_ready": bool(self.cache_integrity_ready),
+            "ready_for_requested_event_protocol": bool(
+                self.ready_for_requested_event_protocol
+            ),
+            "complete_event_shortfall_for_requested_protocol": int(
+                max(0, self.minimum_independent_events - self.event_count)
+            ),
+            "event_threshold_semantics": (
+                "caller_supplied_protocol_requirement_not_model_capacity_claim"
+            ),
+            # Backward-compatible alias.  Capacity and promotion readiness must
+            # be decided from event-disjoint model evidence, not this cache flag.
             "ready_for_deep_model": bool(self.ready_for_deep_model),
             "blockers": list(self.blockers),
         }
@@ -390,10 +404,16 @@ def audit_telemetry_cache_manifests(
     manifests: Iterable[Mapping[str, Any]],
     *,
     root: Path,
-    minimum_independent_events: int = 20,
+    minimum_independent_events: int = 1,
     minimum_drivers_per_event: int = 18,
 ) -> TelemetryCacheAudit:
-    """Fail closed until enough valid normalized entrant/event evidence exists."""
+    """Validate cache integrity and a caller-defined evaluation protocol.
+
+    ``minimum_independent_events`` is not a neural-network sample-complexity
+    claim.  It describes the number of complete events required by the caller's
+    concrete split (for example, three fit events plus one held-out event).
+    Model capacity must be judged from event-disjoint learning evidence.
+    """
 
     if int(minimum_independent_events) < 1:
         raise ValueError("minimum_independent_events must be positive")
@@ -486,17 +506,21 @@ def audit_telemetry_cache_manifests(
             allow_nan=False,
         ).encode("utf-8")
     ).hexdigest()
-    blockers: list[str] = []
+    integrity_blockers: list[str] = []
+    protocol_blockers: list[str] = []
     if complete_events < int(minimum_independent_events):
-        blockers.append("insufficient_independent_prequalifying_telemetry_events")
+        protocol_blockers.append("insufficient_complete_events_for_requested_protocol")
     if cutoff_violations:
-        blockers.append("telemetry_cutoff_violations")
+        integrity_blockers.append("telemetry_cutoff_violations")
     if missing_files:
-        blockers.append("telemetry_files_missing")
+        integrity_blockers.append("telemetry_files_missing")
     if hash_mismatches:
-        blockers.append("telemetry_hash_mismatches")
+        integrity_blockers.append("telemetry_hash_mismatches")
     if invalid_tensors:
-        blockers.append("telemetry_tensor_content_or_shape_invalid")
+        integrity_blockers.append("telemetry_tensor_content_or_shape_invalid")
+    blockers = [*protocol_blockers, *integrity_blockers]
+    cache_integrity_ready = not integrity_blockers
+    protocol_ready = not blockers
     return TelemetryCacheAudit(
         record_count=int(len(rows)),
         validated_tensor_count=int(len(validated_records)),
@@ -510,7 +534,9 @@ def audit_telemetry_cache_manifests(
         invalid_tensor_count=int(invalid_tensors),
         minimum_independent_events=int(minimum_independent_events),
         minimum_drivers_per_event=int(minimum_drivers_per_event),
-        ready_for_deep_model=not blockers,
+        cache_integrity_ready=cache_integrity_ready,
+        ready_for_requested_event_protocol=protocol_ready,
+        ready_for_deep_model=protocol_ready,
         blockers=tuple(blockers),
     )
 

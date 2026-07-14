@@ -1,5 +1,5 @@
 profile_name: ultimate_lap_time_deep
-profile_version: best_estimated_lap_time_deep_candidate_v2
+profile_version: best_estimated_lap_time_deep_candidate_v4_sensitivity_evidence
 model_family: ultimate_lap_time
 source: local_or_fastf1_or_openf1
 registry:
@@ -26,7 +26,45 @@ fallback:
   model_id: achievable_best_lap_rehearsal_shift_v1
   model_family: ultimate_lap_time
   deterministic_fallback: true
-  artifact_path: artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_rehearsal_shift_v2_20260712e.json
+  artifact_path: artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json
+research_evidence:
+  evidence_role: bounded_scalar_residual_adapter_not_the_registered_six_output_quantile_model
+  best_mode_artifact: artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json
+  tcn_artifact: artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json
+  tcn_sensitivity_matrix: artifacts/backtests/f1/telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json
+  status: evaluated_parameter_sensitive_inconclusive
+  profile_design_status: d0_pre_sensitivity_control_other_six_profiles_outer_target_informed_and_promotion_ineligible
+  current_fold_target_leakage: false
+  deployment_changed: false
+  source_manifest_schema: f1_prequal_telemetry_supervised_bags_v2
+  event_protocol:
+    independent_events: 9
+    warmup_events: 4
+    scored_events: 5
+    scored_driver_events: 108
+    validated_correlated_tensors: 550
+  capacity:
+    trainable_scalar_parameters: 274
+    correlated_tensors_treated_as_independent_events: false
+  result:
+    source_shift_event_balanced_mae_seconds: 0.4306204545454547
+    tcn_event_balanced_mae_seconds: 0.4299030050021292
+    tcn_delta_vs_source_shift_seconds: -0.0007174495433255323
+    tcn_relative_improvement_vs_source_shift: 0.0016660832892456134
+    tcn_events_beating_source_shift: 3
+    locked_zero_correction_fold_count: 5
+    fixed_seed_repeat_event_balanced_mae_seconds: 0.4320078178464522
+    fixed_seed_mean_absolute_event_delta_seconds: 0.002294463466625385
+    reference_gain_is_smaller_than_seed_variation: true
+  promotion_blockers:
+    - profile_hyperparameters_tuned_after_same_outer_targets_were_observed
+    - postdevelopment_profile_matrix_is_descriptive_not_selection_evidence
+    - locked_inner_selector_retained_zero_telemetry_correction_in_all_folds
+    - reference_gain_smaller_than_fixed_seed_variation
+    - fixed_seed_repeat_failed_incremental_gain
+    - no_independent_post_development_season_or_regime_holdout
+    - insufficient_independent_events_for_promotion_grade_tcn_evidence
+    - telemetry_vs_equal_architecture_sham_is_descriptive_not_confirmatory
 promotion:
   production_replacement_allowed_by_default: false
   split_strategy: grouped_event_circuit_time_walk_forward
@@ -65,4 +103,4 @@ promotion:
     - interval_coverage
     - fastest_lap_winner_hit_rate
     - top3_fastest_lap_accuracy
-  gate_status: not_promotable_until_locked_reports_exist
+  gate_status: not_promotable_tcn_parameter_sensitive_and_locked_registry_reports_absent

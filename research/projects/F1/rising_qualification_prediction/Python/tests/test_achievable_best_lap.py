@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import hashlib
+import itertools
 import json
 import math
 
@@ -13,16 +14,24 @@ import run_best_estimated_lap_2026_backtest as best_runner
 
 from packages.f1.models.ultimate_lap_time.achievable import (
     ACTUAL_LAP_COLUMN,
+    AchievableLapSourceCalibration,
+    DIRECT_PACE_POSITION_COLUMN,
+    MEAL_POSITION_COLUMN,
+    POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS,
     Q1_LAP_COLUMN,
     Q2_LAP_COLUMN,
+    Q2_VALID_LAP_COLUMN,
     Q3_LAP_COLUMN,
+    Q3_VALID_LAP_COLUMN,
     calibrate_achievable_best_lap_model,
     decompose_event_fastest_and_driver_gap,
     fit_achievable_best_lap_model,
+    minimum_expected_absolute_position_loss_assignment,
     robust_huber_location,
     sample_joint_qualifying_laps,
     shared_qualifying_forecast_artifact,
     shared_point_predictor_sha256,
+    shared_structural_point_predictor_sha256,
     summarize_joint_lap_samples,
 )
 from packages.f1.models.ultimate_lap_time.schemas import (
@@ -78,6 +87,22 @@ def test_model_learns_event_balanced_source_specific_shift() -> None:
     assert result.loc[1, "interval_status"] == "diagnostic_no_disjoint_calibration_partition"
 
 
+def test_event_balanced_interval_quantiles_keep_declared_probabilities_exact() -> None:
+    calibration = AchievableLapSourceCalibration(
+        source="__all__",
+        event_keys=(202603, 202604),
+        event_shifts_seconds=(0.0, 0.0),
+        prequential_residuals_seconds=(-2.0, 0.0, 1.0, 3.0),
+        event_prequential_residuals_seconds=((-2.0, 0.0), (1.0, 3.0)),
+        event_weights=(1.0, 1.0),
+        empirical_residual_event_keys=(202603, 202604),
+    )
+
+    q05, q50, q90 = calibration.residual_quantiles()
+
+    assert (q05, q50, q90) == pytest.approx((-2.0, 0.5, 3.0))
+
+
 def test_cold_start_is_explicit_and_does_not_fake_quantiles() -> None:
     model = fit_achievable_best_lap_model(pd.DataFrame(), target_event_key=202601)
     result = model.predict(
@@ -95,6 +120,53 @@ def test_cold_start_is_explicit_and_does_not_fake_quantiles() -> None:
     assert math.isnan(result.loc[0, "lap_p05"])
     assert math.isnan(result.loc[0, "lap_p90"])
     assert result.loc[0, "interval_status"] == "unavailable_no_same_source_history"
+
+
+def test_shared_forecast_cold_start_records_empty_training_partitions() -> None:
+    inference = pd.DataFrame(
+        {
+            "event_key": [202601],
+            "driver_id": ["x"],
+            "rehearsal_source": ["fp3"],
+            "rehearsal_lap_time_seconds": [80.5],
+        }
+    )
+
+    _model, forecast, artifact = build_best_runner_shared_forecast(
+        pd.DataFrame(),
+        inference,
+        target_event_key=202601,
+    )
+
+    assert forecast.lap_predictions.loc[0, "lap_p50"] == pytest.approx(80.5)
+    assert artifact["training_partition_manifest"]["weak_prior_event_keys"] == []
+    assert (
+        artifact["training_partition_manifest"][
+            "strong_same_season_point_fit_event_keys"
+        ]
+        == []
+    )
+
+
+def test_joint_forecast_fails_closed_on_duplicate_input_index() -> None:
+    model = fit_achievable_best_lap_model(pd.DataFrame(), target_event_key=202601)
+    inference = pd.DataFrame(
+        {
+            "event_key": [202601, 202601, 202601],
+            "driver_id": ["a", "b", "c"],
+            "rehearsal_source": ["fp3", "fp3", "fp3"],
+            "rehearsal_lap_time_seconds": [80.0, 81.0, 82.0],
+        },
+        index=[7, 7, 7],
+    )
+
+    with pytest.raises(ValueError, match="inference index must be unique"):
+        model.predict_qualifying(
+            inference,
+            samples=200,
+            seed=17,
+            allow_diagnostic_stage_fallback=True,
+        )
 
 
 def test_training_and_inference_fail_closed_on_target_leakage() -> None:
@@ -158,6 +230,36 @@ def test_best_runner_target_io_requires_frozen_event_forecast(
     assert calls == ["target_read", "target_hash"]
     assert actual.to_dict() == {"AAA": 90.0}
     assert set(manifest) == {"qualifying_laps.csv", "qualifying_results.csv"}
+
+
+def test_best_runner_stage_labels_separate_official_advancement_from_valid_time(
+    tmp_path,
+) -> None:
+    laps_path = tmp_path / "qualifying_laps.csv"
+    results_path = tmp_path / "qualifying_results.csv"
+    laps_path.write_text("unused\n", encoding="utf-8")
+    frame = pd.DataFrame(
+        {
+            "Abbreviation": [f"D{position:02d}" for position in range(1, 23)],
+            "Position": list(range(1, 23)),
+            "Q1": [90.0] * 22,
+            "Q2": [89.0] * 15 + [None] + [89.5] + [None] * 5,
+            "Q3": [88.0] * 9 + [None] * 13,
+        }
+    )
+    frame.to_csv(results_path, index=False)
+
+    labels = best_runner._qualifying_stage_labels(laps_path)
+
+    # P16 advanced under the 22-car 2026 rule despite recording no Q2 time.
+    assert labels.loc["D16", "reached_q2"] == 1
+    assert labels.loc["D16", Q2_VALID_LAP_COLUMN] == 0
+    # P10 reached Q3 but recorded no valid Q3 time.
+    assert labels.loc["D10", "reached_q3"] == 1
+    assert labels.loc["D10", Q3_VALID_LAP_COLUMN] == 0
+    # Segment-time presence cannot override the official classification cut.
+    assert labels.loc["D17", "reached_q2"] == 0
+    assert labels.loc["D17", Q2_VALID_LAP_COLUMN] == 1
 
 
 def test_best_runner_revalidates_telemetry_and_binds_all_inputs(tmp_path) -> None:
@@ -234,7 +336,7 @@ def test_best_runner_revalidates_telemetry_and_binds_all_inputs(tmp_path) -> Non
     assert readiness["audit"]["driver_event_count"] == 1
     assert not readiness["audit"]["ready_for_deep_model"]
     assert readiness["audit"]["blockers"] == [
-        "insufficient_independent_prequalifying_telemetry_events"
+        "insufficient_complete_events_for_requested_protocol"
     ]
     input_manifest = best_runner._hash_manifest(inputs, root=tmp_path)
     assert set(input_manifest) == {
@@ -244,21 +346,28 @@ def test_best_runner_revalidates_telemetry_and_binds_all_inputs(tmp_path) -> Non
     decision = best_runner._deep_model_readiness_decision(readiness["audit"])
     assert decision["deep_model_telemetry_blockers"] == readiness["audit"]["blockers"]
     assert decision["deep_model_blockers"] == [
-        "insufficient_independent_prequalifying_telemetry_events"
+        "insufficient_complete_events_for_event_disjoint_diagnostic"
     ]
     assert "no_2026_distance_normalized_car_telemetry_cache" not in decision[
         "deep_model_blockers"
     ]
 
 
-def test_best_runner_keeps_ready_but_unevaluated_deep_model_fail_closed() -> None:
+def test_best_runner_keeps_research_ready_but_unevaluated_tcn_fail_closed() -> None:
     decision = best_runner._deep_model_readiness_decision(
-        {"ready_for_deep_model": True, "blockers": []}
+        {
+            "event_count": 9,
+            "minimum_independent_events": 4,
+            "ready_for_requested_event_protocol": True,
+            "blockers": [],
+        },
+        tcn_runtime_available=True,
     )
 
     assert decision["deep_model_telemetry_blockers"] == []
     assert decision["deep_model_blockers"] == [
-        "deep_model_challenger_not_trained_or_evaluated"
+        "true_tcn_not_yet_evaluated_under_event_disjoint_protocol",
+        "no_future_locked_event_after_sequence_model_development",
     ]
 
 
@@ -288,6 +397,29 @@ def test_backtest_rejects_pre_2024_sprint_chronology(tmp_path) -> None:
         )
 
 
+def test_point_mae_aggregate_keeps_raw_rehearsal_distinct_from_baseline() -> None:
+    aggregate = best_runner._aggregate_point_mae(
+        [
+            {
+                "p50_mae_seconds": 0.4,
+                "raw_rehearsal_mae_seconds": 1.2,
+                "baseline_p50_mae_seconds": 0.3,
+            },
+            {
+                "p50_mae_seconds": 0.6,
+                "raw_rehearsal_mae_seconds": 0.8,
+                "baseline_p50_mae_seconds": 0.5,
+            },
+        ]
+    )
+
+    assert aggregate == {
+        "conditional_event_mean_p50_mae_seconds": pytest.approx(0.5),
+        "conditional_event_mean_raw_rehearsal_mae_seconds": pytest.approx(1.0),
+        "conditional_event_mean_baseline_p50_mae_seconds": pytest.approx(0.4),
+    }
+
+
 def test_huber_location_keeps_one_value_and_resists_large_outlier() -> None:
     assert robust_huber_location([1.25]) == pytest.approx(1.25)
     assert robust_huber_location([0.0, 0.1, -0.1, 20.0]) < 1.0
@@ -309,7 +441,7 @@ def test_event_fastest_and_driver_gap_decomposition_is_lossless() -> None:
     assert result.loc[3, "target_gap_to_event_fastest_seconds"] == pytest.approx(3.0)
 
 
-def test_explicit_valid_lap_and_stage_hurdle_is_event_balanced() -> None:
+def test_under_eight_events_use_event_balanced_stage_prior() -> None:
     history = _history().assign(
         team_id=["ta", "tb", "ta", "tb", "tc"],
         has_valid_qualifying_lap=[True, False, True, True, True],
@@ -332,7 +464,8 @@ def test_explicit_valid_lap_and_stage_hurdle_is_event_balanced() -> None:
     assert 0.0 < result.loc[0, "valid_lap_probability"] < 1.0
     assert 0.0 < result.loc[0, "q2_given_valid_probability"] < 1.0
     assert 0.0 < result.loc[0, "q3_given_q2_probability"] < 1.0
-    assert result.loc[0, "stage_probability_status"] == "regularized_logistic_not_posthoc_calibrated"
+    assert model.stage_probability_model is None
+    assert result.loc[0, "stage_probability_status"] == "event_balanced_beta_binomial"
     assert (
         result.loc[0, "no_valid_lap_probability"]
         + result.loc[0, "q1_only_probability"]
@@ -392,7 +525,7 @@ def test_weak_transfer_prior_cannot_create_historical_team_or_driver_effect() ->
     assert "old_a" not in model.residual_model.driver_effects
     calibration = model.calibrations["practice_3"]
     assert calibration.event_keys == (202501, 202601)
-    assert calibration.conformal_event_keys == (202601,)
+    assert calibration.empirical_residual_event_keys == (202601,)
 
 
 def test_joint_samples_generate_coherent_fastest_and_top3_probabilities() -> None:
@@ -420,7 +553,36 @@ def test_joint_samples_generate_coherent_fastest_and_top3_probabilities() -> Non
     assert summary["fastest_driver_probability"].sum() == pytest.approx(1.0)
 
 
-def test_joint_sampler_fails_closed_on_missing_hurdles_unless_diagnostic_is_explicit() -> None:
+def test_shared_session_fraction_is_variance_fraction_and_pairwise_correlation() -> None:
+    predictions = pd.DataFrame(
+        {
+            "driver_id": ["a", "b"],
+            "lap_p05": [88.5368, 88.5368],
+            "lap_p50": [90.0, 90.0],
+            "lap_p90": [91.4632, 91.4632],
+            "valid_lap_probability": [1.0, 1.0],
+            "q2_valid_lap_given_reached_probability": [1.0, 1.0],
+            "q3_valid_lap_given_reached_probability": [1.0, 1.0],
+            "stage_q1_residual_sigma_seconds": [0.0, 0.0],
+            "stage_q2_residual_sigma_seconds": [0.0, 0.0],
+            "stage_q3_residual_sigma_seconds": [0.0, 0.0],
+        }
+    )
+
+    samples = sample_joint_qualifying_laps(
+        predictions,
+        samples=12_000,
+        seed=20260713,
+        shared_session_fraction=0.30,
+    )
+    correlation = float(
+        np.corrcoef(samples.lap_seconds[:, 0], samples.lap_seconds[:, 1])[0, 1]
+    )
+
+    assert correlation == pytest.approx(0.30, abs=0.04)
+
+
+def test_joint_sampler_fails_closed_on_missing_valid_probability_unless_diagnostic() -> None:
     predictions = pd.DataFrame(
         {
             "driver_id": ["fast", "slow"],
@@ -433,7 +595,7 @@ def test_joint_sampler_fails_closed_on_missing_hurdles_unless_diagnostic_is_expl
         }
     )
 
-    with pytest.raises(ValueError, match="finite valid/Q2/Q3 hurdles"):
+    with pytest.raises(ValueError, match="finite valid-lap probabilities"):
         sample_joint_qualifying_laps(predictions, samples=10, seed=1)
 
     diagnostic = sample_joint_qualifying_laps(
@@ -444,7 +606,7 @@ def test_joint_sampler_fails_closed_on_missing_hurdles_unless_diagnostic_is_expl
     )
     assert (
         diagnostic.stage_advancement_status
-        == "diagnostic_pace_fallback_missing_hurdles"
+        == "diagnostic_pace_top_k_missing_valid_lap_probabilities"
     )
 
 
@@ -531,13 +693,20 @@ def test_shared_model_learns_stage_times_and_uses_true_p05_p90_semantics() -> No
     assert result["lap_p05_quantile_probability"].eq(0.05).all()
     assert result["lap_p90_quantile_probability"].eq(0.90).all()
     assert result["interval_nominal_mass"].eq(0.85).all()
+    assert result["lap_p50"].tolist() == pytest.approx(
+        result["latent_lap_location_seconds"].tolist()
+    )
+    assert not np.allclose(
+        result["stage_mixture_lap_p50"],
+        result["lap_p50"],
+    )
     assert result["interval_status"].eq(
         "diagnostic_calibration_rows_reused_for_model_fit"
     ).all()
     assert not result["calibration_partition_validated"].any()
 
 
-def test_held_out_final_predictor_residuals_calibrate_without_changing_point_model() -> None:
+def test_held_out_residuals_change_complete_predictor_not_structural_fit() -> None:
     history = _shared_history()
     point_history = history.loc[history["event_key"].le(202503)].copy()
     calibration_rows: list[pd.DataFrame] = []
@@ -545,6 +714,7 @@ def test_held_out_final_predictor_residuals_calibrate_without_changing_point_mod
         event_model = fit_achievable_best_lap_model(
             point_history,
             target_event_key=event_key,
+            min_calibration_events=2,
         )
         event = history.loc[history["event_key"].eq(event_key)].copy()
         inference = event.drop(
@@ -568,8 +738,10 @@ def test_held_out_final_predictor_residuals_calibrate_without_changing_point_mod
     audit_model = fit_achievable_best_lap_model(
         point_history,
         target_event_key=202506,
+        min_calibration_events=2,
     )
     before = shared_point_predictor_sha256(audit_model)
+    structural_before = shared_structural_point_predictor_sha256(audit_model)
     calibrated = calibrate_achievable_best_lap_model(
         audit_model,
         pd.concat(calibration_rows, ignore_index=True),
@@ -577,7 +749,8 @@ def test_held_out_final_predictor_residuals_calibrate_without_changing_point_mod
 
     assert calibrated.calibration_partition_validated
     assert calibrated.calibration_event_keys == (202504, 202505)
-    assert shared_point_predictor_sha256(calibrated) == before
+    assert shared_point_predictor_sha256(calibrated) != before
+    assert shared_structural_point_predictor_sha256(calibrated) == structural_before
     audit_inference = history.loc[history["event_key"].eq(202505)].drop(
         columns=[
             ACTUAL_LAP_COLUMN,
@@ -594,7 +767,39 @@ def test_held_out_final_predictor_residuals_calibrate_without_changing_point_mod
     assert result["interval_status"].eq("calibrated_disjoint_event_partition").all()
 
 
-def test_best_lap_marginals_and_classification_use_the_exact_same_joint_samples() -> None:
+def test_held_out_nonzero_residual_median_calibrates_p50_and_signed_bounds() -> None:
+    model = fit_achievable_best_lap_model(
+        _history(), target_event_key=202605, min_calibration_events=2
+    )
+    calibration = pd.DataFrame(
+        {
+            "event_key": [202603, 202603, 202604, 202604],
+            "driver_id": ["a", "b", "a", "b"],
+            "rehearsal_source": ["practice_3"] * 4,
+            "lap_p50": [90.0, 90.0, 90.0, 90.0],
+            ACTUAL_LAP_COLUMN: [91.0, 92.0, 92.0, 93.0],
+        }
+    )
+    calibrated = calibrate_achievable_best_lap_model(model, calibration)
+    inference = pd.DataFrame(
+        {
+            "event_key": [202605],
+            "driver_id": ["x"],
+            "rehearsal_source": ["practice_3"],
+            "rehearsal_lap_time_seconds": [100.0],
+        }
+    )
+
+    base = model.predict(inference).iloc[0]
+    result = calibrated.predict(inference).iloc[0]
+
+    assert result["median_calibration_applied"]
+    assert result["median_calibration_adjustment_seconds"] == pytest.approx(2.0)
+    assert result["lap_p50"] == pytest.approx(base["lap_p50"] + 2.0)
+    assert result["lap_p05"] < result["lap_p50"] < result["lap_p90"]
+
+
+def test_best_lap_point_and_classification_share_latent_but_not_output_head() -> None:
     history = _shared_history()
     model = fit_achievable_best_lap_model(
         history,
@@ -620,13 +825,13 @@ def test_best_lap_marginals_and_classification_use_the_exact_same_joint_samples(
     for driver_index, driver in enumerate(forecast.samples.driver_ids):
         finite = forecast.samples.lap_seconds[:, driver_index]
         finite = finite[pd.notna(finite)]
-        assert predicted.loc[driver, "lap_p05"] == pytest.approx(
+        assert predicted.loc[driver, "joint_achieved_lap_p05"] == pytest.approx(
             float(pd.Series(finite).quantile(0.05))
         )
-        assert predicted.loc[driver, "lap_p50"] == pytest.approx(
+        assert predicted.loc[driver, "joint_achieved_lap_p50"] == pytest.approx(
             float(pd.Series(finite).quantile(0.50))
         )
-        assert predicted.loc[driver, "lap_p90"] == pytest.approx(
+        assert predicted.loc[driver, "joint_achieved_lap_p90"] == pytest.approx(
             float(pd.Series(finite).quantile(0.90))
         )
         assert marginals.loc[driver, "pole_probability"] == pytest.approx(
@@ -645,14 +850,19 @@ def test_best_lap_marginals_and_classification_use_the_exact_same_joint_samples(
             sampled_q3 / sampled_q2 if sampled_q2 else 0.0
         )
     assert predicted["joint_sample_seed"].eq(19).all()
-    assert predicted["distribution_source"].eq("shared_joint_qualifying_samples").all()
+    assert predicted["distribution_source"].eq(
+        "direct_session_best_latent_calibration"
+    ).all()
+    assert predicted["joint_distribution_source"].eq(
+        "qualifying_period_pace_simulation_diagnostic"
+    ).all()
     assert predicted["stage_probability_status"].eq(
         "legal_field_constrained_joint_samples_uncalibrated"
     ).all()
     assert forecast.probability_calibration_status == "uncalibrated_joint_latent_samples"
     assert (
         forecast.samples.stage_time_distribution_status
-        == "learned_stage_residual_dispersion"
+        == "learned_stage_residual_dispersion_and_advanced_stage_validity"
     )
     partition = {"point_fit_event_keys": [202501, 202502, 202503, 202504, 202505]}
     artifact = shared_qualifying_forecast_artifact(
@@ -685,7 +895,8 @@ def test_best_lap_marginals_and_classification_use_the_exact_same_joint_samples(
     ) == artifact
     assert artifact["event_key"] == 202601
     assert artifact["joint_sample_count"] == 600
-    assert artifact["shared_samples_drive_best_lap_and_qualifying"]
+    assert artifact["shared_latent_drives_best_lap_and_qualifying"]
+    assert not artifact["shared_samples_drive_best_lap_and_qualifying"]
     assert len(str(artifact["artifact_sha256"])) == 64
     assert len(str(artifact["joint_samples_sha256"])) == 64
     assert len(str(artifact["model_sha256"])) == 64
@@ -739,29 +950,44 @@ def test_quali_and_best_runner_paths_emit_identical_shared_model_and_sample_hash
     assert quali_artifact["artifact_sha256"] == best_artifact["artifact_sha256"]
 
 
-def test_joint_sampler_enforces_legal_stage_blocks_and_hurdles_change_order() -> None:
+def test_joint_sampler_enforces_legal_stage_blocks_and_pace_drives_advancement() -> None:
     drivers = [f"d{index:02d}" for index in range(20)]
     predictions = pd.DataFrame(
         {
             "driver_id": drivers,
-            "latent_lap_location_seconds": [90.0] * 20,
-            "lap_p05": [89.5] * 20,
-            "lap_p50": [90.0] * 20,
-            "lap_p90": [90.5] * 20,
+            "latent_lap_location_seconds": [100.0]
+            + [80.0 + index for index in range(19)],
+            "lap_p05": [99.9] + [79.9 + index for index in range(19)],
+            "lap_p50": [100.0] + [80.0 + index for index in range(19)],
+            "lap_p90": [100.1] + [80.1 + index for index in range(19)],
             "valid_lap_probability": [0.0] + [1.0] * 19,
             "q2_given_valid_probability": [0.0] + [0.99] * 14 + [0.01] * 5,
             "q3_given_q2_probability": [0.0] + [0.99] * 9 + [0.01] * 10,
             "stage_q1_time_effect_seconds": [0.7] * 20,
             "stage_q2_time_effect_seconds": [0.3] * 20,
             "stage_q3_time_effect_seconds": [-0.1] * 20,
-            "stage_q1_residual_sigma_seconds": [0.1] * 20,
-            "stage_q2_residual_sigma_seconds": [0.1] * 20,
-            "stage_q3_residual_sigma_seconds": [0.1] * 20,
+            "stage_q1_residual_sigma_seconds": [0.01] * 20,
+            "stage_q2_residual_sigma_seconds": [0.01] * 20,
+            "stage_q3_residual_sigma_seconds": [0.01] * 20,
         }
     )
     samples = sample_joint_qualifying_laps(predictions, samples=300, seed=11)
+    inverted = predictions.copy()
+    inverted["q2_given_valid_probability"] = (
+        1.0 - inverted["q2_given_valid_probability"]
+    )
+    inverted["q3_given_q2_probability"] = (
+        1.0 - inverted["q3_given_q2_probability"]
+    )
+    inverted_samples = sample_joint_qualifying_laps(
+        inverted, samples=300, seed=11
+    )
     summary = summarize_joint_lap_samples(samples).set_index("driver_id")
 
+    assert np.array_equal(samples.deepest_stage, inverted_samples.deepest_stage)
+    assert np.array_equal(
+        samples.official_positions, inverted_samples.official_positions
+    )
     assert samples.official_positions is not None
     assert all(
         sorted(row.tolist()) == list(range(1, 21)) for row in samples.official_positions
@@ -776,6 +1002,80 @@ def test_joint_sampler_enforces_legal_stage_blocks_and_hurdles_change_order() ->
         assert q1_positions.max(initial=0) < invalid_positions.min(initial=21)
     assert summary.loc["d00", "expected_qualifying_position"] == pytest.approx(20.0)
     assert summary.loc["d01", "reaches_q3_probability_sampled"] > 0.95
+
+
+def test_minimum_expected_absolute_position_loss_assignment_is_globally_optimal() -> None:
+    draws = np.asarray(
+        [
+            [1, 2, 3],
+            [1, 3, 2],
+            [2, 1, 3],
+            [3, 1, 2],
+        ],
+        dtype=int,
+    )
+    drivers = ("zeta", "alpha", "mu")
+    assigned = minimum_expected_absolute_position_loss_assignment(
+        draws,
+        driver_ids=drivers,
+        seed=17,
+    )
+
+    def expected_loss(candidate) -> float:
+        return float(np.abs(draws - np.asarray(candidate)[np.newaxis, :]).mean())
+
+    brute_force_losses = [
+        expected_loss(candidate) for candidate in itertools.permutations((1, 2, 3))
+    ]
+    assert sorted(assigned.tolist()) == [1, 2, 3]
+    assert expected_loss(assigned) == pytest.approx(min(brute_force_losses))
+
+    # Assignment ties are keyed by driver identity, not input row order.
+    shuffled_indices = np.asarray([2, 0, 1])
+    shuffled = minimum_expected_absolute_position_loss_assignment(
+        draws[:, shuffled_indices],
+        driver_ids=tuple(drivers[index] for index in shuffled_indices),
+        seed=17,
+    )
+    restored = np.empty_like(shuffled)
+    restored[shuffled_indices] = shuffled
+    assert restored.tolist() == assigned.tolist()
+
+
+def test_shared_forecast_can_select_meal_point_head_without_promoting_marginals() -> None:
+    history = _shared_history()
+    inference = history.loc[history["event_key"].eq(202505)].drop(
+        columns=[
+            ACTUAL_LAP_COLUMN,
+            Q1_LAP_COLUMN,
+            Q2_LAP_COLUMN,
+            Q3_LAP_COLUMN,
+            "has_valid_qualifying_lap",
+            "reached_q2",
+            "reached_q3",
+        ]
+    )
+    inference["event_key"] = 202601
+    model = fit_achievable_best_lap_model(history, target_event_key=202601)
+
+    forecast = model.predict_qualifying(
+        inference,
+        samples=200,
+        seed=23,
+        point_head=POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS,
+    )
+    point = forecast.point_order
+
+    assert point["predicted_qualifying_position"].equals(
+        point[MEAL_POSITION_COLUMN]
+    )
+    assert sorted(point[DIRECT_PACE_POSITION_COLUMN].tolist()) == list(range(1, 21))
+    assert sorted(point[MEAL_POSITION_COLUMN].tolist()) == list(range(1, 21))
+    assert set(point["point_prediction_source"]) == {
+        POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS
+    }
+    assert point["point_head_uses_uncalibrated_joint_samples"].all()
+    assert not point["position_marginals_calibrated"].any()
 
 
 def test_joint_sampler_uses_frozen_2026_elimination_rule_for_22_car_field() -> None:
@@ -799,6 +1099,66 @@ def test_joint_sampler_uses_frozen_2026_elimination_rule_for_22_car_field() -> N
     assert counts == {1: 6, 2: 6, 3: 10}
 
 
+def test_joint_sampler_models_advanced_driver_without_valid_next_segment_time() -> None:
+    predictions = pd.DataFrame(
+        {
+            "driver_id": [f"d{index:02d}" for index in range(22)],
+            "lap_p05": [89.5 + index / 100 for index in range(22)],
+            "lap_p50": [90.0 + index / 100 for index in range(22)],
+            "lap_p90": [90.5 + index / 100 for index in range(22)],
+            "valid_lap_probability": [1.0] * 22,
+            "q2_valid_lap_given_reached_probability": [1.0] * 22,
+            "q3_valid_lap_given_reached_probability": [0.0] * 22,
+            "stage_q1_residual_sigma_seconds": [0.01] * 22,
+            "stage_q2_residual_sigma_seconds": [0.01] * 22,
+            "stage_q3_residual_sigma_seconds": [0.01] * 22,
+        }
+    )
+
+    samples = sample_joint_qualifying_laps(predictions, samples=20, seed=31)
+
+    assert samples.stage_valid_lap_mask is not None
+    q3_reached = samples.deepest_stage == 3
+    assert q3_reached.sum(axis=1).tolist() == [10] * 20
+    assert not samples.stage_valid_lap_mask[:, :, 2][q3_reached].any()
+    assert np.isnan(samples.stage_lap_seconds[:, :, 2][q3_reached]).all()
+    assert np.isfinite(samples.lap_seconds[q3_reached]).all()
+
+
+def test_invalid_lap_classification_uses_seeded_exchangeable_uncertainty_not_alphabet() -> None:
+    predictions = pd.DataFrame(
+        {
+            "driver_id": [f"d{index:02d}" for index in range(20)],
+            "lap_p05": [89.5] * 20,
+            "lap_p50": [90.0] * 20,
+            "lap_p90": [90.5] * 20,
+            "valid_lap_probability": [0.0] * 20,
+            "stage_q1_residual_sigma_seconds": [0.01] * 20,
+            "stage_q2_residual_sigma_seconds": [0.01] * 20,
+            "stage_q3_residual_sigma_seconds": [0.01] * 20,
+        }
+    )
+    samples = sample_joint_qualifying_laps(predictions, samples=100, seed=41)
+    shuffled = predictions.sample(frac=1.0, random_state=12).reset_index(drop=True)
+    repeated = sample_joint_qualifying_laps(shuffled, samples=100, seed=41)
+
+    assert samples.official_positions is not None
+    assert np.unique(samples.official_positions[:, 0]).size > 1
+    original_by_driver = {
+        driver: samples.official_positions[:, index]
+        for index, driver in enumerate(samples.driver_ids)
+    }
+    repeated_by_driver = {
+        driver: repeated.official_positions[:, index]
+        for index, driver in enumerate(repeated.driver_ids)
+    }
+    assert all(
+        np.array_equal(original_by_driver[driver], repeated_by_driver[driver])
+        for driver in original_by_driver
+    )
+    assert "seeded_exchangeable_uncertainty" in samples.classification_tie_policy
+
+
 def test_shared_model_rejects_stage_outcomes_at_inference() -> None:
     model = fit_achievable_best_lap_model(_shared_history(), target_event_key=202601)
     inference = pd.DataFrame(
@@ -820,11 +1180,282 @@ def test_best_lap_partitions_are_disjoint_and_reserve_same_season_calibration() 
     ]
     partitions = _locked_best_lap_partitions(
         priors,
-        target_event_keys=(202601, 202602, 202603, 202604, 202605, 202606),
+        target_event_keys=(
+            202601,
+            202602,
+            202603,
+            202604,
+            202605,
+            202606,
+            202607,
+            202608,
+        ),
         target_year=2026,
     )
 
     assert partitions["development"] == (202401, 202402, 202501, 202502)
     assert partitions["selection"] == (202601, 202602)
-    assert partitions["calibration"] == (202603, 202604)
-    assert partitions["audit"] == (202605, 202606)
+    assert partitions["calibration"] == (202603, 202604, 202605, 202606)
+    assert partitions["audit"] == (202607, 202608)
+
+
+def test_best_lap_partitions_allow_explicit_no_transfer_ablation() -> None:
+    partitions = _locked_best_lap_partitions(
+        [],
+        target_event_keys=(
+            202601,
+            202602,
+            202603,
+            202604,
+            202605,
+            202606,
+            202607,
+            202608,
+        ),
+        target_year=2026,
+        allow_empty_development=True,
+    )
+
+    assert partitions["development"] == ()
+    assert partitions["selection"] == (202601, 202602)
+    assert partitions["calibration"] == (202603, 202604, 202605, 202606)
+    assert partitions["audit"] == (202607, 202608)
+
+
+def test_best_lap_cli_defaults_to_same_season_only() -> None:
+    parser = best_runner.build_parser()
+
+    assert parser.parse_args([]).use_weak_transfer_priors is False
+    assert (
+        parser.parse_args(["--use-weak-transfer-priors"]).use_weak_transfer_priors
+        is True
+    )
+
+
+def test_production_calibration_requires_four_independent_events() -> None:
+    model = fit_achievable_best_lap_model(_history(), target_event_key=202603)
+
+    assert model.min_calibration_events == 4
+
+
+def test_interval_summary_is_event_balanced_and_weekend_format_aware() -> None:
+    frame = pd.DataFrame(
+        {
+            "event_key": [202607, 202607, 202608, 202608, 202608, 202608],
+            "rehearsal_source": [
+                "practice_3",
+                "practice_3",
+                "sprint_qualifying",
+                "sprint_qualifying",
+                "sprint_qualifying",
+                "sprint_qualifying",
+            ],
+            ACTUAL_LAP_COLUMN: [10.0, 12.0, 10.0, 10.0, 10.0, 10.0],
+            "lap_p05": [9.0, 9.0, 8.0, 8.0, 8.0, 8.0],
+            "lap_p90": [11.0, 11.0, 12.0, 12.0, 12.0, 12.0],
+            "interval_status": ["calibrated_disjoint_event_partition"] * 6,
+        }
+    )
+
+    summary = best_runner._interval_block_summary(
+        frame,
+        lower_column="lap_p05",
+        upper_column="lap_p90",
+        status_column="interval_status",
+    )
+
+    assert summary["pooled_coverage"] == pytest.approx(5.0 / 6.0)
+    assert summary["event_balanced_coverage"] == pytest.approx(0.75)
+    assert summary["row_weighted_mean_width_seconds"] == pytest.approx(10.0 / 3.0)
+    assert summary["event_balanced_mean_width_seconds"] == pytest.approx(3.0)
+    assert summary["by_event"]["202607"]["coverage"] == pytest.approx(0.5)
+    assert summary["by_event"]["202608"]["coverage"] == pytest.approx(1.0)
+    assert set(summary["by_weekend_stratum"]) == {"standard", "sprint"}
+    assert summary["by_weekend_stratum"]["standard"][
+        "event_balanced_coverage"
+    ] == pytest.approx(0.5)
+    assert summary["by_weekend_stratum"]["sprint"][
+        "event_balanced_coverage"
+    ] == pytest.approx(1.0)
+
+
+def test_interval_width_comparison_rejects_tautological_baseline_reference() -> None:
+    summary = {
+        "event_balanced_mean_width_seconds": 1.5,
+        "by_event": {
+            "202607": {"mean_width_seconds": 1.5},
+            "202608": {"mean_width_seconds": 1.5},
+        },
+        "by_weekend_stratum": {
+            "standard": {"event_balanced_mean_width_seconds": 1.5},
+            "sprint": {"event_balanced_mean_width_seconds": 1.5},
+        },
+    }
+
+    comparison = best_runner._interval_width_comparison(
+        summary,
+        summary,
+        candidate_label="retained_baseline",
+        comparator_label="retained_baseline",
+    )
+
+    assert not comparison["distinct_interval_products"]
+    assert not comparison["reference_available"]
+    assert comparison["by_event_width_ratio"] == {}
+    assert comparison["by_weekend_stratum_width_ratio"] == {}
+    assert (
+        comparison["unavailable_reason"]
+        == "candidate_and_comparator_are_same_interval_product"
+    )
+
+
+def test_interval_promotion_gates_require_event_and_format_stability() -> None:
+    summary = {
+        "audit_event_count": 3,
+        "all_audit_events_have_validated_interval_rows": True,
+        "validated_interval_row_rate": 1.0,
+        "pooled_coverage": 0.85,
+        "event_balanced_coverage": 0.84,
+        "minimum_event_coverage": 0.75,
+        "by_weekend_stratum": {
+            "standard": {"event_balanced_coverage": 0.84},
+            "sprint": {"event_balanced_coverage": 0.82},
+        },
+    }
+    comparison = {
+        "reference_available": True,
+        "event_balanced_width_ratio": 1.05,
+        "by_event_width_ratio": {
+            "202607": 1.02,
+            "202608": 1.08,
+            "202609": 1.04,
+        },
+        "by_weekend_stratum_width_ratio": {
+            "standard": 1.05,
+            "sprint": 1.04,
+        },
+        "all_audit_events_comparable": True,
+        "all_required_weekend_strata_comparable": True,
+    }
+
+    gates = best_runner._best_lap_interval_promotion_gates(
+        retained_interval_summary=summary,
+        retained_interval_calibration_event_count=4,
+        interval_width_comparison=comparison,
+    )
+
+    assert all(gates.values())
+
+    weak_event = dict(summary, minimum_event_coverage=0.69)
+    weak_gates = best_runner._best_lap_interval_promotion_gates(
+        retained_interval_summary=weak_event,
+        retained_interval_calibration_event_count=4,
+        interval_width_comparison=comparison,
+    )
+    assert not weak_gates[
+        "every_audit_event_interval_coverage_at_least_70_percent"
+    ]
+
+    tautological = dict(
+        comparison,
+        reference_available=False,
+        event_balanced_width_ratio=float("nan"),
+        by_event_width_ratio={},
+        by_weekend_stratum_width_ratio={},
+        all_audit_events_comparable=False,
+        all_required_weekend_strata_comparable=False,
+    )
+    tautological_gates = best_runner._best_lap_interval_promotion_gates(
+        retained_interval_summary=summary,
+        retained_interval_calibration_event_count=4,
+        interval_width_comparison=tautological,
+    )
+    assert not tautological_gates[
+        "non_tautological_interval_width_reference_available"
+    ]
+    assert not tautological_gates[
+        "event_balanced_interval_width_inflation_at_most_ten_percent"
+    ]
+
+
+def test_best_lap_point_gates_do_not_use_qualifying_ranking_diagnostics() -> None:
+    gates = best_runner._best_lap_point_promotion_gates(
+        relative_mae_gain=0.06,
+        paired_retained={
+            "ci95_seconds": [-0.2, -0.01],
+            "bootstrap_probability_of_improvement": 0.97,
+        },
+        observed_target_coverage=1.0,
+        all_weekend_strata_improve=True,
+        stability={
+            "leave_one_event_out_directionally_stable": True,
+            "single_event_gain_concentration_gate_passed": True,
+        },
+    )
+
+    assert all(gates.values())
+    assert not any("fastest" in name or "top3" in name for name in gates)
+
+
+def test_nine_telemetry_events_enable_bounded_tcn_research_without_fixed_gate() -> None:
+    decision = best_runner._deep_model_readiness_decision(
+        {
+            "event_count": 9,
+            "minimum_independent_events": 4,
+            "ready_for_requested_event_protocol": True,
+            "blockers": [],
+        },
+        tcn_runtime_available=True,
+    )
+
+    temporal = decision["telemetry_model_tiers"][
+        "regularized_temporal_summary"
+    ]
+    tcn = decision["telemetry_model_tiers"][
+        "bounded_supervised_tcn_research"
+    ]
+    assert temporal["ready"]
+    assert temporal["status"] == "ready_for_event_blocked_sequence_research"
+    assert tcn["ready"]
+    assert tcn["fixed_capacity_event_threshold"] is None
+    assert not tcn["promotion_ready"]
+    assert not decision["fixed_twenty_event_capacity_gate_used"]
+    assert decision["deep_model_evaluation_status"] == (
+        "bounded_sequence_and_tcn_research_evaluable_now_not_promotion_ready"
+    )
+
+
+def test_project_python39_runtime_is_not_artificially_blocked_from_tcn() -> None:
+    decision = best_runner._deep_model_readiness_decision(
+        {
+            "event_count": 9,
+            "minimum_independent_events": 4,
+            "ready_for_requested_event_protocol": True,
+            "blockers": [],
+        }
+    )
+
+    tcn = decision["telemetry_model_tiers"]["bounded_supervised_tcn_research"]
+    assert tcn["runtime_dependency_available"] is True
+    assert tcn["ready"] is True
+
+
+def test_nine_events_keep_temporal_diagnostic_runnable_without_torch() -> None:
+    decision = best_runner._deep_model_readiness_decision(
+        {
+            "event_count": 9,
+            "minimum_independent_events": 4,
+            "ready_for_requested_event_protocol": True,
+            "blockers": [],
+        },
+        tcn_runtime_available=False,
+    )
+
+    assert decision["telemetry_model_tiers"]["regularized_temporal_summary"]["ready"]
+    tcn = decision["telemetry_model_tiers"]["bounded_supervised_tcn_research"]
+    assert tcn["data_protocol_ready"]
+    assert not tcn["runtime_dependency_available"]
+    assert not tcn["ready"]
+    assert decision["deep_model_blockers"][0] == (
+        "true_tcn_runtime_dependency_unavailable"
+    )

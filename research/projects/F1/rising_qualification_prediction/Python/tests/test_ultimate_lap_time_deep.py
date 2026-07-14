@@ -154,7 +154,10 @@ def test_pairwise_rank_loss_never_compares_different_event_groups() -> None:
     if not torch_available():
         return
     prediction = torch.tensor([[0.0, 100.0, 0.0], [0.0, 80.0, 0.0]], dtype=torch.float32)
-    target = torch.tensor([[0.0, 80.0, 0.0], [0.0, 100.0, 0.0]], dtype=torch.float32)
+    # The canonical target vector repeats the realized lap in its first three
+    # columns; the first column is the explicit scalar outcome consumed by the
+    # rank and pinball losses.
+    target = torch.tensor([[80.0, 80.0, 80.0], [100.0, 100.0, 100.0]], dtype=torch.float32)
 
     cross_event = fastest_lap_pairwise_rank_loss(prediction, target, torch.tensor([0, 1]))
     same_event = fastest_lap_pairwise_rank_loss(prediction, target, torch.tensor([0, 0]))

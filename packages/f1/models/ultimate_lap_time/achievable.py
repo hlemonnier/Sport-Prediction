@@ -20,6 +20,11 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import pandas as pd
 
+try:
+    from scipy.optimize import linear_sum_assignment
+except Exception:  # pragma: no cover - scipy is present in the supported runtime
+    linear_sum_assignment = None
+
 from packages.f1.models.ultimate_lap_time.schemas import (
     ACHIEVABLE_SESSION_END_LAP_TARGET_CONTRACT,
     TARGET_CONTRACT_SEMANTICS,
@@ -51,6 +56,8 @@ FORBIDDEN_INFERENCE_COLUMNS = frozenset(
         "has_valid_qualifying_lap",
         "reached_q2",
         "reached_q3",
+        "has_valid_q2_lap",
+        "has_valid_q3_lap",
         Q1_LAP_COLUMN,
         Q2_LAP_COLUMN,
         Q3_LAP_COLUMN,
@@ -76,11 +83,25 @@ ROBUST_NUMERIC_FEATURE_ALLOWLIST: tuple[str, ...] = (
 VALID_LAP_COLUMN = "has_valid_qualifying_lap"
 REACHED_Q2_COLUMN = "reached_q2"
 REACHED_Q3_COLUMN = "reached_q3"
+Q2_VALID_LAP_COLUMN = "has_valid_q2_lap"
+Q3_VALID_LAP_COLUMN = "has_valid_q3_lap"
 HISTORY_WEIGHT_COLUMN = "history_weight"
 WEAK_PRIOR_COLUMN = "weak_transfer_prior"
 SHARED_QUALIFYING_SAMPLE_COUNT = 5_000
 SHARED_QUALIFYING_SAMPLE_SEED_BASE = 20_260_713
 SHARED_QUALIFYING_ENABLE_ROBUST_RESIDUAL = False
+MIN_DRIVER_CONDITIONED_STAGE_EVENTS = 8
+POINT_HEAD_DIRECT_PACE = "direct_latent_pace_order"
+POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS = (
+    "joint_minimum_expected_absolute_position_loss_assignment"
+)
+DIRECT_PACE_POSITION_COLUMN = "direct_pace_predicted_qualifying_position"
+MEAL_POSITION_COLUMN = (
+    "minimum_expected_absolute_loss_predicted_qualifying_position"
+)
+SUPPORTED_QUALIFYING_POINT_HEADS = frozenset(
+    {POINT_HEAD_DIRECT_PACE, POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS}
+)
 
 
 def _source_name(value: object) -> str:
@@ -155,9 +176,17 @@ class QualifyingStageProbabilities:
     q2_given_valid: float
     q3_given_q2: float
     status: str
+    q2_valid_lap_given_reached: float = 1.0
+    q3_valid_lap_given_reached: float = 1.0
 
     def __post_init__(self) -> None:
-        for name in ("valid_lap", "q2_given_valid", "q3_given_q2"):
+        for name in (
+            "valid_lap",
+            "q2_given_valid",
+            "q3_given_q2",
+            "q2_valid_lap_given_reached",
+            "q3_valid_lap_given_reached",
+        ):
             value = float(getattr(self, name))
             if np.isfinite(value) and not 0.0 <= value <= 1.0:
                 raise ValueError(f"{name} must be a probability")
@@ -176,6 +205,12 @@ class QualifyingStageProbabilities:
                 "q2_only_probability": float("nan"),
                 "q3_probability": float("nan"),
                 "stage_probability_status": self.status,
+                "q2_valid_lap_given_reached_probability": float(
+                    self.q2_valid_lap_given_reached
+                ),
+                "q3_valid_lap_given_reached_probability": float(
+                    self.q3_valid_lap_given_reached
+                ),
             }
         return {
             "valid_lap_probability": valid,
@@ -186,6 +221,12 @@ class QualifyingStageProbabilities:
             "q2_only_probability": valid * q2 * (1.0 - q3),
             "q3_probability": valid * q2 * q3,
             "stage_probability_status": self.status,
+            "q2_valid_lap_given_reached_probability": float(
+                self.q2_valid_lap_given_reached
+            ),
+            "q3_valid_lap_given_reached_probability": float(
+                self.q3_valid_lap_given_reached
+            ),
         }
 
 
@@ -197,6 +238,10 @@ class StageHurdleCalibration:
     q2_trials: float = 0.0
     q3_successes: float = 0.0
     q3_trials: float = 0.0
+    q2_valid_lap_successes: float = 0.0
+    q2_valid_lap_trials: float = 0.0
+    q3_valid_lap_successes: float = 0.0
+    q3_valid_lap_trials: float = 0.0
     event_keys: tuple[int, ...] = ()
     explicit_labels: bool = False
     prior_alpha: float = 1.0
@@ -220,6 +265,16 @@ class StageHurdleCalibration:
             q2_given_valid=self._posterior(self.q2_successes, self.q2_trials),
             q3_given_q2=self._posterior(self.q3_successes, self.q3_trials),
             status=status,
+            q2_valid_lap_given_reached=self._posterior_or_default(
+                self.q2_valid_lap_successes,
+                self.q2_valid_lap_trials,
+                default=1.0,
+            ),
+            q3_valid_lap_given_reached=self._posterior_or_default(
+                self.q3_valid_lap_successes,
+                self.q3_valid_lap_trials,
+                default=1.0,
+            ),
         )
 
     def _posterior(self, successes: float, trials: float) -> float:
@@ -227,6 +282,17 @@ class StageHurdleCalibration:
             (float(successes) + float(self.prior_alpha))
             / (float(trials) + float(self.prior_alpha) + float(self.prior_beta))
         )
+
+    def _posterior_or_default(
+        self,
+        successes: float,
+        trials: float,
+        *,
+        default: float,
+    ) -> float:
+        if float(trials) <= 0.0:
+            return float(default)
+        return self._posterior(successes, trials)
 
 
 @dataclass(frozen=True)
@@ -264,8 +330,12 @@ class JointLapSamples:
     deepest_stage: np.ndarray
     official_positions: np.ndarray | None = None
     stage_lap_seconds: np.ndarray | None = None
-    stage_advancement_status: str = "fitted_hurdle_gumbel_top_k"
+    stage_valid_lap_mask: np.ndarray | None = None
+    stage_advancement_status: str = "sampled_period_pace_top_k"
     stage_time_distribution_status: str = "learned_stage_residual_dispersion"
+    classification_tie_policy: str = (
+        "fia_period_time_then_prior_period_then_seeded_exchangeable_uncertainty"
+    )
 
 
 @dataclass(frozen=True)
@@ -330,12 +400,14 @@ def shared_qualifying_forecast_artifact(
     )
     sample_digest.update(forecast.samples.stage_advancement_status.encode("utf-8"))
     sample_digest.update(forecast.samples.stage_time_distribution_status.encode("utf-8"))
+    sample_digest.update(forecast.samples.classification_tie_policy.encode("utf-8"))
     for name, values, dtype in (
         ("lap_seconds", forecast.samples.lap_seconds, "<f8"),
         ("valid_mask", forecast.samples.valid_mask, "u1"),
         ("deepest_stage", forecast.samples.deepest_stage, "i1"),
         ("official_positions", forecast.samples.official_positions, "<i2"),
         ("stage_lap_seconds", forecast.samples.stage_lap_seconds, "<f8"),
+        ("stage_valid_lap_mask", forecast.samples.stage_valid_lap_mask, "u1"),
     ):
         sample_digest.update(name.encode("utf-8"))
         if values is None:
@@ -386,6 +458,10 @@ def shared_qualifying_forecast_artifact(
     model_manifest = {
         "model_name": model.model_name,
         "point_predictor_sha256": shared_point_predictor_sha256(model),
+        "point_predictor_hash_scope": "complete_point_plus_interval_predictor",
+        "structural_point_predictor_sha256": (
+            shared_structural_point_predictor_sha256(model)
+        ),
         "point_training_event_keys": list(model.training_event_keys),
         "target_event_key": int(model.target_event_key),
         "interval_calibration_event_keys": list(model.calibration_event_keys),
@@ -397,8 +473,19 @@ def shared_qualifying_forecast_artifact(
             "utf-8"
         )
     ).hexdigest()
+    point_sources = tuple(
+        forecast.point_order.get(
+            "point_prediction_source", pd.Series(dtype=str)
+        )
+        .dropna()
+        .astype(str)
+        .unique()
+    )
+    if len(point_sources) != 1 or point_sources[0] not in SUPPORTED_QUALIFYING_POINT_HEADS:
+        raise ValueError("shared forecast must declare exactly one supported point head")
+    selected_point_head = point_sources[0]
     payload: dict[str, object] = {
-        "schema_version": "f1_shared_qualifying_forecast_artifact_v2",
+        "schema_version": "f1_shared_qualifying_forecast_artifact_v5",
         "event_key": event_key,
         "driver_ids": list(forecast.samples.driver_ids),
         "joint_sample_count": int(forecast.samples.lap_seconds.shape[0]),
@@ -407,6 +494,13 @@ def shared_qualifying_forecast_artifact(
         "stage_time_distribution_status": (
             forecast.samples.stage_time_distribution_status
         ),
+        "classification_tie_policy": forecast.samples.classification_tie_policy,
+        "selected_point_head": selected_point_head,
+        "point_head_candidates": sorted(SUPPORTED_QUALIFYING_POINT_HEADS),
+        "joint_samples_drive_qualifying_point_head": bool(
+            selected_point_head == POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS
+        ),
+        "position_marginals_promoted": False,
         "best_lap_outputs_sha256": frame_digest(forecast.lap_predictions),
         "qualifying_point_outputs_sha256": frame_digest(forecast.point_order),
         "qualifying_position_marginals_sha256": frame_digest(
@@ -416,7 +510,8 @@ def shared_qualifying_forecast_artifact(
         "model_manifest_sha256": model_manifest_sha256,
         "model_manifest": model_manifest,
         "training_partition_manifest": training_partition_payload,
-        "shared_samples_drive_best_lap_and_qualifying": True,
+        "shared_latent_drives_best_lap_and_qualifying": True,
+        "shared_samples_drive_best_lap_and_qualifying": False,
     }
     payload["artifact_sha256"] = hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -477,7 +572,7 @@ class AchievableLapSourceCalibration:
     prequential_residuals_seconds: tuple[float, ...]
     event_prequential_residuals_seconds: tuple[tuple[float, ...], ...] = ()
     event_weights: tuple[float, ...] = ()
-    conformal_event_keys: tuple[int, ...] = ()
+    empirical_residual_event_keys: tuple[int, ...] = ()
 
     @property
     def shift_seconds(self) -> float:
@@ -496,8 +591,8 @@ class AchievableLapSourceCalibration:
         return len(self.event_keys)
 
     @property
-    def conformal_event_count(self) -> int:
-        return len(self.conformal_event_keys)
+    def empirical_residual_event_count(self) -> int:
+        return len(self.empirical_residual_event_keys)
 
     def centered_residual_quantiles(
         self,
@@ -505,8 +600,26 @@ class AchievableLapSourceCalibration:
         lower_probability: float = 0.05,
         upper_probability: float = 0.90,
     ) -> tuple[float, float]:
+        q_low, q50, q_high = self.residual_quantiles(
+            lower_probability=lower_probability,
+            upper_probability=upper_probability,
+        )
+        return float(q_low - q50), float(q_high - q50)
+
+    def residual_quantiles(
+        self,
+        *,
+        lower_probability: float = 0.05,
+        upper_probability: float = 0.90,
+    ) -> tuple[float, float, float]:
+        """Return signed event-balanced predictive residual quantiles.
+
+        Tail inflation is applied around the residual median, preserving the
+        held-out median bias instead of silently recentering it to zero.
+        """
+
         if not self.prequential_residuals_seconds:
-            return float("nan"), float("nan")
+            return float("nan"), float("nan"), float("nan")
         if not 0.0 <= float(lower_probability) < 0.5:
             raise ValueError("lower_probability must be in [0, 0.5)")
         if not 0.5 < float(upper_probability) <= 1.0:
@@ -536,19 +649,20 @@ class AchievableLapSourceCalibration:
         q_low = _weighted_quantile(residuals, weights, lower_probability)
         q50 = _weighted_quantile(residuals, weights, 0.50)
         q_high = _weighted_quantile(residuals, weights, upper_probability)
-        event_count = max(1, len(self.conformal_event_keys or self.event_keys))
-        small_sample_inflation = float(np.sqrt((event_count + 1.0) / event_count))
-        return (
-            float((q_low - q50) * small_sample_inflation),
-            float((q_high - q50) * small_sample_inflation),
-        )
+        # These are event-balanced empirical predictive quantiles.  A former
+        # sqrt((n + 1) / n) tail multiplier was neither a finite-sample
+        # conformal correction nor tied to the requested quantile levels; with
+        # two calibration events it inflated an 85% interval by 22.5%.  Keep
+        # the declared P05/P50/P90 semantics exact and gate promotion on the
+        # number of independent calibration events plus untouched coverage.
+        return float(q_low), float(q50), float(q_high)
 
 
 @dataclass(frozen=True)
 class AchievableBestLapModel:
     target_event_key: int
     calibrations: Mapping[str, AchievableLapSourceCalibration]
-    min_calibration_events: int = 2
+    min_calibration_events: int = 4
     residual_model: RobustHierarchicalResidualModel = field(
         default_factory=RobustHierarchicalResidualModel
     )
@@ -563,7 +677,7 @@ class AchievableBestLapModel:
     interval_mass: float = 0.85
     interval_lower_probability: float = 0.05
     interval_upper_probability: float = 0.90
-    model_name: str = "shared_qualifying_latent_lap_v3"
+    model_name: str = "shared_qualifying_latent_lap_v4"
 
     @property
     def training_event_keys(self) -> tuple[int, ...]:
@@ -580,6 +694,8 @@ class AchievableBestLapModel:
     def predict(self, inputs: pd.DataFrame) -> pd.DataFrame:
         if not isinstance(inputs, pd.DataFrame):
             raise TypeError("achievable best-lap inference inputs must be a pandas DataFrame")
+        if inputs.index.has_duplicates:
+            raise ValueError("achievable best-lap inference index must be unique")
         leaked = sorted(FORBIDDEN_INFERENCE_COLUMNS.intersection(map(str, inputs.columns)))
         if leaked:
             raise ValueError(f"achievable best-lap inference contains target/outcome columns: {leaked}")
@@ -637,7 +753,7 @@ class AchievableBestLapModel:
                 source,
                 AchievableLapSourceCalibration(source, (), (), ()),
             )
-            if interval_calibration.conformal_event_count < int(
+            if interval_calibration.empirical_residual_event_count < int(
                 self.min_calibration_events
             ):
                 pooled_interval = self.interval_calibrations.get("__all__")
@@ -645,7 +761,7 @@ class AchievableBestLapModel:
                     interval_calibration = pooled_interval
             diagnostic_or_validated_interval = (
                 interval_calibration
-                if interval_calibration.conformal_event_count > 0
+                if interval_calibration.empirical_residual_event_count > 0
                 else calibration
             )
             anchor = float(rehearsal.loc[index]) if np.isfinite(rehearsal.loc[index]) else float("nan")
@@ -657,24 +773,54 @@ class AchievableBestLapModel:
             ).iloc[0]
             residual_adjustment = self.residual_model.predict_adjustment(row)
             latent_location = float(anchor + calibration.shift_seconds + residual_adjustment)
-            lower_offset, upper_offset = (
-                diagnostic_or_validated_interval.centered_residual_quantiles(
+            raw_lower_offset, raw_median_offset, raw_upper_offset = (
+                diagnostic_or_validated_interval.residual_quantiles(
                 lower_probability=self.interval_lower_probability,
                 upper_probability=self.interval_upper_probability,
                 )
             )
+            validated_point_calibration = bool(
+                self.calibration_partition_validated
+                and interval_calibration.empirical_residual_event_count
+                >= int(self.min_calibration_events)
+            )
+            median_offset = (
+                float(raw_median_offset)
+                if validated_point_calibration and np.isfinite(raw_median_offset)
+                else 0.0
+            )
+            if validated_point_calibration:
+                lower_offset = raw_lower_offset
+                upper_offset = raw_upper_offset
+            else:
+                lower_offset = (
+                    float(raw_lower_offset - raw_median_offset)
+                    if np.isfinite(raw_lower_offset) and np.isfinite(raw_median_offset)
+                    else float("nan")
+                )
+                upper_offset = (
+                    float(raw_upper_offset - raw_median_offset)
+                    if np.isfinite(raw_upper_offset) and np.isfinite(raw_median_offset)
+                    else float("nan")
+                )
             anchor_uncertainty = pd.to_numeric(
                 pd.Series([row.get("anchor_uncertainty_seconds")]), errors="coerce"
             ).iloc[0]
             if np.isfinite(anchor_uncertainty):
                 if not np.isfinite(lower_offset):
-                    lower_offset = -float(anchor_uncertainty)
+                    lower_offset = median_offset - float(anchor_uncertainty)
                 else:
-                    lower_offset = min(float(lower_offset), -float(anchor_uncertainty))
+                    lower_offset = min(
+                        float(lower_offset),
+                        median_offset - float(anchor_uncertainty),
+                    )
                 if not np.isfinite(upper_offset):
-                    upper_offset = float(anchor_uncertainty)
+                    upper_offset = median_offset + float(anchor_uncertainty)
                 else:
-                    upper_offset = max(float(upper_offset), float(anchor_uncertainty))
+                    upper_offset = max(
+                        float(upper_offset),
+                        median_offset + float(anchor_uncertainty),
+                    )
             stage_payload = self._stage_payload_for_row(
                 index=index,
                 conditioned=conditioned_stages,
@@ -693,48 +839,55 @@ class AchievableBestLapModel:
                 latent_location + self.stage_time_effects.for_stage(stage)
                 for stage in (1, 2, 3)
             )
+            stage_mixture_p05 = float("nan")
+            stage_mixture_p50 = float("nan")
+            stage_mixture_p90 = float("nan")
             if stage_weights is not None and np.isfinite(sigma) and sigma > 0.0:
-                p05 = _normal_mixture_quantile(
+                stage_mixture_p05 = _normal_mixture_quantile(
                     stage_weights,
                     stage_means,
                     sigma,
                     self.interval_lower_probability,
                 )
-                p50 = _normal_mixture_quantile(stage_weights, stage_means, sigma, 0.50)
-                p90 = _normal_mixture_quantile(
+                stage_mixture_p50 = _normal_mixture_quantile(
+                    stage_weights, stage_means, sigma, 0.50
+                )
+                stage_mixture_p90 = _normal_mixture_quantile(
                     stage_weights,
                     stage_means,
                     sigma,
                     self.interval_upper_probability,
                 )
-            else:
-                p50 = latent_location
-                p05 = (
-                    float(latent_location + lower_offset)
-                    if np.isfinite(lower_offset)
-                    else float("nan")
-                )
-                p90 = (
-                    float(latent_location + upper_offset)
-                    if np.isfinite(upper_offset)
-                    else float("nan")
-                )
-            if np.isfinite(p05) and np.isfinite(p90):
-                p05, p50, p90 = sorted((p05, p50, p90))
+            # The source shift and optional residual are fitted directly to the
+            # session-end best-lap target. Q1/Q2/Q3 period effects belong to
+            # the Qualifying simulator; applying their mixture here counts the
+            # stage transition a second time and creates a systematic slow
+            # bias. Keep that mixture as an explicit diagnostic only.
+            p50 = latent_location + median_offset
+            p05 = (
+                float(latent_location + lower_offset)
+                if np.isfinite(lower_offset)
+                else float("nan")
+            )
+            p90 = (
+                float(latent_location + upper_offset)
+                if np.isfinite(upper_offset)
+                else float("nan")
+            )
             interval_status = (
                 "calibrated_disjoint_event_partition"
                 if self.calibration_partition_validated
-                and interval_calibration.conformal_event_count
+                and interval_calibration.empirical_residual_event_count
                 >= int(self.min_calibration_events)
                 else "diagnostic_calibration_rows_reused_for_model_fit"
                 if self.calibration_event_keys
                 and not self.calibration_partition_validated
-                and calibration.conformal_event_count > 0
+                and calibration.empirical_residual_event_count > 0
                 else "diagnostic_underpowered_disjoint_calibration"
                 if self.calibration_partition_validated
-                and interval_calibration.conformal_event_count > 0
+                and interval_calibration.empirical_residual_event_count > 0
                 else "diagnostic_no_disjoint_calibration_partition"
-                if calibration.conformal_event_count > 0
+                if calibration.empirical_residual_event_count > 0
                 else "fallback_anchor_uncertainty_no_current_regime_calibration"
                 if np.isfinite(anchor_uncertainty)
                 else "unavailable_no_same_source_history"
@@ -763,10 +916,15 @@ class AchievableBestLapModel:
                     "lap_p05": p05,
                     "lap_p50": p50,
                     "lap_p90": p90,
+                    "stage_mixture_lap_p05": stage_mixture_p05,
+                    "stage_mixture_lap_p50": stage_mixture_p50,
+                    "stage_mixture_lap_p90": stage_mixture_p90,
                     "lap_p05_quantile_probability": float(self.interval_lower_probability),
                     "lap_p50_quantile_probability": 0.50,
                     "lap_p90_quantile_probability": float(self.interval_upper_probability),
                     "latent_lap_location_seconds": latent_location,
+                    "median_calibration_adjustment_seconds": median_offset,
+                    "median_calibration_applied": validated_point_calibration,
                     "latent_lap_sigma_seconds": sigma,
                     "stage_q1_time_effect_seconds": self.stage_time_effects.q1_only_seconds,
                     "stage_q2_time_effect_seconds": self.stage_time_effects.q2_only_seconds,
@@ -784,12 +942,12 @@ class AchievableBestLapModel:
                     "session_shift_seconds": calibration.shift_seconds,
                     "robust_residual_adjustment_seconds": residual_adjustment,
                     "source_history_event_count": calibration.event_count,
-                    "conformal_current_regime_event_count": (
-                        interval_calibration.conformal_event_count
+                    "empirical_residual_current_regime_event_count": (
+                        interval_calibration.empirical_residual_event_count
                     ),
                     "interval_status": interval_status,
                     "interval_method": (
-                        "stage_mixture_equal_event_weight_conformal"
+                        "direct_session_best_equal_event_weight_empirical_residual_quantiles"
                         if self.calibration_partition_validated
                         else (
                             "diagnostic_prequential_anchor_shift_residual_quantiles_"
@@ -839,6 +997,7 @@ class AchievableBestLapModel:
         valid = float(row["p_valid_qualifying_lap"])
         q2 = float(row["p_q2_given_valid"])
         q3 = float(row["p_q3_given_q2"])
+        global_stage = self.stage_calibration.probabilities()
         return {
             "valid_lap_probability": valid,
             "no_valid_lap_probability": 1.0 - valid,
@@ -848,6 +1007,12 @@ class AchievableBestLapModel:
             "q2_only_probability": valid * q2 * (1.0 - q3),
             "q3_probability": valid * q2 * q3,
             "stage_probability_status": str(row["probability_calibration_status"]),
+            "q2_valid_lap_given_reached_probability": float(
+                global_stage.q2_valid_lap_given_reached
+            ),
+            "q3_valid_lap_given_reached_probability": float(
+                global_stage.q3_valid_lap_given_reached
+            ),
         }
 
     def predict_qualifying(
@@ -859,8 +1024,16 @@ class AchievableBestLapModel:
         q2_slots: int | None = None,
         q3_slots: int | None = None,
         allow_diagnostic_stage_fallback: bool = False,
+        point_head: str = POINT_HEAD_DIRECT_PACE,
     ) -> SharedQualifyingForecast:
         """Predict Best Lap and the legal official classification jointly."""
+
+        selected_point_head = str(point_head)
+        if selected_point_head not in SUPPORTED_QUALIFYING_POINT_HEADS:
+            raise ValueError(
+                "point_head must be one of "
+                f"{sorted(SUPPORTED_QUALIFYING_POINT_HEADS)}"
+            )
 
         analytic_predictions = self.predict(inputs)
         joint = sample_joint_qualifying_laps(
@@ -874,41 +1047,32 @@ class AchievableBestLapModel:
         lap_predictions = analytic_predictions.copy()
         for column in ("lap_p05", "lap_p50", "lap_p90"):
             lap_predictions[f"analytic_{column}"] = lap_predictions[column]
+        joint_quantile_columns = {
+            "joint_achieved_lap_p05": np.full(len(joint.driver_ids), np.nan),
+            "joint_achieved_lap_p50": np.full(len(joint.driver_ids), np.nan),
+            "joint_achieved_lap_p90": np.full(len(joint.driver_ids), np.nan),
+        }
         for driver_index in range(len(joint.driver_ids)):
             conditional = joint.lap_seconds[:, driver_index]
             conditional = conditional[np.isfinite(conditional)]
             if conditional.size:
-                lap_predictions.iloc[
-                    driver_index, lap_predictions.columns.get_loc("lap_p05")
-                ] = float(np.quantile(conditional, self.interval_lower_probability))
-                lap_predictions.iloc[
-                    driver_index, lap_predictions.columns.get_loc("lap_p50")
-                ] = float(np.quantile(conditional, 0.50))
-                lap_predictions.iloc[
-                    driver_index, lap_predictions.columns.get_loc("lap_p90")
-                ] = float(np.quantile(conditional, self.interval_upper_probability))
-            else:
-                for column in ("lap_p05", "lap_p50", "lap_p90"):
-                    lap_predictions.iloc[
-                        driver_index, lap_predictions.columns.get_loc(column)
-                    ] = float("nan")
-            analytic_row = analytic_predictions.iloc[driver_index]
-            has_distribution_evidence = bool(
-                np.isfinite(pd.to_numeric(analytic_row.get("analytic_lap_p05"), errors="coerce"))
-                if "analytic_lap_p05" in analytic_predictions.columns
-                else np.isfinite(pd.to_numeric(analytic_row.get("lap_p05"), errors="coerce"))
-            )
-            # The sampler needs a conservative fallback variance to rank a
-            # cold-start field, but that fallback must not manufacture public
-            # Best-Lap interval bounds without timing uncertainty evidence.
-            if not has_distribution_evidence:
-                lap_predictions.iloc[
-                    driver_index, lap_predictions.columns.get_loc("lap_p05")
-                ] = float("nan")
-                lap_predictions.iloc[
-                    driver_index, lap_predictions.columns.get_loc("lap_p90")
-                ] = float("nan")
-        lap_predictions["distribution_source"] = "shared_joint_qualifying_samples"
+                joint_quantile_columns["joint_achieved_lap_p05"][driver_index] = (
+                    float(np.quantile(conditional, self.interval_lower_probability))
+                )
+                joint_quantile_columns["joint_achieved_lap_p50"][driver_index] = (
+                    float(np.quantile(conditional, 0.50))
+                )
+                joint_quantile_columns["joint_achieved_lap_p90"][driver_index] = (
+                    float(np.quantile(conditional, self.interval_upper_probability))
+                )
+        for column, values in joint_quantile_columns.items():
+            lap_predictions[column] = values
+        lap_predictions["distribution_source"] = (
+            "direct_session_best_latent_calibration"
+        )
+        lap_predictions["joint_distribution_source"] = (
+            "qualifying_period_pace_simulation_diagnostic"
+        )
         lap_predictions["joint_sample_count"] = int(samples)
         lap_predictions["joint_sample_seed"] = int(seed)
         marginals = summarize_joint_lap_samples(joint)
@@ -948,7 +1112,8 @@ class AchievableBestLapModel:
             where=sampled_q2 > 0.0,
         )
         diagnostic_stage_fallback = bool(
-            joint.stage_advancement_status == "diagnostic_pace_fallback_missing_hurdles"
+            joint.stage_advancement_status
+            == "diagnostic_pace_top_k_missing_valid_lap_probabilities"
             or joint.stage_time_distribution_status
             == "diagnostic_missing_learned_stage_residual_dispersion"
         )
@@ -980,11 +1145,51 @@ class AchievableBestLapModel:
         lap_predictions["stage_probability_status"] = stage_probability_status
         marginals["probability_calibration_status"] = probability_status
         marginals["position_marginals_calibrated"] = False
-        expected = marginals["expected_qualifying_position"].to_numpy(dtype=float)
-        drivers = marginals[DRIVER_ID_COLUMN].astype(str).to_numpy()
-        stable_order = np.lexsort((drivers, expected))
+        # Position marginals remain explicitly uncalibrated and diagnostic.
+        # Point forecasts are a separate decision product: retain direct pace
+        # and expose a legal minimum-expected-absolute-loss assignment so a
+        # disjoint selection block can choose the point head explicitly.
+        pace = pd.to_numeric(lap_predictions["lap_p50"], errors="coerce").to_numpy(
+            dtype=float
+        )
+        drivers = lap_predictions[DRIVER_ID_COLUMN].astype(str).to_numpy()
+        expected_by_driver = marginals.set_index(DRIVER_ID_COLUMN)[
+            "expected_qualifying_position"
+        ]
+        sampled_expected_position = pd.Series(drivers).map(expected_by_driver).to_numpy(
+            dtype=float
+        )
+        unresolved_tie_uncertainty = _seeded_exchangeable_uncertainty(
+            tuple(drivers.tolist()),
+            samples=1,
+            seed=int(seed),
+            namespace="qualifying_point_unresolved_tie",
+        )[0]
+        stable_order = np.lexsort(
+            (
+                unresolved_tie_uncertainty,
+                np.where(
+                    np.isfinite(sampled_expected_position),
+                    sampled_expected_position,
+                    np.inf,
+                ),
+                np.where(np.isfinite(pace), pace, np.inf),
+            )
+        )
         point_positions = np.empty(len(drivers), dtype=int)
         point_positions[stable_order] = np.arange(1, len(drivers) + 1)
+        if joint.official_positions is None:
+            raise RuntimeError("joint Qualifying samples have no official classifications")
+        minimum_loss_positions = minimum_expected_absolute_position_loss_assignment(
+            joint.official_positions,
+            driver_ids=drivers,
+            seed=int(seed),
+        )
+        selected_positions = (
+            minimum_loss_positions
+            if selected_point_head == POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS
+            else point_positions
+        )
         point = lap_predictions.merge(
             marginals,
             on=DRIVER_ID_COLUMN,
@@ -992,13 +1197,25 @@ class AchievableBestLapModel:
             validate="one_to_one",
             suffixes=("", "_sampled"),
         )
-        point["predicted_qualifying_position"] = point_positions
+        point[DIRECT_PACE_POSITION_COLUMN] = point_positions
+        point[MEAL_POSITION_COLUMN] = minimum_loss_positions
+        point["predicted_qualifying_position"] = selected_positions
         point["qualifying_model"] = self.model_name
+        point["point_prediction_source"] = selected_point_head
+        point["point_head_candidates_frozen"] = (
+            f"{POINT_HEAD_DIRECT_PACE}|{POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS}"
+        )
+        point["point_head_uses_uncalibrated_joint_samples"] = bool(
+            selected_point_head == POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS
+        )
+        point["point_tie_policy"] = (
+            "hungarian_expected_absolute_loss_then_seeded_exchangeable_optimal_tie"
+            if selected_point_head == POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS
+            else "sampled_expected_official_position_then_seeded_exchangeable_uncertainty"
+        )
         point["probability_calibration_status"] = probability_status
         point["position_marginals_calibrated"] = False
-        point = point.sort_values(
-            ["predicted_qualifying_position", DRIVER_ID_COLUMN], kind="mergesort"
-        )
+        point = point.sort_values("predicted_qualifying_position", kind="mergesort")
         return SharedQualifyingForecast(
             lap_predictions=lap_predictions,
             point_order=point,
@@ -1012,7 +1229,7 @@ def fit_achievable_best_lap_model(
     history: pd.DataFrame,
     *,
     target_event_key: int,
-    min_calibration_events: int = 2,
+    min_calibration_events: int = 4,
     enable_robust_residual: bool = True,
     calibration_event_keys: Sequence[int] | None = None,
     model_name: str | None = None,
@@ -1040,7 +1257,7 @@ def fit_achievable_best_lap_model(
             calibration_event_keys=requested_calibration_keys,
             calibration_partition_validated=False,
             model_name=model_name or (
-                "shared_qualifying_latent_lap_huber_v3"
+                "shared_qualifying_latent_lap_huber_v4"
                 if enable_robust_residual
                 else "achievable_best_lap_rehearsal_shift_v1"
             ),
@@ -1094,7 +1311,7 @@ def fit_achievable_best_lap_model(
         )
     # These rows currently contribute to the fitted source/residual/stage
     # models. Merely naming them as a calibration partition does not make the
-    # residual intervals split conformal. Keep interval publication fail-closed
+    # residual intervals held-out predictive intervals. Keep publication fail-closed
     # until callers provide a truly held-out final-predictor calibration set.
     calibration_partition_validated = False
     unknown_sources = sorted(set(frame[REHEARSAL_SOURCE_COLUMN]) - ALLOWED_REHEARSAL_SOURCES)
@@ -1168,7 +1385,9 @@ def fit_achievable_best_lap_model(
             ),
             event_prequential_residuals_seconds=tuple(rolling_event_residuals),
             event_weights=tuple(event_weights),
-            conformal_event_keys=tuple(event_keys[index] for index in strong_indices),
+            empirical_residual_event_keys=tuple(
+                event_keys[index] for index in strong_indices
+            ),
         )
 
     residual_model = (
@@ -1196,7 +1415,7 @@ def fit_achievable_best_lap_model(
         calibration_event_keys=requested_calibration_keys,
         calibration_partition_validated=calibration_partition_validated,
         model_name=model_name or (
-            "shared_qualifying_latent_lap_huber_v3"
+            "shared_qualifying_latent_lap_huber_v4"
             if enable_robust_residual
             else "achievable_best_lap_rehearsal_shift_v1"
         ),
@@ -1207,13 +1426,15 @@ def calibrate_achievable_best_lap_model(
     model: AchievableBestLapModel,
     calibration_predictions: pd.DataFrame,
 ) -> AchievableBestLapModel:
-    """Attach held-out final-predictor residuals without changing point fit.
+    """Attach held-out median and interval residual calibration.
 
     ``calibration_predictions`` must contain predictions emitted by the frozen
     model plus their later labels. Calibration event keys must be disjoint from
-    and later than every point-training event. Only interval residuals change;
-    source shifts, stage heads, residual coefficients, and point locations stay
-    byte-identical under :func:`shared_point_predictor_sha256`.
+    and later than every structural point-training event. Source shifts, stage
+    heads, and residual coefficients remain fixed, while the held-out residual
+    median changes the final ``lap_p50`` and the signed residual quantiles change
+    ``lap_p05``/``lap_p90``. Therefore the complete predictor fingerprint must
+    include this calibration state.
     """
 
     if not isinstance(model, AchievableBestLapModel):
@@ -1271,7 +1492,7 @@ def calibrate_achievable_best_lap_model(
             ),
             event_prequential_residuals_seconds=tuple(blocks),
             event_weights=tuple(1.0 for _ in blocks),
-            conformal_event_keys=tuple(event_keys),
+            empirical_residual_event_keys=tuple(event_keys),
         )
     pooled_event_keys: list[int] = []
     pooled_blocks: list[tuple[float, ...]] = []
@@ -1292,7 +1513,7 @@ def calibrate_achievable_best_lap_model(
         ),
         event_prequential_residuals_seconds=tuple(pooled_blocks),
         event_weights=tuple(1.0 for _ in pooled_blocks),
-        conformal_event_keys=tuple(pooled_event_keys),
+        empirical_residual_event_keys=tuple(pooled_event_keys),
     )
     if not calibrations:
         raise ValueError("held-out interval calibration has no supported rehearsal source")
@@ -1305,7 +1526,23 @@ def calibrate_achievable_best_lap_model(
 
 
 def shared_point_predictor_sha256(model: AchievableBestLapModel) -> str:
-    """Fingerprint the complete point predictor while excluding target/interval state."""
+    """Fingerprint the complete deployable point-plus-interval predictor."""
+
+    if not isinstance(model, AchievableBestLapModel):
+        raise TypeError("model must be an AchievableBestLapModel")
+    stage_model = model.stage_probability_model
+    if stage_model is not None and is_dataclass(stage_model):
+        stage_model = replace(stage_model, target_event_key=None)
+    canonical = replace(
+        model,
+        target_event_key=0,
+        stage_probability_model=stage_model,
+    )
+    return hashlib.sha256(pickle.dumps(canonical, protocol=5)).hexdigest()
+
+
+def shared_structural_point_predictor_sha256(model: AchievableBestLapModel) -> str:
+    """Fingerprint only the structural fit, excluding held-out calibration."""
 
     if not isinstance(model, AchievableBestLapModel):
         raise TypeError("model must be an AchievableBestLapModel")
@@ -1329,6 +1566,8 @@ def build_shared_qualifying_event_forecast(
     *,
     target_event_key: int,
     interval_calibration_predictions: pd.DataFrame | None = None,
+    enable_robust_residual: bool = SHARED_QUALIFYING_ENABLE_ROBUST_RESIDUAL,
+    point_head: str = POINT_HEAD_DIRECT_PACE,
 ) -> tuple[AchievableBestLapModel, SharedQualifyingForecast, dict[str, object]]:
     """Common frozen model/sampler path for Qualifying and Best Lap runners."""
 
@@ -1336,8 +1575,8 @@ def build_shared_qualifying_event_forecast(
         history,
         target_event_key=int(target_event_key),
         calibration_event_keys=(),
-        enable_robust_residual=SHARED_QUALIFYING_ENABLE_ROBUST_RESIDUAL,
-        model_name="shared_qualifying_latent_lap_v3",
+        enable_robust_residual=bool(enable_robust_residual),
+        model_name="shared_qualifying_latent_lap_v4",
     )
     if interval_calibration_predictions is not None:
         model = calibrate_achievable_best_lap_model(
@@ -1349,8 +1588,14 @@ def build_shared_qualifying_event_forecast(
         samples=SHARED_QUALIFYING_SAMPLE_COUNT,
         seed=SHARED_QUALIFYING_SAMPLE_SEED_BASE + int(target_event_key),
         allow_diagnostic_stage_fallback=True,
+        point_head=str(point_head),
     )
-    numeric_events = pd.to_numeric(history.get(EVENT_KEY_COLUMN), errors="coerce")
+    numeric_events = pd.to_numeric(
+        history[EVENT_KEY_COLUMN]
+        if EVENT_KEY_COLUMN in history.columns
+        else pd.Series(index=history.index, dtype=float),
+        errors="coerce",
+    )
     if WEAK_PRIOR_COLUMN in history.columns:
         weak = _probability_label(history[WEAK_PRIOR_COLUMN]).fillna(0.0).astype(bool)
     else:
@@ -1362,7 +1607,8 @@ def build_shared_qualifying_event_forecast(
         "strong_same_season_point_fit_event_keys": sorted(
             int(value) for value in numeric_events.loc[~weak].dropna().unique()
         ),
-        "enable_robust_residual": SHARED_QUALIFYING_ENABLE_ROBUST_RESIDUAL,
+        "enable_robust_residual": bool(enable_robust_residual),
+        "point_head": str(point_head),
         "joint_sample_count": SHARED_QUALIFYING_SAMPLE_COUNT,
         "joint_sample_seed": SHARED_QUALIFYING_SAMPLE_SEED_BASE
         + int(target_event_key),
@@ -1391,6 +1637,18 @@ def _fit_stage_hurdle_calibration(frame: pd.DataFrame) -> StageHurdleCalibration
         usable["_q3_label"] = _probability_label(usable[REACHED_Q3_COLUMN])
     else:
         usable["_q3_label"] = np.nan
+    if Q2_VALID_LAP_COLUMN in usable.columns:
+        usable["_q2_valid_lap_label"] = _probability_label(
+            usable[Q2_VALID_LAP_COLUMN]
+        )
+    else:
+        usable["_q2_valid_lap_label"] = np.nan
+    if Q3_VALID_LAP_COLUMN in usable.columns:
+        usable["_q3_valid_lap_label"] = _probability_label(
+            usable[Q3_VALID_LAP_COLUMN]
+        )
+    else:
+        usable["_q3_valid_lap_label"] = np.nan
 
     # Each event contributes total weight one, so a 20-car weekend cannot
     # overpower a sparse weekend or masquerade as 20 independent events.
@@ -1404,6 +1662,12 @@ def _fit_stage_hurdle_calibration(frame: pd.DataFrame) -> StageHurdleCalibration
     valid_rows = usable.loc[usable["_valid_label"].notna()]
     q2_rows = usable.loc[(usable["_valid_label"] == 1.0) & usable["_q2_label"].notna()]
     q3_rows = usable.loc[(usable["_q2_label"] == 1.0) & usable["_q3_label"].notna()]
+    q2_valid_lap_rows = usable.loc[
+        (usable["_q2_label"] == 1.0) & usable["_q2_valid_lap_label"].notna()
+    ]
+    q3_valid_lap_rows = usable.loc[
+        (usable["_q3_label"] == 1.0) & usable["_q3_valid_lap_label"].notna()
+    ]
     return StageHurdleCalibration(
         valid_successes=float((valid_rows["_valid_label"] * valid_rows["_event_weight"]).sum()),
         valid_trials=float(valid_rows["_event_weight"].sum()),
@@ -1411,6 +1675,20 @@ def _fit_stage_hurdle_calibration(frame: pd.DataFrame) -> StageHurdleCalibration
         q2_trials=float(q2_rows["_event_weight"].sum()),
         q3_successes=float((q3_rows["_q3_label"] * q3_rows["_event_weight"]).sum()),
         q3_trials=float(q3_rows["_event_weight"].sum()),
+        q2_valid_lap_successes=float(
+            (
+                q2_valid_lap_rows["_q2_valid_lap_label"]
+                * q2_valid_lap_rows["_event_weight"]
+            ).sum()
+        ),
+        q2_valid_lap_trials=float(q2_valid_lap_rows["_event_weight"].sum()),
+        q3_valid_lap_successes=float(
+            (
+                q3_valid_lap_rows["_q3_valid_lap_label"]
+                * q3_valid_lap_rows["_event_weight"]
+            ).sum()
+        ),
+        q3_valid_lap_trials=float(q3_valid_lap_rows["_event_weight"].sum()),
         event_keys=tuple(sorted(usable[EVENT_KEY_COLUMN].astype(int).unique().tolist())),
         explicit_labels=True,
     )
@@ -1447,7 +1725,11 @@ def _fit_driver_conditioned_stage_model(
         if strong.empty:
             return None
         usable = strong
-    if usable.empty or usable[EVENT_KEY_COLUMN].nunique() < 2:
+    if (
+        usable.empty
+        or usable[EVENT_KEY_COLUMN].nunique()
+        < MIN_DRIVER_CONDITIONED_STAGE_EVENTS
+    ):
         return None
     anchor_features = (
         ("field_relative_anchor_seconds",)
@@ -1487,7 +1769,7 @@ def _fit_driver_conditioned_stage_model(
             config=StageProbabilityConfig(
                 feature_columns=feature_columns,
                 rehearsal_source_column=REHEARSAL_SOURCE_COLUMN,
-                minimum_training_events=2,
+                minimum_training_events=MIN_DRIVER_CONDITIONED_STAGE_EVENTS,
             ),
             target_event_key=int(target_event_key),
         )
@@ -1896,6 +2178,129 @@ def _partial_pooled_effects(
     return effects
 
 
+def _seeded_exchangeable_uncertainty(
+    drivers: Sequence[str],
+    *,
+    samples: int,
+    seed: int,
+    namespace: str,
+) -> np.ndarray:
+    """Return row-order-invariant seeded uncertainty for unresolved FIA ties."""
+
+    columns: list[np.ndarray] = []
+    for driver in drivers:
+        digest = hashlib.sha256(
+            f"{int(seed)}|{namespace}|{str(driver)}".encode("utf-8")
+        ).digest()
+        driver_seed = int.from_bytes(digest[:8], byteorder="big", signed=False)
+        columns.append(np.random.default_rng(driver_seed).random(int(samples)))
+    return np.column_stack(columns) if columns else np.empty((int(samples), 0))
+
+
+def minimum_expected_absolute_position_loss_assignment(
+    official_positions: np.ndarray,
+    *,
+    driver_ids: Sequence[str],
+    seed: int = 0,
+) -> np.ndarray:
+    """Return the legal point permutation minimizing posterior absolute loss.
+
+    For driver ``i`` and assigned position ``p``, the assignment cost is
+    ``mean_s(abs(p - R[s, i]))`` over the legal joint classification draws.
+    A Hungarian assignment then minimizes the field-wide expected position MAE
+    subject to each official position being used exactly once. Tiny seeded,
+    driver-position-specific perturbations resolve genuinely equal optima
+    without making alphabetical order a sporting signal.
+    """
+
+    positions = np.asarray(official_positions)
+    if positions.ndim != 2 or positions.shape[0] < 1 or positions.shape[1] < 1:
+        raise ValueError("official_positions must be a non-empty samples-by-drivers matrix")
+    sample_count, driver_count = positions.shape
+    drivers = tuple(str(value) for value in driver_ids)
+    if len(drivers) != driver_count or len(set(drivers)) != driver_count:
+        raise ValueError("driver_ids must be unique and match official_positions")
+    numeric = np.asarray(positions, dtype=float)
+    if not np.isfinite(numeric).all() or not np.equal(numeric, np.rint(numeric)).all():
+        raise ValueError("official position draws must contain finite integers")
+    integer_positions = numeric.astype(int)
+    legal = np.arange(1, driver_count + 1, dtype=int)
+    if not np.equal(np.sort(integer_positions, axis=1), legal[np.newaxis, :]).all():
+        raise ValueError("every official position draw must be one legal field permutation")
+    if linear_sum_assignment is None:
+        raise RuntimeError("scipy is required for exact minimum-loss point assignment")
+
+    candidate_positions = legal.astype(float)
+    expected_absolute_loss = np.mean(
+        np.abs(
+            integer_positions[:, :, np.newaxis]
+            - candidate_positions[np.newaxis, np.newaxis, :]
+        ),
+        axis=0,
+    )
+    tie_break = np.empty((driver_count, driver_count), dtype=float)
+    for driver_index, driver in enumerate(drivers):
+        for position_index, position in enumerate(legal):
+            digest = hashlib.sha256(
+                (
+                    f"{int(seed)}|qualifying_meal_assignment|{driver}|"
+                    f"{int(position)}"
+                ).encode("utf-8")
+            ).digest()
+            tie_break[driver_index, position_index] = int.from_bytes(
+                digest[:8], byteorder="big", signed=False
+            ) / float(2**64)
+    # Expected losses are multiples of 1 / sample_count. This perturbation is
+    # far below half that gap, so it can only choose among equal unperturbed
+    # optima rather than changing the declared decision objective.
+    assignment_cost = expected_absolute_loss + tie_break * (
+        1.0 / (max(1, int(sample_count)) * 1e9)
+    )
+    row_indices, column_indices = linear_sum_assignment(assignment_cost)
+    assigned = np.empty(driver_count, dtype=int)
+    assigned[row_indices] = column_indices + 1
+    if sorted(assigned.tolist()) != legal.tolist():
+        raise RuntimeError("minimum-loss point assignment did not produce a permutation")
+    return assigned
+
+
+def _fia_period_order(
+    indices: np.ndarray,
+    *,
+    current_period_times: np.ndarray,
+    prior_period_times: np.ndarray,
+    unresolved_tie_uncertainty: np.ndarray,
+) -> np.ndarray:
+    """Classify a stage by current time, then prior time, then uncertainty.
+
+    FIA Qualifying classification is driven by the current segment time. A
+    driver who advanced but set no valid current-segment time remains in that
+    segment and is ordered behind drivers with a time; their prior-segment time
+    is the strongest available sporting signal. Exact timing ties require lap
+    chronology, which the model does not observe, so the final tie is sampled
+    exchangeably instead of being assigned alphabetically.
+    """
+
+    if len(indices) == 0:
+        return np.asarray([], dtype=int)
+    current = np.asarray(current_period_times, dtype=float)[indices]
+    prior = np.asarray(prior_period_times, dtype=float)[indices]
+    missing_current = ~np.isfinite(current)
+    sporting_time = np.where(
+        ~missing_current,
+        current,
+        np.where(np.isfinite(prior), prior, np.inf),
+    )
+    order = np.lexsort(
+        (
+            np.asarray(unresolved_tie_uncertainty, dtype=float)[indices],
+            sporting_time,
+            missing_current.astype(int),
+        )
+    )
+    return indices[order]
+
+
 def sample_joint_qualifying_laps(
     predictions: pd.DataFrame,
     *,
@@ -1908,10 +2313,14 @@ def sample_joint_qualifying_laps(
 ) -> JointLapSamples:
     """Draw legal official Qualifying classifications from one latent engine.
 
-    Every simulation first samples valid Q1 laps, then fills the legal Q2 and
-    Q3 cut sizes. Conditional hurdle probabilities determine advancement with
-    a Gumbel top-k draw; stage times order the official Q3/Q2/Q1 blocks. This
-    avoids counting pace both in the hurdle and an arbitrary seconds offset.
+    Every simulation first samples valid Q1 laps, then advances the fastest Q1
+    cars to Q2 and the fastest Q2 cars to Q3 using the regulation-specific cut
+    sizes. Conditional Q2/Q3 heads remain diagnostics; they cannot replace the
+    period lap times that determine advancement under the sporting rules.
+
+    ``shared_session_fraction`` is the fraction of each driver's persistent
+    lap-time variance attributed to the common session shock. With equal
+    marginal scales it is therefore also the pairwise shock correlation.
     """
 
     if not isinstance(predictions, pd.DataFrame):
@@ -1924,6 +2333,8 @@ def sample_joint_qualifying_laps(
         raise ValueError("samples must be positive")
     drivers = tuple(predictions[DRIVER_ID_COLUMN].astype(str).tolist())
     count = len(drivers)
+    if len(set(drivers)) != count:
+        raise ValueError("joint lap sampling requires unique driver ids")
     if (q2_slots is None) != (q3_slots is None):
         raise ValueError("q2_slots and q3_slots must be supplied together")
     if q2_slots is None and q3_slots is None:
@@ -1959,37 +2370,61 @@ def sample_joint_qualifying_laps(
     valid_probability = pd.to_numeric(
         predictions["valid_lap_probability"], errors="coerce"
     ).to_numpy(dtype=float)
-    q2_probability = (
-        pd.to_numeric(predictions["q2_given_valid_probability"], errors="coerce")
-        .to_numpy(dtype=float)
-        if "q2_given_valid_probability" in predictions.columns
-        else np.full(count, np.nan, dtype=float)
-    )
-    q3_probability = (
-        pd.to_numeric(predictions["q3_given_q2_probability"], errors="coerce")
-        .to_numpy(dtype=float)
-        if "q3_given_q2_probability" in predictions.columns
-        else np.full(count, np.nan, dtype=float)
-    )
-    hurdle_probabilities_available = bool(
-        np.isfinite(valid_probability).all()
-        and np.isfinite(q2_probability).all()
-        and np.isfinite(q3_probability).all()
-    )
-    if not hurdle_probabilities_available and not allow_diagnostic_pace_fallback:
+    valid_probabilities_available = bool(np.isfinite(valid_probability).all())
+    if not valid_probabilities_available and not allow_diagnostic_pace_fallback:
         raise ValueError(
-            "joint qualifying probabilities require finite valid/Q2/Q3 hurdles; "
+            "joint qualifying probabilities require finite valid-lap probabilities; "
             "set allow_diagnostic_pace_fallback=True only for non-promotable diagnostics"
         )
-    if not hurdle_probabilities_available:
+    if not valid_probabilities_available:
         valid_probability = np.where(np.isfinite(valid_probability), valid_probability, 1.0)
 
+    q2_valid_lap_probability = (
+        pd.to_numeric(
+            predictions["q2_valid_lap_given_reached_probability"], errors="coerce"
+        ).to_numpy(dtype=float)
+        if "q2_valid_lap_given_reached_probability" in predictions.columns
+        else np.ones(count, dtype=float)
+    )
+    q3_valid_lap_probability = (
+        pd.to_numeric(
+            predictions["q3_valid_lap_given_reached_probability"], errors="coerce"
+        ).to_numpy(dtype=float)
+        if "q3_valid_lap_given_reached_probability" in predictions.columns
+        else np.ones(count, dtype=float)
+    )
+    stage_validity_model_available = bool(
+        "q2_valid_lap_given_reached_probability" in predictions.columns
+        and "q3_valid_lap_given_reached_probability" in predictions.columns
+        and np.isfinite(q2_valid_lap_probability).all()
+        and np.isfinite(q3_valid_lap_probability).all()
+    )
+    q2_valid_lap_probability = np.where(
+        np.isfinite(q2_valid_lap_probability), q2_valid_lap_probability, 1.0
+    )
+    q3_valid_lap_probability = np.where(
+        np.isfinite(q3_valid_lap_probability), q3_valid_lap_probability, 1.0
+    )
+
     valid = rng.random((int(samples), count)) < np.clip(valid_probability, 0.0, 1.0)
+    valid &= np.isfinite(p50)[np.newaxis, :]
+    q2_valid_lap_draw = rng.random((int(samples), count)) < np.clip(
+        q2_valid_lap_probability, 0.0, 1.0
+    )
+    q3_valid_lap_draw = rng.random((int(samples), count)) < np.clip(
+        q3_valid_lap_probability, 0.0, 1.0
+    )
+    tie_uncertainty = _seeded_exchangeable_uncertainty(
+        drivers,
+        samples=int(samples),
+        seed=int(seed),
+        namespace="official_qualifying_unresolved_tie",
+    )
     shared = rng.normal(0.0, 1.0, size=(int(samples), 1))
     independent = rng.normal(0.0, 1.0, size=(int(samples), count))
     fraction = float(np.clip(shared_session_fraction, 0.0, 0.95))
     persistent_noise = sigma * (
-        fraction * shared + np.sqrt(1.0 - fraction**2) * independent
+        np.sqrt(fraction) * shared + np.sqrt(1.0 - fraction) * independent
     )
     stage_effects = np.column_stack(
         [
@@ -2036,58 +2471,93 @@ def sample_joint_qualifying_laps(
     )
     stages = np.zeros((int(samples), count), dtype=np.int8)
     official_positions = np.zeros((int(samples), count), dtype=np.int16)
-    stable_driver_order = np.argsort(np.asarray(drivers, dtype=str), kind="stable")
+    stage_valid_lap = np.zeros((int(samples), count, 3), dtype=bool)
+    stage_valid_lap[:, :, 0] = valid
+    no_prior_time = np.full(count, np.nan, dtype=float)
     for sample_index in range(int(samples)):
         valid_indices = np.flatnonzero(valid[sample_index] & np.isfinite(p50))
         stages[sample_index, valid_indices] = 1
         q2_count = min(int(q2_slots), len(valid_indices))
         if q2_count:
-            q2_indices = _sample_stage_advancers(
+            q1_order = _fia_period_order(
                 valid_indices,
-                conditional_probability=q2_probability,
-                fallback_lap_seconds=stage_laps[sample_index, :, 0],
-                slots=q2_count,
-                rng=rng,
+                current_period_times=stage_laps[sample_index, :, 0],
+                prior_period_times=no_prior_time,
+                unresolved_tie_uncertainty=tie_uncertainty[sample_index],
             )
+            q2_indices = q1_order[:q2_count]
         else:
             q2_indices = np.asarray([], dtype=int)
         stages[sample_index, q2_indices] = 2
+        stage_valid_lap[sample_index, q2_indices, 1] = q2_valid_lap_draw[
+            sample_index, q2_indices
+        ]
+        q2_times = np.where(
+            stage_valid_lap[sample_index, :, 1],
+            stage_laps[sample_index, :, 1],
+            np.nan,
+        )
         q3_count = min(int(q3_slots), len(q2_indices))
         if q3_count:
-            q3_indices = _sample_stage_advancers(
+            q2_order_for_advancement = _fia_period_order(
                 q2_indices,
-                conditional_probability=q3_probability,
-                fallback_lap_seconds=stage_laps[sample_index, :, 1],
-                slots=q3_count,
-                rng=rng,
+                current_period_times=q2_times,
+                prior_period_times=stage_laps[sample_index, :, 0],
+                unresolved_tie_uncertainty=tie_uncertainty[sample_index],
             )
+            q3_indices = q2_order_for_advancement[:q3_count]
         else:
             q3_indices = np.asarray([], dtype=int)
         stages[sample_index, q3_indices] = 3
+        stage_valid_lap[sample_index, q3_indices, 2] = q3_valid_lap_draw[
+            sample_index, q3_indices
+        ]
+        q3_times = np.where(
+            stage_valid_lap[sample_index, :, 2],
+            stage_laps[sample_index, :, 2],
+            np.nan,
+        )
+        q2_or_q1_times = np.where(
+            np.isfinite(q2_times), q2_times, stage_laps[sample_index, :, 0]
+        )
 
-        q3_order = q3_indices[
-            np.argsort(stage_laps[sample_index, q3_indices, 2], kind="stable")
-        ]
+        q3_order = _fia_period_order(
+            q3_indices,
+            current_period_times=q3_times,
+            prior_period_times=q2_or_q1_times,
+            unresolved_tie_uncertainty=tie_uncertainty[sample_index],
+        )
         q2_only = q2_indices[stages[sample_index, q2_indices] == 2]
-        q2_order = q2_only[
-            np.argsort(stage_laps[sample_index, q2_only, 1], kind="stable")
-        ]
+        q2_order = _fia_period_order(
+            q2_only,
+            current_period_times=q2_times,
+            prior_period_times=stage_laps[sample_index, :, 0],
+            unresolved_tie_uncertainty=tie_uncertainty[sample_index],
+        )
         q1_only = valid_indices[stages[sample_index, valid_indices] == 1]
-        q1_order = q1_only[
-            np.argsort(stage_laps[sample_index, q1_only, 0], kind="stable")
-        ]
-        invalid = stable_driver_order[
-            ~np.isin(stable_driver_order, valid_indices, assume_unique=False)
-        ]
+        q1_order = _fia_period_order(
+            q1_only,
+            current_period_times=stage_laps[sample_index, :, 0],
+            prior_period_times=no_prior_time,
+            unresolved_tie_uncertainty=tie_uncertainty[sample_index],
+        )
+        invalid_indices = np.flatnonzero(
+            ~np.isin(np.arange(count), valid_indices, assume_unique=False)
+        )
+        invalid = _fia_period_order(
+            invalid_indices,
+            current_period_times=no_prior_time,
+            prior_period_times=no_prior_time,
+            unresolved_tie_uncertainty=tie_uncertainty[sample_index],
+        )
         official_order = np.concatenate([q3_order, q2_order, q1_order, invalid])
         official_positions[sample_index, official_order] = np.arange(1, count + 1)
 
-    available_stage = np.arange(1, 4)[np.newaxis, np.newaxis, :] <= stages[:, :, np.newaxis]
-    achieved = np.where(available_stage, stage_laps, np.inf)
+    stage_laps[~stage_valid_lap] = np.nan
+    achieved = np.where(stage_valid_lap, stage_laps, np.inf)
     lap_seconds = np.min(achieved, axis=2)
     lap_seconds[~np.isfinite(lap_seconds)] = np.nan
     lap_seconds[stages == 0] = np.nan
-    stage_laps[~available_stage] = np.nan
     lap_seconds[:, ~np.isfinite(p50)] = np.nan
     valid[:, ~np.isfinite(p50)] = False
     stages[:, ~np.isfinite(p50)] = 0
@@ -2098,43 +2568,22 @@ def sample_joint_qualifying_laps(
         deepest_stage=stages,
         official_positions=official_positions,
         stage_lap_seconds=stage_laps,
+        stage_valid_lap_mask=stage_valid_lap,
         stage_advancement_status=(
-            "fitted_hurdle_gumbel_top_k"
-            if hurdle_probabilities_available
-            else "diagnostic_pace_fallback_missing_hurdles"
+            "sampled_period_pace_top_k"
+            if valid_probabilities_available
+            else "diagnostic_pace_top_k_missing_valid_lap_probabilities"
         ),
         stage_time_distribution_status=(
-            "learned_stage_residual_dispersion"
-            if stage_dispersion_available
-            else "diagnostic_missing_learned_stage_residual_dispersion"
+            "learned_stage_residual_dispersion_and_advanced_stage_validity"
+            if stage_dispersion_available and stage_validity_model_available
+            else (
+                "learned_stage_residual_dispersion_assumed_advanced_stage_validity"
+                if stage_dispersion_available
+                else "diagnostic_missing_learned_stage_residual_dispersion"
+            )
         ),
     )
-
-
-def _sample_stage_advancers(
-    eligible_indices: np.ndarray,
-    *,
-    conditional_probability: np.ndarray,
-    fallback_lap_seconds: np.ndarray,
-    slots: int,
-    rng: np.random.Generator,
-) -> np.ndarray:
-    """Draw a legal top-k without inventing a missing hurdle prior."""
-
-    eligible = np.asarray(eligible_indices, dtype=int)
-    if int(slots) >= len(eligible):
-        return eligible.copy()
-    probabilities = np.asarray(conditional_probability, dtype=float)[eligible]
-    if np.isfinite(probabilities).all():
-        utility = _log_odds(np.clip(probabilities, 1e-6, 1.0 - 1e-6))
-        utility += rng.gumbel(0.0, 1.0, size=len(eligible))
-        order = np.argsort(-utility, kind="stable")
-    else:
-        # An unavailable hurdle is explicitly backed off to the sampled stage
-        # timing, not a hidden 0.75/0.50 probability constant.
-        times = np.asarray(fallback_lap_seconds, dtype=float)[eligible]
-        order = np.argsort(times, kind="stable")
-    return eligible[order[: int(slots)]]
 
 
 def summarize_joint_lap_samples(samples: JointLapSamples) -> pd.DataFrame:
@@ -2184,13 +2633,19 @@ def _log_odds(probability: np.ndarray) -> np.ndarray:
 
 __all__ = [
     "ACTUAL_LAP_COLUMN",
+    "DIRECT_PACE_POSITION_COLUMN",
     "JointLapSamples",
     "LearnedStageTimeEffects",
     "LATENT_POTENTIAL_ANCHOR_COLUMN",
+    "MEAL_POSITION_COLUMN",
+    "POINT_HEAD_DIRECT_PACE",
+    "POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS",
     "QUALITY_AWARE_ANCHOR_COLUMN",
     "Q1_LAP_COLUMN",
     "Q2_LAP_COLUMN",
+    "Q2_VALID_LAP_COLUMN",
     "Q3_LAP_COLUMN",
+    "Q3_VALID_LAP_COLUMN",
     "QualifyingStageProbabilities",
     "ROBUST_NUMERIC_FEATURE_ALLOWLIST",
     "RobustHierarchicalResidualModel",
@@ -2204,10 +2659,12 @@ __all__ = [
     "calibrate_achievable_best_lap_model",
     "build_shared_qualifying_event_forecast",
     "fit_achievable_best_lap_model",
+    "minimum_expected_absolute_position_loss_assignment",
     "decompose_event_fastest_and_driver_gap",
     "robust_huber_location",
     "sample_joint_qualifying_laps",
     "shared_qualifying_forecast_artifact",
     "shared_point_predictor_sha256",
+    "shared_structural_point_predictor_sha256",
     "summarize_joint_lap_samples",
 ]

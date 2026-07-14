@@ -128,6 +128,8 @@ def test_cache_audit_requires_complete_independent_events_and_existing_files(
         minimum_drivers_per_event=3,
     )
     assert ready.ready_for_deep_model
+    assert ready.cache_integrity_ready
+    assert ready.ready_for_requested_event_protocol
     assert ready.event_count == 2
     assert ready.driver_event_count == 6
     assert ready.record_count == 6
@@ -152,7 +154,12 @@ def test_cache_audit_requires_complete_independent_events_and_existing_files(
         minimum_drivers_per_event=3,
     )
     assert insufficient.blockers == (
-        "insufficient_independent_prequalifying_telemetry_events",
+        "insufficient_complete_events_for_requested_protocol",
+    )
+    assert insufficient.cache_integrity_ready
+    assert not insufficient.ready_for_requested_event_protocol
+    assert insufficient.to_payload()["event_threshold_semantics"] == (
+        "caller_supplied_protocol_requirement_not_model_capacity_claim"
     )
 
     manifests[0]["qualifying_start_utc"] = "2026-07-12T10:00:11Z"
@@ -165,7 +172,7 @@ def test_cache_audit_requires_complete_independent_events_and_existing_files(
     )
     assert not rejected.ready_for_deep_model
     assert set(rejected.blockers) == {
-        "insufficient_independent_prequalifying_telemetry_events",
+        "insufficient_complete_events_for_requested_protocol",
         "telemetry_cutoff_violations",
         "telemetry_files_missing",
         "telemetry_tensor_content_or_shape_invalid",
@@ -214,7 +221,7 @@ def test_cache_audit_fails_closed_on_hash_and_tensor_shape_corruption(
     assert rejected.hash_mismatch_count == 1
     assert rejected.invalid_tensor_count == 1
     assert set(rejected.blockers) == {
-        "insufficient_independent_prequalifying_telemetry_events",
+        "insufficient_complete_events_for_requested_protocol",
         "telemetry_hash_mismatches",
         "telemetry_tensor_content_or_shape_invalid",
     }

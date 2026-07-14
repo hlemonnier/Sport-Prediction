@@ -26,6 +26,7 @@ from .achievable import (
     sample_joint_qualifying_laps,
     shared_qualifying_forecast_artifact,
     shared_point_predictor_sha256,
+    shared_structural_point_predictor_sha256,
     summarize_joint_lap_samples,
 )
 
@@ -140,6 +141,7 @@ __all__ = [
     "sample_joint_qualifying_laps",
     "shared_qualifying_forecast_artifact",
     "shared_point_predictor_sha256",
+    "shared_structural_point_predictor_sha256",
     "summarize_joint_lap_samples",
     "predict_ultimate_lap_time",
     "predict_ultimate_lap_time_deep",

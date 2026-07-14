@@ -301,8 +301,8 @@
           "bootstrap_probability_of_improvement": 0.960432,
           "bootstrap_samples": 500000,
           "bootstrap_seed": 20260711,
-          "evidence_artifact": "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v6_20260714.json",
-          "evidence_sha256": "03adf04ac1649a5c3581a4d5bbe9d91693e5f10cd95ac774dfda5918c738af03",
+          "evidence_artifact": "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v7_20260714.json",
+          "evidence_sha256": "13de7a53e2b5eda07a92acb2bb8dea5fbcff435565676796b052fa8831c84c53",
           "point_status": "blend_evaluated_not_promoted_ci_crosses_zero_naive_baseline_retained",
           "interval_status": "not_promoted",
           "service_integration_status": "not_integrated_service_next_lap_currently_means_relative_order_not_seconds"
@@ -340,11 +340,12 @@
         "simulator_calibration_status": "transition_aligned_observed_pit_loss_only_model_estimate_excluded",
         "legal_action_mask_required": true,
         "legal_action_mask_contract": "current_and_every_nonterminal_next_state_with_all_legality_driving_inputs_certified_and_constraint_feasible_without_operational_fallback",
+        "legal_action_timing_contract": "pit_now_uses_the_next_lap_and_requires_one_remaining_lap; pit_next_lap_uses_the_following_lap_and_requires_two; known_inventory_requires_a_reachable_mandatory_compound; terminal_states_have_no_constraint_action",
         "deterministic_fallback_is_production_replacement": false,
         "replay_audit": {
-          "artifact": "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json",
+          "artifact": "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json",
           "schema_version": "f1_live_strategy_replay_audit_v1",
-          "sha256": "fbcf073b472f9a39a151c438712f354716467b5e068dbbdb166781ff560cff8c",
+          "sha256": "004a5028eedd335247548db7fe18187c24165eeed2f521704a2524d0845d044e",
           "transitions": 9506,
           "behavior_cloning_partial_label_rows": 9506,
           "offline_q_rows": 0,
@@ -368,8 +369,8 @@
         }
       },
       "current_evidence": [
-        "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v6_20260714.json",
-        "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json",
+        "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v7_20260714.json",
+        "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json",
         "docs/research/f1_model_research_v2_results_20260713.md"
       ],
       "historical_diagnostic_evidence": "artifacts/reports/f1/live_race_round09_global_prefix_invariance_v2_20260711a.json"

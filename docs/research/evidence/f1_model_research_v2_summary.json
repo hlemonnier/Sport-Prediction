@@ -42,9 +42,9 @@
     },
     "behavior_cloning_rows": 9506,
     "compatible_action_key_count": 8,
-    "dataset_contract": "live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence",
+    "dataset_contract": "live_strategy_rl_replay_v8_sporting_deadlines_derived_from_action_timing",
     "exact_action_key_count": 0,
-    "legal_action_mask_contract": "live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback",
+    "legal_action_mask_contract": "live_strategy_legal_action_mask_v3_sporting_deadlines_derived_from_action_timing",
     "legality_semantics": "constraint_legal_mask_remains_all_false_when_no_compliant_action_exists",
     "offline_q_rows": 0,
     "operational_fallback_semantics": "separately_tagged_nonlegal_safety_noop_never_enters_learning_or_policy_selection",
@@ -57,7 +57,7 @@
     "rolling_trivial_action_accuracy": 0.9674730992353373,
     "state_contract": "live_strategy_state_v6_full_legal_mask_input_and_feasibility_evidence",
     "strategy_training_readiness_gate_pass": false,
-    "transition_contract": "live_strategy_transition_fingerprint_v7_full_current_next_mask_input_and_feasibility_evidence",
+    "transition_contract": "live_strategy_transition_fingerprint_v8_sporting_deadlines_derived_from_action_timing",
     "transitions": 9506
   },
   "qualifying": {

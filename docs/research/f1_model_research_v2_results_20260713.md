@@ -31,7 +31,7 @@ overstating what they prove.
 | Qualifying | Same-season latent lap model, official stage/no-time logic, legal joint sampling, exact minimum-expected-absolute-loss assignment, position-probability calibration | Public: rehearsal-rank baseline. Research-selection winner: shared latent v4 plus MEAL | Point model not promoted: R7-R9 replay ties baseline. Probabilities not promoted: log loss/ECE improve but Brier worsens and only two calibration weekends exist | Existing service heuristic remains separate |
 | Race final position | Main survival/order model plus a second final-grid/prior-race-state ablation covering R1-R9, bound to nine pinned official FIA PDF files | Legal final-grid baseline | Neither challenger promoted. Main survival loses materially; FIA-byte-certified ablation essentially ties and has only post-development descriptive evidence | Existing service heuristic remains separate |
 | Best estimated lap | Achievable session-end point target, calibrated intervals, same-season residual models, temporal sequence model, true bounded TCN and parameter/sham matrix | Retained Best-Lap baseline and its intervals | Point and intervals not promoted; TCN is parameter-sensitive and inconclusive | No new production endpoint |
-| Live intelligence | Supervised next-lap filter, legal heuristic, simulator/DP/MPC, state v6 plus transition/replay/dataset v7 semi-Markov evidence, partial-label BC and separate offline-Q/OPE gates | Naive next-lap forecast plus deterministic legal strategy | Blend CI crosses zero; rolling BC ties the trivial classifier; 0 rows qualify for offline-Q or OPE | No learned-policy promotion |
+| Live intelligence | Supervised next-lap filter, legal heuristic, simulator/DP/MPC, state v6 plus transition/replay/dataset v8 and legal-mask v3 evidence, partial-label BC and separate offline-Q/OPE gates | Naive next-lap forecast plus deterministic legal strategy | Blend CI crosses zero; rolling BC ties the trivial classifier; 0 rows qualify for offline-Q or OPE | No learned-policy promotion |
 
 The important conclusion is not “the models failed.” The implementations are
 now substantially more honest and reproducible. Qualifying improved sharply
@@ -344,7 +344,7 @@ The frozen next-lap artifact contains 8,144 matched emitted forecasts:
 The blend is promising, but the interval crosses zero. The naive forecast is
 therefore retained and the blend remains shadow evidence.
 
-### State v6 / transition and replay v7 semi-Markov RL evidence contract
+### State v6 / transition and replay v8 / legal-mask v3 RL evidence contract
 
 The replay and learning contracts now distinguish three different evidence
 levels that were previously conflated:
@@ -367,19 +367,30 @@ race horizon, current compound, complete used-compound history, red status,
 box-lap status, pit-lane status, nonempty available-compound inventory, and an
 explicit forced-pit commitment state including known-none. It also requires
 `mandatory_compound_change_required` to be explicitly known or certifiably
-derived. At the final feasible mandatory-change stop, staying out is illegal,
-and a pit onto the same noncompliant compound is illegal. This is required for
-both `s_t` and every nonterminal `s_(t+1)`. The replay loader independently
+derived. Sporting deadlines are now derived from execution timing rather than
+a tunable two-lap preference. `pit_now` puts the requested compound on the next
+lap and therefore needs one remaining lap; `pit_next_lap` first completes one
+lap and needs two. With a mandatory compound change outstanding, `stay_out`
+remains legal with two laps left because a final-lap `pit_now` is still
+possible, but is blocked with one. A pit that does not itself satisfy the rule
+needs one additional lap beyond its execution delay. When tyre inventory is
+known and contains no reachable satisfying compound, every completion-dependent
+action is infeasible; missing inventory remains unknown evidence rather than a
+false claim of an empty inventory. Terminal states expose no constraint-legal
+action. These rules are required for both `s_t` and every nonterminal
+`s_(t+1)`. The replay loader independently
 rederives both masks and evidence payloads and rejects any stored mismatch. That
 next-state requirement matters mathematically because a Bellman target uses
 `max_a Q(s_(t+1), a)`; an uncertified next mask would let learning bootstrap
 through an action that was never known to be legal.
 
-Constraint legality and operational safety are now separate concepts. If no
+Constraint legality and operational safety are separate concepts. If no
 compliant action exists, the authoritative constraint-legal mask stays all
 false; the system may expose a separately tagged conservative safety no-op to
-avoid a runtime crash, but that no-op is not relabeled as legal. It is excluded
-from behavior cloning, Q-learning, OPE, and policy selection. This avoids the
+avoid a runtime crash, but that no-op is not relabeled as legal. A simulator
+may advance it only as an explicitly penalized emergency transition. It is
+excluded from behavior cloning, Q-learning, OPE, and learned-policy selection.
+This avoids the
 previous mathematical error where an impossible state could silently create a
 fake legal action and contaminate Bellman targets.
 
@@ -478,8 +489,8 @@ not rendered a second time.
 | `telemetry/prequal_telemetry_residual_sequence_v6_repository_bound_2026.json` | `f1_prequal_telemetry_residual_research_v4` | `1743e0a5a492f05ec0507092b192332e33f22102a585af45a1a051472c87e4f8` |
 | `telemetry/prequal_telemetry_true_tcn_research_v2_2026.json` | `f1_prequal_telemetry_true_tcn_research_v2` | `9c98244bd4c854b86850bda00a8dfd2454a845a2cbf83b1944c21e3bff09f999` |
 | `telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json` | `f1_prequal_telemetry_tcn_sensitivity_matrix_v1` | `d148d512376bc7c14479ff48f07c73181fe7cf033b5a2eea8936d0067ef35197` |
-| `live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v6_20260714.json` | `f1_live_next_lap_walk_forward_emitted_forecast_v3` | `03adf04ac1649a5c3581a4d5bbe9d91693e5f10cd95ac774dfda5918c738af03` |
-| `live_strategy/live_strategy_replay_audit_v1_20260714.json` | `f1_live_strategy_replay_audit_v1` | `fbcf073b472f9a39a151c438712f354716467b5e068dbbdb166781ff560cff8c` |
+| `live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v7_20260714.json` | `f1_live_next_lap_walk_forward_emitted_forecast_v3` | `13de7a53e2b5eda07a92acb2bb8dea5fbcff435565676796b052fa8831c84c53` |
+| `live_strategy/live_strategy_replay_audit_v2_20260714.json` | `f1_live_strategy_replay_audit_v1` | `004a5028eedd335247548db7fe18187c24165eeed2f521704a2524d0845d044e` |
 
 The hardened certified Race artifact additionally records payload result SHA
 `df01978d428a9af9bd91d43d76145d902ed73e1c125e2a24810bdbcc3d85e818`
@@ -496,4 +507,4 @@ pit actions, and enough selection/calibration weekends to measure stability.
 The implemented candidates and negative results stay available as explicit
 research branches; they are not deleted because they lost one gate.
 
-Suggested commit name: `docs(f1): publish frozen four-mode model evidence`
+Suggested commit name: `docs(f1): publish corrected live feasibility evidence`

@@ -27,7 +27,7 @@
       {"mode_order": 1, "mode": "Qualifying", "implemented": "Shared latent sessions, legal stage logic, exact MEAL head", "selected": "Public: rehearsal-rank baseline; research winner: shared latent v4 plus MEAL", "promoted": "No", "runtime": "Existing service heuristic"},
       {"mode_order": 2, "mode": "Race final position", "implemented": "Survival/order plus FIA-PDF R1-R9 grid-prior ablation with pinned venue-timezone UTC proof and 0-300 s lag gate", "selected": "Legal final-grid baseline", "promoted": "No", "runtime": "Existing service heuristic"},
       {"mode_order": 3, "mode": "Best estimated lap", "implemented": "Achievable-lap point, intervals, sequence model, and bounded TCN matrix", "selected": "Retained Best-Lap baseline", "promoted": "No", "runtime": "No production endpoint"},
-      {"mode_order": 4, "mode": "Live strategy", "implemented": "State v6, transition/replay v7, legal-mask v2, and partial-label BC; nonlegal operational fallback separated from constraint legality", "selected": "Naive next-lap plus legal heuristic", "promoted": "No: BC ties trivial and Q/OPE have zero eligible rows", "runtime": "Deterministic legal strategy"}
+      {"mode_order": 4, "mode": "Live strategy", "implemented": "State v6, transition/replay v8, legal-mask v3, action-timed tyre deadlines, and partial-label BC; penalized nonlegal fallback separated from constraint legality", "selected": "Naive next-lap plus legal heuristic", "promoted": "No: BC ties trivial and Q/OPE have zero eligible rows", "runtime": "Deterministic legal strategy"}
     ]
   }
 }

@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 2,
+  "event_name": "Chinese Grand Prix",
+  "event_format": "sprint_qualifying",
+  "scheduled_event_date": "2026-03-15T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:46.466620Z",
+      "captured_at": "2026-07-11T20:26:46.466620Z",
+      "scheduled_start_utc": "2026-03-13T03:30:00",
+      "source_session_id": "fastf1:2026:2:Practice 1",
+      "laps_rows": 540,
+      "results_rows": 22,
+      "weather_rows": 84,
+      "race_control_messages_rows": 47,
+      "laps_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_laps.csv",
+          "sha256": "769b5a9e72e0715dae7a335e60c756631fb6b3a35dac4e3a325884104de9db52",
+          "size_bytes": 68219,
+          "rows": 540
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_weather.csv",
+          "sha256": "74880703816f89bf8ad27bd5d2354b9a3e3fb39d8a5ca4550188e624bd82d8af",
+          "size_bytes": 3750,
+          "rows": 84
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "94a216315d50997ee4bc7035d48c72406a82807d83ea3b5edaaaaff75c327a21",
+          "size_bytes": 3882,
+          "rows": 47
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Sprint Qualifying",
+      "session_type": "sprint_qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:46.758009Z",
+      "captured_at": "2026-07-11T20:26:46.758009Z",
+      "scheduled_start_utc": "2026-03-13T07:30:00",
+      "source_session_id": "fastf1:2026:2:Sprint Qualifying",
+      "laps_rows": 257,
+      "results_rows": 22,
+      "weather_rows": 60,
+      "race_control_messages_rows": 37,
+      "laps_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_laps.csv",
+          "sha256": "d7db1adfa9ee94f5c86f79358379fadd2acead3999eba4ff3068c7c1890d7137",
+          "size_bytes": 32443,
+          "rows": 257
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_results.csv",
+          "sha256": "3eb3e511039a15e1795a5d6ca05e23db80e09dff3914aad244ffd491b906189d",
+          "size_bytes": 5536,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_weather.csv",
+          "sha256": "a130a33d637a038aa73ccbf147c7141eaaf4d485c9b3f48a72e712cecf352248",
+          "size_bytes": 2699,
+          "rows": 60
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+          "sha256": "ce95929469bf5acf95444d29e7308d6dfe40a904fa9b68dc894db3972b44a35c",
+          "size_bytes": 4271,
+          "rows": 37
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Sprint",
+      "session_type": "sprint_race",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:47.146118Z",
+      "captured_at": "2026-07-11T20:26:47.146118Z",
+      "scheduled_start_utc": "2026-03-14T03:00:00",
+      "source_session_id": "fastf1:2026:2:Sprint",
+      "laps_rows": 397,
+      "results_rows": 22,
+      "weather_rows": 83,
+      "race_control_messages_rows": 49,
+      "laps_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_laps.csv",
+          "sha256": "2f82c033b003583e4922005c50edcf64624d29acc63f33d42ef7a8c55bc323b0",
+          "size_bytes": 51508,
+          "rows": 397
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_results.csv",
+          "sha256": "473c553ef09e24eade0c4ce18e704b8c4695acf2e8d3a84ce492eaca2c81cb94",
+          "size_bytes": 6119,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_weather.csv",
+          "sha256": "ad6dcd872f60758d14a30e94c7fe7d8ce74b028b4504e6a883f098c9d45608d4",
+          "size_bytes": 3696,
+          "rows": 83
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/03_sprint_race_control_messages.csv",
+          "sha256": "3daa79a039ee49ab2cdea2e026a3c4637d42ba5859963da9555c2f538b59f9c6",
+          "size_bytes": 4315,
+          "rows": 49
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:47.653896Z",
+      "captured_at": "2026-07-11T20:26:47.653896Z",
+      "scheduled_start_utc": "2026-03-14T07:00:00",
+      "source_session_id": "fastf1:2026:2:Qualifying",
+      "laps_rows": 325,
+      "results_rows": 22,
+      "weather_rows": 79,
+      "race_control_messages_rows": 41,
+      "laps_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_laps.csv",
+          "sha256": "a92259cf486c6689a5c4b0a8343d47b02597b0beedb024415e9c471c42bc0c55",
+          "size_bytes": 40680,
+          "rows": 325
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_results.csv",
+          "sha256": "ae37fe82a6ad10b90f671a62b2aebaf347168cc07d04e864c31fd0333bd879b8",
+          "size_bytes": 5858,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_weather.csv",
+          "sha256": "3d6062c252566595a38ade6db175eaa0f47b3aff37dc952ab83489f3c246bf58",
+          "size_bytes": 3526,
+          "rows": 79
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "6d49669eb40ba38b214d0f984f726bfa6a95cc97ebd3b808a277932dc8d6c3e4",
+          "size_bytes": 4383,
+          "rows": 41
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:48.125101Z",
+      "captured_at": "2026-07-11T20:26:48.125101Z",
+      "scheduled_start_utc": "2026-03-15T07:00:00",
+      "source_session_id": "fastf1:2026:2:Race",
+      "laps_rows": 920,
+      "results_rows": 22,
+      "weather_rows": 152,
+      "race_control_messages_rows": 86,
+      "laps_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_laps.csv",
+          "sha256": "1d37818735961ff0fb7c2ac6869c73e77f1e0a0d3367dce693c0122e8ba98358",
+          "size_bytes": 118530,
+          "rows": 920
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_results.csv",
+          "sha256": "be93073b549afe60dd885ed2895748166de64f2cb13f224c9e83c2bbbd6b2197",
+          "size_bytes": 6105,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_weather.csv",
+          "sha256": "6bff675d5083da84e4c7904d478df30b33f79e06648000adf905f083a955ebe7",
+          "size_bytes": 6779,
+          "rows": 152
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "574907b04de316325441dc87420d06936f4c5b33ce410bb6d05179bd28922d9e",
+          "size_bytes": 7798,
+          "rows": 86
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:46.108672Z",
+  "generated_at": "2026-07-11T20:26:48.125130Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:26:48.125130Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "15b810cead4a3578822544d6ed84888f03e8bb908b97dfd2413184d435a0c6d7"
+}

@@ -1,0 +1,390 @@
+{
+  "aggregate_audit": {
+    "calibrated": {
+      "calibration_model_id": "qualifying_position_temperature_sinkhorn_v1_43150c3a7b6d",
+      "driver_count": 66,
+      "ece_bin_count": 10,
+      "event_count": 3,
+      "event_keys": [
+        "202607",
+        "202608",
+        "202609"
+      ],
+      "multiclass_log_loss": 2.834998795650037,
+      "normalized_multiclass_brier": 0.46798753033180224,
+      "top10_ece": 0.25660139475628396,
+      "top1_ece": 0.034489302215535075,
+      "top3_ece": 0.061439217384547176
+    },
+    "delta_calibrated_minus_jeffreys_smoothed_uncalibrated": {
+      "multiclass_log_loss": -0.012353690976957044,
+      "normalized_multiclass_brier": 0.00022646812058790822,
+      "top10_ece": -0.013561821924593875,
+      "top1_ece": -0.005120525859669177,
+      "top3_ece": -0.01157893056874347
+    },
+    "jeffreys_smoothed_uncalibrated": {
+      "calibration_model_id": null,
+      "driver_count": 66,
+      "ece_bin_count": 10,
+      "event_count": 3,
+      "event_keys": [
+        "202607",
+        "202608",
+        "202609"
+      ],
+      "multiclass_log_loss": 2.847352486626994,
+      "normalized_multiclass_brier": 0.46776106221121433,
+      "top10_ece": 0.27016321668087784,
+      "top1_ece": 0.03960982807520425,
+      "top3_ece": 0.07301814795329065
+    }
+  },
+  "artifact_contract": {
+    "implementation_manifest_verified_unchanged_after_evaluation": true,
+    "result_hash_excludes_only_result_sha256": true,
+    "source_path_scope": "repository_relative_only",
+    "source_read_mode": "single_immutable_byte_snapshot_with_post_evaluation_digest_check",
+    "source_verified_unchanged_after_evaluation": true,
+    "write_mode": "exclusive_create"
+  },
+  "calibration": {
+    "event_provenance": [
+      {
+        "calibration_input_source_model_id": "shared_qualifying_latent_lap_v4+finite_sample_jeffreys_alpha_0_5_v1",
+        "event_key": 202605,
+        "field_size": 22,
+        "finite_sample_support_correction": {
+          "field_size": 22,
+          "joint_sample_count": 5000,
+          "method": "symmetric_jeffreys_cell_pseudocount",
+          "normalization_denominator": 5011.0,
+          "preserves_row_and_column_stochasticity": true,
+          "pseudo_count_per_driver_position_cell": 0.5,
+          "raw_zero_probability_cell_count": 6,
+          "smoothed_minimum_probability": 9.978048293753742e-05,
+          "strictly_positive_support": true
+        },
+        "outcome_evidence_id": "qualifying_outcome_sha256:17c0e3200e55af94e4d76e5564e6938c2b6fe87419ec3e9496c1abbdf67e9441",
+        "prediction_evidence_id": "491050b49354e3b59d3c95313b3a44e837aa9a70393c25545f1d08e5ba4de70f",
+        "qualifying_position_marginals_sha256": "47ad721e60394e014fea6073d8d9a6189018f7597b1e3cd5ec18573f77dc7ad3",
+        "source_model_id": "shared_qualifying_latent_lap_v4"
+      },
+      {
+        "calibration_input_source_model_id": "shared_qualifying_latent_lap_v4+finite_sample_jeffreys_alpha_0_5_v1",
+        "event_key": 202606,
+        "field_size": 22,
+        "finite_sample_support_correction": {
+          "field_size": 22,
+          "joint_sample_count": 5000,
+          "method": "symmetric_jeffreys_cell_pseudocount",
+          "normalization_denominator": 5011.0,
+          "preserves_row_and_column_stochasticity": true,
+          "pseudo_count_per_driver_position_cell": 0.5,
+          "raw_zero_probability_cell_count": 2,
+          "smoothed_minimum_probability": 9.978048293753742e-05,
+          "strictly_positive_support": true
+        },
+        "outcome_evidence_id": "qualifying_outcome_sha256:781291db6e854b2a6d2674f8ea63dc27d95dddc201aa41bc7508d9aa505e2793",
+        "prediction_evidence_id": "4d972c16f071e004d81914d5615cfe99c53496205e47cf15c679ee7555c0f1c1",
+        "qualifying_position_marginals_sha256": "08e2fedcb091245f951275078c9073c0cdb9edf4176c70e7ba01a6188c525f87",
+        "source_model_id": "shared_qualifying_latent_lap_v4"
+      }
+    ],
+    "independent_event_count": 2,
+    "minimum_events_for_fit": 2,
+    "minimum_events_for_promotion_consideration": 4,
+    "model_card": {
+      "calibration_data_sha256": "11d6a66ec24ff8ab879884baabaf47de4d95670b67ddffcaea9591232980dc8f",
+      "calibration_event_count": 2,
+      "calibration_event_keys": [
+        "202605",
+        "202606"
+      ],
+      "candidate_grid": [
+        0.5,
+        0.6666666666666666,
+        0.8,
+        1.0,
+        1.25,
+        1.5,
+        2.0
+      ],
+      "candidate_scores": [
+        {
+          "event_balanced_negative_log_likelihood": 2.896741318572278,
+          "temperature": 0.5
+        },
+        {
+          "event_balanced_negative_log_likelihood": 2.8728385059254817,
+          "temperature": 0.6666666666666666
+        },
+        {
+          "event_balanced_negative_log_likelihood": 2.8711636869367396,
+          "temperature": 0.8
+        },
+        {
+          "event_balanced_negative_log_likelihood": 2.8787141326996615,
+          "temperature": 1.0
+        },
+        {
+          "event_balanced_negative_log_likelihood": 2.893255307067599,
+          "temperature": 1.25
+        },
+        {
+          "event_balanced_negative_log_likelihood": 2.9082502200369262,
+          "temperature": 1.5
+        },
+        {
+          "event_balanced_negative_log_likelihood": 2.934508734596394,
+          "temperature": 2.0
+        }
+      ],
+      "event_provenance": [
+        {
+          "event_key": "202605",
+          "field_size": 22,
+          "outcome_evidence_id": "qualifying_outcome_sha256:17c0e3200e55af94e4d76e5564e6938c2b6fe87419ec3e9496c1abbdf67e9441",
+          "prediction_evidence_id": "491050b49354e3b59d3c95313b3a44e837aa9a70393c25545f1d08e5ba4de70f"
+        },
+        {
+          "event_key": "202606",
+          "field_size": 22,
+          "outcome_evidence_id": "qualifying_outcome_sha256:781291db6e854b2a6d2674f8ea63dc27d95dddc201aa41bc7508d9aa505e2793",
+          "prediction_evidence_id": "4d972c16f071e004d81914d5615cfe99c53496205e47cf15c679ee7555c0f1c1"
+        }
+      ],
+      "model_family": "qualifying_position_temperature_sinkhorn",
+      "model_id": "qualifying_position_temperature_sinkhorn_v1_43150c3a7b6d",
+      "objective": "mean_of_complete_event_mean_driver_negative_log_likelihood",
+      "promotion_status": "diagnostic_only_not_promoted",
+      "schema_version": 1,
+      "selected_temperature": 0.8,
+      "source_model_id": "shared_qualifying_latent_lap_v4+finite_sample_jeffreys_alpha_0_5_v1",
+      "tie_break_policy": "within_1e-12_of_best_choose_temperature_closest_to_1_then_lower",
+      "transform": "log_probability_divided_by_temperature_then_sinkhorn_projection"
+    }
+  },
+  "implementation_manifest": [
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/run_qualifying_probability_calibration_audit.py",
+      "sha256": "ee682e3c13b33f176812742fa637d13a9a7baca4ec032442f6f4e12bbc6cd87e",
+      "size_bytes": 37511
+    },
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/repo_bootstrap.py",
+      "sha256": "84e5c8ffebca9b57e50052e67e46fec5e08fce4d569914634e8663925a2c9a40",
+      "size_bytes": 499
+    },
+    {
+      "path": "packages/f1/models/pre_quali/probability_calibration.py",
+      "sha256": "a7edb07e0b1727aa6195f850dce7cc25ff3c65c0e894f5aa193b365a037e57d3",
+      "size_bytes": 25659
+    }
+  ],
+  "implementation_manifest_sha256": "9ee10ee76fa46103157f9a6f2fe30dbf3c11ddf7f8dea7ce119dd3561c05a91d",
+  "mode": "qualifying_position_probability_calibration_audit",
+  "per_event_audit": [
+    {
+      "calibrated": {
+        "calibration_model_id": "qualifying_position_temperature_sinkhorn_v1_43150c3a7b6d",
+        "driver_count": 22,
+        "ece_bin_count": 10,
+        "event_count": 1,
+        "event_keys": [
+          "202607"
+        ],
+        "multiclass_log_loss": 2.861368713737949,
+        "normalized_multiclass_brier": 0.4688361130933577,
+        "top10_ece": 0.25782190476708544,
+        "top1_ece": 0.07006307407817598,
+        "top3_ece": 0.1688802084445068
+      },
+      "calibration_input_source_model_id": "shared_qualifying_latent_lap_v4+finite_sample_jeffreys_alpha_0_5_v1",
+      "delta_calibrated_minus_jeffreys_smoothed_uncalibrated": {
+        "multiclass_log_loss": -0.004327373077551933,
+        "normalized_multiclass_brier": 0.0005686083471458381,
+        "top10_ece": -0.012673913523584157,
+        "top1_ece": 0.03791561666630029,
+        "top3_ece": 0.05207354673662776
+      },
+      "event_key": 202607,
+      "field_size": 22,
+      "finite_sample_support_correction": {
+        "field_size": 22,
+        "joint_sample_count": 5000,
+        "method": "symmetric_jeffreys_cell_pseudocount",
+        "normalization_denominator": 5011.0,
+        "preserves_row_and_column_stochasticity": true,
+        "pseudo_count_per_driver_position_cell": 0.5,
+        "raw_zero_probability_cell_count": 8,
+        "smoothed_minimum_probability": 9.978048293753742e-05,
+        "strictly_positive_support": true
+      },
+      "jeffreys_smoothed_uncalibrated": {
+        "calibration_model_id": null,
+        "driver_count": 22,
+        "ece_bin_count": 10,
+        "event_count": 1,
+        "event_keys": [
+          "202607"
+        ],
+        "multiclass_log_loss": 2.865696086815501,
+        "normalized_multiclass_brier": 0.46826750474621187,
+        "top10_ece": 0.2704958182906696,
+        "top1_ece": 0.03214745741187569,
+        "top3_ece": 0.11680666170787904
+      },
+      "outcome_evidence_id": "qualifying_outcome_sha256:bd7d07c76ae513b4fff71df383ec09b5692d519b500bd373fdff5513c0335729",
+      "prediction_evidence_id": "ec22eb198564a451af00c412e920c59f9de4c2bc2dcd7929168800a644d896a7",
+      "qualifying_position_marginals_sha256": "f21a46f22c62e75f9b2756d018c9c3836357fec061d72f62d9c2ec81c1665e8e",
+      "source_model_id": "shared_qualifying_latent_lap_v4"
+    },
+    {
+      "calibrated": {
+        "calibration_model_id": "qualifying_position_temperature_sinkhorn_v1_43150c3a7b6d",
+        "driver_count": 22,
+        "ece_bin_count": 10,
+        "event_count": 1,
+        "event_keys": [
+          "202608"
+        ],
+        "multiclass_log_loss": 2.8553926758855903,
+        "normalized_multiclass_brier": 0.4697841817737711,
+        "top10_ece": 0.29959595505147024,
+        "top1_ece": 0.028126801789060712,
+        "top3_ece": 0.08625155670728782
+      },
+      "calibration_input_source_model_id": "shared_qualifying_latent_lap_v4+finite_sample_jeffreys_alpha_0_5_v1",
+      "delta_calibrated_minus_jeffreys_smoothed_uncalibrated": {
+        "multiclass_log_loss": -0.014837403953637196,
+        "normalized_multiclass_brier": 0.0003153830806429392,
+        "top10_ece": -0.01663560823656879,
+        "top1_ece": -0.005154524747105177,
+        "top3_ece": -0.0018727516325463683
+      },
+      "event_key": 202608,
+      "field_size": 22,
+      "finite_sample_support_correction": {
+        "field_size": 22,
+        "joint_sample_count": 5000,
+        "method": "symmetric_jeffreys_cell_pseudocount",
+        "normalization_denominator": 5011.0,
+        "preserves_row_and_column_stochasticity": true,
+        "pseudo_count_per_driver_position_cell": 0.5,
+        "raw_zero_probability_cell_count": 5,
+        "smoothed_minimum_probability": 9.978048293753742e-05,
+        "strictly_positive_support": true
+      },
+      "jeffreys_smoothed_uncalibrated": {
+        "calibration_model_id": null,
+        "driver_count": 22,
+        "ece_bin_count": 10,
+        "event_count": 1,
+        "event_keys": [
+          "202608"
+        ],
+        "multiclass_log_loss": 2.8702300798392275,
+        "normalized_multiclass_brier": 0.4694687986931282,
+        "top10_ece": 0.31623156328803903,
+        "top1_ece": 0.03328132653616589,
+        "top3_ece": 0.08812430833983419
+      },
+      "outcome_evidence_id": "qualifying_outcome_sha256:2c917ea0432da7f6810a5fe7a134ca5a281addaaf45fd1adc067469cd45450be",
+      "prediction_evidence_id": "924b572b93c774f2b4b4ccf2b919bad7c08a15ac5781b76000f5b5819a8da433",
+      "qualifying_position_marginals_sha256": "9ed9ae924afd481257466d2665bb9b06fb2be38388b5b7782fc37e0a3b982666",
+      "source_model_id": "shared_qualifying_latent_lap_v4"
+    },
+    {
+      "calibrated": {
+        "calibration_model_id": "qualifying_position_temperature_sinkhorn_v1_43150c3a7b6d",
+        "driver_count": 22,
+        "ece_bin_count": 10,
+        "event_count": 1,
+        "event_keys": [
+          "202609"
+        ],
+        "multiclass_log_loss": 2.788234997326572,
+        "normalized_multiclass_brier": 0.4653422961282779,
+        "top10_ece": 0.28629969513737596,
+        "top1_ece": 0.04933289605978185,
+        "top3_ece": 0.11624458306274095
+      },
+      "calibration_input_source_model_id": "shared_qualifying_latent_lap_v4+finite_sample_jeffreys_alpha_0_5_v1",
+      "delta_calibrated_minus_jeffreys_smoothed_uncalibrated": {
+        "multiclass_log_loss": -0.017896295899682002,
+        "normalized_multiclass_brier": -0.00020458706602516363,
+        "top10_ece": -0.014366112812407295,
+        "top1_ece": -0.004067804217789309,
+        "top3_ece": -0.005378754685122847
+      },
+      "event_key": 202609,
+      "field_size": 22,
+      "finite_sample_support_correction": {
+        "field_size": 22,
+        "joint_sample_count": 5000,
+        "method": "symmetric_jeffreys_cell_pseudocount",
+        "normalization_denominator": 5011.0,
+        "preserves_row_and_column_stochasticity": true,
+        "pseudo_count_per_driver_position_cell": 0.5,
+        "raw_zero_probability_cell_count": 9,
+        "smoothed_minimum_probability": 9.978048293753742e-05,
+        "strictly_positive_support": true
+      },
+      "jeffreys_smoothed_uncalibrated": {
+        "calibration_model_id": null,
+        "driver_count": 22,
+        "ece_bin_count": 10,
+        "event_count": 1,
+        "event_keys": [
+          "202609"
+        ],
+        "multiclass_log_loss": 2.806131293226254,
+        "normalized_multiclass_brier": 0.46554688319430304,
+        "top10_ece": 0.30066580794978326,
+        "top1_ece": 0.053400700277571156,
+        "top3_ece": 0.1216233377478638
+      },
+      "outcome_evidence_id": "qualifying_outcome_sha256:614d7de7d557293b8f50f844ac20b8f8d08b72bc5f785b96f25a9d54d6634a47",
+      "prediction_evidence_id": "e516c651087e04732ab0ca7258853df538546a73fd83911cb8fc6ada41066f17",
+      "qualifying_position_marginals_sha256": "e9d62ecf766c31df833b97966b3c9066877e700b11d854a863906868ad839389",
+      "source_model_id": "shared_qualifying_latent_lap_v4"
+    }
+  ],
+  "promoted": false,
+  "promotion_status": "diagnostic_only_insufficient_independent_calibration_events",
+  "protocol": {
+    "audit_event_key_source": "source_protocol_partition_role:audit",
+    "audit_event_keys": [
+      202607,
+      202608,
+      202609
+    ],
+    "audit_outcomes_used_in_fit": false,
+    "calibration_event_key_source": "source_protocol_partition_role:calibration",
+    "calibration_event_keys": [
+      202605,
+      202606
+    ],
+    "calibration_strictly_precedes_audit": true,
+    "finite_sample_support_correction": {
+      "applied_before_temperature_and_sinkhorn": true,
+      "calibration_source_model_suffix": "finite_sample_jeffreys_alpha_0_5_v1",
+      "method": "symmetric_jeffreys_cell_pseudocount",
+      "preserves_permutation_row_and_column_stochasticity": true,
+      "pseudo_count_per_driver_position_cell": 0.5,
+      "requires_declared_joint_sample_count": true,
+      "status": "fixed_untuned_preprocessing"
+    },
+    "fit_objective": "event_balanced_multiclass_negative_log_likelihood",
+    "partitions_disjoint": true,
+    "transform": "fixed_jeffreys_support_then_log_temperature_scaling_then_sinkhorn_projection"
+  },
+  "result_sha256": "fe9b6bc6c2dbf72d4970cc9e9630af8b32b64404ecabd5ca210c3db27b8456c1",
+  "schema_version": "f1_qualifying_probability_temperature_sinkhorn_audit_v3",
+  "source_artifact": {
+    "path": "artifacts/backtests/f1/qualifying/shared_latent_same_season_v2_20260713.json",
+    "schema_version": "f1_shared_qualifying_latent_event_block_v6",
+    "sha256": "9a14686c8d1dcf44489d8af64955e4bd06e154bb5164ecedb79fec5faeae70da"
+  }
+}

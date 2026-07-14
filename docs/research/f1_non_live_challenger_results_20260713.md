@@ -1,5 +1,9 @@
 # F1 Non-Live Full Implementation and Evidence Report
 
+> Superseded for current model decisions by
+> `docs/research/f1_model_research_v2_results_20260713.md`. The numbers below
+> describe earlier implementations and must not be used as current evidence.
+
 Finalized: 2026-07-13 Europe/Paris. Audit population: completed 2026 rounds
 1-9. This is a chronological research decision record, not a claim that every
 new model is better than its retained baseline.
@@ -100,11 +104,19 @@ OpenMP, XGBoost 3.3.0, and LightGBM 4.6.0 load successfully. Event-grouped
 LambdaRank and LightGBM quantile challengers run only on chronological blocks
 with exact champion-artifact alignment. Telemetry v2 validates 550 fixed-shape,
 distance-normalized tensors across 9 independent events and 191 driver-events,
-with zero cutoff, missing-file, SHA, shape, schema, or content failures. The
-declared minimum is 20 events, so the TCN remains blocked. Best-Lap v6
-revalidates those tensors directly, binds all 9 manifests and 550 tensors to
-its input inventory, and reproduces the independent manifest-set and
-validated-cache digests exactly.
+with zero cutoff, missing-file, SHA, shape, schema, or content failures. The old
+20-event cache default was not a defensible model-capacity threshold and has
+been removed: cache integrity now defaults to one event, while each model
+declares the concrete event count its chronological split needs. A bounded
+274-parameter TCN was trained on the nine events and evaluated on five outer
+folds. Its best post-development profile is 0.00072 s better than the 0.43062 s
+event-balanced source-shift baseline, but the 95% paired-event bootstrap
+interval crosses zero and that profile was designed after the same outer
+targets had been observed. It is therefore a useful diagnostic, not promotion
+evidence. Best-Lap v18 revalidates those tensors directly, binds all 9
+manifests, the complete TCN sensitivity matrix, and all 550 tensors to its input
+inventory, and reproduces the independent manifest-set and validated-cache
+digests exactly.
 
 ## Prediction versus reality by round
 

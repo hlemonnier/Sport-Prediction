@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 4,
+  "event_name": "Miami Grand Prix",
+  "event_format": "sprint_qualifying",
+  "scheduled_event_date": "2026-05-03T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:50.401700Z",
+      "captured_at": "2026-07-11T20:26:50.401700Z",
+      "scheduled_start_utc": "2026-05-01T16:00:00",
+      "source_session_id": "fastf1:2026:4:Practice 1",
+      "laps_rows": 757,
+      "results_rows": 22,
+      "weather_rows": 100,
+      "race_control_messages_rows": 54,
+      "laps_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_laps.csv",
+          "sha256": "58f3184da62a456f2c4b51ff5727abccc9fc57b49983ddd99fe4c55a37698291",
+          "size_bytes": 95288,
+          "rows": 757
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_weather.csv",
+          "sha256": "fa71a5d99efbd246903d51dc9f8cef11677eae624373ca73906f57f229e702c7",
+          "size_bytes": 4535,
+          "rows": 100
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "00074c4f837e334bb0920f1af0ebed03c99f44bad2c995124f819c6a6688ae7f",
+          "size_bytes": 5157,
+          "rows": 54
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Sprint Qualifying",
+      "session_type": "sprint_qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:50.667665Z",
+      "captured_at": "2026-07-11T20:26:50.667665Z",
+      "scheduled_start_utc": "2026-05-01T20:30:00",
+      "source_session_id": "fastf1:2026:4:Sprint Qualifying",
+      "laps_rows": 237,
+      "results_rows": 22,
+      "weather_rows": 59,
+      "race_control_messages_rows": 43,
+      "laps_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_laps.csv",
+          "sha256": "e643b35cb9dc7996ef29f4159a1fa01e2fe9805fd3eeb39742f13710bf51d843",
+          "size_bytes": 29813,
+          "rows": 237
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_results.csv",
+          "sha256": "f9151a8c48e4cc01fd5ad07667fc2608186d0e7d43b37d36eb0bad06f1d53cf6",
+          "size_bytes": 5538,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_weather.csv",
+          "sha256": "3857fc74ca430eac513e0c4125a9240a731f7b4e85008e548a148909567cfe5e",
+          "size_bytes": 2693,
+          "rows": 59
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+          "sha256": "a94cc5b68c4a0a995a15cbffa461b3ad575bdba68b6742df7d435dc4b5c3ca20",
+          "size_bytes": 4425,
+          "rows": 43
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Sprint",
+      "session_type": "sprint_race",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:50.948125Z",
+      "captured_at": "2026-07-11T20:26:50.948125Z",
+      "scheduled_start_utc": "2026-05-02T16:00:00",
+      "source_session_id": "fastf1:2026:4:Sprint",
+      "laps_rows": 380,
+      "results_rows": 22,
+      "weather_rows": 80,
+      "race_control_messages_rows": 82,
+      "laps_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_laps.csv",
+          "sha256": "95ed6c4734db142e193e90f72178638a16e3fd267eb35b4bf3c18d67cc3a8074",
+          "size_bytes": 49521,
+          "rows": 380
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_results.csv",
+          "sha256": "2dde2bbbb4c85251d9edf2519763db2c9c2743751646ee44089cb709aa9297af",
+          "size_bytes": 6140,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_weather.csv",
+          "sha256": "451bbfc8b205c75b0a0e8ed3605b6c64645314b85e2e87350d9ab931a5484700",
+          "size_bytes": 3641,
+          "rows": 80
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/03_sprint_race_control_messages.csv",
+          "sha256": "d8615d96b90eeecc1344b32c96fbad2b458aba9ff68b592d33f5ab6efe8ea83f",
+          "size_bytes": 7137,
+          "rows": 82
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:51.271981Z",
+      "captured_at": "2026-07-11T20:26:51.271981Z",
+      "scheduled_start_utc": "2026-05-02T20:00:00",
+      "source_session_id": "fastf1:2026:4:Qualifying",
+      "laps_rows": 324,
+      "results_rows": 22,
+      "weather_rows": 81,
+      "race_control_messages_rows": 60,
+      "laps_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_laps.csv",
+          "sha256": "6ba5f2e736068ea21f919a3dd8d61586ac6ab10f2520675a652a3f36ce43dd27",
+          "size_bytes": 40141,
+          "rows": 324
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_results.csv",
+          "sha256": "0ffa4b71acaa55612736515a914364e6e9029e1982cdc0332111041ea5258b75",
+          "size_bytes": 5847,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_weather.csv",
+          "sha256": "49e93f6a3c9181b83a29dba061ec31bc40dfba0565cebd689f6b07385d146f5d",
+          "size_bytes": 3694,
+          "rows": 81
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "3b13a4b87679856253bb7ce21480eaec23ec74edbe9866543e0b5f27b68bd906",
+          "size_bytes": 5818,
+          "rows": 60
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:51.774858Z",
+      "captured_at": "2026-07-11T20:26:51.774858Z",
+      "scheduled_start_utc": "2026-05-03T17:00:00",
+      "source_session_id": "fastf1:2026:4:Race",
+      "laps_rows": 1040,
+      "results_rows": 22,
+      "weather_rows": 168,
+      "race_control_messages_rows": 176,
+      "laps_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_laps.csv",
+          "sha256": "ca751d91781b39d8ff6e10cd95b52882441c1f236d260e8e3fa0875bf06dbca7",
+          "size_bytes": 134264,
+          "rows": 1040
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_results.csv",
+          "sha256": "e48b2df52c41a8f72863855de6a3407398389ec648541aa01ac36f0710259c31",
+          "size_bytes": 6100,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_weather.csv",
+          "sha256": "5fa49b0a661b0f71d23dc8cdf67a128f1730f91f9a2df58511570bc0f7ba1ccb",
+          "size_bytes": 7536,
+          "rows": 168
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "c49eb964e03fe3d0b809676391cf203eb152b58cde087c91267647dc34a1a64a",
+          "size_bytes": 16962,
+          "rows": 176
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:49.971286Z",
+  "generated_at": "2026-07-11T20:26:51.774897Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:26:51.774897Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "bdf2b770f20af6b31ce6a1868293e15277ed5ad8ebed3507507411a44b6df1fe"
+}

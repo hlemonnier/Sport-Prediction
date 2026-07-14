@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 1,
+  "event_name": "Australian Grand Prix",
+  "event_format": "conventional",
+  "scheduled_event_date": "2026-03-08T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:44.525748Z",
+      "captured_at": "2026-07-11T20:26:44.525748Z",
+      "scheduled_start_utc": "2026-03-06T01:30:00",
+      "source_session_id": "fastf1:2026:1:Practice 1",
+      "laps_rows": 487,
+      "results_rows": 22,
+      "weather_rows": 82,
+      "race_control_messages_rows": 43,
+      "laps_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_laps.csv",
+          "sha256": "ef3e68e887445b7777fc938454479b5ea91ad521c5b2ceea2f44b15c7e8c6b28",
+          "size_bytes": 61535,
+          "rows": 487
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_weather.csv",
+          "sha256": "709be5c8ed58394542e36c175302ea8ac27d6a2a78725f36fb32a2268b61af9c",
+          "size_bytes": 3676,
+          "rows": 82
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "4a316e071fc1f5f9c62f7ac6b4dce4ca0413152e00ac12f29d84c3fe940e6afe",
+          "size_bytes": 3465,
+          "rows": 43
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Practice 2",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:44.908708Z",
+      "captured_at": "2026-07-11T20:26:44.908708Z",
+      "scheduled_start_utc": "2026-03-06T05:00:00",
+      "source_session_id": "fastf1:2026:1:Practice 2",
+      "laps_rows": 544,
+      "results_rows": 22,
+      "weather_rows": 79,
+      "race_control_messages_rows": 46,
+      "laps_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_laps.csv",
+          "sha256": "098369a9423851fa7403403b562695cdd13a1f5c112e132f2827355a0dd5c142",
+          "size_bytes": 68507,
+          "rows": 544
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_weather.csv",
+          "sha256": "02380ea5181962426be394ce56bd67bd36efe33c0ea69497a5cb1ecd24d743df",
+          "size_bytes": 3577,
+          "rows": 79
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/02_practice_2_race_control_messages.csv",
+          "sha256": "a2bbcafc71d3623c5c476ef75a2b0a615ba61becb4597e7d6f0fc439f5a0c641",
+          "size_bytes": 4226,
+          "rows": 46
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Practice 3",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:45.224456Z",
+      "captured_at": "2026-07-11T20:26:45.224456Z",
+      "scheduled_start_utc": "2026-03-07T01:30:00",
+      "source_session_id": "fastf1:2026:1:Practice 3",
+      "laps_rows": 377,
+      "results_rows": 22,
+      "weather_rows": 90,
+      "race_control_messages_rows": 60,
+      "laps_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_laps.csv",
+          "sha256": "775557d5df94e5939f19d37cc01a20155f6cd5c6b74aea1d6adb134cb4cc4ebc",
+          "size_bytes": 46759,
+          "rows": 377
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_weather.csv",
+          "sha256": "697f73c29b8e6bbcb2aa4f39139c68f1c3c4d7b8f5413ea9d373b4e5cf9bd7ea",
+          "size_bytes": 4038,
+          "rows": 90
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/03_practice_3_race_control_messages.csv",
+          "sha256": "7bae731ce6513f92e102b7aeb3087aaeddfc0256febdff0128f97e6a6c5d910e",
+          "size_bytes": 4329,
+          "rows": 60
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:45.570535Z",
+      "captured_at": "2026-07-11T20:26:45.570535Z",
+      "scheduled_start_utc": "2026-03-07T05:00:00",
+      "source_session_id": "fastf1:2026:1:Qualifying",
+      "laps_rows": 353,
+      "results_rows": 22,
+      "weather_rows": 95,
+      "race_control_messages_rows": 99,
+      "laps_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_laps.csv",
+          "sha256": "38245143483772071608cbea13d4c3a7967ce799080864b6e00a7bf1bad1c1f5",
+          "size_bytes": 43568,
+          "rows": 353
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_results.csv",
+          "sha256": "719e73383398cb57a20c5d3058f8a6ff67d6dcda6c4c40361f9ffebba0c08fb4",
+          "size_bytes": 5785,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_weather.csv",
+          "sha256": "d18a80157745e6a040cc696395dbe3f2f4bc29f74821d43d2b148fa0127ebc89",
+          "size_bytes": 4268,
+          "rows": 95
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "b39c4a9784ada9663c819ce436eae485f5765e5c23c2ee126704e48d07531efb",
+          "size_bytes": 8716,
+          "rows": 99
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:46.108050Z",
+      "captured_at": "2026-07-11T20:26:46.108050Z",
+      "scheduled_start_utc": "2026-03-08T04:00:00",
+      "source_session_id": "fastf1:2026:1:Race",
+      "laps_rows": 1006,
+      "results_rows": 22,
+      "weather_rows": 148,
+      "race_control_messages_rows": 167,
+      "laps_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_laps.csv",
+          "sha256": "b28b1c6f1cfa6386b0e70d49c4e9a4a3756d0927f010feb27f86ce14f8b62897",
+          "size_bytes": 129447,
+          "rows": 1006
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_results.csv",
+          "sha256": "2db5e56c0cc73cc14d5e617cae0d901bfa5c6d028cbb774b6167f899b2dffbac",
+          "size_bytes": 6092,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_weather.csv",
+          "sha256": "656ce7386df0b6534dec5613376a55a3d402eaa5a38a0347a3334c488d873c9a",
+          "size_bytes": 6674,
+          "rows": 148
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "451c3d3f67f7bd79e5045852d207e572c2c293542e15663a2dca9e820cd0b372",
+          "size_bytes": 15316,
+          "rows": 167
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:44.164956Z",
+  "generated_at": "2026-07-11T20:26:46.108094Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:26:46.108094Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "021445b5e78b6eab0a12dd3fd5dec29c223d32f0c75129c0557056f5c3b216b1"
+}

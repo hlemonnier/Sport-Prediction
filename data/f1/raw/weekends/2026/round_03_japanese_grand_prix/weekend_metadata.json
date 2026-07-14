@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 3,
+  "event_name": "Japanese Grand Prix",
+  "event_format": "conventional",
+  "scheduled_event_date": "2026-03-29T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:48.489108Z",
+      "captured_at": "2026-07-11T20:26:48.489108Z",
+      "scheduled_start_utc": "2026-03-27T02:30:00",
+      "source_session_id": "fastf1:2026:3:Practice 1",
+      "laps_rows": 529,
+      "results_rows": 22,
+      "weather_rows": 83,
+      "race_control_messages_rows": 67,
+      "laps_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_laps.csv",
+          "sha256": "1cfe1e3a4e2e7c32d2b82ff7b205d6ba4eba79fff8f50addaadafe509fe942c8",
+          "size_bytes": 66575,
+          "rows": 529
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_results.csv",
+          "sha256": "93d589ab4d13385e233f6e04367897ccf34675be8e88514d96c5477c44917fe8",
+          "size_bytes": 5332,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_weather.csv",
+          "sha256": "9dc9363900d730691e092747561ad727d7c25c98bcfe8bad31d86d231db6fe65",
+          "size_bytes": 3766,
+          "rows": 83
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "ad591fbc9d30b137a7d0552458112b973f75f753ca8067fb1bd5c81fd5ee13b1",
+          "size_bytes": 6038,
+          "rows": 67
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Practice 2",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:48.839216Z",
+      "captured_at": "2026-07-11T20:26:48.839216Z",
+      "scheduled_start_utc": "2026-03-27T06:00:00",
+      "source_session_id": "fastf1:2026:3:Practice 2",
+      "laps_rows": 547,
+      "results_rows": 22,
+      "weather_rows": 85,
+      "race_control_messages_rows": 65,
+      "laps_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_laps.csv",
+          "sha256": "ad4c558ba7458785377c3026916f26430e986850b51756a933f73bf7de9910aa",
+          "size_bytes": 68978,
+          "rows": 547
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_weather.csv",
+          "sha256": "bb08c967ea5f13b1022dda7f4bb3bd50f0233423f0f4f79f68d2449828b25962",
+          "size_bytes": 3860,
+          "rows": 85
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/02_practice_2_race_control_messages.csv",
+          "sha256": "7d1ad456436bdbf40f441d09b8057b843bb2b5df9587abd45e5a8b38424ce8d2",
+          "size_bytes": 5521,
+          "rows": 65
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Practice 3",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:49.166059Z",
+      "captured_at": "2026-07-11T20:26:49.166059Z",
+      "scheduled_start_utc": "2026-03-28T02:30:00",
+      "source_session_id": "fastf1:2026:3:Practice 3",
+      "laps_rows": 436,
+      "results_rows": 22,
+      "weather_rows": 80,
+      "race_control_messages_rows": 46,
+      "laps_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_laps.csv",
+          "sha256": "c7a37213b2333295bffbcc6828f8cde69dde70ec7d3e681ccac9e12b72647fce",
+          "size_bytes": 54842,
+          "rows": 436
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_weather.csv",
+          "sha256": "2939f02ce042cd3c0bc0c770819c5a57670d8bf18d2115992a61544d7aaf898f",
+          "size_bytes": 3634,
+          "rows": 80
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/03_practice_3_race_control_messages.csv",
+          "sha256": "eaf3efe18eb73c8825fe17c034754b9873ddb29a117617f73ec1f02c328ec85a",
+          "size_bytes": 4106,
+          "rows": 46
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:49.469176Z",
+      "captured_at": "2026-07-11T20:26:49.469176Z",
+      "scheduled_start_utc": "2026-03-28T06:00:00",
+      "source_session_id": "fastf1:2026:3:Qualifying",
+      "laps_rows": 324,
+      "results_rows": 22,
+      "weather_rows": 75,
+      "race_control_messages_rows": 20,
+      "laps_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_laps.csv",
+          "sha256": "7c7d982d8214f0d6d9f450f4073d01e2c5f6da32752bb72b67cdbd7064a3f652",
+          "size_bytes": 40179,
+          "rows": 324
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_results.csv",
+          "sha256": "c257a436704c0e2958c18571b0f8c697f56c4f7f2494eaddc173f39a4e866b05",
+          "size_bytes": 5856,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_weather.csv",
+          "sha256": "aa69e96d07c16bc94b7aabead5042160315a1fd63bb7fc6559bafd41726f3e12",
+          "size_bytes": 3414,
+          "rows": 75
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "508a1eb0662f83dfa520a3881e42fe7f3eb2009f1efb106bd6b71a79f1d37e80",
+          "size_bytes": 2302,
+          "rows": 20
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:49.970743Z",
+      "captured_at": "2026-07-11T20:26:49.970743Z",
+      "scheduled_start_utc": "2026-03-29T05:00:00",
+      "source_session_id": "fastf1:2026:3:Race",
+      "laps_rows": 1107,
+      "results_rows": 22,
+      "weather_rows": 156,
+      "race_control_messages_rows": 47,
+      "laps_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_laps.csv",
+          "sha256": "6f6622e981e5ef166e86bd5f382cfbe0c4490ab3bbaf91cdb0ca7bcdbae16ceb",
+          "size_bytes": 142578,
+          "rows": 1107
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_results.csv",
+          "sha256": "dcba05fa798aa68ba2e7878127b88a4c95a43cc1cd03c364252e6e5872754862",
+          "size_bytes": 6130,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_weather.csv",
+          "sha256": "b64619c3fcc1139eb0682c09d39c615d10e6c210680dd9ebb8f487825260e642",
+          "size_bytes": 7050,
+          "rows": 156
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "ec369b1f3095440579dc7dc6be45c2b7cdc265eb0c20429df6ae198c710af711",
+          "size_bytes": 4132,
+          "rows": 47
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:48.125627Z",
+  "generated_at": "2026-07-11T20:26:49.970775Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:26:49.970775Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "02d2b01c8d5f2cf9a9398ebde51e5015dfaf4fa1c3bf9cbe04e9c211bf63c6d8"
+}

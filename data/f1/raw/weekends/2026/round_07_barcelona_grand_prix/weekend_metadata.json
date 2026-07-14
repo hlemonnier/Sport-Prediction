@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 7,
+  "event_name": "Barcelona Grand Prix",
+  "event_format": "conventional",
+  "scheduled_event_date": "2026-06-14T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:57.084285Z",
+      "captured_at": "2026-07-11T20:26:57.084285Z",
+      "scheduled_start_utc": "2026-06-12T11:30:00",
+      "source_session_id": "fastf1:2026:7:Practice 1",
+      "laps_rows": 544,
+      "results_rows": 22,
+      "weather_rows": 84,
+      "race_control_messages_rows": 23,
+      "laps_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_laps.csv",
+          "sha256": "8dffdc33a27efbb48963192c9741caf3b85bb12e79729ef9bcb460b1941a1f8b",
+          "size_bytes": 63941,
+          "rows": 544
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_results.csv",
+          "sha256": "d1bd7146dccaf90b4e6440994d8bcfc91c57dee4b09cbbe58c10ecb3a3ecf937",
+          "size_bytes": 1434,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_weather.csv",
+          "sha256": "bd6c72f347f587f272a2a350e748177e6b897e5cc15efd34f0bc0ff1d620577d",
+          "size_bytes": 3811,
+          "rows": 84
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "f72883ea13e7a2ab7c982508578983ae16187cf6e18826edb9cea082dc1ea190",
+          "size_bytes": 1940,
+          "rows": 23
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Practice 2",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:57.621920Z",
+      "captured_at": "2026-07-11T20:26:57.621920Z",
+      "scheduled_start_utc": "2026-06-12T15:00:00",
+      "source_session_id": "fastf1:2026:7:Practice 2",
+      "laps_rows": 586,
+      "results_rows": 22,
+      "weather_rows": 85,
+      "race_control_messages_rows": 50,
+      "laps_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_laps.csv",
+          "sha256": "9dc207cceebb7aae3b9cf266e225a53d68edceb3a5c8b3ada7425a558ca21a9e",
+          "size_bytes": 74339,
+          "rows": 586
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_weather.csv",
+          "sha256": "f6db8ca6cb408e3023be97ca35c2764b880ebda149e9d8b039363624f4f39799",
+          "size_bytes": 3849,
+          "rows": 85
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/02_practice_2_race_control_messages.csv",
+          "sha256": "045a43173d9920fb44fd36a33459591c0179b6e6c5e97c144eebacdaf96d6aad",
+          "size_bytes": 4092,
+          "rows": 50
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Practice 3",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:57.955364Z",
+      "captured_at": "2026-07-11T20:26:57.955364Z",
+      "scheduled_start_utc": "2026-06-13T10:30:00",
+      "source_session_id": "fastf1:2026:7:Practice 3",
+      "laps_rows": 337,
+      "results_rows": 22,
+      "weather_rows": 81,
+      "race_control_messages_rows": 40,
+      "laps_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_laps.csv",
+          "sha256": "4309b1c5e6753f08ee7d95647ec5a75ab7c1784f3f5f08659d6c3d7f0a053ccb",
+          "size_bytes": 41907,
+          "rows": 337
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_weather.csv",
+          "sha256": "a6f74810c25c967154880f00f094a0154511f595fc22ae4c09a37eaae1f3ce4f",
+          "size_bytes": 3673,
+          "rows": 81
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/03_practice_3_race_control_messages.csv",
+          "sha256": "b14e71264eefc98ca9fae1edd2d9b2eddf41799a0ebf9f2ad57f47a3cefa3cef",
+          "size_bytes": 3420,
+          "rows": 40
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:58.225507Z",
+      "captured_at": "2026-07-11T20:26:58.225507Z",
+      "scheduled_start_utc": "2026-06-13T14:00:00",
+      "source_session_id": "fastf1:2026:7:Qualifying",
+      "laps_rows": 255,
+      "results_rows": 22,
+      "weather_rows": 88,
+      "race_control_messages_rows": 42,
+      "laps_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_laps.csv",
+          "sha256": "6a6b4984e78422b921bc8cdbc59ef05b66f5d35e41dbdbb7927e9f98922671be",
+          "size_bytes": 31462,
+          "rows": 255
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_results.csv",
+          "sha256": "25869c3651dbced07b972412f9fb79656352384cf62ffe545738f6438d27863b",
+          "size_bytes": 5853,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_weather.csv",
+          "sha256": "11814a6e010055281911edbd1a1c051437577d269792aa0a64a9b3d8080da4ed",
+          "size_bytes": 3986,
+          "rows": 88
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "27c08fdbab0dcd26af762eb072edc1a5f41142f602b49ee4bfd43d3232a85c14",
+          "size_bytes": 4066,
+          "rows": 42
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:58.738463Z",
+      "captured_at": "2026-07-11T20:26:58.738463Z",
+      "scheduled_start_utc": "2026-06-14T13:00:00",
+      "source_session_id": "fastf1:2026:7:Race",
+      "laps_rows": 1236,
+      "results_rows": 22,
+      "weather_rows": 150,
+      "race_control_messages_rows": 178,
+      "laps_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_laps.csv",
+          "sha256": "2f6b43bbc6a3bbfa54696f7bbc292e17e169b57c9e6019270bb4db6d09bb17a4",
+          "size_bytes": 159007,
+          "rows": 1236
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_results.csv",
+          "sha256": "c255ae504063e50c90106d401962ada983e6028c6a9a159b6d77ca5d4d58fc7e",
+          "size_bytes": 6075,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_weather.csv",
+          "sha256": "c3a7e3f37d82cebfb4776608272b0cbd82f6ee55667547a74ef741409f4d3271",
+          "size_bytes": 6738,
+          "rows": 150
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "f5b9306ec39095ac7301a404eaa99490baab836caac2d7da1d8379828933d572",
+          "size_bytes": 17332,
+          "rows": 178
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:56.596656Z",
+  "generated_at": "2026-07-11T20:26:58.738496Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:26:58.738496Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "876a731136cb2667c7e5dbbdb63c22c0dfe3e3fbda5616ba5a9e0f11774fd0c6"
+}

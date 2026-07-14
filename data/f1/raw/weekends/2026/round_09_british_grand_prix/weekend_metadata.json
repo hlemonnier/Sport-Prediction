@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 9,
+  "event_name": "British Grand Prix",
+  "event_format": "sprint_qualifying",
+  "scheduled_event_date": "2026-07-05T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:27:01.297120Z",
+      "captured_at": "2026-07-11T20:27:01.297120Z",
+      "scheduled_start_utc": "2026-07-03T11:30:00",
+      "source_session_id": "fastf1:2026:9:Practice 1",
+      "laps_rows": 613,
+      "results_rows": 22,
+      "weather_rows": 84,
+      "race_control_messages_rows": 34,
+      "laps_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_laps.csv",
+          "sha256": "0dff7f399052fddf09b6e94c5b384046b0309df2b4e5eb56de83491c9aa4ff9f",
+          "size_bytes": 77085,
+          "rows": 613
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_weather.csv",
+          "sha256": "a75220fb4ba2ad4257e3c8ed913611af21ec7c7bf9d19e05f880cfd1725852c5",
+          "size_bytes": 3824,
+          "rows": 84
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "6e0bf497b0173107dbeda25eb9a706bcdf8b7200f43c5f7268b1ad1bf537536e",
+          "size_bytes": 3499,
+          "rows": 34
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Sprint Qualifying",
+      "session_type": "sprint_qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:27:01.546738Z",
+      "captured_at": "2026-07-11T20:27:01.546738Z",
+      "scheduled_start_utc": "2026-07-03T15:30:00",
+      "source_session_id": "fastf1:2026:9:Sprint Qualifying",
+      "laps_rows": 236,
+      "results_rows": 22,
+      "weather_rows": 60,
+      "race_control_messages_rows": 58,
+      "laps_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_laps.csv",
+          "sha256": "9d75fdc6927d4c87e95d635c87922c6219a4cfed93eed8058b5fa968620654f8",
+          "size_bytes": 29640,
+          "rows": 236
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_results.csv",
+          "sha256": "9cd71353e28f23ef55a74644e4f14f021f1596486572bef5a376eebdda663c07",
+          "size_bytes": 5543,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_weather.csv",
+          "sha256": "b536e641395c75bb9e08fa6b45bd2109e7aba58e37e8bd36d3142fee87051970",
+          "size_bytes": 2741,
+          "rows": 60
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+          "sha256": "5250461e4613ba6f2f55cd336b7ab38e70fb56eb5c53f55bf3e42d442358b147",
+          "size_bytes": 5127,
+          "rows": 58
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Sprint",
+      "session_type": "sprint_race",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:27:01.814375Z",
+      "captured_at": "2026-07-11T20:27:01.814375Z",
+      "scheduled_start_utc": "2026-07-04T11:00:00",
+      "source_session_id": "fastf1:2026:9:Sprint",
+      "laps_rows": 372,
+      "results_rows": 22,
+      "weather_rows": 79,
+      "race_control_messages_rows": 95,
+      "laps_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_laps.csv",
+          "sha256": "9c8e56e5283f375236f7f566a37fe0e7035f14edfbc93ff15a4a04f9f01dc211",
+          "size_bytes": 48237,
+          "rows": 372
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_results.csv",
+          "sha256": "c14d1db0e8ecf547a196bf88b411465011ea2a382156e26ff16de4b982f4459f",
+          "size_bytes": 6141,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_weather.csv",
+          "sha256": "fcb343b905e67af4838eba7d72a448ceb5317323c4523aee771015b45f277749",
+          "size_bytes": 3594,
+          "rows": 79
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/03_sprint_race_control_messages.csv",
+          "sha256": "238b4ac8f786e395f0401b7985b8448fb8a835627d7485c8022faa82ed55669f",
+          "size_bytes": 8109,
+          "rows": 95
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:27:02.139177Z",
+      "captured_at": "2026-07-11T20:27:02.139177Z",
+      "scheduled_start_utc": "2026-07-04T15:00:00",
+      "source_session_id": "fastf1:2026:9:Qualifying",
+      "laps_rows": 309,
+      "results_rows": 22,
+      "weather_rows": 84,
+      "race_control_messages_rows": 64,
+      "laps_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_laps.csv",
+          "sha256": "d0ad2e8fe7dd83d23dd09a19b022f0861c11cd925795080a5a57b5a42eb492c6",
+          "size_bytes": 38497,
+          "rows": 309
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_results.csv",
+          "sha256": "9ab36f897806d885ae8b27a5d9af53412def53b3990725613e8cd36c17e7622a",
+          "size_bytes": 5857,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_weather.csv",
+          "sha256": "ac407dbd15143d0795d0327c07552e20d6863d168a3ba1b7a239087d06fd7791",
+          "size_bytes": 3824,
+          "rows": 84
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "bbdfcc24afb02ddf4c676108d7befe0885dc246e89f7885eb72f0ca12aa9aac5",
+          "size_bytes": 5595,
+          "rows": 64
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:27:03.003970Z",
+      "captured_at": "2026-07-11T20:27:03.003970Z",
+      "scheduled_start_utc": "2026-07-05T14:00:00",
+      "source_session_id": "fastf1:2026:9:Race",
+      "laps_rows": 1113,
+      "results_rows": 22,
+      "weather_rows": 156,
+      "race_control_messages_rows": 248,
+      "laps_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_laps.csv",
+          "sha256": "85636e3a52b8b576020de7df4200b26b5796a3896c0068f1f2191b6e70ba97dc",
+          "size_bytes": 144476,
+          "rows": 1113
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_results.csv",
+          "sha256": "3932c74669d6bc6ad6454a3be0e00b4d781078a429862dcc428d74505a6f9b92",
+          "size_bytes": 6108,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_weather.csv",
+          "sha256": "2820507a68193c7771237701c05a810639d7f332721dae8b8bb17fcee77d2a24",
+          "size_bytes": 7048,
+          "rows": 156
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "86a30f9c34756a75ade090540163c39c229ace9a06e6d5a088fd4c30969f3d11",
+          "size_bytes": 22882,
+          "rows": 248
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:27:00.840546Z",
+  "generated_at": "2026-07-11T20:27:03.004035Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:27:03.004035Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "0d78f3cbae1da8d205f6e95f41dfde9136303a72365dbcbe6ad334212aeea83b"
+}

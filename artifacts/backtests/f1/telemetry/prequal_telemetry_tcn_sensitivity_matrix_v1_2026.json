@@ -1,0 +1,1296 @@
+{
+  "artifact_payload_sha256": "d91f12ccf7b5226d8cb85b7aeda4ab62132c32a5573d036f53b3cf6a5d3f568e",
+  "comparisons": {
+    "posthoc_lr_1e4_vs_equal_architecture_zero_telemetry_sham": {
+      "delta_definition": "posthoc_tcn_event_mae_minus_posthoc_sham_event_mae",
+      "event_keys": [
+        202605,
+        202606,
+        202607,
+        202608,
+        202609
+      ],
+      "event_mae_deltas_seconds": [
+        -0.00012493989779610581,
+        -0.0003806862726130067,
+        -0.00024204144905193292,
+        0.0004902917834525566,
+        -1.7612844451786458e-06
+      ],
+      "evidence_role": "posthoc_hypothesis_after_outer_sensitivity_observed",
+      "mean_delta_seconds": -5.182742409073349e-05,
+      "never_selection_or_promotion_evidence": true,
+      "posthoc_event_wins": 4
+    },
+    "reference_vs_equal_architecture_zero_telemetry_sham": {
+      "delta_definition": "reference_tcn_event_mae_minus_sham_event_mae",
+      "event_keys": [
+        202605,
+        202606,
+        202607,
+        202608,
+        202609
+      ],
+      "event_mae_deltas_seconds": [
+        -0.00013963723904453218,
+        -0.00038651088967034397,
+        -0.01129527052005519,
+        0.0005149685536955662,
+        -2.7082454339022455e-05
+      ],
+      "mean_delta_seconds": -0.0022667065098827045,
+      "median_delta_seconds": -0.00013963723904453218,
+      "outer_results_descriptive_only": true,
+      "reference_event_wins": 4,
+      "sham_event_wins": 1
+    },
+    "reference_vs_fixed_seed_repeat": {
+      "delta_definition": "reference_seed_event_mae_minus_repeat_seed_event_mae",
+      "event_keys": [
+        202605,
+        202606,
+        202607,
+        202608,
+        202609
+      ],
+      "event_mae_deltas_seconds": [
+        -0.0040722174802795275,
+        0.0004741265557558494,
+        -0.0019732409094682657,
+        -0.003306157599912374,
+        -0.0016465747877109083
+      ],
+      "mean_absolute_event_delta_seconds": 0.002294463466625385,
+      "outer_results_descriptive_only": true
+    }
+  },
+  "deployment_changed": false,
+  "execution": {
+    "current_run_outer_fold_targets_used_for_fit_or_inner_selection": false,
+    "durable_matrix_results_used_to_select_reference_profile": false,
+    "matrix_selects_winner": false,
+    "outer_target_informed_profile_ids": [
+      "d1_optimizer_primary",
+      "d2_lower_capacity_broad_receptive_field",
+      "d3_primary_seed_stability",
+      "d1_zero_telemetry_static_anchor_sham",
+      "d4_posthoc_lr_1e4",
+      "d4_posthoc_lr_1e4_zero_telemetry_sham"
+    ],
+    "profile_design_provenance_declared_per_profile": true,
+    "profile_order": [
+      "d0_control",
+      "d1_optimizer_primary",
+      "d2_lower_capacity_broad_receptive_field",
+      "d3_primary_seed_stability",
+      "d1_zero_telemetry_static_anchor_sham",
+      "d4_posthoc_lr_1e4",
+      "d4_posthoc_lr_1e4_zero_telemetry_sham"
+    ],
+    "reference_profile_fixed_before_durable_matrix_execution": true,
+    "reference_profile_id": "d1_optimizer_primary",
+    "sequential_single_training_job": true
+  },
+  "generated_at": "2026-07-14T00:00:00Z",
+  "implementation_manifest": [
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/run_prequal_telemetry_tcn_sensitivity.py",
+      "sha256": "a1d230b04317d55cddce8c5a7edeae3065fd31f9fed056da2c89b6a1c73a1107",
+      "size_bytes": 25049
+    },
+    {
+      "path": "configs/f1/prequal_telemetry_tcn_sensitivity_2026.json",
+      "sha256": "af02a6af92135c58816f5a6bb039cf56a610534d867b8635bc2168cfc1031ac1",
+      "size_bytes": 11127
+    },
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/run_prequal_telemetry_tcn_research.py",
+      "sha256": "765da2935cfbfd8fed7a687991ea7db923b28e16705f7dbad3a12074fef7e5e8",
+      "size_bytes": 66348
+    }
+  ],
+  "implementation_manifest_sha256": "7c850a6deeb594de2a4ad0c0d8ff2501c6eb94ffbd0e056fc4034b721ef2fbe9",
+  "plan": {
+    "decision_policy": {
+      "durable_matrix_results_used_to_select_reference_profile": false,
+      "matrix_interpretation": "descriptive_parameter_and_input_ablation_only",
+      "outer_target_informed_profile_ids": [
+        "d1_optimizer_primary",
+        "d2_lower_capacity_broad_receptive_field",
+        "d3_primary_seed_stability",
+        "d1_zero_telemetry_static_anchor_sham",
+        "d4_posthoc_lr_1e4",
+        "d4_posthoc_lr_1e4_zero_telemetry_sham"
+      ],
+      "posthoc_profiles_never_selection_evidence": true,
+      "profile_design_provenance_declared_per_profile": true,
+      "promotion_allowed_from_this_matrix": false,
+      "reason_for_reference": "post-development optimizer hypothesis used as a fixed comparison reference, never as locked selection evidence",
+      "reference_profile_fixed_before_durable_matrix_execution": true,
+      "reference_profile_id": "d1_optimizer_primary"
+    },
+    "path": "configs/f1/prequal_telemetry_tcn_sensitivity_2026.json",
+    "schema_version": "f1_prequal_telemetry_tcn_sensitivity_plan_v1",
+    "sha256": "af02a6af92135c58816f5a6bb039cf56a610534d867b8635bc2168cfc1031ac1"
+  },
+  "profiles": [
+    {
+      "architecture": {
+        "dilations": [
+          1,
+          2
+        ],
+        "distance_bins": 200,
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "input_channels": 6,
+        "kernel_size": 3,
+        "max_abs_correction_seconds": 1.5,
+        "static_feature_dim": 2
+      },
+      "artifact_payload_sha256": "0357472f4a0250b12aa1646cc2060e3ab6eb83d4cc1b6152531b0641a3d4d5c6",
+      "artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+      "capacity": {
+        "capacity_proxy": "exact_trainable_scalar_parameter_count",
+        "correlated_tensor_count_treated_as_sample_size": false,
+        "driver_event_bag_count": 191,
+        "frozen_epoch_counts": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "independent_event_count": 9,
+        "outer_training_driver_event_counts": [
+          83,
+          103,
+          125,
+          147,
+          169
+        ],
+        "statistical_effective_degrees_of_freedom_claimed": false,
+        "trainable_parameters_per_independent_event": 30.444444444444443,
+        "trainable_scalar_parameter_count": 274,
+        "validated_correlated_tensor_count": 550
+      },
+      "evidence_role": "original_optimization_control_not_selection_evidence",
+      "model_input_ablation": {
+        "architecture_and_trainable_parameter_count_unchanged": true,
+        "observed_telemetry_values_passed_to_model": true,
+        "static_anchor_features_retained": true,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "telemetry_model_input_sha256": "17959eaa67cb4a18422423e9f7f7c243aff0746b41e5f996746f72434dd5880c",
+        "telemetry_zeroed_after_target_free_normalization": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d0_control_v2_2026.json",
+      "output_sha256": "a1302348493b1e1d934b139cc0b827f7e6c0cab6220e9faae0652f06f5fef3cf",
+      "output_size_bytes": 505427,
+      "per_event_tcn_mae_seconds": {
+        "202605": 0.29504813250422257,
+        "202606": 0.5267515367957869,
+        "202607": 0.5761285276219087,
+        "202608": 0.21762138098562966,
+        "202609": 0.537603630105707
+      },
+      "profile_design_provenance": {
+        "design_stage": "original_pre_sensitivity_control",
+        "durable_matrix_results_used_to_select_profile": false,
+        "hyperparameters_tuned_on_outer_targets": false,
+        "prior_outer_results_informed_profile_design": false,
+        "promotion_eligible_from_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": false
+      },
+      "profile_id": "d0_control",
+      "purpose": "corrected fastest-anchor control matching the original optimization regime",
+      "summary": {
+        "locked_selected_policy": {
+          "bias_seconds": 0.047430555555557155,
+          "delta_vs_source_shift_baseline_seconds": 0.0,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075,
+          "relative_improvement_vs_source_shift_baseline": 0.0
+        },
+        "paired_event_tcn_vs_source_shift": {
+          "delta_definition": "tcn_event_mae_minus_source_shift_event_mae",
+          "event_keys": [
+            202605,
+            202606,
+            202607,
+            202608,
+            202609
+          ],
+          "event_mae_deltas_seconds": [
+            0.0016731325042200762,
+            0.0008879004321484807,
+            0.0003558003491807016,
+            0.00012138098562983202,
+            -0.0029872789851982384
+          ],
+          "exact_two_sided_sign_test_p_value": 0.375,
+          "mean_delta_seconds": 1.0187057196170413e-05,
+          "median_delta_seconds": 0.0003558003491807016,
+          "paired_event_bootstrap": {
+            "descriptive_only_not_used_for_selection": true,
+            "draws": 20000,
+            "mean_delta_ci95_seconds": [
+              -0.0015905111075632805,
+              0.0011461996422043263
+            ],
+            "probability_mean_delta_below_zero": 0.4586,
+            "seed": 20260714
+          },
+          "tcn_event_losses": 4,
+          "tcn_event_wins": 1
+        },
+        "raw_baseline": {
+          "bias_seconds": 0.061847222222221734,
+          "event_balanced_mae_seconds": 0.47398363636363605,
+          "event_mae_standard_deviation_seconds": 0.18765795538648133,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.47828240740740713,
+          "median_absolute_error_seconds": 0.3887500000000017
+        },
+        "scored_driver_event_count": 108,
+        "scored_event_count": 5,
+        "source_shift_baseline": {
+          "bias_seconds": 0.047430555555557155,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": null,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075
+        },
+        "tcn_driver_correction": {
+          "bias_seconds": 0.049042861709282265,
+          "delta_vs_source_shift_baseline_seconds": 1.0187057196242577e-05,
+          "event_balanced_mae_seconds": 0.43063064160265097,
+          "event_mae_standard_deviation_seconds": 0.14533247639816313,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.4331414288081774,
+          "median_absolute_error_seconds": 0.3066814654991106,
+          "relative_improvement_vs_source_shift_baseline": -2.3656696027121184e-05
+        }
+      },
+      "training_config": {
+        "dilations": [
+          1,
+          2
+        ],
+        "dropout": 0.0,
+        "early_stopping_min_delta_seconds": 0.001,
+        "early_stopping_patience": 8,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "huber_beta_seconds": 0.25,
+        "kernel_size": 3,
+        "learning_rate": 0.003,
+        "max_abs_correction_seconds": 1.5,
+        "maximum_epochs": 60,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "minimum_train_events": 4,
+        "seed": 20260714,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "weight_decay": 0.01
+      }
+    },
+    {
+      "architecture": {
+        "dilations": [
+          1,
+          2
+        ],
+        "distance_bins": 200,
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "input_channels": 6,
+        "kernel_size": 3,
+        "max_abs_correction_seconds": 1.5,
+        "static_feature_dim": 2
+      },
+      "artifact_payload_sha256": "c1b68792d75e759cebdbd00be151f9d1b0116688ade91fb503cc2a26bff511ab",
+      "artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+      "capacity": {
+        "capacity_proxy": "exact_trainable_scalar_parameter_count",
+        "correlated_tensor_count_treated_as_sample_size": false,
+        "driver_event_bag_count": 191,
+        "frozen_epoch_counts": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "independent_event_count": 9,
+        "outer_training_driver_event_counts": [
+          83,
+          103,
+          125,
+          147,
+          169
+        ],
+        "statistical_effective_degrees_of_freedom_claimed": false,
+        "trainable_parameters_per_independent_event": 30.444444444444443,
+        "trainable_scalar_parameter_count": 274,
+        "validated_correlated_tensor_count": 550
+      },
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "model_input_ablation": {
+        "architecture_and_trainable_parameter_count_unchanged": true,
+        "observed_telemetry_values_passed_to_model": true,
+        "static_anchor_features_retained": true,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "telemetry_model_input_sha256": "17959eaa67cb4a18422423e9f7f7c243aff0746b41e5f996746f72434dd5880c",
+        "telemetry_zeroed_after_target_free_normalization": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json",
+      "output_sha256": "9c98244bd4c854b86850bda00a8dfd2454a845a2cbf83b1944c21e3bff09f999",
+      "output_size_bytes": 515955,
+      "per_event_tcn_mae_seconds": {
+        "202605": 0.2925406094556699,
+        "202606": 0.5266392861910884,
+        "202607": 0.5739047246500381,
+        "202608": 0.21560126432963758,
+        "202609": 0.540829140384212
+      },
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "durable_matrix_results_used_to_select_profile": false,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "prior_outer_results_informed_profile_design": true,
+        "promotion_eligible_from_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true
+      },
+      "profile_id": "d1_optimizer_primary",
+      "purpose": "post-development lower-step-size reference fixed before the durable matrix run",
+      "summary": {
+        "locked_selected_policy": {
+          "bias_seconds": 0.047430555555557155,
+          "delta_vs_source_shift_baseline_seconds": 0.0,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075,
+          "relative_improvement_vs_source_shift_baseline": 0.0
+        },
+        "paired_event_tcn_vs_source_shift": {
+          "delta_definition": "tcn_event_mae_minus_source_shift_event_mae",
+          "event_keys": [
+            202605,
+            202606,
+            202607,
+            202608,
+            202609
+          ],
+          "event_mae_deltas_seconds": [
+            -0.0008343905443325972,
+            0.0007756498274499313,
+            -0.0018680026226899349,
+            -0.0018987356703622504,
+            0.00023823129330680093
+          ],
+          "exact_two_sided_sign_test_p_value": 1.0,
+          "mean_delta_seconds": -0.0007174495433256101,
+          "median_delta_seconds": -0.0008343905443325972,
+          "paired_event_bootstrap": {
+            "descriptive_only_not_used_for_selection": true,
+            "draws": 20000,
+            "mean_delta_ci95_seconds": [
+              -0.0016735734260873935,
+              0.00023867433943617345
+            ],
+            "probability_mean_delta_below_zero": 0.91325,
+            "seed": 20260714
+          },
+          "tcn_event_losses": 2,
+          "tcn_event_wins": 3
+        },
+        "raw_baseline": {
+          "bias_seconds": 0.061847222222221734,
+          "event_balanced_mae_seconds": 0.47398363636363605,
+          "event_mae_standard_deviation_seconds": 0.18765795538648133,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.47828240740740713,
+          "median_absolute_error_seconds": 0.3887500000000017
+        },
+        "scored_driver_event_count": 108,
+        "scored_event_count": 5,
+        "source_shift_baseline": {
+          "bias_seconds": 0.047430555555557155,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": null,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075
+        },
+        "tcn_driver_correction": {
+          "bias_seconds": 0.04534498733323534,
+          "delta_vs_source_shift_baseline_seconds": -0.0007174495433255323,
+          "event_balanced_mae_seconds": 0.4299030050021292,
+          "event_mae_standard_deviation_seconds": 0.14641903881404922,
+          "events_beating_source_shift_baseline": 3,
+          "mae_seconds": 0.43244675306780433,
+          "median_absolute_error_seconds": 0.30497258862853016,
+          "relative_improvement_vs_source_shift_baseline": 0.0016660832892456134
+        }
+      },
+      "training_config": {
+        "dilations": [
+          1,
+          2
+        ],
+        "dropout": 0.0,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "early_stopping_patience": 20,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "huber_beta_seconds": 0.25,
+        "kernel_size": 3,
+        "learning_rate": 0.0005,
+        "max_abs_correction_seconds": 1.5,
+        "maximum_epochs": 200,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "minimum_train_events": 4,
+        "seed": 20260714,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "weight_decay": 0.0001
+      }
+    },
+    {
+      "architecture": {
+        "dilations": [
+          1,
+          2,
+          4
+        ],
+        "distance_bins": 200,
+        "dropout": 0.0,
+        "head_hidden_dim": 2,
+        "hidden_channels": 2,
+        "input_channels": 6,
+        "kernel_size": 5,
+        "max_abs_correction_seconds": 1.5,
+        "static_feature_dim": 2
+      },
+      "artifact_payload_sha256": "f69c4149e0ee9b9baa8d7a0dc2738a79c079a2d2cda94fe162c26fe4cf589daf",
+      "artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+      "capacity": {
+        "capacity_proxy": "exact_trainable_scalar_parameter_count",
+        "correlated_tensor_count_treated_as_sample_size": false,
+        "driver_event_bag_count": 191,
+        "frozen_epoch_counts": [
+          1,
+          1,
+          36,
+          1,
+          1
+        ],
+        "independent_event_count": 9,
+        "outer_training_driver_event_counts": [
+          83,
+          103,
+          125,
+          147,
+          169
+        ],
+        "statistical_effective_degrees_of_freedom_claimed": false,
+        "trainable_parameters_per_independent_event": 18.0,
+        "trainable_scalar_parameter_count": 162,
+        "validated_correlated_tensor_count": 550
+      },
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "model_input_ablation": {
+        "architecture_and_trainable_parameter_count_unchanged": true,
+        "observed_telemetry_values_passed_to_model": true,
+        "static_anchor_features_retained": true,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "telemetry_model_input_sha256": "17959eaa67cb4a18422423e9f7f7c243aff0746b41e5f996746f72434dd5880c",
+        "telemetry_zeroed_after_target_free_normalization": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d2_lower_capacity_v2_2026.json",
+      "output_sha256": "89e3bc21a0c6b78a478f63a8cc46e0840cc97d507a2d6d5d211c8cee6e992c09",
+      "output_size_bytes": 521851,
+      "per_event_tcn_mae_seconds": {
+        "202605": 0.2918735773277028,
+        "202606": 0.5285775643627773,
+        "202607": 0.5948032835545863,
+        "202608": 0.21766763761562852,
+        "202609": 0.5389334528148982
+      },
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "durable_matrix_results_used_to_select_profile": false,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "prior_outer_results_informed_profile_design": true,
+        "promotion_eligible_from_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true
+      },
+      "profile_id": "d2_lower_capacity_broad_receptive_field",
+      "purpose": "architecture-only comparison with lower capacity and a broader 57-bin receptive field",
+      "summary": {
+        "locked_selected_policy": {
+          "bias_seconds": 0.047430555555557155,
+          "delta_vs_source_shift_baseline_seconds": 0.0,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075,
+          "relative_improvement_vs_source_shift_baseline": 0.0
+        },
+        "paired_event_tcn_vs_source_shift": {
+          "delta_definition": "tcn_event_mae_minus_source_shift_event_mae",
+          "event_keys": [
+            202605,
+            202606,
+            202607,
+            202608,
+            202609
+          ],
+          "event_mae_deltas_seconds": [
+            -0.0015014226722996904,
+            0.002713927999138832,
+            0.019030556281858346,
+            0.00016763761562868518,
+            -0.0016574562760069966
+          ],
+          "exact_two_sided_sign_test_p_value": 1.0,
+          "mean_delta_seconds": 0.003750648589663835,
+          "median_delta_seconds": 0.00016763761562868518,
+          "paired_event_bootstrap": {
+            "descriptive_only_not_used_for_selection": true,
+            "draws": 20000,
+            "mean_delta_ci95_seconds": [
+              -0.0012300240561969379,
+              0.011629628113741375
+            ],
+            "probability_mean_delta_below_zero": 0.1856,
+            "seed": 20260714
+          },
+          "tcn_event_losses": 3,
+          "tcn_event_wins": 2
+        },
+        "raw_baseline": {
+          "bias_seconds": 0.061847222222221734,
+          "event_balanced_mae_seconds": 0.47398363636363605,
+          "event_mae_standard_deviation_seconds": 0.18765795538648133,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.47828240740740713,
+          "median_absolute_error_seconds": 0.3887500000000017
+        },
+        "scored_driver_event_count": 108,
+        "scored_event_count": 5,
+        "source_shift_baseline": {
+          "bias_seconds": 0.047430555555557155,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": null,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075
+        },
+        "tcn_driver_correction": {
+          "bias_seconds": 0.05007546094285713,
+          "delta_vs_source_shift_baseline_seconds": 0.0037506485896638964,
+          "event_balanced_mae_seconds": 0.4343711031351186,
+          "event_mae_standard_deviation_seconds": 0.15020823123326596,
+          "events_beating_source_shift_baseline": 2,
+          "mae_seconds": 0.43700994620562633,
+          "median_absolute_error_seconds": 0.31721282158652997,
+          "relative_improvement_vs_source_shift_baseline": -0.008709870954975715
+        }
+      },
+      "training_config": {
+        "dilations": [
+          1,
+          2,
+          4
+        ],
+        "dropout": 0.0,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "early_stopping_patience": 20,
+        "head_hidden_dim": 2,
+        "hidden_channels": 2,
+        "huber_beta_seconds": 0.25,
+        "kernel_size": 5,
+        "learning_rate": 0.0005,
+        "max_abs_correction_seconds": 1.5,
+        "maximum_epochs": 200,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "minimum_train_events": 4,
+        "seed": 20260714,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "weight_decay": 0.0001
+      }
+    },
+    {
+      "architecture": {
+        "dilations": [
+          1,
+          2
+        ],
+        "distance_bins": 200,
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "input_channels": 6,
+        "kernel_size": 3,
+        "max_abs_correction_seconds": 1.5,
+        "static_feature_dim": 2
+      },
+      "artifact_payload_sha256": "592466d2ec0050fee1a94fd96e4a9d017aa85d5bb883192d4526a74ed94acfe1",
+      "artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+      "capacity": {
+        "capacity_proxy": "exact_trainable_scalar_parameter_count",
+        "correlated_tensor_count_treated_as_sample_size": false,
+        "driver_event_bag_count": 191,
+        "frozen_epoch_counts": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "independent_event_count": 9,
+        "outer_training_driver_event_counts": [
+          83,
+          103,
+          125,
+          147,
+          169
+        ],
+        "statistical_effective_degrees_of_freedom_claimed": false,
+        "trainable_parameters_per_independent_event": 30.444444444444443,
+        "trainable_scalar_parameter_count": 274,
+        "validated_correlated_tensor_count": 550
+      },
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "model_input_ablation": {
+        "architecture_and_trainable_parameter_count_unchanged": true,
+        "observed_telemetry_values_passed_to_model": true,
+        "static_anchor_features_retained": true,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "telemetry_model_input_sha256": "17959eaa67cb4a18422423e9f7f7c243aff0746b41e5f996746f72434dd5880c",
+        "telemetry_zeroed_after_target_free_normalization": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d3_seed_v2_2026.json",
+      "output_sha256": "e7a65d9148c533fdd2fd15ac8c945030e8d1a76c10b1746db61bf74a794e5dc1",
+      "output_size_bytes": 515818,
+      "per_event_tcn_mae_seconds": {
+        "202605": 0.2966128269359494,
+        "202606": 0.5261651596353325,
+        "202607": 0.5758779655595063,
+        "202608": 0.21890742192954996,
+        "202609": 0.542475715171923
+      },
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "durable_matrix_results_used_to_select_profile": false,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "prior_outer_results_informed_profile_design": true,
+        "promotion_eligible_from_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true
+      },
+      "profile_id": "d3_primary_seed_stability",
+      "purpose": "repeat the reference optimizer with one independently fixed seed",
+      "summary": {
+        "locked_selected_policy": {
+          "bias_seconds": 0.047430555555557155,
+          "delta_vs_source_shift_baseline_seconds": 0.0,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075,
+          "relative_improvement_vs_source_shift_baseline": 0.0
+        },
+        "paired_event_tcn_vs_source_shift": {
+          "delta_definition": "tcn_event_mae_minus_source_shift_event_mae",
+          "event_keys": [
+            202605,
+            202606,
+            202607,
+            202608,
+            202609
+          ],
+          "event_mae_deltas_seconds": [
+            0.0032378269359469303,
+            0.0003015232716940819,
+            0.0001052382867783308,
+            0.0014074219295501234,
+            0.0018848060810177092
+          ],
+          "exact_two_sided_sign_test_p_value": 0.0625,
+          "mean_delta_seconds": 0.001387363300997435,
+          "median_delta_seconds": 0.0014074219295501234,
+          "paired_event_bootstrap": {
+            "descriptive_only_not_used_for_selection": true,
+            "draws": 20000,
+            "mean_delta_ci95_seconds": [
+              0.00046115184562620646,
+              0.0023799620321105163
+            ],
+            "probability_mean_delta_below_zero": 0.0,
+            "seed": 20260714
+          },
+          "tcn_event_losses": 5,
+          "tcn_event_wins": 0
+        },
+        "raw_baseline": {
+          "bias_seconds": 0.061847222222221734,
+          "event_balanced_mae_seconds": 0.47398363636363605,
+          "event_mae_standard_deviation_seconds": 0.18765795538648133,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.47828240740740713,
+          "median_absolute_error_seconds": 0.3887500000000017
+        },
+        "scored_driver_event_count": 108,
+        "scored_event_count": 5,
+        "source_shift_baseline": {
+          "bias_seconds": 0.047430555555557155,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": null,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075
+        },
+        "tcn_driver_correction": {
+          "bias_seconds": 0.04748806528290204,
+          "delta_vs_source_shift_baseline_seconds": 0.0013873633009974795,
+          "event_balanced_mae_seconds": 0.4320078178464522,
+          "event_mae_standard_deviation_seconds": 0.1452659375482294,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.434515132492943,
+          "median_absolute_error_seconds": 0.3043389567118169,
+          "relative_improvement_vs_source_shift_baseline": -0.0032217775220685307
+        }
+      },
+      "training_config": {
+        "dilations": [
+          1,
+          2
+        ],
+        "dropout": 0.0,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "early_stopping_patience": 20,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "huber_beta_seconds": 0.25,
+        "kernel_size": 3,
+        "learning_rate": 0.0005,
+        "max_abs_correction_seconds": 1.5,
+        "maximum_epochs": 200,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "minimum_train_events": 4,
+        "seed": 20260715,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "weight_decay": 0.0001
+      }
+    },
+    {
+      "architecture": {
+        "dilations": [
+          1,
+          2
+        ],
+        "distance_bins": 200,
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "input_channels": 6,
+        "kernel_size": 3,
+        "max_abs_correction_seconds": 1.5,
+        "static_feature_dim": 2
+      },
+      "artifact_payload_sha256": "5f505ca91404513017f5cdc0a938a4fbc80b59b14ac30f9693c1ebb9a3f21d44",
+      "artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+      "capacity": {
+        "capacity_proxy": "exact_trainable_scalar_parameter_count",
+        "correlated_tensor_count_treated_as_sample_size": false,
+        "driver_event_bag_count": 191,
+        "frozen_epoch_counts": [
+          1,
+          1,
+          20,
+          1,
+          1
+        ],
+        "independent_event_count": 9,
+        "outer_training_driver_event_counts": [
+          83,
+          103,
+          125,
+          147,
+          169
+        ],
+        "statistical_effective_degrees_of_freedom_claimed": false,
+        "trainable_parameters_per_independent_event": 30.444444444444443,
+        "trainable_scalar_parameter_count": 274,
+        "validated_correlated_tensor_count": 550
+      },
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "model_input_ablation": {
+        "architecture_and_trainable_parameter_count_unchanged": true,
+        "observed_telemetry_values_passed_to_model": false,
+        "static_anchor_features_retained": true,
+        "telemetry_input_mode": "zero_telemetry_static_anchor_sham",
+        "telemetry_model_input_sha256": "2439df522260c0586174c4f6d3bf32be87e428a53e426df4e67fc497beed7a9d",
+        "telemetry_zeroed_after_target_free_normalization": true
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_d1_zero_telemetry_sham_v2_2026.json",
+      "output_sha256": "4c61b5a265d517164675e5e864ead0f5f36ca931dd7863a1ba139b1ca2c39cb6",
+      "output_size_bytes": 519176,
+      "per_event_tcn_mae_seconds": {
+        "202605": 0.29268024669471443,
+        "202606": 0.5270257970807587,
+        "202607": 0.5851999951700932,
+        "202608": 0.21508629577594202,
+        "202609": 0.5408562228385511
+      },
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "durable_matrix_results_used_to_select_profile": false,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "prior_outer_results_informed_profile_design": true,
+        "promotion_eligible_from_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true
+      },
+      "profile_id": "d1_zero_telemetry_static_anchor_sham",
+      "purpose": "equal-architecture input ablation isolating static-anchor signal from aligned telemetry",
+      "summary": {
+        "locked_selected_policy": {
+          "bias_seconds": 0.047430555555557155,
+          "delta_vs_source_shift_baseline_seconds": 0.0,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075,
+          "relative_improvement_vs_source_shift_baseline": 0.0
+        },
+        "paired_event_tcn_vs_source_shift": {
+          "delta_definition": "tcn_event_mae_minus_source_shift_event_mae",
+          "event_keys": [
+            202605,
+            202606,
+            202607,
+            202608,
+            202609
+          ],
+          "event_mae_deltas_seconds": [
+            -0.000694753305288065,
+            0.0011621607171202752,
+            0.009427267897365255,
+            -0.0024137042240578166,
+            0.0002653137476458234
+          ],
+          "exact_two_sided_sign_test_p_value": 1.0,
+          "mean_delta_seconds": 0.0015492569665570943,
+          "median_delta_seconds": 0.0002653137476458234,
+          "paired_event_bootstrap": {
+            "descriptive_only_not_used_for_selection": true,
+            "draws": 20000,
+            "mean_delta_ci95_seconds": [
+              -0.0013420970353763607,
+              0.0057498422207855945
+            ],
+            "probability_mean_delta_below_zero": 0.2423,
+            "seed": 20260714
+          },
+          "tcn_event_losses": 3,
+          "tcn_event_wins": 2
+        },
+        "raw_baseline": {
+          "bias_seconds": 0.061847222222221734,
+          "event_balanced_mae_seconds": 0.47398363636363605,
+          "event_mae_standard_deviation_seconds": 0.18765795538648133,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.47828240740740713,
+          "median_absolute_error_seconds": 0.3887500000000017
+        },
+        "scored_driver_event_count": 108,
+        "scored_event_count": 5,
+        "source_shift_baseline": {
+          "bias_seconds": 0.047430555555557155,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": null,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075
+        },
+        "tcn_driver_correction": {
+          "bias_seconds": 0.04817762620737548,
+          "delta_vs_source_shift_baseline_seconds": 0.0015492569665571665,
+          "event_balanced_mae_seconds": 0.4321697115120119,
+          "event_mae_standard_deviation_seconds": 0.1488698912560143,
+          "events_beating_source_shift_baseline": 2,
+          "mae_seconds": 0.43475284974936923,
+          "median_absolute_error_seconds": 0.3094188031060696,
+          "relative_improvement_vs_source_shift_baseline": -0.003597731947481451
+        }
+      },
+      "training_config": {
+        "dilations": [
+          1,
+          2
+        ],
+        "dropout": 0.0,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "early_stopping_patience": 20,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "huber_beta_seconds": 0.25,
+        "kernel_size": 3,
+        "learning_rate": 0.0005,
+        "max_abs_correction_seconds": 1.5,
+        "maximum_epochs": 200,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "minimum_train_events": 4,
+        "seed": 20260714,
+        "telemetry_input_mode": "zero_telemetry_static_anchor_sham",
+        "weight_decay": 0.0001
+      }
+    },
+    {
+      "architecture": {
+        "dilations": [
+          1,
+          2
+        ],
+        "distance_bins": 200,
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "input_channels": 6,
+        "kernel_size": 3,
+        "max_abs_correction_seconds": 1.5,
+        "static_feature_dim": 2
+      },
+      "artifact_payload_sha256": "9ab4d856483caf90fbb41d2f807e884f5109b7334b6a68a9ff6407c87f247ce4",
+      "artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+      "capacity": {
+        "capacity_proxy": "exact_trainable_scalar_parameter_count",
+        "correlated_tensor_count_treated_as_sample_size": false,
+        "driver_event_bag_count": 191,
+        "frozen_epoch_counts": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "independent_event_count": 9,
+        "outer_training_driver_event_counts": [
+          83,
+          103,
+          125,
+          147,
+          169
+        ],
+        "statistical_effective_degrees_of_freedom_claimed": false,
+        "trainable_parameters_per_independent_event": 30.444444444444443,
+        "trainable_scalar_parameter_count": 274,
+        "validated_correlated_tensor_count": 550
+      },
+      "evidence_role": "posthoc_hypothesis_after_outer_sensitivity_observed",
+      "model_input_ablation": {
+        "architecture_and_trainable_parameter_count_unchanged": true,
+        "observed_telemetry_values_passed_to_model": true,
+        "static_anchor_features_retained": true,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "telemetry_model_input_sha256": "17959eaa67cb4a18422423e9f7f7c243aff0746b41e5f996746f72434dd5880c",
+        "telemetry_zeroed_after_target_free_normalization": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d4_posthoc_lr1e4_v2_2026.json",
+      "output_sha256": "f7803c0e43b43ee9ffe56b8ad598d44976f1d2dd0edcd177c6e0f1d0f653f098",
+      "output_size_bytes": 515892,
+      "per_event_tcn_mae_seconds": {
+        "202605": 0.29214164227922695,
+        "202606": 0.5266234411701834,
+        "202607": 0.5735447672056253,
+        "202608": 0.2152803490591295,
+        "202609": 0.5413437022714075
+      },
+      "profile_design_provenance": {
+        "design_stage": "post_sensitivity_outer_results_informed_followup",
+        "durable_matrix_results_used_to_select_profile": false,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "prior_outer_results_informed_profile_design": true,
+        "promotion_eligible_from_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true
+      },
+      "profile_id": "d4_posthoc_lr_1e4",
+      "purpose": "posthoc optimizer hypothesis retained only as descriptive follow-up after the outer sensitivity was observed",
+      "summary": {
+        "locked_selected_policy": {
+          "bias_seconds": 0.047430555555557155,
+          "delta_vs_source_shift_baseline_seconds": 0.0,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075,
+          "relative_improvement_vs_source_shift_baseline": 0.0
+        },
+        "paired_event_tcn_vs_source_shift": {
+          "delta_definition": "tcn_event_mae_minus_source_shift_event_mae",
+          "event_keys": [
+            202605,
+            202606,
+            202607,
+            202608,
+            202609
+          ],
+          "event_mae_deltas_seconds": [
+            -0.0012333577207755408,
+            0.000759804806545028,
+            -0.0022279600671026856,
+            -0.0022196509408703435,
+            0.0007527931805022536
+          ],
+          "exact_two_sided_sign_test_p_value": 1.0,
+          "mean_delta_seconds": -0.0008336741483402577,
+          "median_delta_seconds": -0.0012333577207755408,
+          "paired_event_bootstrap": {
+            "descriptive_only_not_used_for_selection": true,
+            "draws": 20000,
+            "mean_delta_ci95_seconds": [
+              -0.0020257159473443197,
+              0.00035836765066380447
+            ],
+            "probability_mean_delta_below_zero": 0.90925,
+            "seed": 20260714
+          },
+          "tcn_event_losses": 2,
+          "tcn_event_wins": 3
+        },
+        "raw_baseline": {
+          "bias_seconds": 0.061847222222221734,
+          "event_balanced_mae_seconds": 0.47398363636363605,
+          "event_mae_standard_deviation_seconds": 0.18765795538648133,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.47828240740740713,
+          "median_absolute_error_seconds": 0.3887500000000017
+        },
+        "scored_driver_event_count": 108,
+        "scored_event_count": 5,
+        "source_shift_baseline": {
+          "bias_seconds": 0.047430555555557155,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": null,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075
+        },
+        "tcn_driver_correction": {
+          "bias_seconds": 0.044750688907788154,
+          "delta_vs_source_shift_baseline_seconds": -0.0008336741483401244,
+          "event_balanced_mae_seconds": 0.4297867803971146,
+          "event_mae_standard_deviation_seconds": 0.1465932042025356,
+          "events_beating_source_shift_baseline": 3,
+          "mae_seconds": 0.4323357644363347,
+          "median_absolute_error_seconds": 0.30475228159595247,
+          "relative_improvement_vs_source_shift_baseline": 0.0019359836244195986
+        }
+      },
+      "training_config": {
+        "dilations": [
+          1,
+          2
+        ],
+        "dropout": 0.0,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "early_stopping_patience": 20,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "huber_beta_seconds": 0.25,
+        "kernel_size": 3,
+        "learning_rate": 0.0001,
+        "max_abs_correction_seconds": 1.5,
+        "maximum_epochs": 200,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "minimum_train_events": 4,
+        "seed": 20260714,
+        "telemetry_input_mode": "observed_anchor_aligned",
+        "weight_decay": 0.0001
+      }
+    },
+    {
+      "architecture": {
+        "dilations": [
+          1,
+          2
+        ],
+        "distance_bins": 200,
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "input_channels": 6,
+        "kernel_size": 3,
+        "max_abs_correction_seconds": 1.5,
+        "static_feature_dim": 2
+      },
+      "artifact_payload_sha256": "b5df8c41426ad2998d1dd495974d4a67fc6533760dd3540d37f4f39879df6fdf",
+      "artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+      "capacity": {
+        "capacity_proxy": "exact_trainable_scalar_parameter_count",
+        "correlated_tensor_count_treated_as_sample_size": false,
+        "driver_event_bag_count": 191,
+        "frozen_epoch_counts": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "independent_event_count": 9,
+        "outer_training_driver_event_counts": [
+          83,
+          103,
+          125,
+          147,
+          169
+        ],
+        "statistical_effective_degrees_of_freedom_claimed": false,
+        "trainable_parameters_per_independent_event": 30.444444444444443,
+        "trainable_scalar_parameter_count": 274,
+        "validated_correlated_tensor_count": 550
+      },
+      "evidence_role": "posthoc_hypothesis_after_outer_sensitivity_observed",
+      "model_input_ablation": {
+        "architecture_and_trainable_parameter_count_unchanged": true,
+        "observed_telemetry_values_passed_to_model": false,
+        "static_anchor_features_retained": true,
+        "telemetry_input_mode": "zero_telemetry_static_anchor_sham",
+        "telemetry_model_input_sha256": "2439df522260c0586174c4f6d3bf32be87e428a53e426df4e67fc497beed7a9d",
+        "telemetry_zeroed_after_target_free_normalization": true
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d4_posthoc_lr1e4_zero_telemetry_sham_v2_2026.json",
+      "output_sha256": "d0cf4f650267f112a4912df54a5c1e51a1619e6ab014ee4792997b9456022e86",
+      "output_size_bytes": 515909,
+      "per_event_tcn_mae_seconds": {
+        "202605": 0.29226658217702306,
+        "202606": 0.5270041274427965,
+        "202607": 0.5737868086546772,
+        "202608": 0.21479005727567693,
+        "202609": 0.5413454635558527
+      },
+      "profile_design_provenance": {
+        "design_stage": "post_sensitivity_outer_results_informed_followup",
+        "durable_matrix_results_used_to_select_profile": false,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "prior_outer_results_informed_profile_design": true,
+        "promotion_eligible_from_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true
+      },
+      "profile_id": "d4_posthoc_lr_1e4_zero_telemetry_sham",
+      "purpose": "equal-architecture zero-telemetry sham for the posthoc optimizer hypothesis",
+      "summary": {
+        "locked_selected_policy": {
+          "bias_seconds": 0.047430555555557155,
+          "delta_vs_source_shift_baseline_seconds": 0.0,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": 0,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075,
+          "relative_improvement_vs_source_shift_baseline": 0.0
+        },
+        "paired_event_tcn_vs_source_shift": {
+          "delta_definition": "tcn_event_mae_minus_source_shift_event_mae",
+          "event_keys": [
+            202605,
+            202606,
+            202607,
+            202608,
+            202609
+          ],
+          "event_mae_deltas_seconds": [
+            -0.001108417822979435,
+            0.0011404910791580347,
+            -0.0019859186180507526,
+            -0.0027099427243229,
+            0.0007545544649474323
+          ],
+          "exact_two_sided_sign_test_p_value": 1.0,
+          "mean_delta_seconds": -0.0007818467242495242,
+          "median_delta_seconds": -0.001108417822979435,
+          "paired_event_bootstrap": {
+            "descriptive_only_not_used_for_selection": true,
+            "draws": 20000,
+            "mean_delta_ci95_seconds": [
+              -0.002100028101545348,
+              0.0005363346530462998
+            ],
+            "probability_mean_delta_below_zero": 0.8778,
+            "seed": 20260714
+          },
+          "tcn_event_losses": 2,
+          "tcn_event_wins": 3
+        },
+        "raw_baseline": {
+          "bias_seconds": 0.061847222222221734,
+          "event_balanced_mae_seconds": 0.47398363636363605,
+          "event_mae_standard_deviation_seconds": 0.18765795538648133,
+          "events_beating_source_shift_baseline": 1,
+          "mae_seconds": 0.47828240740740713,
+          "median_absolute_error_seconds": 0.3887500000000017
+        },
+        "scored_driver_event_count": 108,
+        "scored_event_count": 5,
+        "source_shift_baseline": {
+          "bias_seconds": 0.047430555555557155,
+          "event_balanced_mae_seconds": 0.4306204545454547,
+          "event_mae_standard_deviation_seconds": 0.1459387472693434,
+          "events_beating_source_shift_baseline": null,
+          "mae_seconds": 0.43316203703703726,
+          "median_absolute_error_seconds": 0.3073750000000075
+        },
+        "tcn_driver_correction": {
+          "bias_seconds": 0.04486054756343568,
+          "delta_vs_source_shift_baseline_seconds": -0.0007818467242494687,
+          "event_balanced_mae_seconds": 0.42983860782120525,
+          "event_mae_standard_deviation_seconds": 0.14681140482532756,
+          "events_beating_source_shift_baseline": 3,
+          "mae_seconds": 0.43238623792572717,
+          "median_absolute_error_seconds": 0.30502199971489574,
+          "relative_improvement_vs_source_shift_baseline": 0.001815628393859632
+        }
+      },
+      "training_config": {
+        "dilations": [
+          1,
+          2
+        ],
+        "dropout": 0.0,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "early_stopping_patience": 20,
+        "head_hidden_dim": 4,
+        "hidden_channels": 4,
+        "huber_beta_seconds": 0.25,
+        "kernel_size": 3,
+        "learning_rate": 0.0001,
+        "max_abs_correction_seconds": 1.5,
+        "maximum_epochs": 200,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "minimum_train_events": 4,
+        "seed": 20260714,
+        "telemetry_input_mode": "zero_telemetry_static_anchor_sham",
+        "weight_decay": 0.0001
+      }
+    }
+  ],
+  "promotion_eligible": false,
+  "schema_version": "f1_prequal_telemetry_tcn_sensitivity_matrix_v1",
+  "source_manifest": {
+    "path": "data/f1/derived/prequal_telemetry_supervised_2026.json",
+    "sha256": "a41de27a6ca2a7620c7f9e97e17433ac28b7c709234a957d9da7e8abe8ef3588"
+  },
+  "status": "postdevelopment_descriptive_matrix_complete_not_selection_evidence",
+  "tcn_artifact_schema_version": "f1_prequal_telemetry_true_tcn_research_v2"
+}

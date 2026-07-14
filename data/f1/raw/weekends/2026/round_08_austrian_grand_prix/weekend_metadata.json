@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 8,
+  "event_name": "Austrian Grand Prix",
+  "event_format": "conventional",
+  "scheduled_event_date": "2026-06-28T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:59.079540Z",
+      "captured_at": "2026-07-11T20:26:59.079540Z",
+      "scheduled_start_utc": "2026-06-26T11:30:00",
+      "source_session_id": "fastf1:2026:8:Practice 1",
+      "laps_rows": 500,
+      "results_rows": 22,
+      "weather_rows": 77,
+      "race_control_messages_rows": 53,
+      "laps_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_laps.csv",
+          "sha256": "bdea932b1eacbe430807eb47da2dc7b9b79226f53b4a9ca13ec5e50046a51a51",
+          "size_bytes": 62960,
+          "rows": 500
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_results.csv",
+          "sha256": "bbc4c0892022b43106831c186fc5eb69a9513378a3f17a928156f9c65b90f68a",
+          "size_bytes": 4576,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_weather.csv",
+          "sha256": "baba354b041dec025f354b8767fa2664aed6d4467e5877c587170aabbd9cd11e",
+          "size_bytes": 3390,
+          "rows": 77
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "04ad61db89f257467ce98af36195ebf2ff21bb289ec60dbc2b573bfd86799b09",
+          "size_bytes": 4464,
+          "rows": 53
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Practice 2",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:59.435749Z",
+      "captured_at": "2026-07-11T20:26:59.435749Z",
+      "scheduled_start_utc": "2026-06-26T15:00:00",
+      "source_session_id": "fastf1:2026:8:Practice 2",
+      "laps_rows": 631,
+      "results_rows": 22,
+      "weather_rows": 81,
+      "race_control_messages_rows": 51,
+      "laps_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_laps.csv",
+          "sha256": "c68fe557249d896f69fbff1b9420132c565003dbfa3a51b9a3beac6700bd4e93",
+          "size_bytes": 80167,
+          "rows": 631
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_weather.csv",
+          "sha256": "55e2f4b909b5a24d6bc81ba14dfab11cfb02a3b58792c95cd296247e303f0eb6",
+          "size_bytes": 3560,
+          "rows": 81
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/02_practice_2_race_control_messages.csv",
+          "sha256": "2e0d0c4dceeaa3e1ba6a58fa3c917c6f7628d6b22c326ae6e3e23dfb684d96a5",
+          "size_bytes": 4261,
+          "rows": 51
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Practice 3",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:59.754637Z",
+      "captured_at": "2026-07-11T20:26:59.754637Z",
+      "scheduled_start_utc": "2026-06-27T10:30:00",
+      "source_session_id": "fastf1:2026:8:Practice 3",
+      "laps_rows": 464,
+      "results_rows": 22,
+      "weather_rows": 81,
+      "race_control_messages_rows": 20,
+      "laps_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_laps.csv",
+          "sha256": "1f1e25b1d7369577501e636541b504824317959998b3ef5c5aacee311f60d2e8",
+          "size_bytes": 58529,
+          "rows": 464
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_weather.csv",
+          "sha256": "849b06250b3c68b99ae62eaceabb2f1b8bf376fe97f382a8d7f84449c8bb61ed",
+          "size_bytes": 3592,
+          "rows": 81
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/03_practice_3_race_control_messages.csv",
+          "sha256": "7b7019e6a68738d4c7c5d8602cde6201e4ebcf74732fe6c7ea50c8f7aa1c1e0f",
+          "size_bytes": 1972,
+          "rows": 20
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:27:00.026752Z",
+      "captured_at": "2026-07-11T20:27:00.026752Z",
+      "scheduled_start_utc": "2026-06-27T14:00:00",
+      "source_session_id": "fastf1:2026:8:Qualifying",
+      "laps_rows": 289,
+      "results_rows": 22,
+      "weather_rows": 80,
+      "race_control_messages_rows": 49,
+      "laps_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_laps.csv",
+          "sha256": "1cd5f8cc05d24412973567c5ca7bb853b253855664c167253b6f2f640c4b163f",
+          "size_bytes": 35700,
+          "rows": 289
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_results.csv",
+          "sha256": "9626005bc9410e1fc9c0185058f6b74ff70f0f43139d1003896a67f5d89101da",
+          "size_bytes": 5858,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_weather.csv",
+          "sha256": "c0215f90d48f1acbc936efc925b90e996d0d47fcfcf17650b3a290848c6e7e39",
+          "size_bytes": 3530,
+          "rows": 80
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "930ef452259549fce2f3aa6dcf70a856ddf6ed9a81aae2dccf162b0e7698e3f0",
+          "size_bytes": 4891,
+          "rows": 49
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:27:00.839824Z",
+      "captured_at": "2026-07-11T20:27:00.839824Z",
+      "scheduled_start_utc": "2026-06-28T13:00:00",
+      "source_session_id": "fastf1:2026:8:Race",
+      "laps_rows": 1339,
+      "results_rows": 22,
+      "weather_rows": 149,
+      "race_control_messages_rows": 211,
+      "laps_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_laps.csv",
+          "sha256": "5fe48376806be2a8314cc791800e1eb3b3f6433bec2ccd7f72f2397fc841adcb",
+          "size_bytes": 172996,
+          "rows": 1339
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_results.csv",
+          "sha256": "c70593b00c1100d9833a03ba7c1f4af07df9554a7c739996d6722cae49526c5f",
+          "size_bytes": 6099,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_weather.csv",
+          "sha256": "c41b62c54252ad0b48e2f73945e23e5d03c02fff8550c849c26a28c0e3a00db1",
+          "size_bytes": 6538,
+          "rows": 149
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "8eb9d1d4b8ebf05c74843d2ba3a0d2e3f19df6f2cace9c721686035e60637683",
+          "size_bytes": 20772,
+          "rows": 211
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:58.738998Z",
+  "generated_at": "2026-07-11T20:27:00.839877Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:27:00.839877Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "2e0303e1e8ac865120ead397a7e65c8698efe3c62c168f12db7567feb6b0ac0d"
+}

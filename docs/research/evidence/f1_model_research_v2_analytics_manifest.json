@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "title": "F1 four-mode model research v2",
+  "surface": "report",
+  "description": "Chronological 2026 evidence for the Qualifying, race-final-position, Best-Lap, and Live F1 model review.",
+  "blocks": [
+    {
+      "id": "overview",
+      "type": "markdown",
+      "body": "# F1 four-mode model research v2\n\nA model being implemented is not the same as it being selected, promoted, or deployed. These results use race weekends as the independent validation unit and preserve the retained baseline whenever a challenger does not clear its evidence gate. Forecasts are target-isolated within each replay, but R7-R9 are postdevelopment diagnostics rather than pristine prospective evidence."
+    },
+    {
+      "id": "audit_chart_block",
+      "type": "chart",
+      "chartId": "audit_mae_by_round"
+    },
+    {
+      "id": "decision_context",
+      "type": "markdown",
+      "body": "## Evidence decisions\n\nQualifying's research winner is shared latent v4 plus MEAL, but the public output is the rehearsal-rank baseline because the challenger ties it on R7-R9. The main Race survival challenger loses on rank, MAE, Brier, and log loss; an ablation bound to nine parsed official FIA grid PDFs covers R1-R9 but adds no edge. Each PDF header is converted from a pinned venue timezone to UTC and the claimed publication lag must be 0-300 seconds; all nine pass, with a maximum observed lag of 60 seconds. The Best-Lap challenger is 1.76% worse and its interval is 31.45% wider. The true bounded TCN was trained, but its post-development profiles are outer-target-informed and parameter-sensitive, so its nested selector retains zero correction. Live uses state v6, transition/replay/dataset v7, and legal-mask v2; constraint legality remains authoritative while a separately tagged nonlegal operational fallback is excluded from learning. The replay contains 9,506 partial-label BC rows but zero offline-Q or propensity-OPE rows, and rolling BC exactly ties the trivial classifier."
+    },
+    {
+      "id": "mode_table_block",
+      "type": "table",
+      "tableId": "mode_decisions"
+    },
+    {
+      "id": "methodology",
+      "type": "markdown",
+      "body": "## Methodology\n\nAll comparisons are same-season and chronological. Selection, calibration, and replay partitions are disjoint within each current run. They are not independent of earlier development exposure: implementation defects were corrected after R7-R9 had been inspected. The public output remains the baseline when a candidate loses, and formal promotion requires future prospective rounds."
+    }
+  ],
+  "charts": [
+    {
+      "id": "audit_mae_by_round",
+      "title": "R7-R9 postdevelopment replay MAE by mode, round, and model",
+      "type": "bar",
+      "dataset": "audit_comparison",
+      "source": {
+        "label": "Notebook R7-R9 replay comparison export",
+        "path": "docs/research/evidence/f1_audit_comparison_long_2026.csv",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "description": "Read the notebook-exported long-form R7-R9 postdevelopment replay MAE rows.",
+          "sql": "SELECT mode, round, mode || ' R' || CAST(round AS VARCHAR) AS round_label, unit, CASE WHEN series = 'baseline' THEN 'Retained baseline' ELSE 'Challenger' END AS series, mae FROM read_csv_auto('docs/research/evidence/f1_audit_comparison_long_2026.csv') ORDER BY mode, round, series",
+          "tables_used": [
+            "docs/research/evidence/f1_audit_comparison_long_2026.csv"
+          ],
+          "metric_definitions": [
+            "mae is event-level mean absolute error on the R7-R9 postdevelopment replay; units are positions for Qualifying and the main Race survival model and seconds for Best lap"
+          ]
+        }
+      },
+      "encodings": {
+        "x": {
+          "field": "round_label",
+          "type": "nominal",
+          "title": "Mode and round"
+        },
+        "y": {
+          "field": "mae",
+          "type": "quantitative",
+          "title": "Mean absolute error"
+        },
+        "color": {
+          "field": "series",
+          "type": "nominal",
+          "title": "Model"
+        }
+      },
+      "options": {
+        "orientation": "vertical",
+        "grouping": "grouped",
+        "showLegend": true
+      }
+    }
+  ],
+  "tables": [
+    {
+      "id": "mode_decisions",
+      "title": "Mode implementation and evidence status",
+      "dataset": "mode_decisions",
+      "source": {
+        "label": "Final technical report decision summary",
+        "path": "docs/research/f1_model_research_v2_results_20260713.md",
+        "query": {
+          "engine": "duckdb",
+          "language": "sql",
+          "description": "Read the bounded mode-decision snapshot embedded with the report.",
+          "sql": "SELECT mode_order, mode, implemented, selected, promoted, runtime FROM mode_decisions ORDER BY mode_order",
+          "tables_used": [
+            "mode_decisions"
+          ]
+        }
+      },
+      "columns": [
+        {
+          "field": "mode",
+          "label": "Mode",
+          "type": "text"
+        },
+        {
+          "field": "implemented",
+          "label": "Implemented result",
+          "type": "text"
+        },
+        {
+          "field": "selected",
+          "label": "Selected output",
+          "type": "text"
+        },
+        {
+          "field": "promoted",
+          "label": "Promoted",
+          "type": "text"
+        },
+        {
+          "field": "runtime",
+          "label": "Runtime",
+          "type": "text"
+        }
+      ],
+      "defaultSort": {
+        "field": "mode",
+        "direction": "asc"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "technical_report",
+      "label": "F1 model research v2 technical report",
+      "path": "docs/research/f1_model_research_v2_results_20260713.md"
+    },
+    {
+      "id": "artifact_register",
+      "label": "Immutable artifact SHA-256 register",
+      "path": "docs/research/evidence/f1_model_research_v2_artifact_register.csv"
+    }
+  ]
+}

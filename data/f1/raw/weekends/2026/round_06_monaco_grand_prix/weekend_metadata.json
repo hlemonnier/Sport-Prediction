@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 6,
+  "event_name": "Monaco Grand Prix",
+  "event_format": "conventional",
+  "scheduled_event_date": "2026-06-07T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:54.721001Z",
+      "captured_at": "2026-07-11T20:26:54.721001Z",
+      "scheduled_start_utc": "2026-06-05T11:30:00",
+      "source_session_id": "fastf1:2026:6:Practice 1",
+      "laps_rows": 620,
+      "results_rows": 22,
+      "weather_rows": 80,
+      "race_control_messages_rows": 124,
+      "laps_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_laps.csv",
+          "sha256": "58fbe015b80b617b285bbb07e5563a8504473734002ff13d4029595bc99c1548",
+          "size_bytes": 78535,
+          "rows": 620
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_weather.csv",
+          "sha256": "fda8f8cc50371e9426c692e06f1f6608d7c1e3965eeb06480d15d98e8d11271f",
+          "size_bytes": 3634,
+          "rows": 80
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "5ec901303e1661b299260e9efad75317f82729827043f5d8e9a5a485976bafea",
+          "size_bytes": 11267,
+          "rows": 124
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Practice 2",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:55.177319Z",
+      "captured_at": "2026-07-11T20:26:55.177319Z",
+      "scheduled_start_utc": "2026-06-05T15:00:00",
+      "source_session_id": "fastf1:2026:6:Practice 2",
+      "laps_rows": 711,
+      "results_rows": 22,
+      "weather_rows": 80,
+      "race_control_messages_rows": 108,
+      "laps_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_laps.csv",
+          "sha256": "11c973e36d066c0a16da53f5962f9c0a8aedb1d3d3a802c3496a64a52d59c179",
+          "size_bytes": 90645,
+          "rows": 711
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_weather.csv",
+          "sha256": "a4a47f901d47b5690a28f58c6a10330e047959041c9c154cb74f8175402858f6",
+          "size_bytes": 3630,
+          "rows": 80
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/02_practice_2_race_control_messages.csv",
+          "sha256": "6b4d7d03aae319aa4c9b9ca9accc9b282641b06e8d960378de4fea2e6ac4c7fc",
+          "size_bytes": 10342,
+          "rows": 108
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Practice 3",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:55.549112Z",
+      "captured_at": "2026-07-11T20:26:55.549112Z",
+      "scheduled_start_utc": "2026-06-06T10:30:00",
+      "source_session_id": "fastf1:2026:6:Practice 3",
+      "laps_rows": 518,
+      "results_rows": 22,
+      "weather_rows": 79,
+      "race_control_messages_rows": 69,
+      "laps_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_laps.csv",
+          "sha256": "023b0d596b5b9098db1313b72eb320e37984800d9077381b3439f8aaa0d4d63c",
+          "size_bytes": 65070,
+          "rows": 518
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_results.csv",
+          "sha256": "99be36a67114023f22c0162eb609ee54f61d12ac7bb6e314236893a9000834d6",
+          "size_bytes": 5495,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_weather.csv",
+          "sha256": "d9f906ed64249ee88806192b1800a2c363f7fe4bd16ff046384dc23069fc9d5e",
+          "size_bytes": 3590,
+          "rows": 79
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/03_practice_3_race_control_messages.csv",
+          "sha256": "dca850470f4067f04d03515de5f99c6306f1a72d101110c63a8015d8dacc0327",
+          "size_bytes": 6610,
+          "rows": 69
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:55.915336Z",
+      "captured_at": "2026-07-11T20:26:55.915336Z",
+      "scheduled_start_utc": "2026-06-06T14:00:00",
+      "source_session_id": "fastf1:2026:6:Qualifying",
+      "laps_rows": 484,
+      "results_rows": 22,
+      "weather_rows": 84,
+      "race_control_messages_rows": 65,
+      "laps_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_laps.csv",
+          "sha256": "729a80530772cfe5a2b6c00a7c81aa254c223f1b3f969dca3cd64b002bd078d4",
+          "size_bytes": 60122,
+          "rows": 484
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_results.csv",
+          "sha256": "347ff10a96e5f580ef6f60ef5cc6c9f240b78b6c254f05ef7d0bb9544379ad74",
+          "size_bytes": 5854,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_weather.csv",
+          "sha256": "18d26f0a86a081f4a7d3e6c28b573b49e0315a22d65ca7874eb4595c60ffb845",
+          "size_bytes": 3796,
+          "rows": 84
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "fe1e9f1c6777168c21580fcf1de9baae9c12cc89db8412bbf2f1fe183dfcbf69",
+          "size_bytes": 6148,
+          "rows": 65
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:56.595995Z",
+      "captured_at": "2026-07-11T20:26:56.595995Z",
+      "scheduled_start_utc": "2026-06-07T13:00:00",
+      "source_session_id": "fastf1:2026:6:Race",
+      "laps_rows": 1452,
+      "results_rows": 22,
+      "weather_rows": 208,
+      "race_control_messages_rows": 265,
+      "laps_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_laps.csv",
+          "sha256": "dab9724de863a0f211cda5e43a65ca0ee31780deb311227be5d213fafcd0402a",
+          "size_bytes": 188109,
+          "rows": 1452
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_results.csv",
+          "sha256": "c6c47c5bfe1ef38e5b84900275b695211121296a3274e56bfcbce6c5ca758f97",
+          "size_bytes": 6098,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_weather.csv",
+          "sha256": "2198ff6a695139cd97acfa8e85e6c3dca6b10738cff2838df4bef9b91ecf53f9",
+          "size_bytes": 9351,
+          "rows": 208
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "acdb0ef02c055e1e4a0d608f3f136707dc530d5800a1b3f35a45248ba6e9f894",
+          "size_bytes": 27003,
+          "rows": 265
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:54.150798Z",
+  "generated_at": "2026-07-11T20:26:56.596045Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:26:56.596045Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "b69196dfd8dda2c79b303da8332efa25a61e5ff940755be4bac55f685b1cded3"
+}

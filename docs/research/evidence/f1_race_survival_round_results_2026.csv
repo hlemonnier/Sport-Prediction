@@ -1,0 +1,8 @@
+round,event_key,event,role,baseline_mae_positions,candidate_mae_positions,selected_mae_positions,candidate_top3,selected_top3,actual_top3,selected_model_id
+3,202603,Japanese Grand Prix,selection,2.0,2.272727272727273,2.0,ANT / RUS / PIA,ANT / RUS / PIA,ANT / PIA / LEC,legal_grid_baseline
+4,202604,Miami Grand Prix,selection,3.4545454545454546,3.5454545454545454,3.4545454545454546,ANT / VER / LEC,ANT / VER / LEC,ANT / NOR / PIA,legal_grid_baseline
+5,202605,Canadian Grand Prix,calibration,5.2727272727272725,5.363636363636363,5.2727272727272725,RUS / ANT / NOR,RUS / ANT / NOR,ANT / HAM / VER,legal_grid_baseline
+6,202606,Monaco Grand Prix,calibration,5.090909090909091,5.636363636363637,5.090909090909091,ANT / VER / HAM,ANT / VER / HAM,ANT / HAM / GAS,legal_grid_baseline
+7,202607,Barcelona Grand Prix,audit,3.090909090909091,3.272727272727273,3.090909090909091,RUS / HAM / ANT,RUS / HAM / ANT,HAM / RUS / NOR,legal_grid_baseline
+8,202608,Austrian Grand Prix,audit,1.8181818181818181,3.727272727272727,1.8181818181818181,RUS / LEC / HAM,RUS / LEC / HAM,RUS / VER / ANT,legal_grid_baseline
+9,202609,British Grand Prix,audit,4.363636363636363,4.363636363636363,4.363636363636363,ANT / LEC / HAM,ANT / LEC / HAM,LEC / RUS / HAM,legal_grid_baseline

@@ -1,5 +1,8 @@
 # F1 Non-Live Full Implementation Completion Plan
 
+> Historical plan only. Current implementation and evidence status is recorded
+> in `docs/research/f1_model_research_v2_results_20260713.md`.
+
 Created: 2026-07-13 Europe/Paris.
 
 Status: complete. All 31 requirements are verified, including the cutoff-safe
@@ -83,9 +86,11 @@ and chronological evidence. Passing isolated unit tests is not sufficient.
   an explicit external dependency blocker while retaining sklearn fallback.
 - [x] Grouped LambdaRank and LightGBM quantile challengers have reproducible
   configurations and chronological evidence.
-- [x] Telemetry TCN remains fail closed until a timestamped, distance-normalized
-  pre-Qualifying telemetry cache has enough independent events. The ingestion,
-  dataset audit, and promotion gate must exist before any deep-model claim.
+- [x] Telemetry TCN is trained only from the timestamped, distance-normalized
+  pre-Qualifying cache. Event requirements are declared by the chronological
+  split rather than an arbitrary 20-event capacity rule; model capacity,
+  parameter sensitivity, sham-input behavior, and promotion eligibility are
+  reported separately and remain fail closed.
 - [x] RL remains confined to Live Race Intelligence and is not used for passive
   Qualifying, Race-position, or Best-Lap forecasting.
 

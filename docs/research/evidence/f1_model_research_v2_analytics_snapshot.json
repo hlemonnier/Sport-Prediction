@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "status": "ready",
+  "generatedAt": "2026-07-14T00:00:00+02:00",
+  "datasets": {
+    "audit_comparison": [
+      {"mode": "Qualifying", "round": 7, "round_label": "Qualifying R7", "unit": "positions", "series": "Retained baseline", "mae": 1.7272727273},
+      {"mode": "Qualifying", "round": 7, "round_label": "Qualifying R7", "unit": "positions", "series": "Challenger", "mae": 1.7272727273},
+      {"mode": "Qualifying", "round": 8, "round_label": "Qualifying R8", "unit": "positions", "series": "Retained baseline", "mae": 0.9090909091},
+      {"mode": "Qualifying", "round": 8, "round_label": "Qualifying R8", "unit": "positions", "series": "Challenger", "mae": 1.0},
+      {"mode": "Qualifying", "round": 9, "round_label": "Qualifying R9", "unit": "positions", "series": "Retained baseline", "mae": 1.4545454545},
+      {"mode": "Qualifying", "round": 9, "round_label": "Qualifying R9", "unit": "positions", "series": "Challenger", "mae": 1.3636363636},
+      {"mode": "Race survival", "round": 7, "round_label": "Race survival R7", "unit": "positions", "series": "Retained baseline", "mae": 3.0909090909},
+      {"mode": "Race survival", "round": 7, "round_label": "Race survival R7", "unit": "positions", "series": "Challenger", "mae": 3.2727272727},
+      {"mode": "Race survival", "round": 8, "round_label": "Race survival R8", "unit": "positions", "series": "Retained baseline", "mae": 1.8181818182},
+      {"mode": "Race survival", "round": 8, "round_label": "Race survival R8", "unit": "positions", "series": "Challenger", "mae": 3.7272727273},
+      {"mode": "Race survival", "round": 9, "round_label": "Race survival R9", "unit": "positions", "series": "Retained baseline", "mae": 4.3636363636},
+      {"mode": "Race survival", "round": 9, "round_label": "Race survival R9", "unit": "positions", "series": "Challenger", "mae": 4.3636363636},
+      {"mode": "Best lap", "round": 7, "round_label": "Best lap R7", "unit": "seconds", "series": "Retained baseline", "mae": 0.3930499060},
+      {"mode": "Best lap", "round": 7, "round_label": "Best lap R7", "unit": "seconds", "series": "Challenger", "mae": 0.3983878198},
+      {"mode": "Best lap", "round": 8, "round_label": "Best lap R8", "unit": "seconds", "series": "Retained baseline", "mae": 0.2215886834},
+      {"mode": "Best lap", "round": 8, "round_label": "Best lap R8", "unit": "seconds", "series": "Challenger", "mae": 0.2190610642},
+      {"mode": "Best lap", "round": 9, "round_label": "Best lap R9", "unit": "seconds", "series": "Retained baseline", "mae": 0.4995},
+      {"mode": "Best lap", "round": 9, "round_label": "Best lap R9", "unit": "seconds", "series": "Challenger", "mae": 0.5163068590}
+    ],
+    "mode_decisions": [
+      {"mode_order": 1, "mode": "Qualifying", "implemented": "Shared latent sessions, legal stage logic, exact MEAL head", "selected": "Public: rehearsal-rank baseline; research winner: shared latent v4 plus MEAL", "promoted": "No", "runtime": "Existing service heuristic"},
+      {"mode_order": 2, "mode": "Race final position", "implemented": "Survival/order plus FIA-PDF R1-R9 grid-prior ablation with pinned venue-timezone UTC proof and 0-300 s lag gate", "selected": "Legal final-grid baseline", "promoted": "No", "runtime": "Existing service heuristic"},
+      {"mode_order": 3, "mode": "Best estimated lap", "implemented": "Achievable-lap point, intervals, sequence model, and bounded TCN matrix", "selected": "Retained Best-Lap baseline", "promoted": "No", "runtime": "No production endpoint"},
+      {"mode_order": 4, "mode": "Live strategy", "implemented": "State v6, transition/replay v7, legal-mask v2, and partial-label BC; nonlegal operational fallback separated from constraint legality", "selected": "Naive next-lap plus legal heuristic", "promoted": "No: BC ties trivial and Q/OPE have zero eligible rows", "runtime": "Deterministic legal strategy"}
+    ]
+  }
+}

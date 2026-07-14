@@ -1,0 +1,138 @@
+{
+  "best_lap": {
+    "audit_baseline_mae_seconds": 0.3713795297848222,
+    "audit_candidate_mae_seconds": 0.37791858100367026,
+    "baseline_interval_coverage": 0.8636363636363636,
+    "baseline_interval_width_seconds": 1.3950000000000102,
+    "candidate_interval_coverage": 0.9090909090909091,
+    "candidate_interval_width_seconds": 1.8337811378131619,
+    "evidence_role": "postdevelopment_replay_diagnostic_after_prior_R7_R9_inspection",
+    "interval_promoted": false,
+    "point_promoted": false,
+    "prospective_development_evidence": false
+  },
+  "evidence_integrity": {
+    "aggregate_manifest_digests_checked": 41,
+    "artifacts_passed": 11,
+    "implementation_manifest_direct_entries": 111,
+    "input_manifest_direct_entries": 1007,
+    "nested_json_references": 158,
+    "registered_artifacts": 11,
+    "status": "pass",
+    "transitive_file_references": 4140
+  },
+  "live_next_lap": {
+    "adaptive_blend_retained": false,
+    "blend_mae_seconds": 0.5379462306879169,
+    "matched_forecasts": 8144,
+    "naive_mae_seconds": 0.5491839143927711,
+    "paired_ci95_seconds": [
+      -0.025451893005493616,
+      0.0010315447943620838
+    ],
+    "paired_delta_seconds": -0.011237683704854352,
+    "public_forecast": "naive_next_lap_baseline"
+  },
+  "live_strategy_replay": {
+    "action_family_counts": {
+      "pit_now:HARD": 163,
+      "pit_now:MEDIUM": 59,
+      "pit_now:SOFT": 93,
+      "stay_out": 9191
+    },
+    "behavior_cloning_rows": 9506,
+    "compatible_action_key_count": 8,
+    "dataset_contract": "live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence",
+    "exact_action_key_count": 0,
+    "legal_action_mask_contract": "live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback",
+    "legality_semantics": "constraint_legal_mask_remains_all_false_when_no_compliant_action_exists",
+    "offline_q_rows": 0,
+    "operational_fallback_semantics": "separately_tagged_nonlegal_safety_noop_never_enters_learning_or_policy_selection",
+    "propensity_ope_rows": 0,
+    "reward_components_fully_observed_rows": 9489,
+    "reward_components_incomplete_rows": 17,
+    "rl_policy_promoted": false,
+    "rolling_bc_action_accuracy": 0.9674730992353373,
+    "rolling_bc_pit_f1": 0.0,
+    "rolling_trivial_action_accuracy": 0.9674730992353373,
+    "state_contract": "live_strategy_state_v6_full_legal_mask_input_and_feasibility_evidence",
+    "strategy_training_readiness_gate_pass": false,
+    "transition_contract": "live_strategy_transition_fingerprint_v7_full_current_next_mask_input_and_feasibility_evidence",
+    "transitions": 9506
+  },
+  "qualifying": {
+    "all_round_baseline_mae_positions": 1.8686868686868685,
+    "all_round_public_output_mae_positions": 1.8686868686868685,
+    "all_round_research_candidate_mae_positions": 1.8585858585858586,
+    "audit_baseline_mae_positions": 1.3636363636363635,
+    "audit_candidate_mae_positions": 1.3636363636363635,
+    "audit_public_output_mae_positions": 1.3636363636363635,
+    "evidence_role": "postdevelopment_replay_diagnostic_after_prior_R7_R9_inspection",
+    "promoted": false,
+    "prospective_development_evidence": false,
+    "public_output_model_id": "qualifying_rehearsal_rank_baseline_v1",
+    "research_selected_point_head": "joint_minimum_expected_absolute_position_loss_assignment",
+    "research_selection_winner_model_id": "shared_qualifying_latent_lap_v4"
+  },
+  "qualifying_probability": {
+    "calibrated_brier": 0.46798753033180224,
+    "calibrated_log_loss": 2.834998795650037,
+    "promoted": false,
+    "raw_brier": 0.46776106221121433,
+    "raw_log_loss": 2.847352486626994
+  },
+  "race_certified_grid_prior": {
+    "all_logical_horizons_certified": true,
+    "all_round_baseline_mae_positions": 3.717171717171717,
+    "all_round_candidate_mae_positions": 3.7272727272727275,
+    "audit_baseline_mae_positions": 3.0909090909090913,
+    "audit_candidate_mae_positions": 3.121212121212121,
+    "max_observed_publication_lag_seconds": 60.0,
+    "maximum_allowed_publication_lag_seconds": 300.0,
+    "promoted": false,
+    "scored_rounds": 9,
+    "selected_model_id": "legal_grid_baseline",
+    "venue_timezones": [
+      "America/New_York",
+      "America/Toronto",
+      "Asia/Shanghai",
+      "Asia/Tokyo",
+      "Australia/Melbourne",
+      "Europe/London",
+      "Europe/Madrid",
+      "Europe/Monaco",
+      "Europe/Vienna"
+    ]
+  },
+  "race_main_survival": {
+    "audit_baseline_mae_positions": 3.0909090909090913,
+    "audit_candidate_mae_positions": 3.7878787878787876,
+    "evidence_role": "postdevelopment_replay_diagnostic_after_prior_R7_R9_inspection",
+    "promoted": false,
+    "prospective_development_evidence": false,
+    "scored_rounds": 7,
+    "selected_model_id": "legal_grid_baseline"
+  },
+  "same_season_residual": {
+    "evidence_role": "postdevelopment_replay_diagnostic",
+    "prospective_development_evidence": false,
+    "raw_rehearsal_mae_seconds": 0.8053030303030294,
+    "ridge_mae_seconds": 0.4847847689767832,
+    "ridge_model_id": "event_weighted_ridge_alpha_10_v1"
+  },
+  "telemetry_sequence": {
+    "raw_mae_seconds": 0.8200696969696967,
+    "source_shift_mae_seconds": 0.7875670454545459,
+    "temporal_incremental_gain": 0.0,
+    "temporal_mae_seconds": 0.7875670454545459
+  },
+  "telemetry_tcn": {
+    "fixed_seed_mean_absolute_event_delta_seconds": 0.002294463466625385,
+    "locked_selected_policy_mae_seconds": 0.4306204545454547,
+    "promotion_eligible": false,
+    "reference_source_shift_mae_seconds": 0.4306204545454547,
+    "reference_tcn_mae_seconds": 0.4299030050021292,
+    "reference_tcn_minus_source_shift_seconds": -0.0007174495433256101,
+    "telemetry_minus_sham_mean_event_mae_seconds": -0.0022667065098827045
+  }
+}

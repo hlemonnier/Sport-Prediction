@@ -1,0 +1,560 @@
+{
+  "capture_id": "04becbec0f0bfd125562",
+  "captured_at": "2026-07-13T12:55:13.479897Z",
+  "first_published_at": "2026-05-24T19:00:00Z",
+  "meeting_key": null,
+  "provider": "fia",
+  "publication_pre_race_verified": true,
+  "publication_time_semantics": "authoritative_document_timestamp",
+  "race_start_at": "2026-05-24T20:00:00Z",
+  "raw_payload": {
+    "classification_page_sha256": null,
+    "classification_url": null,
+    "document_sha256": "1a137eb47ad2588c6d8d0cbcc969cf793fd65f35e6516299082c9091cdf51988",
+    "document_title": "Doc 91 - Final Starting Grid",
+    "document_url": "https://www.fia.com/system/files/decision-document/2026_canadian_grand_prix_-_final_starting_grid.pdf",
+    "first_published_at": "2026-05-24T19:00:00Z",
+    "grid_rows": [
+      {
+        "driver_name": "George RUSSELL",
+        "driver_number": "63",
+        "position": 1,
+        "source_cells": [
+          "1",
+          "63",
+          "George RUSSELL"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Kimi ANTONELLI",
+        "driver_number": "12",
+        "position": 2,
+        "source_cells": [
+          "12",
+          "Kimi ANTONELLI"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Lando NORRIS",
+        "driver_number": "1",
+        "position": 3,
+        "source_cells": [
+          "3",
+          "1",
+          "Lando NORRIS"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Oscar PIASTRI",
+        "driver_number": "81",
+        "position": 4,
+        "source_cells": [
+          "81",
+          "Oscar PIASTRI"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Lewis HAMILTON",
+        "driver_number": "44",
+        "position": 5,
+        "source_cells": [
+          "5",
+          "44",
+          "Lewis HAMILTON"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Max VERSTAPPEN",
+        "driver_number": "3",
+        "position": 6,
+        "source_cells": [
+          "3",
+          "Max VERSTAPPEN"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Isack HADJAR",
+        "driver_number": "6",
+        "position": 7,
+        "source_cells": [
+          "7",
+          "6",
+          "Isack HADJAR"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Charles LECLERC",
+        "driver_number": "16",
+        "position": 8,
+        "source_cells": [
+          "16",
+          "Charles LECLERC"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Arvid LINDBLAD",
+        "driver_number": "41",
+        "position": 9,
+        "source_cells": [
+          "9",
+          "41",
+          "Arvid LINDBLAD"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Franco COLAPINTO",
+        "driver_number": "43",
+        "position": 10,
+        "source_cells": [
+          "43",
+          "Franco COLAPINTO"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Nico HULKENBERG",
+        "driver_number": "27",
+        "position": 11,
+        "source_cells": [
+          "11",
+          "27",
+          "Nico HULKENBERG"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Liam LAWSON",
+        "driver_number": "30",
+        "position": 12,
+        "source_cells": [
+          "30",
+          "Liam LAWSON"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Gabriel BORTOLETO",
+        "driver_number": "5",
+        "position": 13,
+        "source_cells": [
+          "13",
+          "5",
+          "Gabriel BORTOLETO"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Pierre GASLY",
+        "driver_number": "10",
+        "position": 14,
+        "source_cells": [
+          "10",
+          "Pierre GASLY"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Carlos SAINZ",
+        "driver_number": "55",
+        "position": 15,
+        "source_cells": [
+          "15",
+          "55",
+          "Carlos SAINZ"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Oliver BEARMAN",
+        "driver_number": "87",
+        "position": 16,
+        "source_cells": [
+          "87",
+          "Oliver BEARMAN"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Esteban OCON",
+        "driver_number": "31",
+        "position": 17,
+        "source_cells": [
+          "17",
+          "31",
+          "Esteban OCON"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Alexander ALBON",
+        "driver_number": "23",
+        "position": 18,
+        "source_cells": [
+          "23",
+          "Alexander ALBON"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Fernando ALONSO",
+        "driver_number": "14",
+        "position": 19,
+        "source_cells": [
+          "19",
+          "14",
+          "Fernando ALONSO"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Sergio PEREZ",
+        "driver_number": "11",
+        "position": 20,
+        "source_cells": [
+          "11",
+          "Sergio PEREZ"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Valtteri BOTTAS",
+        "driver_number": "77",
+        "position": 21,
+        "source_cells": [
+          "21",
+          "77",
+          "Valtteri BOTTAS"
+        ],
+        "status": "grid"
+      },
+      {
+        "driver_name": "Lance STROLL",
+        "driver_number": "18",
+        "position": null,
+        "source_cells": [
+          "pit_lane",
+          "18",
+          "Lance STROLL"
+        ],
+        "status": "pit_lane"
+      }
+    ],
+    "pdf_extracted_text": "2026\u00a0CANADIAN\u00a0GRAND\u00a0PRIX\n22\u00a0-\u00a024\u00a0May\u00a02026\nThe\u00a0Stewards\nFrom The\u00a0Stewards\nTo All\u00a0Teams,\u00a0All\u00a0Officials\nDocument 91\nDate 24\u00a0May\u00a02026\nTime 15:00\nTitle Final\u00a0Starting\u00a0Grid\nDescription Final\u00a0Starting\u00a0Grid\nEnclosed CAN\u00a0DOC\u00a091\u00a0-\u00a0Final\u00a0Starting\u00a0Grid.pdf\nGarry\u00a0Connelly Tanja\u00a0Geilhausen\nPedro\u00a0Lamy Marcel\u00a0Demers\n\n                                                                                                                                     Doc          91 Time                 15:00\n\n\n\n\n          1     63    George RUSSELL                                  1:12.578\n                     Mercedes-AMG PETRONAS F1 Team                                                        12    Kimi ANTONELLI                                  1:12.646\n                                                                                                    2           Mercedes-AMG PETRONAS F1 Team\n          3       1   Lando NORRIS                                    1:12.729\n                     McLaren Mastercard F1 Team                                                           81    Oscar PIASTRI                                   1:12.781\n                                                                                                    4           McLaren Mastercard F1 Team\n          5     44    Lewis HAMILTON                                  1:12.868\n                     Scuderia Ferrari HP                                                                    3   Max VERSTAPPEN                                  1:12.907\n                                                                                                    6           Oracle Red Bull Racing\n          7       6   Isack HADJAR                                    1:12.935\n                     Oracle Red Bull Racing                                                               16    Charles LECLERC                                 1:12.976\n                                                                                                    8           Scuderia Ferrari HP\n          9     41    Arvid LINDBLAD                                  1:13.280\n                     Visa Cash App Racing Bulls F1 Team                                                   43    Franco COLAPINTO                                1:13.697\n                                                                                                   10           BWT Alpine F1 Team\n         11     27    Nico HULKENBERG                                 1:13.886\n                     Audi Revolut F1 Team                                                                 30    Liam LAWSON                                     1:13.897\n                                                                                                   12           Visa Cash App Racing Bulls F1 Team\n         13       5   Gabriel BORTOLETO                               1:14.071\n                     Audi Revolut F1 Team                                                                 10    Pierre GASLY                                    1:14.187\n                                                                                                   14           BWT Alpine F1 Team\n         15     55    Carlos SAINZ                                    1:14.273\n                     Atlassian Williams F1 Team                                                           87    Oliver BEARMAN                                  1:14.416\n                                                                                                   16           TGR Haas F1 Team\n         17     31    Esteban OCON                                    1:14.845\n                     TGR Haas F1 Team                                                                     23    Alexander ALBON                                 1:14.851\n                                                                                                   18           Atlassian Williams F1 Team\n         19     14    Fernando ALONSO                                 1:15.196\n                     Aston Martin Aramco F1 Team                                                          11    Sergio PEREZ                                    1:15.429\n                                                                                                   20           Cadillac Formula 1 Team\n         21     77    Valtteri BOTTAS                                 1:16.272\n                     Cadillac Formula 1 Team\n\n              DRIVERS REQUIRED TO START FROM THE PIT LANE\n                18    Lance STROLL *                                  1:16.195\n                      Aston Martin Aramco F1 Team\n\n\n\n                                                                                     * PENALTIES\n\ndocument no. 89\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n Garry      Connelly                             Tanja Geilhausen                                             Pedro Lamy                                    Marcel Demers\nThe Stewards",
+    "publication_page_document_evidence": "Doc 91 - Final Starting Grid Published on 24.05.26 21:00 CET",
+    "publication_page_sha256": "8baf5c5d57fca8ceb82990be858176dbca9a45cc65a00016491a90526c15c3c8",
+    "publication_page_timestamp_evidence": "Published on 24.05.26 21:00 CET",
+    "publication_page_timezone_interpretation": "FIA CET display interpreted as Europe/Paris civil time with IANA DST rules",
+    "publication_page_url": "https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season/season-2026-2072/event/Canadian%20Grand%20Prix",
+    "race_start_at": "2026-05-24T20:00:00Z",
+    "structured_extraction_source": "fia_self_contained_pdf_layout_fallback:ValueError",
+    "supplied_first_published_at": null
+  },
+  "raw_payload_sha256": "30a68c5834304ab96e5f0cd74432cbea0d09ea8235b2ee9ef10171006b4b4d10",
+  "revision_phase": "final_pre_race",
+  "round_number": 5,
+  "schema_version": "f1_first_seen_post_grid_pre_race_v1",
+  "session_key": null,
+  "snapshot": {
+    "available": true,
+    "entries": [
+      {
+        "driver_id": "63",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 1,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "12",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 2,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "1",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 3,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "81",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 4,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "44",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 5,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "3",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 6,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "6",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 7,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "16",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 8,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "41",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 9,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "43",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 10,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "27",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 11,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "30",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 12,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "5",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 13,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "10",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 14,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "55",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 15,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "87",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 16,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "31",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 17,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "23",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 18,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "14",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 19,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "11",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 20,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "77",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": 21,
+        "penalty_evidence": [],
+        "pit_lane_start": false,
+        "starter_eligible": true,
+        "status": "grid"
+      },
+      {
+        "driver_id": "18",
+        "evidence_complete": true,
+        "evidence_ids": [
+          "fia:2026:5:1a137eb47ad2588c6d8d"
+        ],
+        "grid_position": null,
+        "penalty_evidence": [
+          {
+            "as_of": "2026-05-24T19:00:00Z",
+            "evidence_complete": true,
+            "evidence_id": "fia:2026:5:1a137eb47ad2588c6d8d",
+            "kind": "pit_lane_start",
+            "places": null,
+            "reason": null,
+            "source": "official_grid_revision",
+            "status": "pit_lane"
+          }
+        ],
+        "pit_lane_start": true,
+        "starter_eligible": true,
+        "status": "pit_lane"
+      }
+    ],
+    "evidence_complete": true,
+    "horizon": "post_grid_pre_race",
+    "prediction_as_of": "2026-05-24T19:00:00Z",
+    "publication_as_of": "2026-05-24T19:00:00Z",
+    "resolution_status": "resolved",
+    "revision_ids": [
+      "fia:2026:5:1a137eb47ad2588c6d8d"
+    ],
+    "source": "official_grid_revision",
+    "unresolved_state_flags": []
+  },
+  "source_document_sha256": "1a137eb47ad2588c6d8d0cbcc969cf793fd65f35e6516299082c9091cdf51988",
+  "source_document_url": "https://www.fia.com/system/files/decision-document/2026_canadian_grand_prix_-_final_starting_grid.pdf",
+  "source_endpoint": "https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season/season-2026-2072/event/Canadian%20Grand%20Prix",
+  "year": 2026
+}

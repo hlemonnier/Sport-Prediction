@@ -1,0 +1,258 @@
+{
+  "schema_version": "f1_weekend_snapshot_v2_point_in_time",
+  "source": "fastf1",
+  "source_version": "3.8.3",
+  "year": 2026,
+  "round_number": 5,
+  "event_name": "Canadian Grand Prix",
+  "event_format": "sprint_qualifying",
+  "scheduled_event_date": "2026-05-24T00:00:00",
+  "max_session_order": null,
+  "sessions": [
+    {
+      "session_order": 1,
+      "session_name": "Practice 1",
+      "session_type": "free_practice",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:52.211393Z",
+      "captured_at": "2026-07-11T20:26:52.211393Z",
+      "scheduled_start_utc": "2026-05-22T16:30:00",
+      "source_session_id": "fastf1:2026:5:Practice 1",
+      "laps_rows": 619,
+      "results_rows": 22,
+      "weather_rows": 102,
+      "race_control_messages_rows": 98,
+      "laps_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_laps.csv",
+          "sha256": "2f66487abde78a91dd8ef7d3531836435ebefe43798432b0ec3856650c47b9a0",
+          "size_bytes": 71766,
+          "rows": 619
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_results.csv",
+          "sha256": "313f465bc25bdc795dffc5915d74be4cbb866b038d2d4a907076b91822e0c8c1",
+          "size_bytes": 1493,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_weather.csv",
+          "sha256": "2d5dc0cc9b7414ec6b23920f82e1e0fb33cf2807bafe132f5821c79fddebf899",
+          "size_bytes": 4635,
+          "rows": 102
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/01_practice_1_race_control_messages.csv",
+          "sha256": "96399103d73d8d1f4f105a465e3cfb29c23532c9de39aae3f7d1f61fc3aacf1f",
+          "size_bytes": 7691,
+          "rows": 98
+        }
+      }
+    },
+    {
+      "session_order": 2,
+      "session_name": "Sprint Qualifying",
+      "session_type": "sprint_qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:52.563764Z",
+      "captured_at": "2026-07-11T20:26:52.563764Z",
+      "scheduled_start_utc": "2026-05-22T20:30:00",
+      "source_session_id": "fastf1:2026:5:Sprint Qualifying",
+      "laps_rows": 300,
+      "results_rows": 22,
+      "weather_rows": 81,
+      "race_control_messages_rows": 57,
+      "laps_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_laps.csv",
+          "sha256": "2a12a66cef574dac12f707ca72ca9a40ba574eba832315908a5db2cfd4223abd",
+          "size_bytes": 37653,
+          "rows": 300
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_results.csv",
+          "sha256": "569c4c1c8c1f286f7a735b0e81aa8b314c69765508e98ca7f417f826f850f9fc",
+          "size_bytes": 5519,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_weather.csv",
+          "sha256": "96d5398ae431cbd5f4fa9a97b61c7c7a4da3e48d4eb75ebbbd81c5720fff8fc9",
+          "size_bytes": 3679,
+          "rows": 81
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/02_sprint_qualifying_race_control_messages.csv",
+          "sha256": "a3c0ccbcceb6fddc518f52de29d65dc023c8e4dfcf384e82359d98072bb09ee4",
+          "size_bytes": 6084,
+          "rows": 57
+        }
+      }
+    },
+    {
+      "session_order": 3,
+      "session_name": "Sprint",
+      "session_type": "sprint_race",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:53.057669Z",
+      "captured_at": "2026-07-11T20:26:53.057669Z",
+      "scheduled_start_utc": "2026-05-23T16:00:00",
+      "source_session_id": "fastf1:2026:5:Sprint",
+      "laps_rows": 491,
+      "results_rows": 22,
+      "weather_rows": 78,
+      "race_control_messages_rows": 69,
+      "laps_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_laps.csv",
+          "sha256": "060e0a985685071fd941948b35058c280cd7ead051a3c8364ffdc6aa0d3362e7",
+          "size_bytes": 63935,
+          "rows": 491
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_results.csv",
+          "sha256": "f7e2710d4cce923f59363eaba25bc6c8d58fd67c436ef40d24ce83460c9300c7",
+          "size_bytes": 6127,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_weather.csv",
+          "sha256": "34644dde7c855ea9ddbad4c0dcbbec44875607959662cd089be83ad723ffe445",
+          "size_bytes": 3547,
+          "rows": 78
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/03_sprint_race_control_messages.csv",
+          "sha256": "03fbec0ad3b92a955bb14bd1f0c6c076fc67f810b151e8f9b4e185800945b8e6",
+          "size_bytes": 6997,
+          "rows": 69
+        }
+      }
+    },
+    {
+      "session_order": 4,
+      "session_name": "Qualifying",
+      "session_type": "qualifying",
+      "availability_phase": "post_session",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:53.456640Z",
+      "captured_at": "2026-07-11T20:26:53.456640Z",
+      "scheduled_start_utc": "2026-05-23T20:00:00",
+      "source_session_id": "fastf1:2026:5:Qualifying",
+      "laps_rows": 456,
+      "results_rows": 22,
+      "weather_rows": 79,
+      "race_control_messages_rows": 54,
+      "laps_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_laps.csv",
+          "sha256": "abe11e5e41fb6e3b9237112b7a82e31d8d5d28e46ade66f43f57de7ff1c7a81c",
+          "size_bytes": 56748,
+          "rows": 456
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_results.csv",
+          "sha256": "f75cec0f07f897df8ab08e9fb5d28e926944a23cca0774c748f96cde865d8f66",
+          "size_bytes": 5860,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_weather.csv",
+          "sha256": "bcb19f3fbd2dbf4f0804e92b4f749465c88ecffc06314943aa56138722e72b0e",
+          "size_bytes": 3592,
+          "rows": 79
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_race_control_messages.csv",
+          "sha256": "dee4166a4d478418fbd072e9dd4c7c1524cd1133e5a3adc66ed92e2756861030",
+          "size_bytes": 6516,
+          "rows": 54
+        }
+      }
+    },
+    {
+      "session_order": 5,
+      "session_name": "Race",
+      "session_type": "race",
+      "availability_phase": "post_race",
+      "completion_status": "completed_provider_classification",
+      "classification_status": "provider_post_session_snapshot",
+      "completed": true,
+      "available_at": "2026-07-11T20:26:54.150081Z",
+      "captured_at": "2026-07-11T20:26:54.150081Z",
+      "scheduled_start_utc": "2026-05-24T20:00:00",
+      "source_session_id": "fastf1:2026:5:Race",
+      "laps_rows": 1211,
+      "results_rows": 22,
+      "weather_rows": 160,
+      "race_control_messages_rows": 286,
+      "laps_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_laps.csv",
+      "results_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_results.csv",
+      "weather_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_weather.csv",
+      "race_control_messages_path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_race_control_messages.csv",
+      "files": {
+        "laps": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_laps.csv",
+          "sha256": "25c34b99e6c3f88c8ce369aefd4fcceb51ecaa7668efdc486b64a22a3fb69bbb",
+          "size_bytes": 157642,
+          "rows": 1211
+        },
+        "results": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_results.csv",
+          "sha256": "cce7c97dd1b7ae3bcc82a0d81d25064756a0a125f0bcf63d3e1ea3023b8fa1d3",
+          "size_bytes": 6087,
+          "rows": 22
+        },
+        "weather": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_weather.csv",
+          "sha256": "f0f47ce9bb5f35d4f46114b4682f05cd9e203d1f12ad6d6d8ce72147918bcd5b",
+          "size_bytes": 7243,
+          "rows": 160
+        },
+        "race_control_messages": {
+          "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_race_control_messages.csv",
+          "sha256": "1887878803ae0e0b4b038620bcbed073eed7e46c82eccc3efd214afb637f5d64",
+          "size_bytes": 28153,
+          "rows": 286
+        }
+      }
+    }
+  ],
+  "notes": [],
+  "snapshot_started_at": "2026-07-11T20:26:51.775443Z",
+  "generated_at": "2026-07-11T20:26:54.150130Z",
+  "snapshot_semantics": {
+    "immutable_as_of": "2026-07-11T20:26:54.150130Z",
+    "partial_sessions_rejected": true,
+    "official_fia_classification_guaranteed": false,
+    "paths_portable_when_inside_project": true
+  },
+  "snapshot_sha256": "0bd8921e963cc0113e1f085f8fbe05551dd75604442ecc46b87bfb0fb92a8cb9"
+}

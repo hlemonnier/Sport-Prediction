@@ -28,14 +28,84 @@ from packages.f1.models.pre_quali.selection import (
     QualifyingModelEvidence,
     select_frozen_qualifying_model,
 )
+from packages.f1.models.ultimate_lap_time.achievable import (
+    POINT_HEAD_DIRECT_PACE,
+    POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS,
+)
 from run_qualifying_pairwise_challenger_backtest import (
+    QUALIFYING_BASELINE_MODEL_ID,
+    QUALIFYING_CHALLENGER_MODEL_ID,
+    _apply_public_output_decision,
+    _baseline_event_forecast,
+    _build_argument_parser,
+    _build_locked_final_fit_history,
+    _build_shared_event_forecast,
+    _causal_rehearsal_ranks,
     _event_frame,
     _event_inference_frame,
+    _freeze_same_season_engine_from_selection_forecasts,
+    _json_ints,
     _locked_event_partitions,
     _load_target_after_frozen_forecast,
     _pre_qualifying_roster,
     _qualifying_contract_gates,
+    _qualifying_target_frame,
+    _validate_same_season_cli_scope,
 )
+
+
+def test_rejected_selection_winner_is_not_exposed_as_public_output() -> None:
+    predictions = pd.DataFrame(
+        {
+            "driver_id": ["a", "b"],
+            "baseline_rank_prior": [2, 1],
+            "selected_predicted_qualifying_position": [1, 2],
+            "selected_output_model_id": [
+                QUALIFYING_CHALLENGER_MODEL_ID,
+                QUALIFYING_CHALLENGER_MODEL_ID,
+            ],
+        }
+    )
+
+    scored, public_model_id = _apply_public_output_decision(
+        predictions,
+        selection_block_winner_model_id=QUALIFYING_CHALLENGER_MODEL_ID,
+        point_model_promoted=False,
+    )
+
+    assert public_model_id == QUALIFYING_BASELINE_MODEL_ID
+    assert scored["research_selected_predicted_qualifying_position"].tolist() == [1, 2]
+    assert scored["selected_predicted_qualifying_position"].tolist() == [2, 1]
+    assert scored["public_output_predicted_qualifying_position"].tolist() == [2, 1]
+    assert set(scored["selected_output_model_id"]) == {QUALIFYING_BASELINE_MODEL_ID}
+
+
+def test_promoted_selection_winner_remains_public_output() -> None:
+    predictions = pd.DataFrame(
+        {
+            "driver_id": ["a", "b"],
+            "baseline_rank_prior": [2, 1],
+            "selected_predicted_qualifying_position": [1, 2],
+            "selected_output_model_id": [
+                QUALIFYING_CHALLENGER_MODEL_ID,
+                QUALIFYING_CHALLENGER_MODEL_ID,
+            ],
+        }
+    )
+
+    scored, public_model_id = _apply_public_output_decision(
+        predictions,
+        selection_block_winner_model_id=QUALIFYING_CHALLENGER_MODEL_ID,
+        point_model_promoted=True,
+    )
+
+    assert public_model_id == QUALIFYING_CHALLENGER_MODEL_ID
+    assert scored["selected_predicted_qualifying_position"].tolist() == [1, 2]
+    assert set(scored["selected_output_model_id"]) == {
+        QUALIFYING_CHALLENGER_MODEL_ID
+    }
+
+
 def _rank_history(*, event_keys: tuple[int, ...] = (202601, 202602, 202603, 202604)) -> pd.DataFrame:
     rows: list[dict[str, object]] = []
     drivers = ("a", "b", "c", "d", "e")
@@ -68,6 +138,14 @@ def _rank_config(**overrides: object) -> PairwiseRankerConfig:
     }
     values.update(overrides)
     return PairwiseRankerConfig(**values)
+
+
+def test_json_ints_converts_numpy_event_keys_to_serializable_python_ints() -> None:
+    values = _json_ints(pd.Index([np.int64(202601), np.int64(202602)]))
+
+    assert values == [202601, 202602]
+    assert all(type(value) is int for value in values)
+    assert json.dumps({"event_keys": values})
 
 
 def _stage_history() -> pd.DataFrame:
@@ -283,23 +361,304 @@ def test_pre_q_roster_and_partitions_fail_closed_without_target_results() -> Non
 
     partitions = _locked_event_partitions(
         (
-            202401,
-            202402,
-            202501,
-            202502,
             202601,
             202602,
             202603,
             202604,
             202605,
             202606,
+            202607,
+            202608,
         ),
         audit_year=2026,
     )
-    assert partitions["selection"] == (202501, 202502)
     assert partitions["point_fit"] == (202601, 202602)
-    assert partitions["calibration"] == (202603, 202604)
-    assert partitions["audit"] == (202605, 202606)
+    assert partitions["selection"] == (202603, 202604)
+    assert partitions["calibration"] == (202605, 202606)
+    assert partitions["audit"] == (202607, 202608)
+
+
+def test_rehearsal_rank_ties_preserve_provider_order_not_driver_alphabet() -> None:
+    frame = pd.DataFrame(
+        {
+            "driver_id": ["ZED", "ALP", "MID"],
+            "valid_clean_best_seconds": [90.0, 90.0, np.nan],
+            "quality_aware_anchor_seconds": [90.0, 90.0, np.nan],
+        },
+        index=[20, 10, 30],
+    )
+
+    ranks = _causal_rehearsal_ranks(frame)
+
+    assert ranks.to_dict() == {20: 1, 10: 2, 30: 3}
+
+
+def test_qualifying_partitions_reject_prior_season_without_explicit_legacy_mode() -> None:
+    keys = (
+        202401,
+        202402,
+        202501,
+        202502,
+        202601,
+        202602,
+        202603,
+        202604,
+        202605,
+        202606,
+        202607,
+    )
+    with pytest.raises(ValueError, match="outside the target year"):
+        _locked_event_partitions(keys, audit_year=2026)
+
+    legacy = _locked_event_partitions(
+        keys,
+        audit_year=2026,
+        same_season_only=False,
+    )
+    assert legacy["selection"] == (202501, 202502)
+    assert legacy["point_fit"] == (202601, 202602)
+
+    with pytest.raises(ValueError, match="exact R1-R6"):
+        _locked_event_partitions(
+            (202602, 202603, 202604, 202605, 202606, 202607, 202608),
+            audit_year=2026,
+        )
+
+
+def test_qualifying_cli_defaults_to_one_2026_season_and_legacy_is_explicit() -> None:
+    defaults = _build_argument_parser().parse_args([])
+    assert defaults.years == (2026,)
+    assert defaults.evaluation_years == (2026,)
+    assert defaults.legacy_cross_season is False
+    assert _validate_same_season_cli_scope(defaults.years, defaults.evaluation_years) == 2026
+
+    legacy = _build_argument_parser().parse_args(
+        [
+            "--legacy-cross-season",
+            "--years",
+            "2025,2026",
+            "--evaluation-years",
+            "2026",
+        ]
+    )
+    assert legacy.legacy_cross_season is True
+    with pytest.raises(ValueError, match="one identical"):
+        _validate_same_season_cli_scope(legacy.years, legacy.evaluation_years)
+
+
+def _same_season_selection_frame() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "event_key": [202603, 202603, 202604, 202604],
+            "driver_id": ["a", "b", "a", "b"],
+            "qualy_position": [1, 2, 2, 1],
+        }
+    )
+
+
+def test_same_season_selector_uses_robust_choice_and_material_gain_gate() -> None:
+    rows = [
+        {
+            "event_key": event_key,
+            "baseline_mae": 1.20,
+            "location_mae": 1.10,
+            "location_meal_mae": 1.00,
+            "robust_mae": 0.90,
+            "robust_meal_mae": 0.70,
+            "baseline_forecast_artifact_sha256": "a" * 64,
+            "location_forecast_artifact_sha256": "b" * 64,
+            "robust_forecast_artifact_sha256": "c" * 64,
+            "selection_contract_gates_passed": True,
+            "forecast_frozen_before_target_read": True,
+        }
+        for event_key in (202603, 202604)
+    ]
+    frozen, state = _freeze_same_season_engine_from_selection_forecasts(
+        rows,
+        selection_frame=_same_season_selection_frame(),
+    )
+    assert frozen["selected_enable_robust_residual"] is True
+    assert frozen["selected_challenger_variant"] == "robust"
+    assert (
+        frozen["selected_point_head"]
+        == POINT_HEAD_MINIMUM_EXPECTED_ABSOLUTE_LOSS
+    )
+    assert state.selected_model_id == "shared_qualifying_latent_lap_v4"
+
+    insufficient_gain = [
+        {
+            "event_key": event_key,
+            "baseline_mae": 1.00,
+            "location_mae": 1.00,
+            "location_meal_mae": 0.99,
+            "robust_mae": 0.90,
+            "robust_meal_mae": 0.88,
+            "baseline_forecast_artifact_sha256": "a" * 64,
+            "location_forecast_artifact_sha256": "b" * 64,
+            "robust_forecast_artifact_sha256": "c" * 64,
+            "selection_contract_gates_passed": True,
+            "forecast_frozen_before_target_read": True,
+        }
+        for event_key in (202603, 202604)
+    ]
+    retained, retained_state = _freeze_same_season_engine_from_selection_forecasts(
+        insufficient_gain,
+        selection_frame=_same_season_selection_frame(),
+    )
+    assert retained["selected_enable_robust_residual"] is True
+    assert retained["selected_point_head"] == POINT_HEAD_DIRECT_PACE
+    assert retained_state.selected_model_id == "qualifying_rehearsal_rank_baseline_v1"
+    assert retained_state.decision == "baseline_retained_no_material_challenger_gain"
+
+    failed_contract = [dict(row) for row in rows]
+    failed_contract[1]["selection_contract_gates_passed"] = False
+    failed, failed_state = _freeze_same_season_engine_from_selection_forecasts(
+        failed_contract,
+        selection_frame=_same_season_selection_frame(),
+    )
+    assert failed["selection_contract_gates_passed"] is False
+    assert failed_state.selected_model_id == "qualifying_rehearsal_rank_baseline_v1"
+    assert "promotion_gates_failed" in failed_state.decision
+
+
+def test_same_season_selector_rejects_post_target_selection_evidence() -> None:
+    rows = [
+        {
+            "event_key": event_key,
+            "baseline_mae": 1.2,
+            "location_mae": 1.0,
+            "location_meal_mae": 0.9,
+            "robust_mae": 0.9,
+            "robust_meal_mae": 0.7,
+            "baseline_forecast_artifact_sha256": "a" * 64,
+            "location_forecast_artifact_sha256": "b" * 64,
+            "robust_forecast_artifact_sha256": "c" * 64,
+            "selection_contract_gates_passed": True,
+            "forecast_frozen_before_target_read": event_key == 202603,
+        }
+        for event_key in (202603, 202604)
+    ]
+    with pytest.raises(ValueError, match="frozen before target"):
+        _freeze_same_season_engine_from_selection_forecasts(
+            rows,
+            selection_frame=_same_season_selection_frame(),
+        )
+
+
+def test_same_season_point_head_requires_material_consistent_selection_gain() -> None:
+    # The average MEAL gain is material, but it regresses on R4. The fixed
+    # two-event consistency shield therefore retains direct pace.
+    rows = [
+        {
+            "event_key": 202603,
+            "baseline_mae": 1.20,
+            "location_mae": 0.90,
+            "location_meal_mae": 0.70,
+            "robust_mae": 0.90,
+            "robust_meal_mae": 0.70,
+            "baseline_forecast_artifact_sha256": "a" * 64,
+            "location_forecast_artifact_sha256": "b" * 64,
+            "robust_forecast_artifact_sha256": "c" * 64,
+            "selection_contract_gates_passed": True,
+            "forecast_frozen_before_target_read": True,
+        },
+        {
+            "event_key": 202604,
+            "baseline_mae": 1.20,
+            "location_mae": 0.90,
+            "location_meal_mae": 0.92,
+            "robust_mae": 0.90,
+            "robust_meal_mae": 0.92,
+            "baseline_forecast_artifact_sha256": "a" * 64,
+            "location_forecast_artifact_sha256": "b" * 64,
+            "robust_forecast_artifact_sha256": "c" * 64,
+            "selection_contract_gates_passed": True,
+            "forecast_frozen_before_target_read": True,
+        },
+    ]
+
+    frozen, _state = _freeze_same_season_engine_from_selection_forecasts(
+        rows,
+        selection_frame=_same_season_selection_frame(),
+    )
+
+    assert frozen["selected_point_head"] == POINT_HEAD_DIRECT_PACE
+    assert frozen["direct_pace_point_head_event_mean_mae"] == pytest.approx(0.90)
+    assert frozen[
+        "minimum_expected_absolute_loss_point_head_event_mean_mae"
+    ] == pytest.approx(0.81)
+
+
+def test_final_refit_uses_exactly_locked_rounds_one_to_four() -> None:
+    partitions = {
+        "point_fit": (202601, 202602),
+        "selection": (202603, 202604),
+        "calibration": (202605, 202606),
+        "audit": (202607, 202608),
+    }
+    point_fit = pd.DataFrame(
+        {"event_key": [202601, 202602], "driver_id": ["a", "a"]}
+    )
+    selection = pd.DataFrame(
+        {"event_key": [202603, 202604], "driver_id": ["a", "a"]}
+    )
+    history, keys = _build_locked_final_fit_history(
+        point_fit,
+        selection,
+        partitions=partitions,
+    )
+    assert keys == (202601, 202602, 202603, 202604)
+    assert set(history["weak_transfer_prior"]) == {False}
+
+    leaked = pd.concat(
+        [selection, pd.DataFrame({"event_key": [202605], "driver_id": ["a"]})],
+        ignore_index=True,
+    )
+    with pytest.raises(ValueError, match="exactly the locked R1-R4"):
+        _build_locked_final_fit_history(point_fit, leaked, partitions=partitions)
+
+
+def test_shared_forecast_adapter_forwards_frozen_robust_choice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed: dict[str, object] = {}
+
+    def fake_builder(history, inference, **kwargs):
+        observed.update(kwargs)
+        return "model", "forecast", {"artifact_sha256": "a" * 64}
+
+    monkeypatch.setattr(
+        qualifying_runner,
+        "build_shared_qualifying_event_forecast",
+        fake_builder,
+    )
+    result = _build_shared_event_forecast(
+        pd.DataFrame(),
+        pd.DataFrame(),
+        target_event_key=202607,
+        enable_robust_residual=True,
+    )
+    assert result[0] == "model"
+    assert observed["target_event_key"] == 202607
+    assert observed["enable_robust_residual"] is True
+
+
+def test_point_fit_baseline_artifact_is_complete_and_target_free() -> None:
+    inference = pd.DataFrame(
+        {
+            "driver_id": ["b", "a", "c"],
+            "latest_qualifying_rehearsal_rank": [1, 1, 3],
+        }
+    )
+    point, artifact = _baseline_event_forecast(
+        inference,
+        target_event_key=202601,
+        phase="point_fit",
+    )
+    assert sorted(point["predicted_qualifying_position"].tolist()) == [1, 2, 3]
+    assert artifact["event_key"] == 202601
+    assert artifact["target_columns_present"] == []
+    assert len(str(artifact["artifact_sha256"])) == 64
 
 
 def _evidence(
@@ -567,6 +926,40 @@ def test_qualifying_runner_target_io_requires_frozen_event_forecast(
     assert calls == ["target_read:q_results.csv"]
     assert target["driver_id"].tolist() == ["AAA"]
     assert info["official_target_driver_ids"] == ["AAA"]
+
+
+def test_official_advancement_is_separate_from_next_segment_time_presence(
+    tmp_path,
+) -> None:
+    path = tmp_path / "qualifying_results.csv"
+    positions = np.arange(1, 23)
+    q2 = [90.0 + index / 100 for index in range(22)]
+    q3 = [89.0 + index / 100 if position <= 10 else np.nan for index, position in enumerate(positions)]
+    q2[15] = np.nan  # P16 officially reached Q2 but set no valid Q2 time.
+    q3[9] = np.nan  # P10 officially reached Q3 but set no valid Q3 time.
+    pd.DataFrame(
+        {
+            "Abbreviation": [f"D{index:02d}" for index in range(22)],
+            "Position": positions,
+            "Status": [np.nan] * 22,
+            "Q1": [91.0 + index / 100 for index in range(22)],
+            "Q2": q2,
+            "Q3": q3,
+        }
+    ).to_csv(path, index=False)
+
+    target, info = _qualifying_target_frame(path)
+    by_position = target.set_index("qualy_position")
+
+    assert by_position.loc[16, "reached_q2"] == 1
+    assert by_position.loc[16, "has_valid_q2_lap"] == 0
+    assert by_position.loc[10, "reached_q3"] == 1
+    assert by_position.loc[10, "has_valid_q3_lap"] == 0
+    # A later-stage time proves advancement even if a post-session penalty
+    # moved the final classification outside the normal segment cutoff.
+    assert by_position.loc[17, "reached_q2"] == 1
+    assert by_position.loc[17, "has_valid_q2_lap"] == 1
+    assert info["advanced_stage_time_validity_modeled_separately"] is True
 
 
 def test_walk_forward_helper_trains_only_on_prior_complete_events() -> None:

@@ -1,5 +1,5 @@
 profile_name: pre_quali_2026_same_season
-profile_version: qualifying_prediction_2026_walk_forward_v3_pairwise_shadow
+profile_version: qualifying_prediction_2026_walk_forward_v6_public_output_fail_closed
 model_family: pre_quali
 source: local
 target: qualifying_classification
@@ -21,14 +21,31 @@ model:
     - practice_3
     - practice_2
     - practice_1
-  ml_status: candidate_only_rejected_on_locked_2026_audit
+  ml_status: shared_latent_candidate_evaluated_not_promoted_on_postdevelopment_rounds_7_to_9_replay
   challenger:
-    model_id: qualifying_pairwise_logistic_residual_v1
-    status: rejected_retain_baseline
-    training_unit: within_event_driver_pairs
-    maximum_movement_positions: 3
+    model_id: shared_qualifying_latent_lap_v4
+    status: evaluated_not_promoted_retain_baseline
+    training_unit: complete_chronological_event
+    selected_point_head: joint_minimum_expected_absolute_position_loss_assignment
+    robust_residual_enabled: false
     joint_position_marginals_calibrated: false
-    frozen_selector: baseline_retained_no_material_challenger_gain
+    frozen_selector: meal_selected_on_rounds_3_to_4_then_not_promoted_on_rounds_7_to_9_postdevelopment_replay
+    selection_block_winner_model_id: shared_qualifying_latent_lap_v4
+    retained_public_output_model_id: qualifying_rehearsal_rank_baseline_v1
+    prospective_development_evidence: false
+    position_probability_diagnostic:
+      model_id: qualifying_position_temperature_sinkhorn_v1_43150c3a7b6d
+      finite_sample_support_correction: symmetric_jeffreys_alpha_0_5
+      selected_temperature: 0.8
+      calibration_events: 2
+      audit_events: 3
+      status: diagnostic_only_insufficient_independent_calibration_events
+      audit_multiclass_log_loss_before: 2.847352486626994
+      audit_multiclass_log_loss_after: 2.834998795650037
+      audit_normalized_brier_before: 0.46776106221121433
+      audit_normalized_brier_after: 0.46798753033180224
+      audit_top10_ece_before: 0.270163
+      audit_top10_ece_after: 0.256601
   stage_probabilities:
     valid_lap: separate_regularized_logistic
     q2_given_valid: separate_regularized_logistic
@@ -44,10 +61,11 @@ features:
   deleted_laps_are_valid_targets: false
   sprint_source_interactions: true
 promotion:
-  point_ranking_status: retained_research_policy_no_current_paired_baseline_claim
-  probability_status: not_promoted_insufficient_disjoint_calibration_history
-  uncertainty_status: not_promoted_interval_coverage_inadequate
-  evidence_run_id: 2026_four_mode_rebuild_20260712e
+  point_ranking_status: retained_rehearsal_rank_baseline_after_postdevelopment_paired_replay_diagnostic
+  probability_status: diagnostic_temperature_sinkhorn_not_promoted_two_calibration_events_below_four
+  uncertainty_status: not_promoted_underpowered_disjoint_calibration
+  baseline_rebuild_run_id: 2026_four_mode_rebuild_20260712e
+  current_evidence_register: docs/research/evidence/f1_model_research_v2_artifact_register.csv
   frozen_rounds:
     - 1
     - 2
@@ -58,17 +76,20 @@ promotion:
     - 7
     - 8
     - 9
-  mean_field_mae: 1.878787878787879
-  mean_kendall_tau_b: 0.7748917748917749
-  mean_top10_hit_pct: 91.11111111111111
-  mean_interval_coverage: 0.702020202020202
+  mean_field_mae: 1.8686868686868685
+  mean_kendall_tau_b: 0.7739297739297739
+  mean_top10_hit_pct: 90.00000000000001
+  all_round_research_selected_output_mae: 1.8585858585858586
+  all_round_research_selected_output_kendall: 0.7768157768157767
   stale_comparison_runs_status: quarantined_not_current_evidence
-  challenger_evidence: artifacts/backtests/f1/qualifying/quality_aware_pairwise_v1_20260713.json
-  challenger_audit_mean_field_mae: 2.1414141414141414
-  matched_baseline_audit_mean_field_mae: 1.8686868686868685
-  challenger_audit_mean_kendall_tau_b: 0.7518037518037518
-  matched_baseline_audit_mean_kendall_tau_b: 0.772967772967773
+  challenger_evidence: artifacts/backtests/f1/qualifying/shared_latent_same_season_v2_20260713.json
+  probability_evidence: artifacts/backtests/f1/qualifying/shared_latent_same_season_probability_audit_v4_20260714.json
+  challenger_audit_mean_field_mae: 1.3636363636363635
+  matched_baseline_audit_mean_field_mae: 1.3636363636363635
+  challenger_audit_mean_kendall_tau_b: 0.8354978354978355
+  matched_baseline_audit_mean_kendall_tau_b: 0.8412698412698413
   paired_mae_delta_ci95:
-    - 0.030303030303030373
-    - 0.505050505050505
-  decision: reject_pairwise_challenger_retain_rehearsal_rank_baseline
+    - -0.09090909090909105
+    - 0.09090909090909094
+  bootstrap_probability_of_improvement: 0.59605
+  decision: evaluate_without_promotion_and_retain_rehearsal_rank_baseline

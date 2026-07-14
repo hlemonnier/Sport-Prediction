@@ -71,7 +71,7 @@ def train_shared_qualifying_latent_model(
         target_event_key=int(target_event_key),
         calibration_event_keys=calibration_event_keys,
         enable_robust_residual=enable_robust_residual,
-        model_name="shared_qualifying_latent_lap_v3",
+        model_name="shared_qualifying_latent_lap_v4",
     )
 
 

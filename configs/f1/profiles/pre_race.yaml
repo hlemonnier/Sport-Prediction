@@ -1,11 +1,12 @@
 profile_name: race_final_position_2026_post_qualifying
-profile_version: race_final_position_2026_walk_forward_v3_survival_order_shadow
+profile_version: race_final_position_2026_walk_forward_v6_fia_pdf_byte_certified
 model_family: pre_race
 source: local
 target: official_race_classification_and_terminal_status
 implemented_evidence_target: official_race_final_classification_position
-terminal_status_component: trained_diagnostic_not_jointly_promoted
-information_horizon: post_qualifying_pre_grid
+terminal_status_component: raw_joint_diagnostic_not_promoted
+information_horizon: post_grid_pre_race
+earlier_horizon_fallback: qualifying_classification_proxy_only_when_final_grid_is_not_yet_published
 field_size: 22
 training:
   protocol: same_season_walk_forward
@@ -14,18 +15,24 @@ training:
   historical_transfer_enabled: false
 model:
   requested: baseline
-  point_ranking: post_qualifying_order_proxy
+  point_ranking: legal_final_starting_grid_order_when_available
   fallback_when_final_grid_unavailable: qualifying_classification_proxy
   starting_order_resolver: packages/f1/domain/starting_grid.py
   challenger:
     model_id: survival_aware_joint_race_v1
-    status: rejected_retain_qualifying_proxy
+    status: evaluated_not_promoted_retain_legal_grid_baseline
     terminal_model: partial_pooled_reason_coded_hazard
     conditional_order: bradley_terry_with_strong_grid_prior
     reconciliation: fia_aware_minimum_expected_absolute_loss_assignment
-    simulations: 2000
-    plackett_luce_temperature: 0.25
-    order_residual_weight_frozen_on_2025: 0.45
+    simulations: 1000
+    plackett_luce_temperature: 0.08
+    research_selector_evidence:
+      same_season_selection_events: 2
+      selected_model_id: legal_grid_baseline
+      challenger_selected: false
+      order_residual_weight: 0.0
+      plackett_luce_temperature: 0.08
+      minimum_relative_selection_gain: 0.05
 features:
   qualifying_classification: true
   practice_quality_weighted: true
@@ -37,13 +44,44 @@ features:
   signed_qualifying_surprise: true
   classified_distance_independent_beta_draws: false
 promotion:
-  point_ranking_status: retained_research_proxy_baseline
-  probability_status: not_promoted_insufficient_disjoint_calibration_history
-  terminal_status_probability_status: diagnostic_brier_and_log_loss_improve_joint_model_rejected
-  rejected_candidate: causal_residual_and_reliability_challenger_set
-  evidence_run_id: 2026_four_mode_rebuild_20260712e
-  challenger_evidence: artifacts/backtests/f1/race_final_position/2026_walk_forward_causal_residual_challengers_v2_20260712e.json
-  final_grid_snapshot_evidence: unavailable_in_frozen_2026_rounds
+  point_ranking_status: retained_research_legal_grid_baseline
+  probability_status: raw_joint_probabilities_diagnostic_same_product_calibration_blocked
+  terminal_status_probability_status: raw_joint_diagnostic_audit_brier_and_log_loss_worse
+  terminal_probability_calibration:
+    calibration_events: 2
+    same_product_calibration_evidence: false
+    raw_terminal_brier: 0.2126888888888889
+    raw_terminal_log_loss: 0.6207777982856008
+    status: blocked_requires_simulation_in_loop_or_marginal_preserving_copula
+    rejection_reason: zero_shock_platt_rejected_for_final_distribution_mismatch
+  evaluated_candidate: survival_aware_joint_race_v1
+  baseline_rebuild_run_id: 2026_four_mode_rebuild_20260712e
+  current_evidence_register: docs/research/evidence/f1_model_research_v2_artifact_register.csv
+  challenger_evidence: artifacts/backtests/f1/race_final_position/survival_order_same_season_v8_selector_safe_20260713.json
+  certified_grid_prior_evidence:
+    artifact: artifacts/backtests/f1/race_final_position/certified_grid_prior_state_ablation_v1_20260714.json
+    artifact_sha256: b85f0312eead971e8f1ea3669247d89091d556352ba21eca0b057f1ef2500dbd
+    result_sha256: df01978d428a9af9bd91d43d76145d902ed73e1c125e2a24810bdbcc3d85e818
+    input_manifest_sha256: d96ea9644505beb165b041a6de44dfa1907f6e7acca8a026a7315ba80b52a65b
+    schema_version: f1_race_certified_grid_prior_ablation_v1
+    source: official_fia_final_starting_grid_documents
+    source_byte_contract: nine_pinned_official_fia_pdf_files_parsed_with_venue_timezone_and_max_five_minute_publication_lag_then_cross_checked_against_capture_json
+    certified_events: 9
+    development_events: 2
+    selection_events: 2
+    calibration_events: 2
+    audit_events: 3
+    all_event_baseline_mae: 3.717171717171717
+    all_event_candidate_mae: 3.7272727272727275
+    selection_baseline_mae: 2.7272727272727275
+    selection_candidate_mae: 2.7272727272727275
+    audit_baseline_mae: 3.0909090909090913
+    audit_candidate_mae: 3.121212121212121
+    audit_baseline_kendall: 0.6277056277056277
+    audit_candidate_kendall: 0.6248196248196248
+    status: evaluated_not_promoted_grid_prior_retained
+  final_grid_snapshot_evidence: fia_authoritative_pre_race_document_timestamps_available_all_nine_rounds
+  qualifying_snapshot_evidence: retrospective_provider_snapshot_not_first_seen_verified
   frozen_rounds:
     - 1
     - 2
@@ -54,17 +92,24 @@ promotion:
     - 7
     - 8
     - 9
-  mean_field_mae: 3.737373737373737
-  mean_kendall_tau_b: 0.5257335257335257
+  mean_field_mae: 3.717171717171717
+  mean_kendall_tau_b: 0.5286195286195285
   stale_automatic_ml_comparison_status: quarantined_not_current_evidence
-  survival_order_challenger_evidence: artifacts/backtests/f1/race_final_position/survival_order_v2_20260713.json
-  survival_order_audit_mean_field_mae: 3.7676767676767673
-  matched_proxy_audit_mean_field_mae: 3.737373737373737
-  terminal_brier_baseline: 0.1828127588050855
-  terminal_brier_challenger: 0.1765147342135671
-  terminal_log_loss_baseline: 0.5616540316067948
-  terminal_log_loss_challenger: 0.5389354044047333
-  paired_mae_delta_ci95:
-    - -0.04040404040404057
-    - 0.1111111111111111
-  decision: reject_joint_challenger_retain_post_qualifying_proxy
+  all_scored_events: 7
+  all_scored_challenger_mean_field_mae: 4.025974025974026
+  all_scored_challenger_mean_kendall_tau_b: 0.4867037724180581
+  survival_order_audit_mean_field_mae: 3.7878787878787876
+  matched_legal_grid_audit_mean_field_mae: 3.0909090909090913
+  survival_order_audit_mean_kendall_tau_b: 0.5209235209235209
+  matched_legal_grid_audit_mean_kendall_tau_b: 0.6277056277056277
+  terminal_brier_baseline: 0.1640962985432656
+  terminal_brier_challenger: 0.17361093939393943
+  terminal_log_loss_baseline: 0.5082213140262889
+  terminal_log_loss_challenger: 0.529870345034543
+  promotion_status: evaluated_not_promoted
+  promotion_blockers:
+    - fewer_than_four_same_horizon_selection_events
+    - missing_same_product_calibration_evidence
+    - challenger_not_selected_on_same_season_selection
+    - provider_qualifying_snapshot_not_first_seen_verified_for_retrospective_feature_replay
+  decision: retain_certified_legal_grid_baseline_after_survival_and_prior_state_ablation

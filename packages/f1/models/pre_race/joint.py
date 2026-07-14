@@ -477,9 +477,14 @@ class SurvivalAwareRaceModel:
         if plackett_luce_temperature <= 0.0:
             raise ValueError("plackett_luce_temperature must be positive")
         rows = self._validate_roster(roster_features, horizon=horizon)
+        prepared_terminal = self.terminal_model.prepare_joint_outcomes(
+            rows,
+            prediction_as_of=prediction_as_of,
+        )
         terminal = self.terminal_model.predict_proba(
             rows,
             prediction_as_of=prediction_as_of,
+            prepared=prepared_terminal,
         ).reset_index(drop=True)
         order = self.order_model.score(
             rows,
@@ -564,11 +569,16 @@ class SurvivalAwareRaceModel:
             "team_name", pd.Series("", index=rows.index, dtype=object)
         ).fillna("").astype(str).to_numpy()
         for simulation in range(simulations):
-            shared = self.terminal_model.draw_shared_shocks(rows, rng)
+            shared = self.terminal_model.draw_shared_shocks(
+                rows,
+                rng,
+                prepared=prepared_terminal,
+            )
             statuses, retirement_fraction, _ = self.terminal_model.sample_joint_outcomes(
                 rows,
                 rng,
                 shocks=shared,
+                prepared=prepared_terminal,
             )
             status_samples[:, simulation] = [status.value for status in statuses]
             retirement_fraction_samples[:, simulation] = retirement_fraction.astype(
@@ -645,6 +655,9 @@ class SurvivalAwareRaceModel:
             ] = conditional_fraction
         classified_index = TERMINAL_STATUSES.index(TerminalStatus.CLASSIFIED_FINISH)
         status_probability["p_terminal"] = 1.0 - probability_matrix[:, classified_index]
+        status_probability["zero_shared_shock_p_terminal"] = pd.to_numeric(
+            terminal["p_terminal"], errors="raise"
+        ).to_numpy(dtype=float)
         status_probability["expected_retirement_fraction"] = (
             retirement_fraction_samples.mean(axis=1).astype(float)
         )

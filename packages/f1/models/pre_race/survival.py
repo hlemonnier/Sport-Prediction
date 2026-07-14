@@ -74,6 +74,7 @@ class TerminalHazardConfig:
     shared_weather_incident_std: float = 0.35
     shared_safety_car_incident_std: float = 0.30
     covariate_l2_c: float = 0.25
+    covariate_z_clip: float = 3.0
     minimum_cause_events_for_covariate_fit: int = 3
 
     def __post_init__(self) -> None:
@@ -99,6 +100,10 @@ class TerminalHazardConfig:
             raise ValueError("shared-shock scales cannot be negative")
         if float(self.covariate_l2_c) <= 0.0:
             raise ValueError("covariate_l2_c must be positive")
+        if not np.isfinite(float(self.covariate_z_clip)) or float(
+            self.covariate_z_clip
+        ) <= 0.0:
+            raise ValueError("covariate_z_clip must be finite and positive")
         if int(self.minimum_cause_events_for_covariate_fit) < 1:
             raise ValueError("minimum_cause_events_for_covariate_fit must be positive")
 
@@ -119,6 +124,24 @@ class SharedRaceShocks:
     team_mechanical: Mapping[str, float]
     power_unit_mechanical: Mapping[str, float]
     team_pace: Mapping[str, float]
+
+
+@dataclass(frozen=True)
+class PreparedTerminalHazards:
+    """Deterministic per-entrant hazards reused by every joint draw.
+
+    Preparing a forecast is target-free and consumes no random numbers.  The
+    expensive feature standardization and row-hazard construction therefore
+    happen once per entrant, rather than once per entrant per simulation.
+    """
+
+    features: pd.DataFrame
+    driver_ids: tuple[str, ...]
+    dns_probabilities: np.ndarray
+    interval_hazards: np.ndarray
+    event_masses: np.ndarray
+    survival_traces: np.ndarray
+    retirement_means: tuple[Mapping[str, float], ...]
 
 
 @dataclass(frozen=True)
@@ -156,7 +179,7 @@ class PartialPooledTerminalHazard:
     circuit evidence shrink to a recency-weighted global prior.
     """
 
-    backend = "partial_pooled_discrete_competing_risk_v2"
+    backend = "partial_pooled_discrete_competing_risk_v3"
 
     def __init__(self, config: TerminalHazardConfig | None = None) -> None:
         self.config = config or TerminalHazardConfig()
@@ -214,6 +237,21 @@ class PartialPooledTerminalHazard:
                 "regularization_c": float(self.config.covariate_l2_c),
                 "columns": list(_HAZARD_COVARIATE_COLUMNS),
                 "missingness_indicators": True,
+                "standardization": {
+                    "fit_scope": "strictly_pre_cutoff_training_rows",
+                    "center": "training_median",
+                    "scale": "max_training_mad_or_standard_deviation",
+                    "z_clip": float(self.config.covariate_z_clip),
+                    "missingness_captured_before_imputation": True,
+                    "training_medians": {
+                        column: float(self._covariate_medians[index])
+                        for index, column in enumerate(_HAZARD_COVARIATE_COLUMNS)
+                    },
+                    "training_scales": {
+                        column: float(self._covariate_scales[index])
+                        for index, column in enumerate(_HAZARD_COVARIATE_COLUMNS)
+                    },
+                },
                 "fitted_causes": [
                     cause.value
                     for cause in _TIMED_CAUSES
@@ -242,6 +280,13 @@ class PartialPooledTerminalHazard:
                 "non_classified remains an explicit coarse cause and is never "
                 "redistributed to mechanical or collision"
             ),
+            "remaining_limitations": [
+                (
+                    "coarse non_classified is still fitted as an explicit competing "
+                    "cause; a binary terminal model followed by observed-cause "
+                    "factorization remains future work"
+                )
+            ],
             "shared_shocks": {
                 "event_chaos_std": self.config.shared_event_shock_std,
                 "team_mechanical_std": self.config.shared_team_mechanical_std,
@@ -249,6 +294,9 @@ class PartialPooledTerminalHazard:
                 "team_pace_std": self.config.shared_team_pace_std,
                 "weather_incident_std": self.config.shared_weather_incident_std,
                 "safety_car_incident_std": self.config.shared_safety_car_incident_std,
+                "multiplicative_normalization": (
+                    "exp(log_shock - 0.5 * marginal_log_variance)"
+                ),
             },
             "binary_terminal_calibration": (
                 None
@@ -497,6 +545,11 @@ class PartialPooledTerminalHazard:
         standardized = (filled - self._covariate_medians[None, :]) / self._covariate_scales[
             None, :
         ]
+        standardized = np.clip(
+            standardized,
+            -float(self.config.covariate_z_clip),
+            float(self.config.covariate_z_clip),
+        )
         return np.column_stack([standardized, missing.astype(float)])
 
     def _fit_covariate_hazards(
@@ -783,11 +836,27 @@ class PartialPooledTerminalHazard:
 
     def _predict_row(self, row: pd.Series) -> tuple[np.ndarray, dict[str, float], np.ndarray, np.ndarray]:
         dns, hazard, event_mass, survival_trace, means = self._row_hazard(row)
+        probabilities = self._probabilities_from_prepared_row(
+            dns=dns,
+            event_mass=event_mass,
+            survival_trace=survival_trace,
+        )
+        return probabilities, means, hazard, survival_trace
+
+    def _probabilities_from_prepared_row(
+        self,
+        *,
+        dns: float,
+        event_mass: np.ndarray,
+        survival_trace: np.ndarray,
+    ) -> np.ndarray:
+        """Reconstruct the exact row probabilities from prepared components."""
+
         status_index = {status: index for index, status in enumerate(TERMINAL_STATUSES)}
         probabilities = np.zeros(len(TERMINAL_STATUSES), dtype=float)
         if dns >= 1.0 - self.config.minimum_probability:
             probabilities[status_index[TerminalStatus.DNS_WITHDRAWAL]] = 1.0
-            return probabilities, means, hazard, survival_trace
+            return probabilities
         probabilities[status_index[TerminalStatus.DNS_WITHDRAWAL]] = dns
         for cause_index, cause in enumerate(_TIMED_CAUSES):
             probabilities[status_index[cause]] = float(event_mass[:, cause_index].sum())
@@ -796,7 +865,119 @@ class PartialPooledTerminalHazard:
         )
         probabilities = np.clip(probabilities, self.config.minimum_probability, None)
         probabilities /= probabilities.sum()
-        return probabilities, means, hazard, survival_trace
+        return probabilities
+
+    def _validate_prediction_cutoff(
+        self,
+        frame: pd.DataFrame,
+        *,
+        prediction_as_of: object | None,
+        feature_as_of_col: str,
+    ) -> None:
+        if prediction_as_of is None:
+            return
+        cutoff = _utc_timestamp(prediction_as_of, "prediction_as_of")
+        if self.training_max_as_of is not None:
+            train_max = _utc_timestamp(self.training_max_as_of, "training_max_as_of")
+            if train_max >= cutoff:
+                raise ValueError("terminal model training evidence is not strictly pre-cutoff")
+        if feature_as_of_col in frame.columns:
+            feature_times = pd.to_datetime(
+                frame[feature_as_of_col], errors="coerce", utc=True
+            )
+            if feature_times.isna().any() or (feature_times > cutoff).any():
+                raise ValueError("terminal features contain invalid or post-cutoff evidence")
+
+    @staticmethod
+    def _driver_ids(frame: pd.DataFrame) -> tuple[str, ...]:
+        if "driver_id" in frame.columns:
+            return tuple(frame["driver_id"].astype(str).tolist())
+        return tuple(frame.index.astype(str).tolist())
+
+    def _validate_prepared(
+        self,
+        frame: pd.DataFrame,
+        prepared: PreparedTerminalHazards,
+    ) -> None:
+        if not isinstance(prepared, PreparedTerminalHazards):
+            raise TypeError("prepared must be PreparedTerminalHazards")
+        count = len(frame)
+        if prepared.driver_ids != self._driver_ids(frame):
+            raise ValueError("prepared terminal hazards do not match the entrant order")
+        if prepared.dns_probabilities.shape != (count,):
+            raise ValueError("prepared DNS probabilities have an invalid shape")
+        expected_hazard_shape = (
+            count,
+            int(self.config.time_bins),
+            len(_TIMED_CAUSES),
+        )
+        if prepared.interval_hazards.shape != expected_hazard_shape:
+            raise ValueError("prepared interval hazards have an invalid shape")
+        if prepared.event_masses.shape != expected_hazard_shape:
+            raise ValueError("prepared event masses have an invalid shape")
+        if prepared.survival_traces.shape != (
+            count,
+            int(self.config.time_bins),
+        ):
+            raise ValueError("prepared survival traces have an invalid shape")
+        if len(prepared.features) != count or len(prepared.retirement_means) != count:
+            raise ValueError("prepared terminal hazard rows are incomplete")
+
+    def prepare_joint_outcomes(
+        self,
+        frame: pd.DataFrame,
+        *,
+        prediction_as_of: object | None = None,
+        feature_as_of_col: str = "feature_as_of",
+    ) -> PreparedTerminalHazards:
+        """Prepare all deterministic terminal components once for a forecast."""
+
+        if not self._fitted:
+            raise RuntimeError("terminal hazard must be fitted before inference")
+        self._validate_prediction_cutoff(
+            frame,
+            prediction_as_of=prediction_as_of,
+            feature_as_of_col=feature_as_of_col,
+        )
+        features = engineer_survival_aware_race_features(frame)
+        dns_values: list[float] = []
+        hazards: list[np.ndarray] = []
+        event_masses: list[np.ndarray] = []
+        survival_traces: list[np.ndarray] = []
+        retirement_means: list[Mapping[str, float]] = []
+        for _, row in features.iterrows():
+            dns, hazard, event_mass, survival_trace, means = self._row_hazard(row)
+            dns_values.append(float(dns))
+            hazards.append(np.asarray(hazard, dtype=float))
+            event_masses.append(np.asarray(event_mass, dtype=float))
+            survival_traces.append(np.asarray(survival_trace, dtype=float))
+            retirement_means.append(dict(means))
+        count = len(features)
+        hazard_shape = (count, int(self.config.time_bins), len(_TIMED_CAUSES))
+        trace_shape = (count, int(self.config.time_bins))
+        prepared = PreparedTerminalHazards(
+            features=features,
+            driver_ids=self._driver_ids(frame),
+            dns_probabilities=np.asarray(dns_values, dtype=float),
+            interval_hazards=(
+                np.stack(hazards, axis=0)
+                if hazards
+                else np.empty(hazard_shape, dtype=float)
+            ),
+            event_masses=(
+                np.stack(event_masses, axis=0)
+                if event_masses
+                else np.empty(hazard_shape, dtype=float)
+            ),
+            survival_traces=(
+                np.stack(survival_traces, axis=0)
+                if survival_traces
+                else np.empty(trace_shape, dtype=float)
+            ),
+            retirement_means=tuple(retirement_means),
+        )
+        self._validate_prepared(frame, prepared)
+        return prepared
 
     def _retirement_mean(self, status: TerminalStatus) -> float:
         alpha, beta = self._retirement_beta.get(status, (2.0, 2.0))
@@ -813,8 +994,14 @@ class PartialPooledTerminalHazard:
         self,
         frame: pd.DataFrame,
         rng: np.random.Generator,
+        *,
+        prepared: PreparedTerminalHazards | None = None,
     ) -> SharedRaceShocks:
-        features = engineer_survival_aware_race_features(frame)
+        if prepared is None:
+            features = engineer_survival_aware_race_features(frame)
+        else:
+            self._validate_prepared(frame, prepared)
+            features = prepared.features
         team_values = sorted(
             {
                 value
@@ -860,57 +1047,110 @@ class PartialPooledTerminalHazard:
             },
         )
 
+    def _shared_hazard_multiplier(
+        self,
+        row: pd.Series,
+        shared: SharedRaceShocks,
+    ) -> np.ndarray:
+        """Return marginal-mean-one cause multipliers for one entrant.
+
+        Each shared draw is Gaussian on the log scale.  Subtracting half of
+        the cause-specific log variance prevents shared uncertainty from
+        mechanically increasing expected hazard before any evidence is seen.
+        Cross-driver and cross-cause dependence is preserved because the same
+        underlying draws still enter every affected multiplier.
+        """
+
+        mech_index = _TIMED_CAUSES.index(TerminalStatus.MECHANICAL_POWER_UNIT)
+        incident_index = _TIMED_CAUSES.index(TerminalStatus.COLLISION_INCIDENT)
+        coarse_index = _TIMED_CAUSES.index(TerminalStatus.NON_CLASSIFIED)
+        team = self._group_value(row, ("team_name", "constructor_name", "team_id"))
+        power_unit = self._group_value(
+            row,
+            ("power_unit", "power_unit_manufacturer", "engine_manufacturer"),
+        )
+        team_key = team or ""
+        power_unit_key = power_unit or ""
+        wet = np.clip(self._numeric(row, "race_wet_probability") or 0.0, 0.0, 1.0)
+        weather_uncertainty = np.clip(
+            self._numeric(row, "race_weather_uncertainty") or 0.0,
+            0.0,
+            1.0,
+        )
+        safety_car = np.clip(
+            self._numeric(row, "race_safety_car_probability") or 0.0,
+            0.0,
+            1.0,
+        )
+
+        log_multiplier = np.zeros(len(_TIMED_CAUSES), dtype=float)
+        log_variance = np.zeros(len(_TIMED_CAUSES), dtype=float)
+        event_std = float(self.config.shared_event_shock_std)
+
+        mechanical_event_loading = 0.20
+        log_multiplier[mech_index] += mechanical_event_loading * shared.event_chaos
+        log_variance[mech_index] += (mechanical_event_loading * event_std) ** 2
+        if team_key in shared.team_mechanical:
+            log_multiplier[mech_index] += shared.team_mechanical[team_key]
+            log_variance[mech_index] += float(
+                self.config.shared_team_mechanical_std
+            ) ** 2
+        if power_unit_key in shared.power_unit_mechanical:
+            log_multiplier[mech_index] += shared.power_unit_mechanical[power_unit_key]
+            log_variance[mech_index] += float(
+                self.config.shared_power_unit_mechanical_std
+            ) ** 2
+
+        incident_event_loading = 0.25 + 0.50 * wet + 0.25 * weather_uncertainty
+        log_multiplier[incident_index] += (
+            incident_event_loading * shared.event_chaos
+        )
+        log_variance[incident_index] += (incident_event_loading * event_std) ** 2
+        log_multiplier[incident_index] += wet * shared.weather
+        log_variance[incident_index] += (
+            wet * float(self.config.shared_weather_incident_std)
+        ) ** 2
+        log_multiplier[incident_index] += safety_car * shared.safety_car
+        log_variance[incident_index] += (
+            safety_car * float(self.config.shared_safety_car_incident_std)
+        ) ** 2
+
+        coarse_event_loading = 0.30
+        log_multiplier[coarse_index] += coarse_event_loading * shared.event_chaos
+        log_variance[coarse_index] += (coarse_event_loading * event_std) ** 2
+        return np.exp(log_multiplier - 0.5 * log_variance)
+
     def sample_joint_outcomes(
         self,
         frame: pd.DataFrame,
         rng: np.random.Generator,
         *,
         shocks: SharedRaceShocks | None = None,
+        prepared: PreparedTerminalHazards | None = None,
     ) -> tuple[list[TerminalStatus], np.ndarray, SharedRaceShocks]:
         """Sample competing risks with event/team/PU shocks shared by drivers."""
 
         if not self._fitted:
             raise RuntimeError("terminal hazard must be fitted before inference")
-        features = engineer_survival_aware_race_features(frame)
-        shared = shocks or self.draw_shared_shocks(features, rng)
+        prepared_hazards = prepared or self.prepare_joint_outcomes(frame)
+        self._validate_prepared(frame, prepared_hazards)
+        features = prepared_hazards.features
+        shared = shocks or self.draw_shared_shocks(
+            frame,
+            rng,
+            prepared=prepared_hazards,
+        )
         statuses: list[TerminalStatus] = []
         fractions = np.ones(len(features), dtype=float)
-        mech_index = _TIMED_CAUSES.index(TerminalStatus.MECHANICAL_POWER_UNIT)
-        incident_index = _TIMED_CAUSES.index(TerminalStatus.COLLISION_INCIDENT)
-        coarse_index = _TIMED_CAUSES.index(TerminalStatus.NON_CLASSIFIED)
         for output_index, (_, row) in enumerate(features.iterrows()):
-            dns, base_hazard, _, _, _ = self._row_hazard(row)
+            dns = float(prepared_hazards.dns_probabilities[output_index])
+            base_hazard = prepared_hazards.interval_hazards[output_index]
             if dns >= 1.0 - self.config.minimum_probability or rng.random() < dns:
                 statuses.append(TerminalStatus.DNS_WITHDRAWAL)
                 fractions[output_index] = 0.0
                 continue
             hazard = base_hazard.copy()
-            team = self._group_value(row, ("team_name", "constructor_name", "team_id"))
-            power_unit = self._group_value(
-                row,
-                ("power_unit", "power_unit_manufacturer", "engine_manufacturer"),
-            )
-            wet = np.clip(self._numeric(row, "race_wet_probability") or 0.0, 0.0, 1.0)
-            weather_uncertainty = np.clip(
-                self._numeric(row, "race_weather_uncertainty") or 0.0, 0.0, 1.0
-            )
-            safety_car = np.clip(
-                self._numeric(row, "race_safety_car_probability") or 0.0, 0.0, 1.0
-            )
-            log_multiplier = np.zeros(len(_TIMED_CAUSES), dtype=float)
-            log_multiplier[mech_index] += 0.20 * shared.event_chaos
-            log_multiplier[mech_index] += shared.team_mechanical.get(team or "", 0.0)
-            log_multiplier[mech_index] += shared.power_unit_mechanical.get(
-                power_unit or "", 0.0
-            )
-            log_multiplier[incident_index] += (
-                (0.25 + 0.50 * wet + 0.25 * weather_uncertainty)
-                * shared.event_chaos
-            )
-            log_multiplier[incident_index] += wet * shared.weather
-            log_multiplier[incident_index] += safety_car * shared.safety_car
-            log_multiplier[coarse_index] += 0.30 * shared.event_chaos
-            hazard *= np.exp(log_multiplier)[None, :]
+            hazard *= self._shared_hazard_multiplier(row, shared)[None, :]
             hazard = np.vstack([self._cap_hazard_row(values) for values in hazard])
             sampled_status = TerminalStatus.CLASSIFIED_FINISH
             sampled_fraction = 1.0
@@ -942,29 +1182,37 @@ class PartialPooledTerminalHazard:
         *,
         prediction_as_of: object | None = None,
         feature_as_of_col: str = "feature_as_of",
+        prepared: PreparedTerminalHazards | None = None,
     ) -> pd.DataFrame:
         if not self._fitted:
             raise RuntimeError("terminal hazard must be fitted before inference")
         if frame.empty:
             return pd.DataFrame(index=frame.index)
-        if prediction_as_of is not None:
-            cutoff = _utc_timestamp(prediction_as_of, "prediction_as_of")
-            if self.training_max_as_of is not None:
-                train_max = _utc_timestamp(self.training_max_as_of, "training_max_as_of")
-                if train_max >= cutoff:
-                    raise ValueError("terminal model training evidence is not strictly pre-cutoff")
-            if feature_as_of_col in frame.columns:
-                feature_times = pd.to_datetime(
-                    frame[feature_as_of_col], errors="coerce", utc=True
-                )
-                if feature_times.isna().any() or (feature_times > cutoff).any():
-                    raise ValueError("terminal features contain invalid or post-cutoff evidence")
-
-        features = engineer_survival_aware_race_features(frame)
+        self._validate_prediction_cutoff(
+            frame,
+            prediction_as_of=prediction_as_of,
+            feature_as_of_col=feature_as_of_col,
+        )
+        prepared_hazards = prepared or self.prepare_joint_outcomes(
+            frame,
+            prediction_as_of=prediction_as_of,
+            feature_as_of_col=feature_as_of_col,
+        )
+        self._validate_prepared(frame, prepared_hazards)
+        features = prepared_hazards.features
         records: list[dict[str, object]] = []
         classified_index = TERMINAL_STATUSES.index(TerminalStatus.CLASSIFIED_FINISH)
-        for index, row in features.iterrows():
-            probabilities, retirement_means, hazard, survival_trace = self._predict_row(row)
+        for output_index, (index, row) in enumerate(features.iterrows()):
+            dns = float(prepared_hazards.dns_probabilities[output_index])
+            event_mass = prepared_hazards.event_masses[output_index]
+            hazard = prepared_hazards.interval_hazards[output_index]
+            survival_trace = prepared_hazards.survival_traces[output_index]
+            retirement_means = prepared_hazards.retirement_means[output_index]
+            probabilities = self._probabilities_from_prepared_row(
+                dns=dns,
+                event_mass=event_mass,
+                survival_trace=survival_trace,
+            )
             record: dict[str, object] = {
                 "driver_id": str(row.get("driver_id", index)),
                 "p_terminal": float(1.0 - probabilities[classified_index]),
@@ -1000,6 +1248,7 @@ class PartialPooledTerminalHazard:
 __all__ = [
     "BinaryTerminalCalibrator",
     "PartialPooledTerminalHazard",
+    "PreparedTerminalHazards",
     "SharedRaceShocks",
     "TerminalHazardConfig",
 ]

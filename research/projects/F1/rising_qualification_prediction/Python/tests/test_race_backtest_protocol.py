@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 import sys
 
@@ -14,19 +15,35 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from run_race_survival_order_backtest import (  # noqa: E402
+    _MINIMUM_RELATIVE_SELECTION_GAIN,
+    _SAME_SEASON_MINIMUM_PRIOR_EVENTS,
+    _NO_SAME_HORIZON_ORDER_RESIDUAL_WEIGHT,
+    RACE_BACKTEST_SCHEMA_VERSION,
+    _apply_selected_position_head,
+    _attach_result_sha256,
+    _audit_aggregate_payload,
     _align_grid_driver_ids_from_qualifying,
+    _blocked_terminal_calibration_lock,
     _build_event_rows,
     _canonicalize_qualifying_driver_identity,
     _canonical_json_sha256,
+    _deterministic_rank,
+    _event_is_in_partition,
     _fit_binary_terminal_calibrator,
+    _legal_grid_baseline,
     _map_driver_ids_from_qualifying,
     _normalize_identity_token,
     _resolve_missing_race_targets,
     _resolve_session_reference,
     _rolling_oof_qualifying_prior,
+    _same_season_event_partitions,
     _same_product_promotion_blockers,
+    _select_race_policy,
     _set_prediction_order_residual_weight,
     _stable_provisional_grid_positions,
+    _strict_prior_history,
+    build_parser,
+    run,
 )
 from packages.f1.models.pre_race.joint import SurvivalAwareRaceModel
 from packages.f1.models.pre_race.ranking import (
@@ -41,6 +58,8 @@ def test_order_residual_weight_is_a_score_time_parameter_only() -> None:
             regularization_c=0.7,
             grid_prior_weight=2.5,
             residual_weight=0.25,
+            cold_start_event_k=6.0,
+            coefficient_bound=4.0,
             max_iter=321,
             random_state=19,
         )
@@ -55,8 +74,160 @@ def test_order_residual_weight_is_a_score_time_parameter_only() -> None:
     assert model.order_model.config.residual_weight == 0.65
     assert model.order_model.config.regularization_c == original.regularization_c
     assert model.order_model.config.grid_prior_weight == original.grid_prior_weight
+    assert model.order_model.config.cold_start_event_k == original.cold_start_event_k
+    assert model.order_model.config.coefficient_bound == original.coefficient_bound
     assert model.order_model.config.max_iter == original.max_iter
     assert model.order_model.config.random_state == original.random_state
+
+
+def test_race_backtest_searches_zero_residual_and_falls_back_to_grid_only() -> None:
+    defaults = inspect.signature(run).parameters
+
+    assert 0.0 in defaults["order_residual_candidates"].default
+    assert max(defaults["order_residual_candidates"].default) > 0.65
+    assert min(defaults["temperature_candidates"].default) < 0.18
+    assert _NO_SAME_HORIZON_ORDER_RESIDUAL_WEIGHT == 0.0
+
+
+def test_same_season_partitions_use_exact_complete_event_order() -> None:
+    partitions = _same_season_event_partitions(
+        tuple(range(202601, 202610)), target_year=2026
+    )
+
+    assert partitions == {
+        "development": ["202601", "202602"],
+        "selection": ["202603", "202604"],
+        "calibration": ["202605", "202606"],
+        "audit": ["202607", "202608", "202609"],
+    }
+    assert _SAME_SEASON_MINIMUM_PRIOR_EVENTS == 2
+    with pytest.raises(ValueError, match="outside target year"):
+        _same_season_event_partitions(
+            (202501, *range(202601, 202608)), target_year=2026
+        )
+    with pytest.raises(ValueError, match="at least eight complete events"):
+        _same_season_event_partitions(
+            tuple(range(202601, 202608)), target_year=2026
+        )
+
+
+@pytest.mark.parametrize(
+    ("event_count", "selection", "calibration", "audit"),
+    (
+        (8, range(202603, 202605), range(202605, 202607), range(202607, 202609)),
+        (9, range(202603, 202605), range(202605, 202607), range(202607, 202610)),
+        (12, range(202603, 202607), range(202607, 202610), range(202610, 202613)),
+        (13, range(202603, 202607), range(202607, 202611), range(202611, 202614)),
+    ),
+)
+def test_same_season_partitions_expand_only_when_independent_blocks_exist(
+    event_count: int,
+    selection: range,
+    calibration: range,
+    audit: range,
+) -> None:
+    partitions = _same_season_event_partitions(
+        tuple(range(202601, 202601 + event_count)),
+        target_year=2026,
+    )
+
+    assert partitions["development"] == ["202601", "202602"]
+    assert partitions["selection"] == [str(value) for value in selection]
+    assert partitions["calibration"] == [str(value) for value in calibration]
+    assert partitions["audit"] == [str(value) for value in audit]
+
+
+def test_mixed_horizons_cannot_pool_events_to_clear_same_horizon_locks() -> None:
+    partitions = _same_season_event_partitions(
+        tuple(range(202601, 202614)),
+        target_year=2026,
+    )
+    horizons = {
+        event_key: ("post_grid_pre_race" if event_key % 2 else "post_qualifying_pre_grid")
+        for event_key in range(202601, 202614)
+    }
+    horizon = "post_grid_pre_race"
+    selection_count = sum(
+        horizons[int(event_key)] == horizon for event_key in partitions["selection"]
+    )
+    calibration_count = sum(
+        horizons[int(event_key)] == horizon for event_key in partitions["calibration"]
+    )
+    audit_count = sum(
+        horizons[int(event_key)] == horizon for event_key in partitions["audit"]
+    )
+
+    blockers = _same_product_promotion_blockers(
+        audit_event_count=audit_count,
+        same_product_selection_evidence=True,
+        same_product_calibration_evidence=True,
+        selection_event_count=selection_count,
+        calibration_event_count=calibration_count,
+    )
+
+    assert blockers == (
+        "fewer_than_three_same_horizon_audit_events",
+        "fewer_than_four_same_horizon_selection_events",
+        "fewer_than_four_same_horizon_calibration_events",
+    )
+
+
+def test_default_race_parser_is_2026_same_season_with_explicit_legacy_opt_in() -> None:
+    parser = build_parser()
+    defaults = parser.parse_args([])
+
+    assert defaults.years == (2026,)
+    assert defaults.evaluation_years == (2026,)
+    assert defaults.legacy_cross_season is False
+    assert defaults.output.name == "survival_order_same_season_v1.json"
+
+    legacy = parser.parse_args(
+        [
+            "--legacy-cross-season",
+            "--years",
+            "2022,2023,2024,2025,2026",
+            "--evaluation-years",
+            "2024,2025,2026",
+        ]
+    )
+    assert legacy.legacy_cross_season is True
+    assert legacy.years == (2022, 2023, 2024, 2025, 2026)
+
+
+def test_partition_membership_is_event_exact_not_year_wide() -> None:
+    partitions = _same_season_event_partitions(
+        tuple(range(202601, 202610)), target_year=2026
+    )
+
+    assert _event_is_in_partition(202605, partitions, "calibration") is True
+    assert _event_is_in_partition(202605, partitions, "audit") is False
+    assert _event_is_in_partition(202607, partitions, "audit") is True
+    assert _event_is_in_partition(202699, partitions, "audit") is False
+    with pytest.raises(ValueError, match="unknown Race event partition"):
+        _event_is_in_partition(202607, partitions, "unknown")
+
+
+def test_same_season_prior_history_is_strictly_earlier_and_excludes_prior_years() -> None:
+    history = pd.DataFrame(
+        {
+            "event_key": [202501, 202601, 202602, 202603, 202604, 202605],
+            "driver_id": ["old", "a", "b", "c", "target", "future"],
+        }
+    )
+
+    same_season = _strict_prior_history(
+        history, event_key=202604, same_season_only=True
+    )
+    legacy = _strict_prior_history(
+        history, event_key=202604, same_season_only=False
+    )
+
+    assert same_season["event_key"].tolist() == [202601, 202602, 202603]
+    assert same_season["event_key"].nunique() == _SAME_SEASON_MINIMUM_PRIOR_EVENTS + 1
+    assert legacy["event_key"].tolist() == [202501, 202601, 202602, 202603]
+    assert 202604 not in same_season["event_key"].tolist()
+    assert 202605 not in same_season["event_key"].tolist()
+    assert inspect.signature(run).parameters["same_season_only"].default is True
 
 
 def test_canonical_manifest_hash_is_order_stable_and_value_sensitive() -> None:
@@ -275,6 +446,38 @@ def test_calibrator_fails_closed_without_both_classes() -> None:
         )
 
 
+def test_final_joint_probability_calibration_rejects_zero_shock_platt_claim() -> None:
+    rows = pd.DataFrame(
+        {
+            "event_key": ["202605", "202605", "202606", "202606"],
+            "actual_terminal": [0.0, 1.0, 0.0, 1.0],
+            "predicted_terminal": [0.10, 0.40, 0.20, 0.60],
+        }
+    )
+
+    lock = _blocked_terminal_calibration_lock(
+        rows,
+        information_horizon="post_grid_pre_race",
+        simulations_per_event=400,
+    )
+
+    assert lock["same_product_calibration_evidence"] is False
+    assert lock["calibration_fit_probability_source"] is None
+    assert lock["calibration_application_probability_source"] is None
+    assert lock["scored_probability_source"] == (
+        "empirical_post_shared_shock_joint_samples"
+    )
+    assert lock["calibration_status"] == (
+        "blocked_requires_simulation_in_loop_or_marginal_preserving_copula"
+    )
+    assert lock["error"] == (
+        "zero_shock_platt_rejected_for_final_distribution_mismatch"
+    )
+    assert lock["event_keys"] == ["202605", "202606"]
+    assert lock["raw_terminal_brier"] is not None
+    assert lock["raw_terminal_log_loss"] is not None
+
+
 def test_power_unit_mapping_is_season_specific_and_causal() -> None:
     assert _season_entry_list_power_unit(2025, "Alpine") == "Renault"
     assert _season_entry_list_power_unit(2026, "Alpine") == "Mercedes"
@@ -345,6 +548,27 @@ def test_provisional_grid_resolves_provider_ties_by_official_source_order() -> N
 
     assert positions.tolist() == [1.0, 2.0, 3.0, 4.0, 5.0]
     assert positions.index.tolist() == frame.index.tolist()
+
+
+def test_legal_grid_baseline_ties_preserve_provider_order_not_driver_alphabet() -> None:
+    frame = pd.DataFrame(
+        {
+            "driver_id": ["ZED", "ALP", "MID"],
+            "grid_status": ["pit_lane", "pit_lane", "unplaced"],
+            "grid_position": [np.nan, np.nan, np.nan],
+        },
+        index=[20, 10, 30],
+    )
+
+    positions = _legal_grid_baseline(frame)
+
+    assert positions.to_dict() == {20: 1.0, 10: 2.0, 30: 3.0}
+
+
+def test_qualifying_prior_score_ties_preserve_provider_order() -> None:
+    ranks = _deterministic_rank(np.asarray([0.5, 0.5, np.nan, np.nan]))
+
+    assert ranks.tolist() == [1.0, 2.0, 3.0, 4.0]
 
 
 def test_unproven_missing_race_target_fails_closed_after_feature_freeze(
@@ -463,6 +687,233 @@ def test_post_grid_promotion_fails_closed_without_same_product_protocol() -> Non
     assert blockers == (
         "missing_same_product_selection_evidence",
         "missing_same_product_calibration_evidence",
+    )
+
+
+def test_race_policy_retains_grid_when_challenger_does_not_clear_selection_gate() -> None:
+    challenger = [
+        {
+            "model_id": "survival_aware_joint",
+            "information_horizon": "post_grid_pre_race",
+            "plackett_luce_temperature": 0.18,
+            "order_residual_weight": 0.65,
+            "mean_position_mae": 2.91,
+            "event_count": 2,
+            "event_keys": ["202603", "202604"],
+        }
+    ]
+    baseline = {
+        "model_id": "legal_grid_baseline",
+        "information_horizon": "post_grid_pre_race",
+        "mean_position_mae": 2.73,
+        "event_count": 2,
+        "event_keys": ["202603", "202604"],
+    }
+
+    selected = _select_race_policy(
+        challenger,
+        baseline_row=baseline,
+        diagnostic_temperature=0.25,
+    )
+
+    assert selected["selected_model_id"] == "legal_grid_baseline"
+    assert selected["challenger_selected"] is False
+    assert selected["relative_challenger_gain"] < 0.0
+    assert (
+        selected["minimum_relative_selection_gain"]
+        == _MINIMUM_RELATIVE_SELECTION_GAIN
+    )
+
+
+def test_rejected_challenger_cannot_leak_through_public_position_alias() -> None:
+    scored = pd.DataFrame(
+        {
+            "driver_id": ["A", "B", "C"],
+            "grid_baseline_position": [1, 2, 3],
+            "candidate_predicted_position": [2, 1, 3],
+        }
+    )
+
+    retained = _apply_selected_position_head(
+        scored,
+        selected_model_id="legal_grid_baseline",
+    )
+
+    assert retained["candidate_predicted_position"].tolist() == [2, 1, 3]
+    assert retained["selected_predicted_position"].tolist() == [1, 2, 3]
+    assert retained["predicted_position"].tolist() == [1, 2, 3]
+    assert retained["predicted_position"].equals(
+        retained["selected_predicted_position"]
+    )
+    assert retained["selected_model_id"].unique().tolist() == [
+        "legal_grid_baseline"
+    ]
+    assert retained["selected_position_source"].unique().tolist() == [
+        "grid_baseline_position"
+    ]
+
+
+def test_selected_challenger_is_public_only_after_selection_gate() -> None:
+    scored = pd.DataFrame(
+        {
+            "driver_id": ["A", "B", "C"],
+            "grid_baseline_position": [1, 2, 3],
+            "candidate_predicted_position": [2, 1, 3],
+        }
+    )
+
+    selected = _apply_selected_position_head(
+        scored,
+        selected_model_id="survival_aware_joint",
+    )
+
+    assert selected["candidate_predicted_position"].tolist() == [2, 1, 3]
+    assert selected["selected_predicted_position"].tolist() == [2, 1, 3]
+    assert selected["predicted_position"].tolist() == [2, 1, 3]
+    assert selected["selected_position_source"].unique().tolist() == [
+        "candidate_predicted_position"
+    ]
+
+
+def _aggregate_event(
+    event_key: int,
+    *,
+    baseline_mae: float,
+    candidate_mae: float,
+    selected_mae: float,
+) -> dict[str, object]:
+    return {
+        "event_key": event_key,
+        "year": event_key // 100,
+        "information_horizon": "post_grid_pre_race",
+        "baseline_mae": baseline_mae,
+        "candidate_mae": candidate_mae,
+        "selected_mae": selected_mae,
+        "baseline_kendall": 0.7,
+        "candidate_kendall": 0.6,
+        "selected_kendall": 0.7,
+        "baseline_status_brier": 0.2,
+        "candidate_status_brier": 0.3,
+        "selected_status_brier": 0.2,
+        "baseline_status_log_loss": 0.4,
+        "candidate_status_log_loss": 0.5,
+        "selected_status_log_loss": 0.4,
+        "candidate_status_terminal_ece": 0.1,
+        "candidate_retirement_fraction_mae": 0.25,
+        "global_meal_mae": candidate_mae,
+        "dns_constrained_meal_mae": candidate_mae,
+        "dns_constrained_minus_global_meal_mae": 0.0,
+    }
+
+
+def test_audit_aggregate_excludes_selection_and_calibration_events() -> None:
+    events = [
+        _aggregate_event(
+            202606,
+            baseline_mae=9.0,
+            candidate_mae=1.0,
+            selected_mae=9.0,
+        ),
+        _aggregate_event(
+            202607,
+            baseline_mae=2.0,
+            candidate_mae=3.0,
+            selected_mae=2.0,
+        ),
+        _aggregate_event(
+            202608,
+            baseline_mae=4.0,
+            candidate_mae=6.0,
+            selected_mae=4.0,
+        ),
+    ]
+
+    audit = _audit_aggregate_payload(
+        events,
+        audit_event_keys=[202607, 202608],
+    )
+
+    assert audit["partition_role"] == "audit"
+    assert audit["event_keys"] == [202607, 202608]
+    assert audit["events"] == 2
+    assert audit["baseline_mean_mae"] == pytest.approx(3.0)
+    assert audit["candidate_mean_mae"] == pytest.approx(4.5)
+    assert audit["selected_mean_mae"] == pytest.approx(3.0)
+    assert audit["by_year"]["2026"]["events"] == 2
+    assert audit["by_horizon"]["post_grid_pre_race"]["events"] == 2
+
+
+def test_v8_result_hash_binds_every_field_except_itself() -> None:
+    payload = {
+        "schema_version": RACE_BACKTEST_SCHEMA_VERSION,
+        "events": [{"event_key": 202607, "selected_mae": 2.0}],
+        "predictions": [{"driver_id": "A", "predicted_position": 1}],
+    }
+
+    finalized = _attach_result_sha256(payload)
+    without_hash = dict(finalized)
+    observed = without_hash.pop("result_sha256")
+
+    assert RACE_BACKTEST_SCHEMA_VERSION.endswith("_v8")
+    assert observed == _canonical_json_sha256(without_hash)
+    with pytest.raises(ValueError, match="must not exist before finalization"):
+        _attach_result_sha256(finalized)
+
+
+def test_race_policy_selects_challenger_only_after_material_same_event_gain() -> None:
+    challenger = [
+        {
+            "model_id": "survival_aware_joint",
+            "information_horizon": "post_grid_pre_race",
+            "plackett_luce_temperature": 0.25,
+            "order_residual_weight": 0.25,
+            "mean_position_mae": 2.50,
+            "event_count": 2,
+            "event_keys": ["202603", "202604"],
+        }
+    ]
+    baseline = {
+        "model_id": "legal_grid_baseline",
+        "information_horizon": "post_grid_pre_race",
+        "mean_position_mae": 3.00,
+        "event_count": 2,
+        "event_keys": ["202603", "202604"],
+    }
+
+    selected = _select_race_policy(
+        challenger,
+        baseline_row=baseline,
+        diagnostic_temperature=0.25,
+    )
+
+    assert selected["selected_model_id"] == "survival_aware_joint"
+    assert selected["challenger_selected"] is True
+    assert selected["relative_challenger_gain"] == pytest.approx(1.0 / 6.0)
+
+
+def test_race_promotion_records_selection_rejection_separately() -> None:
+    blockers = _same_product_promotion_blockers(
+        audit_event_count=3,
+        same_product_selection_evidence=True,
+        same_product_calibration_evidence=True,
+        challenger_selected_on_selection=False,
+    )
+
+    assert blockers == ("challenger_not_selected_on_same_season_selection",)
+
+
+def test_race_promotion_requires_four_independent_events_per_lock() -> None:
+    blockers = _same_product_promotion_blockers(
+        audit_event_count=3,
+        same_product_selection_evidence=True,
+        same_product_calibration_evidence=True,
+        selection_event_count=1,
+        calibration_event_count=1,
+    )
+
+    assert blockers == (
+        "fewer_than_four_same_horizon_selection_events",
+        "fewer_than_four_same_horizon_calibration_events",
     )
 
 

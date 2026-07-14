@@ -21,6 +21,8 @@ class ConditionalOrderConfig:
     regularization_c: float = 0.5
     grid_prior_weight: float = 2.0
     residual_weight: float = 0.45
+    cold_start_event_k: float = 8.0
+    coefficient_bound: float = 8.0
     max_iter: int = 800
     random_state: int = 17
     include_missing_indicators: bool = True
@@ -32,30 +34,76 @@ class ConditionalOrderConfig:
             raise ValueError("grid_prior_weight must be positive")
         if self.residual_weight < 0.0:
             raise ValueError("residual_weight cannot be negative")
+        if not np.isfinite(float(self.cold_start_event_k)) or float(
+            self.cold_start_event_k
+        ) <= 0.0:
+            raise ValueError("cold_start_event_k must be finite and positive")
+        if not np.isfinite(float(self.coefficient_bound)) or float(
+            self.coefficient_bound
+        ) <= 0.0:
+            raise ValueError("coefficient_bound must be finite and positive")
+        if int(self.max_iter) < 1:
+            raise ValueError("max_iter must be positive")
 
 
-class _NumpyLogistic:
-    """Small deterministic L2-logistic fallback when sklearn is unavailable."""
+class _BoundedOffsetLogistic:
+    """Deterministic projected-gradient logistic model with a fixed offset."""
 
-    def __init__(self, *, c: float, max_iter: int) -> None:
+    def __init__(self, *, c: float, max_iter: int, coefficient_bound: float) -> None:
         self.c = c
         self.max_iter = max_iter
+        self.coefficient_bound = coefficient_bound
         self.coef_: np.ndarray | None = None
+        self.n_iter_ = 0
+        self.converged_ = False
 
-    def fit(self, x: np.ndarray, y: np.ndarray, sample_weight: np.ndarray | None = None) -> "_NumpyLogistic":
-        weights = np.ones(len(y), dtype=float) if sample_weight is None else sample_weight.astype(float)
+    def fit(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        *,
+        offset: np.ndarray,
+        sample_weight: np.ndarray,
+    ) -> "_BoundedOffsetLogistic":
+        design = np.asarray(x, dtype=float)
+        target = np.asarray(y, dtype=float)
+        fixed_offset = np.asarray(offset, dtype=float)
+        weights = np.asarray(sample_weight, dtype=float)
+        if design.ndim != 2 or design.shape[0] == 0:
+            raise ValueError("pairwise design must be a non-empty matrix")
+        if any(
+            values.shape != (design.shape[0],)
+            for values in (target, fixed_offset, weights)
+        ):
+            raise ValueError("targets, offsets, and weights must align with pairs")
+        if (
+            not np.isfinite(design).all()
+            or not np.isfinite(target).all()
+            or not np.isfinite(fixed_offset).all()
+            or not np.isfinite(weights).all()
+            or (weights <= 0.0).any()
+            or ((target != 0.0) & (target != 1.0)).any()
+        ):
+            raise ValueError("pairwise optimizer inputs must be finite and valid")
         coefficient = np.zeros(x.shape[1], dtype=float)
-        spectral = float(np.linalg.norm(x, ord=2) ** 2) if x.size else 1.0
-        lipschitz = max(1.0, 0.25 * spectral * float(weights.max()) + (1.0 / self.c))
+        weighted_design = design * np.sqrt(weights)[:, None]
+        spectral = float(np.linalg.norm(weighted_design, ord=2) ** 2)
+        lipschitz = max(1.0, 0.25 * spectral + (1.0 / self.c))
         step = 1.0 / lipschitz
-        for _ in range(self.max_iter):
-            logits = np.clip(x @ coefficient, -35.0, 35.0)
+        for iteration in range(self.max_iter):
+            logits = np.clip(fixed_offset + design @ coefficient, -35.0, 35.0)
             probability = 1.0 / (1.0 + np.exp(-logits))
-            gradient = x.T @ ((probability - y) * weights)
+            gradient = design.T @ ((probability - target) * weights)
             gradient += coefficient / self.c
-            updated = coefficient - (step * gradient)
+            updated = np.clip(
+                coefficient - (step * gradient),
+                -float(self.coefficient_bound),
+                float(self.coefficient_bound),
+            )
+            self.n_iter_ = iteration + 1
             if np.max(np.abs(updated - coefficient)) < 1e-8:
                 coefficient = updated
+                self.converged_ = True
                 break
             coefficient = updated
         self.coef_ = coefficient.reshape(1, -1)
@@ -91,6 +139,10 @@ class BradleyTerryOrderRanker:
         self.backend = "unfitted"
         self.training_events = 0
         self.training_pairs = 0
+        self.training_pair_weight_sum = 0.0
+        self.training_event_pair_counts: dict[str, int] = {}
+        self.training_event_pair_weight_sums: dict[str, float] = {}
+        self.training_grid_offset_mean_abs = 0.0
         self.training_max_as_of: str | None = None
 
     def _matrix(self, frame: pd.DataFrame, *, fit: bool) -> np.ndarray:
@@ -121,12 +173,20 @@ class BradleyTerryOrderRanker:
             raise ValueError("grid-prior initialization requires a non-empty roster")
         engineered = engineer_survival_aware_race_features(frame.reset_index(drop=True))
         matrix = self._matrix(engineered, fit=True)
-        model = _NumpyLogistic(c=self.config.regularization_c, max_iter=1)
+        model = _BoundedOffsetLogistic(
+            c=self.config.regularization_c,
+            max_iter=1,
+            coefficient_bound=self.config.coefficient_bound,
+        )
         model.coef_ = np.zeros((1, matrix.shape[1]), dtype=float)
         self._model = model
         self.backend = "fixed_grid_prior_no_same_regime_pairs"
         self.training_events = 0
         self.training_pairs = 0
+        self.training_pair_weight_sum = 0.0
+        self.training_event_pair_counts = {}
+        self.training_event_pair_weight_sums = {}
+        self.training_grid_offset_mean_abs = 0.0
         self.training_max_as_of = None
         return self
 
@@ -163,6 +223,14 @@ class BradleyTerryOrderRanker:
                 raise ValueError("event_as_of contains invalid timestamps")
             self.training_max_as_of = event_times.max().isoformat().replace("+00:00", "Z")
 
+        # Preserve the complete event field before removing terminal cars.  The
+        # fixed grid offset must use the same denominator as inference on the
+        # complete roster, not the smaller classified-finisher subset.
+        field_size_column = "__conditional_order_full_event_field_size"
+        rows[field_size_column] = rows.groupby(
+            event_col, sort=False, dropna=False
+        )[event_col].transform("size")
+
         if terminal_status_col in rows.columns:
             status = rows[terminal_status_col].map(reason_code_terminal_status)
             # Conditional running order learns from classified finishers only;
@@ -174,47 +242,101 @@ class BradleyTerryOrderRanker:
             raise ValueError("no classified finishers available for conditional-order fit")
 
         engineered = engineer_survival_aware_race_features(rows)
+        full_field_size = pd.to_numeric(
+            engineered[field_size_column], errors="coerce"
+        ).clip(lower=1.0)
+        raw_grid = pd.to_numeric(
+            engineered.get(
+                "grid_position",
+                pd.Series(np.nan, index=engineered.index, dtype=float),
+            ),
+            errors="coerce",
+        )
+        grid_status = engineered.get(
+            "grid_status", pd.Series("", index=engineered.index)
+        ).astype(str).str.lower()
+        raw_pit_lane = engineered.get("grid_pit_lane_start")
+        if raw_pit_lane is None:
+            pit_lane = grid_status.isin({"pit_lane", "started_pit_lane"})
+        else:
+            pit_lane = pd.Series(raw_pit_lane, index=engineered.index).fillna(
+                False
+            ).astype(bool)
+        grid_for_score = raw_grid.where(
+            raw_grid.notna(),
+            np.where(pit_lane, full_field_size + 1.0, np.nan),
+        )
+        engineered["race_grid_prior_score"] = -(
+            grid_for_score - 1.0
+        ) / full_field_size
+        mobility = pd.to_numeric(
+            engineered["race_circuit_mobility"], errors="coerce"
+        ).clip(lower=0.0, upper=1.0)
+        engineered["race_grid_mobility_score"] = engineered[
+            "race_grid_prior_score"
+        ] * (1.0 - mobility)
         matrix = self._matrix(engineered, fit=True)
+        grid_prior = pd.to_numeric(
+            engineered["race_grid_prior_score"], errors="coerce"
+        ).fillna(-1.0).to_numpy(dtype=float)
         pairs: list[np.ndarray] = []
         labels: list[float] = []
-        for _, event_rows in engineered.groupby(event_col, sort=True, dropna=False):
-            positions = event_rows.index.to_numpy()
-            local = [engineered.index.get_loc(index) for index in positions]
+        offsets: list[float] = []
+        pair_weights: list[float] = []
+        event_pair_counts: dict[str, int] = {}
+        event_pair_weight_sums: dict[str, float] = {}
+        for event_key, event_rows in engineered.groupby(
+            event_col, sort=True, dropna=False
+        ):
+            local = engineered.index.get_indexer(event_rows.index)
             target = pd.to_numeric(event_rows[target_col], errors="coerce").to_numpy(dtype=float)
+            event_pairs: list[tuple[np.ndarray, float, float]] = []
             for left in range(len(local)):
                 for right in range(left + 1, len(local)):
                     if target[left] == target[right]:
                         continue
                     delta = matrix[local[left]] - matrix[local[right]]
                     label = float(target[left] < target[right])
-                    pairs.extend((delta, -delta))
-                    labels.extend((label, 1.0 - label))
+                    grid_offset = float(self.config.grid_prior_weight) * (
+                        grid_prior[local[left]] - grid_prior[local[right]]
+                    )
+                    event_pairs.append((delta, label, grid_offset))
+            if not event_pairs:
+                continue
+            event_key_text = str(event_key)
+            event_pair_counts[event_key_text] = len(event_pairs)
+            event_pair_weight_sums[event_key_text] = 0.0
+            event_weight = 1.0 / float(len(event_pairs))
+            for delta, label, grid_offset in event_pairs:
+                pairs.append(delta)
+                labels.append(label)
+                offsets.append(grid_offset)
+                pair_weights.append(event_weight)
+                event_pair_weight_sums[event_key_text] += event_weight
         if not pairs:
             raise ValueError("conditional-order history produced no within-event pairs")
         x_pair = np.vstack(pairs)
         y_pair = np.asarray(labels, dtype=float)
-
-        try:
-            from sklearn.linear_model import LogisticRegression
-
-            model: object = LogisticRegression(
-                C=self.config.regularization_c,
-                fit_intercept=False,
-                max_iter=self.config.max_iter,
-                random_state=self.config.random_state,
-                solver="lbfgs",
-            )
-            model.fit(x_pair, y_pair)
-            self.backend = "sklearn_logistic_regression"
-        except (ImportError, OSError):
-            model = _NumpyLogistic(
-                c=self.config.regularization_c,
-                max_iter=self.config.max_iter,
-            ).fit(x_pair, y_pair)
-            self.backend = "numpy_l2_logistic_fallback"
+        model = _BoundedOffsetLogistic(
+            c=self.config.regularization_c,
+            max_iter=self.config.max_iter,
+            coefficient_bound=self.config.coefficient_bound,
+        ).fit(
+            x_pair,
+            y_pair,
+            offset=np.asarray(offsets, dtype=float),
+            sample_weight=np.asarray(pair_weights, dtype=float),
+        )
+        self.backend = "deterministic_bounded_grid_offset_logistic"
         self._model = model
-        self.training_events = int(engineered[event_col].nunique(dropna=False))
+        self.training_events = len(event_pair_counts)
         self.training_pairs = len(y_pair)
+        self.training_pair_weight_sum = float(np.sum(pair_weights))
+        self.training_event_pair_counts = event_pair_counts
+        self.training_event_pair_weight_sums = event_pair_weight_sums
+        self.training_grid_offset_mean_abs = float(
+            np.mean(np.abs(np.asarray(offsets, dtype=float)))
+        )
         return self
 
     @property
@@ -222,7 +344,17 @@ class BradleyTerryOrderRanker:
         if self._model is None:
             raise RuntimeError("conditional-order ranker must be fitted")
         coefficients = np.asarray(getattr(self._model, "coef_"), dtype=float).reshape(-1)
-        return dict(zip(self._design_columns, coefficients.tolist(), strict=True))
+        if len(self._design_columns) != len(coefficients):
+            raise RuntimeError("conditional-order coefficient schema is inconsistent")
+        return dict(zip(self._design_columns, coefficients.tolist()))
+
+    @property
+    def effective_residual_weight(self) -> float:
+        """Apply an explicit empirical-Bayes-style same-season cold-start shrinkage."""
+
+        event_count = float(self.training_events)
+        shrinkage = event_count / (event_count + float(self.config.cold_start_event_k))
+        return float(self.config.residual_weight) * shrinkage
 
     def score(
         self,
@@ -255,12 +387,13 @@ class BradleyTerryOrderRanker:
         matrix = self._matrix(engineered, fit=False)
         coefficients = np.asarray(getattr(self._model, "coef_"), dtype=float).reshape(-1)
         residual = matrix @ coefficients
+        effective_residual_weight = self.effective_residual_weight
         grid_prior = pd.to_numeric(
             engineered["race_grid_prior_score"], errors="coerce"
         ).fillna(-1.0).to_numpy(dtype=float)
         score = (
             self.config.grid_prior_weight * grid_prior
-            + self.config.residual_weight * residual
+            + effective_residual_weight * residual
         )
         result = pd.DataFrame(index=frame.index)
         result["driver_id"] = engineered.get(
@@ -268,7 +401,19 @@ class BradleyTerryOrderRanker:
         ).astype(str)
         result["conditional_order_score"] = score
         result["conditional_order_grid_component"] = self.config.grid_prior_weight * grid_prior
-        result["conditional_order_residual_component"] = self.config.residual_weight * residual
+        result["conditional_order_residual_raw"] = residual
+        result["conditional_order_residual_component"] = (
+            effective_residual_weight * residual
+        )
+        result["conditional_order_configured_residual_weight"] = float(
+            self.config.residual_weight
+        )
+        result["conditional_order_effective_residual_weight"] = (
+            effective_residual_weight
+        )
+        result["conditional_order_cold_start_event_k"] = float(
+            self.config.cold_start_event_k
+        )
         result["conditional_order_backend"] = self.backend
         result["conditional_order_training_events"] = self.training_events
         result["conditional_order_training_pairs"] = self.training_pairs

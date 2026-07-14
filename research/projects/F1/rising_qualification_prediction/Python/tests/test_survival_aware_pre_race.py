@@ -28,8 +28,11 @@ from packages.f1.features.race import (
 from packages.f1.models.pre_race import (
     BinaryTerminalCalibrator,
     BradleyTerryOrderRanker,
+    ConditionalOrderConfig,
     PartialPooledTerminalHazard,
+    SharedRaceShocks,
     SurvivalAwareRaceModel,
+    TerminalHazardConfig,
     TerminalStatus,
     add_reason_coded_terminal_targets,
     evaluate_terminal_status_probabilities,
@@ -383,6 +386,16 @@ def test_joint_model_emits_probabilities_and_legal_permutation_with_dns_and_pitl
     assert set(forecast.status_probabilities["status_probability_source"]) == {
         "empirical_post_shared_shock_joint_samples"
     }
+    zero_shock = model.terminal_model.predict_proba(
+        _final_roster(),
+        prediction_as_of="2025-05-01T00:00:00Z",
+    ).set_index("driver_id")["p_terminal"]
+    reported_zero_shock = forecast.status_probabilities.set_index("driver_id")[
+        "zero_shared_shock_p_terminal"
+    ]
+    assert reported_zero_shock.loc[zero_shock.index].to_numpy() == pytest.approx(
+        zero_shock.to_numpy()
+    )
     for status in TerminalStatus:
         empirical = np.mean(forecast.status_samples == status.value, axis=1)
         assert forecast.status_probabilities[f"p_{status.value}"].to_numpy() == pytest.approx(
@@ -445,6 +458,136 @@ def test_person_period_hazard_learns_regularized_causal_covariate_effects() -> N
     predicted = model.predict_proba(pd.DataFrame(rows[:2]))
     assert len(predicted.filter(regex=r"^terminal_interval_hazard_").columns) == 12
     assert len(predicted.filter(regex=r"^survival_through_interval_").columns) == 12
+
+
+def test_terminal_covariates_use_training_only_clipped_standardization_and_keep_missingness() -> None:
+    history = _history()
+    history["race_wet_probability"] = np.linspace(0.0, 0.001, len(history))
+    model = PartialPooledTerminalHazard(
+        TerminalHazardConfig(covariate_z_clip=3.0)
+    ).fit(history)
+    monaco_like = engineer_survival_aware_race_features(
+        pd.DataFrame(
+            {
+                "driver_id": ["MON"],
+                "team_name": ["TEAM_1"],
+                "power_unit": ["PU_1"],
+                "grid_position": [1],
+                "grid_status": ["grid"],
+                "race_wet_probability": [0.0875],
+            }
+        )
+    )
+    standardized = model._standardized_covariates(monaco_like, fit=False)
+    standardization = model.model_card["covariate_model"]["standardization"]
+    columns = model.model_card["covariate_model"]["columns"]
+    wet_index = columns.index("race_wet_probability")
+    missing_index = columns.index("race_power_unit_grid_penalty")
+
+    assert standardized[0, wet_index] == pytest.approx(3.0)
+    assert np.max(np.abs(standardized[0, : len(columns)])) <= 3.0
+    assert standardized[0, len(columns) + missing_index] == 1.0
+    assert standardization["fit_scope"] == "strictly_pre_cutoff_training_rows"
+    assert standardization["z_clip"] == 3.0
+    assert standardization["missingness_captured_before_imputation"] is True
+    assert model.model_card["remaining_limitations"]
+
+
+def test_shared_log_normal_hazard_multipliers_have_empirical_mean_one() -> None:
+    model = PartialPooledTerminalHazard()
+    row = engineer_survival_aware_race_features(
+        pd.DataFrame(
+            {
+                "driver_id": ["A"],
+                "team_name": ["TEAM"],
+                "power_unit": ["PU"],
+                "grid_position": [1],
+                "grid_status": ["grid"],
+                "race_wet_probability": [0.6],
+                "race_weather_uncertainty": [0.4],
+                "race_safety_car_probability": [0.7],
+            }
+        )
+    ).iloc[0]
+    rng = np.random.default_rng(20260713)
+    draws = []
+    for _ in range(20_000):
+        shared = SharedRaceShocks(
+            event_chaos=float(rng.normal(0.0, model.config.shared_event_shock_std)),
+            weather=float(
+                rng.normal(0.0, model.config.shared_weather_incident_std)
+            ),
+            safety_car=float(
+                rng.normal(0.0, model.config.shared_safety_car_incident_std)
+            ),
+            team_mechanical={
+                "TEAM": float(
+                    rng.normal(0.0, model.config.shared_team_mechanical_std)
+                )
+            },
+            power_unit_mechanical={
+                "PU": float(
+                    rng.normal(0.0, model.config.shared_power_unit_mechanical_std)
+                )
+            },
+            team_pace={},
+        )
+        draws.append(model._shared_hazard_multiplier(row, shared))
+
+    empirical_mean = np.mean(np.asarray(draws), axis=0)
+    assert empirical_mean.tolist() == pytest.approx([1.0, 1.0, 1.0], abs=0.02)
+
+
+def test_prepared_and_on_demand_joint_terminal_sampling_are_seed_exact() -> None:
+    model = PartialPooledTerminalHazard().fit(
+        _history(),
+        cutoff="2025-04-01T00:00:00Z",
+    )
+    roster = _final_roster()
+    prepared = model.prepare_joint_outcomes(
+        roster,
+        prediction_as_of="2025-05-01T00:00:00Z",
+    )
+    on_demand_rng = np.random.default_rng(20260713)
+    prepared_rng = np.random.default_rng(20260713)
+
+    on_demand = model.sample_joint_outcomes(roster, on_demand_rng)
+    reused = model.sample_joint_outcomes(
+        roster,
+        prepared_rng,
+        prepared=prepared,
+    )
+
+    assert on_demand[0] == reused[0]
+    assert on_demand[1].tolist() == pytest.approx(reused[1].tolist())
+    assert on_demand[2] == reused[2]
+
+
+def test_joint_forecast_prepares_row_hazards_once_not_per_simulation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    model = SurvivalAwareRaceModel().fit(
+        _history(),
+        cutoff="2025-04-01T00:00:00Z",
+    )
+    roster = _final_roster()
+    original = model.terminal_model._row_hazard
+    calls = 0
+
+    def counted(row: pd.Series):
+        nonlocal calls
+        calls += 1
+        return original(row)
+
+    monkeypatch.setattr(model.terminal_model, "_row_hazard", counted)
+    model.predict_joint(
+        roster,
+        prediction_as_of="2025-05-01T00:00:00Z",
+        simulations=100,
+        seed=31,
+    )
+
+    assert calls == len(roster)
 
 
 def test_calibration_mapping_changes_terminal_hazard_without_breaking_probability_sum() -> None:
@@ -571,6 +714,70 @@ def test_expected_absolute_assignment_is_globally_optimal_and_deterministic() ->
 
     assert cost == pytest.approx(min(brute_costs))
     assert minimum_expected_absolute_assignment(samples).tolist() == assignment.tolist()
+
+
+def test_order_residual_fit_is_grid_conditional_event_balanced_bounded_and_deterministic() -> None:
+    rows = []
+    for event_key, field_size in ((1, 2), (2, 4)):
+        for grid_position in range(1, field_size + 1):
+            rows.append(
+                {
+                    "event_key": event_key,
+                    "event_as_of": f"2025-0{event_key}-01T12:00:00Z",
+                    "driver_id": f"E{event_key}D{grid_position}",
+                    "grid_position": grid_position,
+                    "grid_status": "grid",
+                    "grid_starter_eligible": True,
+                    "finish_position": field_size - grid_position + 1,
+                    "terminal_status": TerminalStatus.CLASSIFIED_FINISH.value,
+                    "team_strength_score": float(grid_position),
+                }
+            )
+    history = pd.DataFrame(rows)
+    config = ConditionalOrderConfig(
+        residual_weight=0.8,
+        cold_start_event_k=2.0,
+        coefficient_bound=0.05,
+    )
+    ranker = BradleyTerryOrderRanker(
+        config,
+        feature_columns=("race_team_strength_score",),
+    ).fit(history)
+    shuffled = BradleyTerryOrderRanker(
+        config,
+        feature_columns=("race_team_strength_score",),
+    ).fit(history.sample(frac=1.0, random_state=91))
+
+    assert ranker.backend == "deterministic_bounded_grid_offset_logistic"
+    assert ranker.training_events == 2
+    assert ranker.training_pairs == 7
+    assert ranker.training_event_pair_counts == {"1": 1, "2": 6}
+    assert ranker.training_event_pair_weight_sums == pytest.approx(
+        {"1": 1.0, "2": 1.0}
+    )
+    assert ranker.training_pair_weight_sum == pytest.approx(2.0)
+    assert ranker.training_grid_offset_mean_abs > 0.0
+    assert max(abs(value) for value in ranker.coefficients.values()) <= 0.05
+    assert shuffled.coefficients == pytest.approx(ranker.coefficients, abs=1e-12)
+
+    scored = ranker.score(history.loc[history["event_key"].eq(2)])
+    assert scored["conditional_order_effective_residual_weight"].unique().tolist() == [
+        pytest.approx(0.4)
+    ]
+
+
+def test_zero_order_residual_weight_reproduces_fixed_grid_score_exactly() -> None:
+    ranker = BradleyTerryOrderRanker(
+        ConditionalOrderConfig(residual_weight=0.0)
+    ).fit(_history())
+    scored = ranker.score(_final_roster())
+
+    assert ranker.training_grid_offset_mean_abs == pytest.approx(0.5)
+    assert scored["conditional_order_effective_residual_weight"].eq(0.0).all()
+    assert scored["conditional_order_residual_component"].eq(0.0).all()
+    assert scored["conditional_order_score"].to_numpy() == pytest.approx(
+        scored["conditional_order_grid_component"].to_numpy()
+    )
 
 
 def test_pairwise_ties_are_ranked_deterministically_by_driver_id() -> None:

@@ -21,6 +21,7 @@ from .status import (
 from .survival import (
     BinaryTerminalCalibrator,
     PartialPooledTerminalHazard,
+    PreparedTerminalHazards,
     SharedRaceShocks,
     TerminalHazardConfig,
 )
@@ -31,6 +32,7 @@ __all__ = [
     "ConditionalOrderConfig",
     "JointRaceForecast",
     "PartialPooledTerminalHazard",
+    "PreparedTerminalHazards",
     "SharedRaceShocks",
     "SurvivalAwareRaceModel",
     "TERMINAL_STATUSES",

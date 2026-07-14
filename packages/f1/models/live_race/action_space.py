@@ -473,6 +473,30 @@ def build_legal_action_mask(
     used = set(_used_compounds(state))
     mandatory_change = _mandatory_change_required(state, cfg)
     forced_pit = _forced_pit_compound(state)
+    inventory_known_raw = _state_value(state, "compound_inventory_known", None)
+    explicit_inventory = _state_value(state, "available_compounds", None)
+    inventory_known_for_planning = bool(cfg.default_available_compounds) or (
+        _safe_bool(inventory_known_raw, False)
+        if inventory_known_raw is not None
+        else explicit_inventory is not None
+    )
+    executable_pit_now_compounds = {
+        action.compound
+        for action in actions
+        if action.action_type == ACTION_PIT_NOW and action.compound is not None
+    }
+    satisfying_available_compounds = {
+        compound
+        for compound in available
+        if compound in executable_pit_now_compounds
+        and _compound_satisfies_mandatory_change(compound, used=used)
+    }
+    known_no_satisfying_compound = bool(
+        mandatory_change
+        and available
+        and inventory_known_for_planning
+        and not satisfying_available_compounds
+    )
 
     is_red = _safe_bool(_state_value(state, "is_red", False), False)
     is_box_lap = _safe_bool(_state_value(state, "is_box_lap", False), False)
@@ -483,6 +507,11 @@ def build_legal_action_mask(
     for action in actions:
         legal = True
         reason = "legal"
+
+        if remaining <= 0.0:
+            mask.append(False)
+            reasons.append("race_complete_no_constraint_action")
+            continue
 
         if action.mode == "aggressive" and is_red and cfg.aggressive_disallowed_under_red:
             legal = False
@@ -497,7 +526,10 @@ def build_legal_action_mask(
             # With two future laps, staying out once still permits a pit-now
             # change whose new compound is used on the final lap.  With only
             # one future lap, the mandatory change must happen now.
-            if mandatory_change and remaining < 2.0:
+            if known_no_satisfying_compound:
+                legal = False
+                reason = "mandatory_change_no_available_satisfying_compound"
+            elif mandatory_change and remaining < 2.0:
                 legal = False
                 reason = (
                     "mandatory_change_requires_pit_now"
@@ -534,6 +566,9 @@ def build_legal_action_mask(
             elif action.compound == current and not cfg.allow_same_compound_pit:
                 legal = False
                 reason = "same_compound_pit_disabled"
+            elif known_no_satisfying_compound:
+                legal = False
+                reason = "mandatory_change_no_available_satisfying_compound"
             elif (
                 mandatory_change
                 and not _compound_satisfies_mandatory_change(

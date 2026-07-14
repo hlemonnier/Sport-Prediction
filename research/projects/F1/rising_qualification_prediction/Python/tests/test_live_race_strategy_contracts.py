@@ -22,6 +22,7 @@ from packages.f1.models.live_race.environment import (
     StrategyState,
     build_replay_transitions,
     compute_transition_reward,
+    legal_action_mask_input_evidence,
 )
 from packages.f1.models.live_race.evaluate_policy import evaluate_strategy_policy
 from packages.f1.models.live_race.mpc import MPCStrategyPlanner
@@ -356,6 +357,75 @@ def test_mandatory_change_deadline_follows_action_execution_timing() -> None:
     assert infeasible.to_payload()["legal_action_keys"] == []
     assert not any(infeasible.to_payload()["constraint_legal_mask"])
     assert infeasible.to_payload()["selectable_action_keys"] == [fallback.key]
+
+
+def test_known_inventory_without_a_satisfying_compound_is_infeasible() -> None:
+    action_space = build_action_space(
+        compounds=("MEDIUM", "HARD"),
+        include_pit_next_lap=True,
+    )
+    state = _state(
+        remaining_laps=3,
+        compound="MEDIUM",
+        used_compounds=("MEDIUM",),
+        metadata={
+            "available_compounds": ("MEDIUM",),
+            "compound_inventory_known": True,
+            "pit_lane_open": True,
+            "mandatory_compound_change_required": True,
+        },
+    )
+
+    mask = build_legal_action_mask(state, action_space=action_space)
+
+    assert mask.constraint_feasible is False
+    assert mask.operational_fallback_applied is True
+    assert mask.legal_actions == ()
+    assert mask.reason_for(StrategyAction(ACTION_STAY_OUT)) == (
+        "fallback_safe_noop_after_all_actions_masked"
+    )
+    assert all(
+        reason == "mandatory_change_no_available_satisfying_compound"
+        or reason == "compound_not_available"
+        for action, reason in zip(mask.actions, mask.reasons)
+        if action.action_type != ACTION_STAY_OUT
+    )
+
+
+def test_missing_inventory_is_unknown_not_proof_of_infeasibility() -> None:
+    state = _state(
+        remaining_laps=3,
+        metadata={
+            "pit_lane_open": True,
+            "mandatory_compound_change_required": True,
+        },
+    )
+
+    mask = build_legal_action_mask(state)
+    evidence = legal_action_mask_input_evidence(state)
+
+    assert mask.constraint_feasible is True
+    assert mask.is_legal(StrategyAction(ACTION_STAY_OUT))
+    assert evidence["certified"] is False
+    assert "compound_inventory" in evidence["blockers"]
+
+
+def test_terminal_state_has_no_constraint_legal_action() -> None:
+    state = _state(
+        remaining_laps=0,
+        compound="HARD",
+        used_compounds=("MEDIUM", "HARD"),
+    )
+
+    mask = build_legal_action_mask(state)
+
+    assert mask.constraint_feasible is False
+    assert mask.legal_actions == ()
+    assert mask.operational_fallback_applied is True
+    assert set(mask.reasons) == {
+        "fallback_safe_noop_after_all_actions_masked",
+        "race_complete_no_constraint_action",
+    }
 
 
 def test_invalid_mandatory_change_override_blocks_full_mask_certification() -> None:

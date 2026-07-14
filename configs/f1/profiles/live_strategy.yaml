@@ -32,6 +32,8 @@ action_space:
   sporting_deadlines_derived_from_action_timing: true
   pit_now_minimum_remaining_laps: 1
   pit_next_lap_minimum_remaining_laps: 2
+  known_inventory_requires_reachable_mandatory_compound: true
+  terminal_state_has_no_constraint_legal_action: true
   wet_or_intermediate_use_waives_two_dry_specification_rule: true
   missing_tyre_inventory_policy: mask_all_pit_compounds
   missing_pit_lane_state_policy: mask_all_pit_actions
@@ -39,6 +41,7 @@ action_space:
   stay_out_blocked_at_last_feasible_mandatory_stop: true
   constraint_infeasibility_is_all_false_for_policy_training: true
   operational_noop_fallback_is_not_constraint_legal: true
+  operational_noop_fallback_executes_with_explicit_penalty: true
 evaluation:
   metrics:
     - policy_value

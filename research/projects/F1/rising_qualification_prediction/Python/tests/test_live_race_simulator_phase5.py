@@ -129,6 +129,49 @@ def test_live_race_simulator_is_seed_deterministic_for_same_scenario() -> None:
     assert left.state_t1.fingerprint() == right.state_t1.fingerprint()
 
 
+def test_terminal_simulator_step_is_a_done_noop_without_a_phantom_lap() -> None:
+    state = _state(
+        lap_number=5,
+        remaining_laps=0,
+        compound="HARD",
+        used_compounds=("SOFT", "HARD"),
+    )
+
+    transition = LiveRaceSimulator().step(state, StrategyAction(ACTION_STAY_OUT))
+
+    assert transition.done is True
+    assert transition.state_t1 == state
+    assert transition.reward_t.value == 0.0
+    assert transition.metadata["terminal_noop"] is True
+    assert transition.legal_action_mask.constraint_feasible is False
+
+
+def test_single_car_simulator_advances_nonlegal_operational_fallback_with_penalty() -> None:
+    state = _state(
+        remaining_laps=2,
+        compound="SOFT",
+        used_compounds=("SOFT",),
+        metadata={
+            **_state().metadata,
+            "available_compounds": ("SOFT",),
+            "compound_inventory_known": True,
+            "mandatory_compound_change_required": True,
+        },
+    )
+    fallback = StrategyAction(ACTION_STAY_OUT)
+
+    transition = LiveRaceSimulator().step(state, fallback)
+
+    assert transition.state_t1.lap_number == state.lap_number + 1
+    assert transition.state_t1.remaining_laps == 1
+    assert transition.metadata["constraint_legal_action"] is False
+    assert transition.metadata["operational_fallback_executed"] is True
+    assert transition.reward_t.components["illegal_action_penalty"] > 0.0
+    assert transition.reward_t.note == (
+        "operational_fallback_nonlegal_safety_transition"
+    )
+
+
 def test_pit_action_applies_pit_loss_and_resets_tyre_and_degradation_prior() -> None:
     state = _state(compound="SOFT", tyre_age=20, used_compounds=("SOFT",), deg_rate_mean=0.16)
     action = StrategyAction(ACTION_PIT_NOW, compound="HARD")

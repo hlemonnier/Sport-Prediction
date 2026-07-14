@@ -266,7 +266,34 @@ class LiveRaceSimulator:
         state = self._normalize_state_metadata(state)
         action = action if isinstance(action, StrategyAction) else StrategyAction.from_key(action)
         legal_mask = build_legal_action_mask(state, action_space=self.action_space, config=self.config.action_mask)
-        if not legal_mask.is_legal(action):
+        if state.remaining_laps is not None and int(state.remaining_laps) <= 0:
+            return StrategyTransition(
+                state_t=state,
+                action_t=action,
+                reward_t=StrategyReward(
+                    value=0.0,
+                    components={
+                        "race_time_delta_seconds": 0.0,
+                        "illegal_action_penalty": 0.0,
+                    },
+                    note="race_complete_no_transition",
+                ),
+                state_t1=state,
+                done=True,
+                legal_action_mask=legal_mask,
+                metadata={
+                    "transition_model": self.model_id,
+                    "scenario_id": self.scenario.scenario_id,
+                    "terminal_noop": True,
+                    "limitations": self.limitations,
+                },
+            )
+
+        operational_fallback_executed = bool(
+            legal_mask.operational_fallback_applied
+            and legal_mask.is_selectable(action)
+        )
+        if not legal_mask.is_legal(action) and not operational_fallback_executed:
             penalty = float(self.config.reward.illegal_action_penalty)
             return StrategyTransition(
                 state_t=state,
@@ -339,15 +366,28 @@ class LiveRaceSimulator:
             compound_for_lap=compound_for_lap,
         )
         reward = StrategyReward(
-            value=-float(elapsed),
+            value=-float(elapsed)
+            - (
+                float(self.config.reward.illegal_action_penalty)
+                if operational_fallback_executed
+                else 0.0
+            ),
             components={
                 **breakdown.to_payload(),
                 "race_time_delta_seconds": float(elapsed),
                 "estimated_lap_seconds": float(elapsed - pit_loss),
-                "illegal_action_penalty": 0.0,
+                "illegal_action_penalty": (
+                    float(self.config.reward.illegal_action_penalty)
+                    if operational_fallback_executed
+                    else 0.0
+                ),
                 "points_proxy": _points_proxy(next_state.position),
             },
-            note="live_race_simulator_transition",
+            note=(
+                "operational_fallback_nonlegal_safety_transition"
+                if operational_fallback_executed
+                else "live_race_simulator_transition"
+            ),
         )
         return StrategyTransition(
             state_t=state,
@@ -360,6 +400,12 @@ class LiveRaceSimulator:
                 "transition_model": self.model_id,
                 "scenario_id": self.scenario.scenario_id,
                 "seed": int(self.config.seed),
+                "constraint_legal_action": bool(
+                    legal_mask.is_legal(action)
+                ),
+                "operational_fallback_executed": bool(
+                    operational_fallback_executed
+                ),
                 "breakdown": breakdown.to_payload(),
                 "limitations": self.limitations,
                 "final_order_is_proxy_only": True,

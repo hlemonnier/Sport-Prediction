@@ -79,6 +79,7 @@ def test_schedule_policy_masks_illegal_decentralized_pit_actions() -> None:
 
     hard_unavailable = replace(
         state.cars[0],
+        used_compounds=("MEDIUM", "HARD"),
         metadata={**state.cars[0].metadata, "available_compounds": ("MEDIUM",)},
     )
     action = policy.select_action(hard_unavailable)

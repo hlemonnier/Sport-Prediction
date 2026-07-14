@@ -398,9 +398,29 @@ def test_remote_safe_strategy_is_recomputed_from_local_legal_state():
 
     assert prediction.strategy["safeToRecommend"] is True
     assert prediction.strategy["recommendedAction"] == "stay_out"
-    assert prediction.strategy["legalActionKey"] == "stay_out:conservative"
-    assert "stay_out:conservative" in prediction.strategy["legalActionMask"]["legalActionKeys"]
+    assert prediction.strategy["paceMode"] is None
+    assert prediction.strategy["legalActionKey"] is None
+    assert prediction.strategy["compatibleLegalActionKeys"] == [
+        "stay_out:conservative",
+        "stay_out:aggressive",
+    ]
     assert prediction.strategy["legalityState"]["tyreAge"] == 12
+
+
+def test_remote_explicit_pace_mode_produces_one_locally_verified_action_key():
+    snapshot = _strategy_ready_snapshot()
+    response = _strategy_response(snapshot, action="stay_out", safe=True, pace_mode="aggressive")
+    service = RemotePredictionService(
+        RemotePredictionConfig(base_url="http://prediction.local", fallback_on_error=False),
+        transport=lambda _request, _timeout: response,
+    )
+
+    prediction = asyncio.run(service.predict_strategy(snapshot))[0]
+
+    assert prediction.strategy["safeToRecommend"] is True
+    assert prediction.strategy["paceMode"] == "aggressive"
+    assert prediction.strategy["compatibleLegalActionKeys"] == ["stay_out:aggressive"]
+    assert prediction.strategy["legalActionKey"] == "stay_out:aggressive"
 
 
 def test_remote_strategy_fails_closed_when_local_tyre_age_is_missing():
@@ -616,7 +636,7 @@ def _strategy_ready_snapshot(*, pit_lane_open=True):
     )
 
 
-def _strategy_response(snapshot, *, action, safe):
+def _strategy_response(snapshot, *, action, safe, pace_mode=None):
     return {
         "predictionKind": "strategy",
         "predictions": [
@@ -643,6 +663,7 @@ def _strategy_response(snapshot, *, action, safe):
                     "safeToRecommend": safe,
                     "availability": "available" if safe else "unavailable",
                     "policyVersion": "strategy_contract_v2",
+                    **({"paceMode": pace_mode} if pace_mode is not None else {}),
                 },
             }
         ],

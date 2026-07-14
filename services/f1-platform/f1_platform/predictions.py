@@ -1005,32 +1005,53 @@ def _validated_strategy_payload(
     ).strip().lower()
     next_compound = strategy.get("nextCompound", strategy.get("next_compound"))
     try:
-        StrategyAction, build_legal_action_mask = _load_legal_action_mask_components()
-        if action_name == "stay_out":
-            candidate = StrategyAction("stay_out", mode="conservative")
-        elif action_name in {"pit_now", "pit_next_lap"}:
-            candidate = StrategyAction(action_name, compound=next_compound, mode="conservative")
-        else:
-            raise ValueError(f"unsupported_strategy_action:{action_name or 'missing'}")
+        _, build_legal_action_mask = _load_legal_action_mask_components()
         legal_mask = build_legal_action_mask(legality_state)
     except Exception as exc:
         return _closed_strategy_payload(
             strategy,
             f"platform_local_legal_mask_unavailable:{type(exc).__name__}:{exc}",
         )
-    if not legal_mask.is_legal(candidate):
+    try:
+        if action_name not in {"stay_out", "pit_now", "pit_next_lap"}:
+            raise ValueError(f"unsupported_strategy_action:{action_name or 'missing'}")
+        pace_mode = _explicit_strategy_pace_mode(strategy)
+        matching_actions = _matching_strategy_actions(
+            [*legal_mask.legal_actions, *legal_mask.illegal_actions],
+            action_name=action_name,
+            next_compound=next_compound,
+            pace_mode=pace_mode,
+        )
+        if not matching_actions:
+            raise ValueError("no_action_space_variant_matches_strategy_action")
+    except Exception as exc:
         return _closed_strategy_payload(
             strategy,
-            f"platform_local_action_illegal:{legal_mask.reason_for(candidate)}",
+            f"platform_local_action_cannot_be_mapped:{type(exc).__name__}:{exc}",
+        )
+    compatible_legal_actions = [
+        candidate for candidate in matching_actions if legal_mask.is_legal(candidate)
+    ]
+    if not compatible_legal_actions:
+        illegal_reasons = sorted(
+            {legal_mask.reason_for(candidate) for candidate in matching_actions}
+        )
+        reason = illegal_reasons[0] if len(illegal_reasons) == 1 else "no_compatible_legal_action"
+        return _closed_strategy_payload(
+            strategy,
+            f"platform_local_action_illegal:{reason}",
         )
 
+    compatible_keys = [candidate.key for candidate in compatible_legal_actions]
     return {
         **strategy,
         "recommendedAction": action_name,
         "availability": "available",
         "safeToRecommend": True,
         "unavailableReason": None,
-        "legalActionKey": candidate.key,
+        "paceMode": pace_mode,
+        "compatibleLegalActionKeys": compatible_keys,
+        "legalActionKey": compatible_keys[0] if pace_mode is not None else None,
         "legalActionMask": {
             "contract": "packages.f1.models.live_race.action_space.build_legal_action_mask",
             "legalActionCount": legal_mask.legal_count,
@@ -1038,6 +1059,36 @@ def _validated_strategy_payload(
         },
         "legalityState": _strategy_legality_evidence(legality_state),
     }
+
+
+def _explicit_strategy_pace_mode(strategy: dict[str, Any]) -> str | None:
+    raw_mode = _mapping_value(
+        strategy,
+        ("paceMode", "pace_mode", "actionMode", "action_mode", "strategyMode", "strategy_mode", "mode"),
+    )
+    if raw_mode is None or not str(raw_mode).strip():
+        return None
+    pace_mode = str(raw_mode).strip().lower()
+    if pace_mode not in {"conservative", "aggressive"}:
+        raise ValueError(f"unsupported_pace_mode:{pace_mode}")
+    return pace_mode
+
+
+def _matching_strategy_actions(
+    actions: list[Any],
+    *,
+    action_name: str,
+    next_compound: Any,
+    pace_mode: str | None,
+) -> list[Any]:
+    requested_compound = _normalize_compound(next_compound)
+    return [
+        candidate
+        for candidate in actions
+        if candidate.action_type == action_name
+        and (action_name == "stay_out" or candidate.compound == requested_compound)
+        and (pace_mode is None or candidate.mode == pace_mode)
+    ]
 
 
 def _closed_strategy_payload(strategy: dict[str, Any], reason: str) -> dict[str, Any]:
@@ -1050,6 +1101,8 @@ def _closed_strategy_payload(strategy: dict[str, Any], reason: str) -> dict[str,
         "safeToRecommend": False,
         "unavailableReason": reason,
         "originalRecommendedAction": original,
+        "paceMode": None,
+        "compatibleLegalActionKeys": [],
         "legalActionKey": None,
         "legalActionMask": None,
         "legalityState": None,

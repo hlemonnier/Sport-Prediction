@@ -16,6 +16,13 @@ from packages.f1.orchestration.model_registry import (
     PromotionEvidence,
     registry_entry_from_profile,
 )
+from packages.f1.models.live_race.environment import (
+    LEAKAGE_CONTRACT_VERSION,
+    REWARD_SEMANTICS,
+    TRANSITION_FINGERPRINT_VERSION,
+)
+from packages.f1.models.live_race.replay_buffer import REPLAY_RECORD_SCHEMA_VERSION
+from packages.f1.models.live_race.rl.replay_buffer import REPLAY_DATASET_SCHEMA_VERSION
 
 
 def _ultimate_metrics(**overrides: float) -> dict[str, float]:
@@ -343,3 +350,24 @@ def test_live_strategy_rl_profile_uses_phase7_policy_id() -> None:
 
     assert phase9_profile["runtime_family"] == phase7_profile["model_family"]
     assert phase7_profile["rl"]["offline_rl"]["model_id"] == phase9_profile["registry"]["model_id"]
+    assert phase7_profile["contracts"]["state_schema"] == LEAKAGE_CONTRACT_VERSION
+    assert phase7_profile["contracts"]["transition_schema"] == TRANSITION_FINGERPRINT_VERSION
+    assert phase7_profile["contracts"]["replay_record_schema"] == REPLAY_RECORD_SCHEMA_VERSION
+    assert phase7_profile["rl"]["replay_dataset"]["dataset_id"] == REPLAY_DATASET_SCHEMA_VERSION
+    metadata = phase9_profile["registry"]["metadata"]
+    assert metadata["replay_dataset_schema"] == REPLAY_DATASET_SCHEMA_VERSION
+    assert metadata["transition_fingerprint_schema"] == TRANSITION_FINGERPRINT_VERSION
+    assert metadata["replay_record_schema"] == REPLAY_RECORD_SCHEMA_VERSION
+    assert phase7_profile["rl"]["offline_rl"]["reward_semantics"] == REWARD_SEMANTICS
+    assert metadata["reward_semantics"] == REWARD_SEMANTICS
+    assert phase9_profile["registry"]["deterministic_fallback"] is True
+    assert metadata["behavior_cloning_partial_label_rows"] == 9506
+    assert metadata["exact_mode_action_keys_supported"] == 0
+    assert metadata["offline_q_rows"] == 0
+    assert metadata["propensity_ope_rows"] == 0
+    assert metadata["strategy_training_readiness_gate_pass"] is False
+    assert metadata["current_candidate_trainable"] is False
+    replay_audit = "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json"
+    assert phase7_profile["artifacts"]["replay_audit"] == replay_audit
+    assert phase7_profile["rl"]["replay_dataset"]["current_replay_readiness"]["evidence"] == replay_audit
+    assert metadata["replay_audit_artifact"] == replay_audit

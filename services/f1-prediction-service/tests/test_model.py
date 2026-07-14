@@ -25,7 +25,12 @@ def test_predict_from_snapshot_returns_prediction_contract():
     assert first["points_probability"] >= first["podium_probability"]
     assert first["strategy"]["recommendedAction"] in {"stay_out", "pit_next_lap", "pit_now"}
     assert first["strategy"]["safeToRecommend"] is True
-    assert first["strategy"]["legalActionKey"] in first["strategy"]["legalActionMask"]["legal_action_keys"]
+    assert first["strategy"]["paceMode"] is None
+    assert first["strategy"]["legalActionKey"] is None
+    assert first["strategy"]["compatibleLegalActionKeys"]
+    assert set(first["strategy"]["compatibleLegalActionKeys"]).issubset(
+        first["strategy"]["legalActionMask"]["legal_action_keys"]
+    )
     assert "conditional_classification_order" in first["position_semantics"]
     assert result["diagnostics"]["calibrationStatus"] == "uncalibrated_heuristic_not_validated_for_promotion"
     assert result["diagnostics"]["promotionStatus"] == "not_promoted"
@@ -308,7 +313,12 @@ def test_strategy_legality_evidence_covers_shared_mask_state():
     for prediction in result["predictions"]:
         strategy = prediction["strategy"]
         assert strategy["safeToRecommend"] is True
-        assert strategy["legalActionKey"] in strategy["legalActionMask"]["legal_action_keys"]
+        assert strategy["paceMode"] is None
+        assert strategy["legalActionKey"] is None
+        assert strategy["compatibleLegalActionKeys"]
+        assert set(strategy["compatibleLegalActionKeys"]).issubset(
+            strategy["legalActionMask"]["legal_action_keys"]
+        )
         assert strategy["legalityState"] == {
             "lapNumber": 23,
             "totalLaps": 57,
@@ -333,6 +343,31 @@ def test_strategy_legality_evidence_covers_shared_mask_state():
         }
     assert result["diagnostics"]["forecastAvailable"] is False
     assert result["diagnostics"]["strategyRecommendationAvailableCount"] == 3
+
+
+def test_explicit_pace_mode_is_the_only_path_to_a_singular_legal_action_key():
+    driver = model_module._drivers(_snapshot())[0]
+    legality_state, missing = model_module._strategy_legality_state(driver)
+    assert missing == []
+
+    coarse = model_module._apply_shared_legal_action_mask(
+        {"recommended_action": "stay_out"},
+        legality_state,
+    )
+    explicit = model_module._apply_shared_legal_action_mask(
+        {"recommended_action": "stay_out", "action_mode": "aggressive"},
+        legality_state,
+    )
+
+    assert coarse["pace_mode"] is None
+    assert coarse["legal_action_key"] is None
+    assert coarse["compatible_legal_action_keys"] == [
+        "stay_out:conservative",
+        "stay_out:aggressive",
+    ]
+    assert explicit["pace_mode"] == "aggressive"
+    assert explicit["compatible_legal_action_keys"] == ["stay_out:aggressive"]
+    assert explicit["legal_action_key"] == "stay_out:aggressive"
 
 
 @pytest.mark.parametrize(

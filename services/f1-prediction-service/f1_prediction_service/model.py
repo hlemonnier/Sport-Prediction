@@ -999,7 +999,7 @@ def _normalize_compound(value: Any) -> str:
 
 def _apply_shared_legal_action_mask(policy: JsonObject, legality_state: JsonObject) -> JsonObject:
     try:
-        StrategyAction, build_legal_action_mask = _load_legal_action_mask_components()
+        _, build_legal_action_mask = _load_legal_action_mask_components()
         legal_mask = build_legal_action_mask(legality_state)
     except Exception as exc:
         return _unavailable_strategy_row(
@@ -1010,16 +1010,17 @@ def _apply_shared_legal_action_mask(policy: JsonObject, legality_state: JsonObje
 
     action = str(policy.get("recommended_action") or "").strip().lower()
     try:
-        if action == "stay_out":
-            candidate = StrategyAction("stay_out", mode="conservative")
-        elif action in {"pit_now", "pit_next_lap"}:
-            candidate = StrategyAction(
-                action,
-                compound=policy.get("next_compound"),
-                mode="conservative",
-            )
-        else:
+        if action not in {"stay_out", "pit_now", "pit_next_lap"}:
             raise ValueError(f"unsupported_policy_action:{action or 'missing'}")
+        pace_mode = _explicit_strategy_pace_mode(policy)
+        matching_actions = _matching_strategy_actions(
+            [*legal_mask.legal_actions, *legal_mask.illegal_actions],
+            action_name=action,
+            next_compound=policy.get("next_compound"),
+            pace_mode=pace_mode,
+        )
+        if not matching_actions:
+            raise ValueError("no_action_space_variant_matches_policy_action")
     except Exception as exc:
         return _unavailable_strategy_row(
             f"policy_action_cannot_be_mapped:{type(exc).__name__}:{exc}",
@@ -1029,25 +1030,65 @@ def _apply_shared_legal_action_mask(policy: JsonObject, legality_state: JsonObje
         )
 
     mask_payload = _legal_action_mask_evidence(legal_mask)
-    if not legal_mask.is_legal(candidate):
+    compatible_legal_actions = [
+        candidate for candidate in matching_actions if legal_mask.is_legal(candidate)
+    ]
+    if not compatible_legal_actions:
+        illegal_reasons = sorted(
+            {legal_mask.reason_for(candidate) for candidate in matching_actions}
+        )
+        reason = illegal_reasons[0] if len(illegal_reasons) == 1 else "no_compatible_legal_action"
         return _unavailable_strategy_row(
-            f"policy_action_illegal:{legal_mask.reason_for(candidate)}",
+            f"policy_action_illegal:{reason}",
             policy=policy,
             legal_action_mask=mask_payload,
             legality_state=legality_state,
             original_action=action,
         )
 
+    compatible_keys = [candidate.key for candidate in compatible_legal_actions]
     return {
         **policy,
         "strategy_available": True,
         "safe_to_recommend": True,
         "strategy_unavailable_reason": None,
         "missing_legality_fields": [],
-        "legal_action_key": candidate.key,
+        "pace_mode": pace_mode,
+        "compatible_legal_action_keys": compatible_keys,
+        "legal_action_key": compatible_keys[0] if pace_mode is not None else None,
         "legal_action_mask": mask_payload,
         "legality_state": _strategy_legality_evidence(legality_state),
     }
+
+
+def _explicit_strategy_pace_mode(policy: JsonObject) -> str | None:
+    raw_mode = _first_present(
+        [policy],
+        ("pace_mode", "paceMode", "action_mode", "actionMode", "strategy_mode", "strategyMode", "mode"),
+    )
+    if raw_mode is None or not str(raw_mode).strip():
+        return None
+    pace_mode = str(raw_mode).strip().lower()
+    if pace_mode not in {"conservative", "aggressive"}:
+        raise ValueError(f"unsupported_pace_mode:{pace_mode}")
+    return pace_mode
+
+
+def _matching_strategy_actions(
+    actions: list[Any],
+    *,
+    action_name: str,
+    next_compound: Any,
+    pace_mode: str | None,
+) -> list[Any]:
+    requested_compound = _normalize_compound(next_compound)
+    return [
+        candidate
+        for candidate in actions
+        if candidate.action_type == action_name
+        and (action_name == "stay_out" or candidate.compound == requested_compound)
+        and (pace_mode is None or candidate.mode == pace_mode)
+    ]
 
 
 def _legal_action_mask_evidence(legal_mask: Any) -> JsonObject:
@@ -1085,6 +1126,8 @@ def _unavailable_strategy_row(
         "strategy_unavailable_reason": reason,
         "missing_legality_fields": list(missing_fields or []),
         "original_recommended_action": original,
+        "pace_mode": None,
+        "compatible_legal_action_keys": [],
         "legal_action_key": None,
         "legal_action_mask": legal_action_mask,
         "legality_state": _strategy_legality_evidence(legality_state) if legality_state else None,
@@ -1254,6 +1297,8 @@ def _strategy_payload(policy: JsonObject) -> JsonObject:
         "unavailableReason": policy.get("strategy_unavailable_reason"),
         "missingLegalityFields": list(policy.get("missing_legality_fields") or []),
         "originalRecommendedAction": policy.get("original_recommended_action"),
+        "paceMode": policy.get("pace_mode"),
+        "compatibleLegalActionKeys": list(policy.get("compatible_legal_action_keys") or []),
         "legalActionKey": policy.get("legal_action_key"),
         "legalActionMask": policy.get("legal_action_mask"),
         "legalityState": policy.get("legality_state"),

@@ -401,6 +401,24 @@ def _load_profile(path_value: str) -> tuple[Path, dict[str, Any]]:
     return path, payload
 
 
+def _profile_bound_run_id(profile: dict[str, Any], *, label: str) -> object:
+    promotion = profile.get("promotion", {})
+    if not isinstance(promotion, dict):
+        return None
+    rebuild_run_id = promotion.get("baseline_rebuild_run_id")
+    legacy_run_id = promotion.get("evidence_run_id")
+    if (
+        rebuild_run_id is not None
+        and legacy_run_id is not None
+        and str(rebuild_run_id) != str(legacy_run_id)
+    ):
+        raise ValueError(
+            f"{label} profile has ambiguous promotion run IDs: "
+            "baseline_rebuild_run_id and evidence_run_id disagree"
+        )
+    return rebuild_run_id if rebuild_run_id is not None else legacy_run_id
+
+
 def _assert_profiles_match_invocation(
     *,
     qualifying: dict[str, Any],
@@ -438,9 +456,9 @@ def _assert_profiles_match_invocation(
             errors.append(f"{label}.field_size")
         if bool(profile.get("features", {}).get("standings", False)) != bool(include_standings):
             errors.append(f"{label}.features.standings")
-        evidence_run_id = profile.get("promotion", {}).get("evidence_run_id")
-        if run_id is not None and str(evidence_run_id) != str(run_id):
-            errors.append(f"{label}.promotion.evidence_run_id")
+        bound_run_id = _profile_bound_run_id(profile, label=label)
+        if run_id is not None and str(bound_run_id) != str(run_id):
+            errors.append(f"{label}.promotion.baseline_rebuild_run_id")
     if qualifying.get("information_horizon") != qualifying_horizon:
         errors.append("qualifying.information_horizon")
     if race.get("information_horizon") != race_horizon:
@@ -860,7 +878,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-standings", action="store_true")
     parser.add_argument("--cache-dir", default=None)
     parser.add_argument("--weekends-dir", default=default_weekends_dir())
-    parser.add_argument("--compare-families", default="ml")
+    parser.add_argument("--compare-families", default="baseline")
     parser.add_argument("--enable-dl-candidates", action="store_true")
     parser.add_argument("--dl-device", choices=["auto", "cpu", "cuda"], default="auto")
     parser.add_argument("--dl-arch", default="mlp_tabular_v1")
@@ -870,16 +888,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qualifying-runsim-features",
         choices=["inherit", "enabled", "disabled"],
-        default="inherit",
+        default="disabled",
         help="Qualifying-only run-simulation policy; inherit preserves the legacy global flag.",
     )
     parser.add_argument(
         "--race-runsim-features",
         choices=["inherit", "enabled", "disabled"],
-        default="inherit",
+        default="enabled",
         help="Race-only run-simulation policy; inherit preserves the legacy global flag.",
     )
-    parser.add_argument("--f1-model", default="auto")
+    parser.add_argument("--f1-model", default="baseline")
     parser.add_argument(
         "--qualifying-model",
         default=None,
@@ -894,7 +912,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--race-information-horizon",
         choices=["post_qualifying_pre_grid", "post_grid_pre_race"],
-        default="post_qualifying_pre_grid",
+        default="post_grid_pre_race",
     )
     parser.add_argument("--max-threads", type=int, default=1)
     parser.add_argument("--output-dir", default=default_output_dir())

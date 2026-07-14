@@ -1,6 +1,6 @@
 {
   "schema_version": "f1_maturity_evidence_v2_four_modes",
-  "as_of": "2026-07-13",
+  "as_of": "2026-07-14",
   "evaluation_data_cutoff": "2026-07-05_after_round_09",
   "evidence_finalized_timezone": "Europe/Paris",
   "runtime": {
@@ -44,6 +44,7 @@
     "required_baseline_schema": "f1_baseline_ladder_complete_field_v2",
     "required_horizon_schema": "f1_horizon_a_vs_b_complete_field_calibration_v3",
     "required_probability_audit_schema": "pl_gumbel_probability_audit_v4_disjoint_calibration",
+    "qualifying_position_probability_audit_schema": "f1_qualifying_probability_temperature_sinkhorn_audit_v3",
     "required_temporal_partition_schema": "f1_temporal_selection_calibration_audit_v1"
   },
   "provider_feature_contract": {
@@ -72,106 +73,207 @@
   "stages": {
     "qualifying_prediction": {
       "implementation_status": "executable_research",
-      "deployment_status": "research_point_policy_retained_no_current_paired_baseline_claim",
+      "deployment_status": "research_rehearsal_rank_baseline_retained_after_postdevelopment_replay_diagnostic",
       "target": "official grand-prix qualifying classification",
       "absolute_walk_forward_evidence_status": "measured_on_nine_event_2026_point_in_time_walk_forward",
-      "predictive_edge_status": "quality_aware_pairwise_challenger_rejected_on_2026_audit",
+      "predictive_edge_status": "shared_latent_meal_challenger_evaluated_not_promoted_no_postdevelopment_replay_gain",
       "retained_point_policy": "chronological causal expert selector using target-aligned rehearsal ranks",
-      "probability_status": "not_promoted_insufficient_disjoint_calibration_history",
-      "uncertainty_status": "not_promoted_event_mean_coverage_0.7020",
-      "mean_field_mae": 1.878787878787879,
+      "probability_status": "diagnostic_temperature_sinkhorn_not_promoted_two_calibration_events_below_four",
+      "uncertainty_status": "not_promoted_underpowered_disjoint_calibration",
+      "mean_field_mae": 1.8686868686868685,
       "stale_comparison_runs_status": "quarantined_not_current_evidence",
-      "mean_kendall_tau_b": 0.7748917748917749,
-      "pairwise_challenger": {
-        "artifact": "artifacts/backtests/f1/qualifying/quality_aware_pairwise_v1_20260713.json",
-        "matched_baseline_mae": 1.8686868686868685,
-        "challenger_mae": 2.1414141414141414,
-        "matched_baseline_kendall": 0.772967772967773,
-        "challenger_kendall": 0.7518037518037518,
+      "mean_kendall_tau_b": 0.7739297739297739,
+      "all_round_research_selected_output_mae": 1.8585858585858586,
+      "all_round_research_selected_output_kendall": 0.7768157768157767,
+      "shared_latent_challenger": {
+        "artifact": "artifacts/backtests/f1/qualifying/shared_latent_same_season_v2_20260713.json",
+        "schema_version": "f1_shared_qualifying_latent_event_block_v6",
+        "selection_block_winner_model_id": "shared_qualifying_latent_lap_v4",
+        "retained_public_output_model_id": "qualifying_rehearsal_rank_baseline_v1",
+        "prospective_development_evidence": false,
+        "selected_point_head": "joint_minimum_expected_absolute_position_loss_assignment",
+        "selected_enable_robust_residual": false,
+        "audit_events": 3,
+        "audit_matched_baseline_mae": 1.3636363636363635,
+        "audit_challenger_mae": 1.3636363636363635,
+        "audit_matched_baseline_kendall": 0.8412698412698413,
+        "audit_challenger_kendall": 0.8354978354978355,
         "paired_delta_ci95": [
-          0.030303030303030373,
-          0.505050505050505
+          -0.09090909090909105,
+          0.09090909090909094
         ],
-        "decision": "rejected_baseline_retained"
+        "bootstrap_probability_of_improvement": 0.59605,
+        "decision": "evaluated_not_promoted_baseline_retained"
+      },
+      "position_probability_audit": {
+        "artifact": "artifacts/backtests/f1/qualifying/shared_latent_same_season_probability_audit_v4_20260714.json",
+        "schema_version": "f1_qualifying_probability_temperature_sinkhorn_audit_v3",
+        "calibration_events": 2,
+        "audit_events": 3,
+        "selected_temperature": 0.8,
+        "uncalibrated_multiclass_log_loss": 2.847352486626994,
+        "calibrated_multiclass_log_loss": 2.834998795650037,
+        "uncalibrated_normalized_multiclass_brier": 0.46776106221121433,
+        "calibrated_normalized_multiclass_brier": 0.46798753033180224,
+        "promotion_status": "diagnostic_only_insufficient_independent_calibration_events"
       },
       "stage_probability_status": "implemented_but_not_posthoc_calibrated",
       "current_evidence": [
-        "artifacts/backtests/f1/rolling_2026/runs/2026_four_mode_rebuild_20260712e/run_manifest.json",
-        "docs/research/f1_four_mode_math_logic_implementation_audit_20260711.md"
+        "artifacts/backtests/f1/qualifying/shared_latent_same_season_v2_20260713.json",
+        "artifacts/backtests/f1/qualifying/shared_latent_same_season_probability_audit_v4_20260714.json",
+        "docs/research/f1_model_research_v2_results_20260713.md"
       ]
     },
     "race_final_position": {
       "implementation_status": "executable_research",
-      "deployment_status": "research_post_qualifying_proxy_baseline",
+      "deployment_status": "research_legal_final_grid_baseline_retained",
       "target": "official final race classification and terminal status",
-      "predictive_edge_status": "causal_residual_and_reliability_challengers_rejected",
-      "probability_status": "not_promoted_insufficient_disjoint_calibration_history",
-      "terminal_status_probability_status": "implemented_diagnostic_brier_and_log_loss_improve_joint_model_rejected",
+      "predictive_edge_status": "survival_aware_joint_challenger_not_selected_on_same_season_selection",
+      "probability_status": "raw_joint_probabilities_diagnostic_same_product_calibration_blocked",
+      "terminal_status_probability_status": "raw_joint_diagnostic_not_promoted_audit_brier_and_log_loss_worse",
       "starting_grid_resolver": "packages/f1/domain/starting_grid.py",
-      "frozen_2026_final_grid_snapshot_status": "unavailable_so_evaluation_uses_explicit_qualifying_proxy",
-      "mean_field_mae": 3.737373737373737,
-      "mean_kendall_tau_b": 0.5257335257335257,
+      "frozen_2026_final_grid_snapshot_status": "fia_final_grid_snapshots_available_all_nine_rounds_authoritative_pre_race_document_timestamps",
+      "qualifying_snapshot_status": "retrospective_provider_snapshot_not_first_seen_verified",
+      "mean_field_mae": 3.717171717171717,
+      "mean_kendall_tau_b": 0.5286195286195285,
       "survival_order_challenger": {
-        "artifact": "artifacts/backtests/f1/race_final_position/survival_order_v2_20260713.json",
-        "matched_baseline_mae": 3.737373737373737,
-        "challenger_mae": 3.7676767676767673,
-        "baseline_terminal_brier": 0.1828127588050855,
-        "challenger_terminal_brier": 0.1765147342135671,
-        "baseline_terminal_log_loss": 0.5616540316067948,
-        "challenger_terminal_log_loss": 0.5389354044047333,
-        "paired_delta_ci95": [
-          -0.04040404040404057,
-          0.1111111111111111
-        ],
-        "decision": "joint_challenger_rejected_proxy_baseline_retained"
+        "artifact": "artifacts/backtests/f1/race_final_position/survival_order_same_season_v8_selector_safe_20260713.json",
+        "schema_version": "f1_race_survival_order_event_block_v8",
+        "prospective_development_evidence": false,
+        "all_scored_events": 7,
+        "all_scored_matched_baseline_mae": 3.584415584415584,
+        "all_scored_challenger_mae": 4.025974025974026,
+        "all_scored_matched_baseline_kendall": 0.5547309833024119,
+        "all_scored_challenger_kendall": 0.4867037724180581,
+        "audit_events": 3,
+        "audit_matched_baseline_mae": 3.0909090909090913,
+        "audit_challenger_mae": 3.7878787878787876,
+        "audit_matched_baseline_kendall": 0.6277056277056277,
+        "audit_challenger_kendall": 0.5209235209235209,
+        "audit_baseline_terminal_brier": 0.1640962985432656,
+        "audit_challenger_terminal_brier": 0.17361093939393943,
+        "audit_baseline_terminal_log_loss": 0.5082213140262889,
+        "audit_challenger_terminal_log_loss": 0.529870345034543,
+        "same_horizon_selection_events": 2,
+        "same_horizon_calibration_events": 2,
+        "decision": "reject_joint_challenger_retain_legal_grid_baseline"
       },
-      "immutable_final_grid_snapshot_contract_status": "implemented_but_historical_first_seen_2026_snapshots_unavailable",
-      "challenger_evidence": "artifacts/backtests/f1/race_final_position/2026_walk_forward_causal_residual_challengers_v2_20260712e.json",
+      "certified_grid_prior_ablation": {
+        "artifact": "artifacts/backtests/f1/race_final_position/certified_grid_prior_state_ablation_v1_20260714.json",
+        "artifact_sha256": "b85f0312eead971e8f1ea3669247d89091d556352ba21eca0b057f1ef2500dbd",
+        "result_sha256": "460024b5d14b39258f95d0893b7a5d61f654a6f42c78a650d4261aa0f99d3a4a",
+        "input_manifest_sha256": "d96ea9644505beb165b041a6de44dfa1907f6e7acca8a026a7315ba80b52a65b",
+        "schema_version": "f1_race_certified_grid_prior_ablation_v1",
+        "authoritative_grid_events": 9,
+        "authoritative_grid_byte_contract": "nine_pinned_official_fia_pdf_files_parsed_and_cross_checked_against_capture_json",
+        "all_event_baseline_mae": 3.717171717171717,
+        "all_event_candidate_mae": 3.7272727272727275,
+        "selection_events": 2,
+        "selection_baseline_mae": 2.7272727272727275,
+        "selection_candidate_mae": 2.7272727272727275,
+        "audit_events": 3,
+        "audit_baseline_mae": 3.0909090909090913,
+        "audit_candidate_mae": 3.121212121212121,
+        "status": "evaluated_not_promoted_grid_prior_retained",
+        "decision": "retain_certified_legal_grid_baseline"
+      },
+      "terminal_probability_calibration": {
+        "calibration_events": 2,
+        "same_product_calibration_evidence": false,
+        "raw_terminal_brier": 0.2126888888888889,
+        "raw_terminal_log_loss": 0.6207777982856008,
+        "status": "blocked_requires_simulation_in_loop_or_marginal_preserving_copula",
+        "rejection_reason": "zero_shock_platt_rejected_for_final_distribution_mismatch"
+      },
+      "immutable_final_grid_snapshot_contract_status": "implemented_fia_final_grid_used_for_every_scored_event",
+      "promotion_status": "evaluated_not_promoted_insufficient_selection_and_same_product_calibration_evidence",
       "stale_automatic_ml_comparison_status": "quarantined_not_current_evidence",
       "current_evidence": [
-        "artifacts/backtests/f1/rolling_2026/runs/2026_four_mode_rebuild_20260712e/run_manifest.json",
-        "docs/research/f1_four_mode_math_logic_implementation_audit_20260711.md"
+        "artifacts/backtests/f1/race_final_position/survival_order_same_season_v8_selector_safe_20260713.json",
+        "artifacts/backtests/f1/race_final_position/certified_grid_prior_state_ablation_v1_20260714.json",
+        "docs/research/f1_model_research_v2_results_20260713.md"
       ]
     },
     "best_estimated_lap_time": {
       "implementation_status": "executable_research",
-      "deployment_status": "conditional_research_point_estimate_retained_full_mode_unpromoted",
+      "deployment_status": "research_rehearsal_shift_baseline_retained_challenger_and_full_mode_unpromoted",
       "target": "best valid representative qualifying lap achieved by session end",
       "theoretical_sector_lower_bound_is_target": false,
       "point_model": "achievable_best_lap_rehearsal_shift_v1",
-      "quality_aware_challenger_model": "achievable_best_lap_quality_aware_location_v2",
-      "quality_aware_challenger_status": "diagnostic_not_promoted_bootstrap_upper_bound_crosses_zero",
-      "deep_model_status": "not_promoted_requires_rehearsal_telemetry_and_separate_pre_q_feature_q_target_timestamps",
-      "rounds": 9,
-      "matched_rows": 191,
-      "causal_inference_rows": 192,
-      "observed_target_rows": 195,
-      "evaluation_union_rows": 196,
-      "end_to_end_scored_union_rate": 0.9744897959183674,
-      "conditional_event_mean_p50_mae_seconds": 0.5133200235437062,
-      "conditional_raw_rehearsal_mean_mae_seconds": 0.763862255385939,
-      "paired_mae_delta_seconds": -0.2505422318422328,
-      "conditional_event_mean_spearman": 0.9313375665778412,
+      "shared_latent_challenger_model": "shared_qualifying_latent_lap_location_v4",
+      "shared_latent_challenger_status": "rejected_on_postdevelopment_rounds_7_to_9_replay_diagnostic",
+      "deep_model_status": "evaluated_parameter_sensitive_inconclusive",
+      "audit_rounds": 3,
+      "all_prediction_rounds": 9,
+      "matched_rows": 66,
+      "causal_inference_rows": 66,
+      "observed_target_rows": 66,
+      "evaluation_union_rows": 66,
+      "end_to_end_scored_union_rate": 1.0,
+      "conditional_event_mean_p50_mae_seconds": 0.37791858100367026,
+      "conditional_event_mean_raw_rehearsal_mae_seconds": 0.8053030303030294,
+      "conditional_retained_baseline_mean_mae_seconds": 0.3713795297848222,
+      "paired_mae_delta_seconds": 0.006539051218848023,
+      "conditional_event_mean_spearman": 0.9540749105966498,
       "conditional_fastest_driver_hit_rate": 0.6666666666666666,
-      "probabilistic_interval_status": "not_promoted_coverage_0.7748_and_no_disjoint_calibration_block",
-      "quality_aware_challenger": {
-        "artifact": "artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_quality_aware_huber_v2_20260713.json",
+      "probabilistic_interval_status": "not_promoted_no_distinct_non_tautological_interval_width_comparator",
+      "shared_latent_challenger": {
+        "artifact": "artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json",
+        "schema_version": "f1_best_estimated_lap_shared_latent_v11",
+        "prospective_development_evidence": false,
         "observed_target_coverage": 1.0,
-        "event_mean_mae_seconds": 0.4179188302342961,
-        "matched_baseline_event_mean_mae_seconds": 0.5239968546964834,
-        "relative_mae_gain": 0.2024401931260279,
-        "fastest_driver_hit_rate": 0.6666666666666666,
-        "interval_coverage": 0.8461538461538461,
+        "event_mean_mae_seconds": 0.37791858100367026,
+        "matched_baseline_event_mean_mae_seconds": 0.3713795297848222,
+        "relative_mae_gain": -0.0176074627016648,
+        "retained_baseline_interval_coverage": 0.8636363636363636,
+        "retained_baseline_interval_mean_width_seconds": 1.3950000000000102,
+        "candidate_interval_coverage": 0.9090909090909091,
+        "candidate_interval_mean_width_seconds": 1.8337811378131619,
+        "interval_calibration_events": 4,
+        "interval_audit_events": 3,
         "paired_delta_ci95_seconds": [
-          -0.24243809660369303,
-          0.006459896681313653
+          -0.0025276191255559632,
+          0.01680685897704076
         ],
-        "bootstrap_probability_of_improvement": 0.9629,
-        "decision": "diagnostic_only"
+        "bootstrap_probability_of_improvement": 0.03737,
+        "bootstrap_samples": 200000,
+        "decision": "rejected_retain_rehearsal_shift_baseline"
+      },
+      "telemetry_sequence_diagnostic": {
+        "artifact": "artifacts/backtests/f1/telemetry/prequal_telemetry_residual_sequence_v6_repository_bound_2026.json",
+        "independent_events": 9,
+        "validated_tensors": 550,
+        "driver_event_bags": 191,
+        "selected_candidate": "zero_telemetry_correction"
+      },
+      "true_tcn_diagnostic": {
+        "artifact": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json",
+        "schema_version": "f1_prequal_telemetry_true_tcn_research_v2",
+        "sensitivity_matrix_artifact": "artifacts/backtests/f1/telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json",
+        "status": "evaluated_parameter_sensitive_inconclusive",
+        "profile_design_status": "d0_pre_sensitivity_control_other_six_profiles_outer_target_informed_and_promotion_ineligible",
+        "current_fold_target_leakage": false,
+        "independent_events": 9,
+        "scored_events": 5,
+        "scored_driver_events": 108,
+        "trainable_parameters": 274,
+        "source_shift_baseline_event_balanced_mae_seconds": 0.4306204545454547,
+        "tcn_event_balanced_mae_seconds": 0.4299030050021292,
+        "tcn_delta_seconds": -0.0007174495433255323,
+        "tcn_relative_improvement": 0.0016660832892456134,
+        "tcn_events_beating_source_shift": 3,
+        "fixed_seed_repeat_event_balanced_mae_seconds": 0.4320078178464522,
+        "fixed_seed_mean_absolute_event_delta_seconds": 0.002294463466625385,
+        "reference_gain_is_smaller_than_seed_variation": true,
+        "locked_zero_correction_fold_count": 5,
+        "deployment_changed": false,
+        "decision": "retain_zero_correction_pending_prospective_parameter_stability_evidence"
       },
       "current_evidence": [
-        "artifacts/backtests/f1/best_estimated_lap/2026_walk_forward_rehearsal_shift_v2_20260712e.json",
-        "docs/research/f1_four_mode_math_logic_implementation_audit_20260711.md"
+        "artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json",
+        "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json",
+        "artifacts/backtests/f1/telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json",
+        "docs/research/f1_model_research_v2_results_20260713.md"
       ]
     },
     "live_race_intelligence": {
@@ -181,7 +283,7 @@
       "forecasting": {
         "next_lap": {
           "point_model": "last_clean_lap_naive_v1",
-          "rejected_candidate_model": "causal_ssm_naive_convex_blend",
+          "evaluated_candidate_model": "causal_ssm_naive_convex_blend",
           "research_selected_ssm_weight_after_round_9": 0.2,
           "research_runtime_default_ssm_weight": 0.0,
           "research_runtime_default_event_mean_mae_seconds": 0.5491839143927711,
@@ -193,11 +295,15 @@
           "naive_event_mean_mae_seconds": 0.5491839143927711,
           "paired_blend_minus_naive_mae_seconds": -0.011237683704854352,
           "paired_event_bootstrap_ci95": [
-            -0.025513104406992775,
-            0.0010283166854031178
+            -0.025451893005493616,
+            0.0010315447943620838
           ],
-          "bootstrap_probability_of_improvement": 0.960808,
-          "point_status": "blend_rejected_fail_closed_to_naive_baseline",
+          "bootstrap_probability_of_improvement": 0.960432,
+          "bootstrap_samples": 500000,
+          "bootstrap_seed": 20260711,
+          "evidence_artifact": "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v6_20260714.json",
+          "evidence_sha256": "03adf04ac1649a5c3581a4d5bbe9d91693e5f10cd95ac774dfda5918c738af03",
+          "point_status": "blend_evaluated_not_promoted_ci_crosses_zero_naive_baseline_retained",
           "interval_status": "not_promoted",
           "service_integration_status": "not_integrated_service_next_lap_currently_means_relative_order_not_seconds"
         },
@@ -219,13 +325,52 @@
         ],
         "reinforcement_learning_scope": "decision_subcontracts_only",
         "policy_status": "offline_research_not_promotable_awaiting_locked_simulator_ope_and_live_shadow_reports",
-        "registry_enforcement_status": "locked replay calibration artifact and baseline gates exist; OPE uncertainty and live-shadow report enforcement remain unimplemented",
+        "registry_enforcement_status": "locked replay audit and baseline gates exist; OPE uncertainty and live-shadow report enforcement remain unimplemented",
+        "replay_transition_status": "semi_markov_pit_boundaries_full_current_nonterminal_next_mask_input_and_constraint_feasibility_evidence_fail_closed_implemented",
+        "policy_training_evidence_required": [
+          "causal_logged_action_known",
+          "exact_observed_pace_mode",
+          "known_legal_logged_action",
+          "certified_current_and_nonterminal_next_action_masks",
+          "race_horizon_current_compound_used_compound_history_red_box_pit_lane_inventory_and_forced_pit_state_known",
+          "all_weighted_reward_components_observed"
+        ],
+        "propensity_ope_evidence_required": "numeric_logged_behavior_propensity_with_nonzero_action_support",
+        "training_and_ope_eligibility_are_separate": true,
+        "simulator_calibration_status": "transition_aligned_observed_pit_loss_only_model_estimate_excluded",
         "legal_action_mask_required": true,
-        "deterministic_fallback_is_production_replacement": false
+        "legal_action_mask_contract": "current_and_every_nonterminal_next_state_with_all_legality_driving_inputs_certified_and_constraint_feasible_without_operational_fallback",
+        "deterministic_fallback_is_production_replacement": false,
+        "replay_audit": {
+          "artifact": "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json",
+          "schema_version": "f1_live_strategy_replay_audit_v1",
+          "sha256": "fbcf073b472f9a39a151c438712f354716467b5e068dbbdb166781ff560cff8c",
+          "transitions": 9506,
+          "behavior_cloning_partial_label_rows": 9506,
+          "offline_q_rows": 0,
+          "propensity_ope_rows": 0,
+          "current_legal_mask_input_blocker_counts": {
+            "compound_inventory": 9506,
+            "forced_pit_commitment": 9506,
+            "pit_lane_status": 7857,
+            "race_horizon": 9506
+          },
+          "nonterminal_next_legal_mask_input_blocker_counts": {
+            "compound_inventory": 9336,
+            "forced_pit_commitment": 9336,
+            "pit_lane_status": 7685,
+            "race_horizon": 9336
+          },
+          "rolling_behavior_cloning_action_accuracy": 0.9674730992353373,
+          "rolling_trivial_action_accuracy": 0.9674730992353373,
+          "rolling_behavior_cloning_pit_f1": 0.0,
+          "strategy_training_readiness_gate_pass": false
+        }
       },
       "current_evidence": [
-        "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v3_20260712e.json",
-        "docs/research/f1_four_mode_math_logic_implementation_audit_20260711.md"
+        "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v6_20260714.json",
+        "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json",
+        "docs/research/f1_model_research_v2_results_20260713.md"
       ],
       "historical_diagnostic_evidence": "artifacts/reports/f1/live_race_round09_global_prefix_invariance_v2_20260711a.json"
     }

@@ -104,13 +104,62 @@ def test_defaults_are_dynamic_same_season_and_single_threaded() -> None:
     assert args.base_train_seasons is None
     assert args.current_season_weight_multiplier is None
     assert args.max_threads == 1
-    assert args.f1_model == "auto"
+    assert args.compare_families == "baseline"
+    assert args.f1_model == "baseline"
     assert args.qualifying_model is None
     assert args.race_model is None
-    assert args.qualifying_runsim_features == "inherit"
-    assert args.race_runsim_features == "inherit"
+    assert args.qualifying_runsim_features == "disabled"
+    assert args.race_runsim_features == "enabled"
     assert args.qualifying_information_horizon == "pre_qualifying"
-    assert args.race_information_horizon == "post_qualifying_pre_grid"
+    assert args.race_information_horizon == "post_grid_pre_race"
+
+
+def test_default_bound_profiles_pass_assertion_before_any_output_write(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def stop_after_profile_assertion(_path: Path, *args: object, **kwargs: object) -> None:
+        del args, kwargs
+        raise RuntimeError("reached_output_setup_after_profile_assertion")
+
+    monkeypatch.setattr(Path, "mkdir", stop_after_profile_assertion)
+
+    with pytest.raises(RuntimeError, match="reached_output_setup_after_profile_assertion"):
+        rolling.main(
+            [
+                "--rounds",
+                "1,2,3,4,5,6,7,8,9",
+                "--output-dir",
+                str(tmp_path / "must_not_be_created"),
+                "--run-id",
+                "2026_four_mode_rebuild_20260712e",
+                "--quiet",
+            ]
+        )
+
+    assert not (tmp_path / "must_not_be_created").exists()
+
+
+def test_profile_run_id_aliases_must_be_unambiguous() -> None:
+    assert (
+        rolling._profile_bound_run_id(
+            {"promotion": {"baseline_rebuild_run_id": "run-a", "evidence_run_id": "run-a"}},
+            label="qualifying",
+        )
+        == "run-a"
+    )
+    assert (
+        rolling._profile_bound_run_id(
+            {"promotion": {"evidence_run_id": "legacy-run"}},
+            label="qualifying",
+        )
+        == "legacy-run"
+    )
+    with pytest.raises(ValueError, match="ambiguous promotion run IDs"):
+        rolling._profile_bound_run_id(
+            {"promotion": {"baseline_rebuild_run_id": "run-a", "evidence_run_id": "run-b"}},
+            label="qualifying",
+        )
 
 
 def test_auto_round_discovery_uses_only_completed_local_targets(tmp_path: Path) -> None:
@@ -239,6 +288,8 @@ def test_main_writes_exclusive_reproducibility_manifest(monkeypatch: pytest.Monk
         "disabled",
         "--race-runsim-features",
         "enabled",
+        "--race-information-horizon",
+        "post_qualifying_pre_grid",
         "--qualifying-profile",
         str(qualifying_profile),
         "--race-profile",

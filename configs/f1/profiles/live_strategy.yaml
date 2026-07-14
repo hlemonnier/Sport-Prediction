@@ -5,7 +5,7 @@ source: local_or_fastf1_replay
 artifacts:
   report_dir: artifacts/reports/f1
   replay_dir: artifacts/replays/f1/live_strategy
-  replay_audit: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
+  replay_audit: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json
 contracts:
   state_schema: live_strategy_state_v6_full_legal_mask_input_and_feasibility_evidence
   transition_schema: live_strategy_transition_fingerprint_v8_sporting_deadlines_derived_from_action_timing
@@ -158,7 +158,7 @@ rl:
       known_pit_lane_status: true
       known_compound_inventory: true
     current_replay_readiness:
-      evidence: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
+      evidence: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json
       transitions: 9506
       behavior_cloning_partial_label_rows: 9506
       behavior_cloning_action_families_supported: 4

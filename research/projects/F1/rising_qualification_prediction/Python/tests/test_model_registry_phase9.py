@@ -367,7 +367,7 @@ def test_live_strategy_rl_profile_uses_phase7_policy_id() -> None:
     assert metadata["propensity_ope_rows"] == 0
     assert metadata["strategy_training_readiness_gate_pass"] is False
     assert metadata["current_candidate_trainable"] is False
-    replay_audit = "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json"
+    replay_audit = "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json"
     assert phase7_profile["artifacts"]["replay_audit"] == replay_audit
     assert phase7_profile["rl"]["replay_dataset"]["current_replay_readiness"]["evidence"] == replay_audit
     assert metadata["replay_audit_artifact"] == replay_audit

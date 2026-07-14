@@ -59,7 +59,7 @@ ROUND_PATTERN = re.compile(r"^round_(\d{2})_")
 PIT_LANE_SIGNAL = re.compile(r"\bPIT LANE ENTRY (OPEN|CLOSED)\b", re.IGNORECASE)
 DEFAULT_OUTPUT = Path(
     "artifacts/backtests/f1/live_strategy/"
-    "live_strategy_replay_audit_v1_20260714.json"
+    "live_strategy_replay_audit_v2_20260714.json"
 )
 
 # The audit binds every module that directly defines ingestion, state,

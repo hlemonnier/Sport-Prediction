@@ -50,7 +50,7 @@ registry:
     strategy_training_readiness_gate_pass: false
     current_candidate_trainable: false
     candidate_training_status: blocked_current_replay_has_zero_offline_q_and_ope_rows
-    replay_audit_artifact: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
+    replay_audit_artifact: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json
     production_replacement_allowed_by_default: false
 fallback:
   model_id: deterministic_baseline_v1

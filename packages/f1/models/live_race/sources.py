@@ -69,6 +69,44 @@ def _to_bool(series: pd.Series, default: bool = False) -> pd.Series:
     return text.isin({"1", "true", "yes", "y", "t"})
 
 
+def _pit_event_signal(frame: pd.DataFrame, column: Optional[str]) -> pd.Series:
+    """Read a pit marker without treating explicit ``False`` values as events."""
+
+    if column is None:
+        return pd.Series(False, index=frame.index, dtype=bool)
+    series = frame[column]
+    name = str(column).strip().lower()
+    if name.startswith("is_") or pd.api.types.is_bool_dtype(series):
+        return _to_bool(series, default=False).astype(bool)
+
+    non_null_text = series.dropna().astype(str).str.strip().str.lower()
+    if not non_null_text.empty and set(non_null_text.unique()).issubset(
+        {"", "0", "1", "false", "true", "no", "yes", "n", "y", "f", "t"}
+    ):
+        return _to_bool(series, default=False).astype(bool)
+    return series.notna().astype(bool)
+
+
+def _row_value_present(series: pd.Series) -> pd.Series:
+    """Return row-wise evidence presence without treating empty payloads as known."""
+
+    def present(value: object) -> bool:
+        if value is None:
+            return False
+        try:
+            if pd.isna(value):
+                return False
+        except Exception:
+            pass
+        if isinstance(value, str):
+            return bool(value.strip())
+        if isinstance(value, (list, tuple, set, dict)):
+            return bool(value)
+        return True
+
+    return series.map(present).astype(bool)
+
+
 def _resolve_session_path(base_dir: Path, raw_path: object) -> Optional[Path]:
     if raw_path is None:
         return None
@@ -134,17 +172,17 @@ def _round_folder(weekends_root: Path, year: int, round_number: int) -> Optional
     return candidates[0]
 
 
-def _build_stint_id(frame: pd.DataFrame) -> pd.Series:
+def _build_single_driver_stint_id(frame: pd.DataFrame) -> pd.Series:
     stint_col = first_available(frame, ["Stint", "stint"])
     if stint_col is not None:
         stint = pd.to_numeric(frame[stint_col], errors="coerce")
         if stint.notna().sum() > 0:
             return stint.ffill().bfill().fillna(1).astype(int)
 
-    pit_in_col = first_available(frame, ["PitInTime", "pit_in_time", "pit_in"])
-    pit_out_col = first_available(frame, ["PitOutTime", "pit_out_time", "pit_out"])
-    pit_in = frame[pit_in_col].notna() if pit_in_col else pd.Series(False, index=frame.index, dtype=bool)
-    pit_out = frame[pit_out_col].notna() if pit_out_col else pd.Series(False, index=frame.index, dtype=bool)
+    pit_in_col = first_available(frame, ["is_pit_in_lap", "PitInTime", "pit_in_time", "pit_in"])
+    pit_out_col = first_available(frame, ["is_pit_out_lap", "PitOutTime", "pit_out_time", "pit_out"])
+    pit_in = _pit_event_signal(frame, pit_in_col)
+    pit_out = _pit_event_signal(frame, pit_out_col)
     box = pit_in | pit_out
 
     if pit_out.any():
@@ -167,25 +205,79 @@ def _build_stint_id(frame: pd.DataFrame) -> pd.Series:
     return stint
 
 
+def _build_stint_id(frame: pd.DataFrame) -> pd.Series:
+    """Infer stint ids independently and chronologically for every driver."""
+
+    driver_col = first_available(
+        frame,
+        ["driver_id", "Driver", "Abbreviation", "DriverId", "driver"],
+    )
+    if driver_col is None:
+        return _build_single_driver_stint_id(frame)
+
+    result = pd.Series(index=frame.index, dtype="Int64")
+    for _, indices in frame.groupby(driver_col, sort=False, dropna=False).groups.items():
+        driver_frame = frame.loc[indices].copy()
+        order_columns = [
+            column
+            for column in (
+                first_available(driver_frame, ["lap_number", "LapNumber", "Lap", "lap"]),
+                first_available(
+                    driver_frame,
+                    ["Time", "time", "LapStartTime", "lap_start_time"],
+                ),
+            )
+            if column is not None
+        ]
+        if order_columns:
+            driver_frame = driver_frame.sort_values(order_columns, kind="mergesort")
+        result.loc[driver_frame.index] = _build_single_driver_stint_id(driver_frame)
+    return result.astype(int)
+
+
 def _compute_tyre_age(work: pd.DataFrame) -> pd.Series:
-    age = pd.Series(index=work.index, data=0, dtype=int)
-    for _, idx in work.groupby(["driver_id", "stint_id"], sort=False).groups.items():
-        subset = work.loc[idx].sort_values(["lap_number", "timestamp"], kind="mergesort")
-        counter = 0
-        values: dict[int, int] = {}
-        for row_index, row in subset.iterrows():
-            is_box = bool(row.get("is_box_lap", False))
-            is_accurate = bool(row.get("is_accurate", False))
-            lap_time = pd.to_numeric(pd.Series([row.get("lap_time_seconds")]), errors="coerce").iloc[0]
-            assimilable = (not is_box) and is_accurate and pd.notna(lap_time) and float(lap_time) > 0.0
-            if assimilable:
-                values[int(row_index)] = int(counter)
-                counter += 1
-            else:
-                values[int(row_index)] = int(counter)
-        for row_index, row_age in values.items():
-            age.loc[row_index] = int(row_age)
-    return age
+    """Return physical completed-lap tyre age without clean-lap filtering.
+
+    FastF1 ``TyreLife`` includes prior use when a driver starts a stint on a
+    scrubbed set, so it is the preferred causal state.  When it is absent, the
+    fallback counts every completed row in the current driver/stint, including
+    box, Safety Car, and timing-inaccurate laps.  Those laps still age the tyre.
+    """
+
+    fallback = pd.Series(index=work.index, data=0, dtype=int)
+    for _, indices in work.groupby(["driver_id", "stint_id"], sort=False).groups.items():
+        subset = work.loc[indices].sort_values(
+            ["lap_number", "timestamp"],
+            kind="mergesort",
+        )
+        fallback.loc[subset.index] = range(1, len(subset) + 1)
+
+    tyre_life_col = first_available(work, ["TyreLife", "tyre_life_raw", "tyre_life"])
+    if tyre_life_col is None:
+        return fallback.astype(int)
+    raw = pd.to_numeric(work[tyre_life_col], errors="coerce")
+    valid = raw.notna() & raw.ge(0.0)
+    result = fallback.astype(float)
+    result.loc[valid] = raw.loc[valid]
+    return result.round().clip(lower=0).astype(int)
+
+
+def _build_used_compound_history(work: pd.DataFrame) -> pd.Series:
+    """Build a strictly expanding per-driver compound history at each lap."""
+
+    history = pd.Series(index=work.index, dtype=object)
+    for _, indices in work.groupby("driver_id", sort=False).groups.items():
+        subset = work.loc[indices].sort_values(
+            ["lap_number", "timestamp"],
+            kind="mergesort",
+        )
+        seen: list[str] = []
+        for row_index, raw_compound in subset["compound"].items():
+            compound = str(raw_compound or "").strip().upper()
+            if compound and compound not in {"NAN", "NONE", "UNKNOWN"} and compound not in seen:
+                seen.append(compound)
+            history.at[row_index] = tuple(seen)
+    return history
 
 
 def _build_race_time_seconds(work: pd.DataFrame) -> pd.Series:
@@ -205,7 +297,17 @@ def _build_race_time_seconds(work: pd.DataFrame) -> pd.Series:
         if combined.notna().sum() > 0:
             return combined
 
-    # Secondary fallback: cumulative clean lap times per driver.
+    # FastF1 ``Time`` is the observed session-clock timestamp at the completed
+    # lap endpoint.  It remains available even when LapTime is missing, and is
+    # therefore a stronger causal elapsed-time endpoint than a cumulative sum
+    # that would silently skip the missing lap.
+    completed_time_col = first_available(work, ["Time", "time"])
+    if completed_time_col is not None:
+        completed_time = _to_seconds(work[completed_time_col])
+        if completed_time.notna().sum() > 0:
+            return completed_time
+
+    # Secondary fallback: cumulative available lap times per driver.
     if lap_time.notna().sum() == 0:
         return pd.Series(index=work.index, dtype=float)
 
@@ -268,10 +370,12 @@ def _standardize_laps(
     else:
         work["is_accurate"] = True
 
-    pit_in_col = first_available(work, ["PitInTime", "pit_in_time", "pit_in"])
-    pit_out_col = first_available(work, ["PitOutTime", "pit_out_time", "pit_out"])
-    pit_in = work[pit_in_col].notna() if pit_in_col else pd.Series(False, index=work.index, dtype=bool)
-    pit_out = work[pit_out_col].notna() if pit_out_col else pd.Series(False, index=work.index, dtype=bool)
+    pit_in_col = first_available(work, ["is_pit_in_lap", "PitInTime", "pit_in_time", "pit_in"])
+    pit_out_col = first_available(work, ["is_pit_out_lap", "PitOutTime", "pit_out_time", "pit_out"])
+    pit_in = _pit_event_signal(work, pit_in_col)
+    pit_out = _pit_event_signal(work, pit_out_col)
+    work["is_pit_in_lap"] = pit_in.astype(bool)
+    work["is_pit_out_lap"] = pit_out.astype(bool)
     work["is_box_lap"] = (pit_in | pit_out).astype(bool)
 
     work["stint_id"] = _build_stint_id(work)
@@ -293,6 +397,7 @@ def _standardize_laps(
 
     work = work.sort_values(["driver_id", "lap_number", "timestamp"], kind="mergesort").copy()
     work["tyre_age"] = _compute_tyre_age(work)
+    work["used_compounds"] = _build_used_compound_history(work)
 
     out = pd.DataFrame(index=work.index)
     out["event_key"] = int(event_key)
@@ -303,6 +408,11 @@ def _standardize_laps(
     out["stint_id"] = pd.to_numeric(work["stint_id"], errors="coerce").fillna(1).astype(int)
     out["compound"] = work["compound"].astype(str)
     out["tyre_age"] = pd.to_numeric(work["tyre_age"], errors="coerce").fillna(0).astype(int)
+    out["used_compounds"] = work["used_compounds"]
+    out["is_pit_in_lap"] = work["is_pit_in_lap"].astype(bool)
+    out["is_pit_out_lap"] = work["is_pit_out_lap"].astype(bool)
+    out["pit_in_signal_known"] = bool(pit_in_col is not None)
+    out["pit_out_signal_known"] = bool(pit_out_col is not None)
     out["is_box_lap"] = work["is_box_lap"].astype(bool)
     out["is_accurate"] = work["is_accurate"].astype(bool)
     out["track_status"] = work["track_status"].astype(str)
@@ -312,8 +422,69 @@ def _standardize_laps(
     out["timestamp_source"] = work["timestamp_source"].astype(str)
     out["race_time_seconds"] = pd.to_numeric(work["race_time_seconds"], errors="coerce")
     out["gap_to_leader_seconds"] = pd.to_numeric(work["gap_to_leader_seconds"], errors="coerce")
+    # Running position at the end of the completed lap is part of the causal
+    # live state.  Dropping it silently disabled both the position feature and
+    # the position-gain component of the replay reward even when FastF1 had
+    # supplied the value.
+    position_col = first_available(work, ["Position", "position", "running_position"])
+    out["position"] = (
+        pd.to_numeric(work[position_col], errors="coerce")
+        if position_col is not None
+        else float("nan")
+    )
     out["source"] = str(source_used)
     out["tyre_life_raw"] = pd.to_numeric(work.get("TyreLife"), errors="coerce")
+    # Lap timing identifies that a stop occurred, not whether the lane was
+    # legally open or which tyre sets were physically available at decision
+    # time.  Keep those evidence gaps explicit and let policy masks fail closed.
+    pit_lane_col = first_available(work, ["pit_lane_open"])
+    pit_lane_known_col = first_available(work, ["pit_lane_open_known"])
+    pit_lane_value_present = (
+        _row_value_present(work[pit_lane_col])
+        if pit_lane_col is not None
+        else pd.Series(False, index=work.index, dtype=bool)
+    )
+    if pit_lane_col is not None:
+        out["pit_lane_open"] = _to_bool(work[pit_lane_col], default=False).astype(bool)
+    out["pit_lane_open_known"] = (
+        _to_bool(work[pit_lane_known_col], default=False).astype(bool)
+        & pit_lane_value_present
+        if pit_lane_known_col is not None
+        else pit_lane_value_present
+    )
+
+    inventory_col = first_available(work, ["available_compounds", "allowed_compounds"])
+    inventory_known_col = first_available(work, ["compound_inventory_known"])
+    inventory_value_present = (
+        _row_value_present(work[inventory_col])
+        if inventory_col is not None
+        else pd.Series(False, index=work.index, dtype=bool)
+    )
+    if inventory_col is not None:
+        out["available_compounds"] = work[inventory_col]
+    out["compound_inventory_known"] = (
+        _to_bool(work[inventory_known_col], default=False).astype(bool)
+        & inventory_value_present
+        if inventory_known_col is not None
+        else inventory_value_present
+    )
+
+    support_col = first_available(work, ["behavior_action_support_known"])
+    propensity_col = first_available(work, ["behavior_action_probability", "behavior_propensity"])
+    propensity = (
+        pd.to_numeric(work[propensity_col], errors="coerce")
+        if propensity_col is not None
+        else pd.Series(float("nan"), index=work.index, dtype=float)
+    )
+    positive_finite_support = propensity.notna() & propensity.gt(0.0) & propensity.le(1.0)
+    if propensity_col is not None:
+        out["behavior_action_probability"] = propensity
+    out["behavior_action_support_known"] = (
+        _to_bool(work[support_col], default=False).astype(bool)
+        & positive_finite_support
+        if support_col is not None
+        else positive_finite_support
+    )
 
     out = out.sort_values(["lap_number", "timestamp", "driver_id"], kind="mergesort").reset_index(drop=True)
     return out

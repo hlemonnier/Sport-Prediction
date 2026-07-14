@@ -123,6 +123,11 @@ def evaluate_phase8_self_play(
     delta_vs_single = float(single_time - multi_time)
     delta_vs_stay = float(stay_time - multi_time)
     sync_threshold = race_env.sync_pit_threshold(initial.car_count)
+    synthetic_comparator_gate_pass = bool(
+        replay_stable
+        and delta_vs_single > float(cfg.min_delta_vs_single_agent_seconds)
+        and summary["multi_agent"]["max_same_lap_pit_count"] <= sync_threshold
+    )
 
     metrics = {
         "available": True,
@@ -134,11 +139,14 @@ def evaluate_phase8_self_play(
         "sync_pit_threshold": int(sync_threshold),
         "multi_agent_sync_guard_pass": bool(summary["multi_agent"]["max_same_lap_pit_count"] <= sync_threshold),
         "summary_by_policy": summary,
-        "promotion_gate_pass": bool(
-            replay_stable
-            and delta_vs_single > float(cfg.min_delta_vs_single_agent_seconds)
-            and summary["multi_agent"]["max_same_lap_pit_count"] <= sync_threshold
-        ),
+        "synthetic_comparator_gate_pass": synthetic_comparator_gate_pass,
+        "promotion_gate_pass": False,
+        "promotion_blockers": [
+            "calibrated_counterfactual_simulator_required",
+            "causal_locked_replay_required",
+            "off_policy_evaluation_with_uncertainty_required",
+            "live_shadow_evidence_required",
+        ],
     }
     return SelfPlayComparisonResult(
         metrics=metrics,

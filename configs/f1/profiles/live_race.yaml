@@ -1,5 +1,5 @@
 profile_name: live_race_intelligence_2026
-profile_version: live_race_intelligence_v3
+profile_version: live_race_intelligence_v7_full_mask_input_and_feasibility_evidence
 model_family: live_race
 source: local_or_fastf1_first_seen_replay
 user_facing_mode: live_race_intelligence
@@ -17,15 +17,27 @@ forecasting:
   next_lap:
     target: next_eligible_representative_lap_seconds
     point_model: last_clean_lap_naive_v1
-    rejected_candidate_model: causal_ssm_naive_convex_blend
+    evaluated_candidate_model: causal_ssm_naive_convex_blend
     next_lap_ssm_weight: 0.00
     research_selected_ssm_weight: 0.20
     research_weight_grid: 0.00_to_1.00_step_0.05
     research_weight_selection: strictly_prior_event_mean_mae_only
-    research_runtime_gate: blend_rejected_fallback_to_naive
-    point_status: blend_rejected_fail_closed_to_naive_baseline
+    artifact_runtime_gate: blend_rejected_fallback_to_naive
+    statistical_interpretation: paired_event_ci_crosses_zero
+    point_status: blend_evaluated_not_promoted_naive_baseline_retained
     interval_status: not_promoted
-    evidence: artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v3_20260712e.json
+    evidence: artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v6_20260714.json
+    evidence_sha256: 03adf04ac1649a5c3581a4d5bbe9d91693e5f10cd95ac774dfda5918c738af03
+    matched_forecasts: 8144
+    blend_event_mean_mae_seconds: 0.5379462306879169
+    naive_event_mean_mae_seconds: 0.5491839143927711
+    paired_blend_minus_naive_mae_seconds: -0.011237683704854352
+    paired_event_bootstrap_ci95_seconds:
+      - -0.025451893005493616
+      - 0.0010315447943620838
+    bootstrap_probability_of_improvement: 0.960432
+    bootstrap_samples: 500000
+    bootstrap_seed: 20260711
     service_integration_status: not_integrated_service_next_lap_currently_means_relative_order_not_seconds
   degradation:
     target: clean_lap_stint_pace_loss_seconds_per_lap
@@ -47,8 +59,16 @@ decisions:
     - constrained_model_predictive_control
   reinforcement_learning_scope: decision_subcontracts_only
   status: offline_research_not_promotable_awaiting_live_shadow_evidence
+  behavior_cloning_eligibility: causal_physical_action_family_partial_label_no_propensity_or_full_mask_required
+  offline_q_eligibility: causal_exact_mode_known_legal_action_and_certified_current_plus_nonterminal_next_state_full_masks_no_propensity_required
+  ope_eligibility: offline_q_eligible_plus_numeric_positive_logged_behavior_propensity
+  current_replay_support: 9506_bc_partial_0_offline_q_0_ope_readiness_false
+  replay_audit_evidence: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
+  semimarkov_reward_contract: undiscounted_interval_total_composite_reward_negative_elapsed_time_plus_position_gain_shaping_minus_action_penalties_requires_gamma_one_until_per_lap_rewards_are_stored
   required_before_rl_promotion:
-    - legal_action_masks
+    - certified_current_and_nonterminal_next_state_legal_action_masks
+    - certified_mandatory_compound_change_requirement_current_and_next
+    - constraint_legal_mask_feasible_without_operational_fallback
     - calibrated_counterfactual_simulator
     - locked_causal_replay
     - beats_simple_policy_and_mpc_baselines

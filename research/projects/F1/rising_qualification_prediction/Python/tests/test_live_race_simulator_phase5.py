@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from packages.f1.models.live_race.action_space import ACTION_PIT_NOW, ACTION_STAY_OUT, StrategyAction
 from packages.f1.models.live_race.simulator import (
@@ -9,7 +10,10 @@ from packages.f1.models.live_race.simulator import (
     SimulatorScenario,
     simulation_trace_frame,
 )
-from packages.f1.models.live_race.simulator_calibration import build_simulator_calibration_report
+from packages.f1.models.live_race.simulator_calibration import (
+    build_simulator_calibration_report,
+    pit_loss_calibration,
+)
 from packages.f1.models.live_race.state import compound_deg_prior
 
 
@@ -154,10 +158,87 @@ def test_simulator_can_replay_from_lap_one_and_any_live_lap() -> None:
     assert trace["race_time_delta_seconds"].notna().all()
 
 
+def test_simulator_replay_rejects_cross_event_input() -> None:
+    first = _race_rows()
+    second = _race_rows()
+    second["event_key"] = 202602
+
+    with pytest.raises(ValueError, match="event-isolated"):
+        LiveRaceSimulator().replay_race(
+            pd.concat([first, second], ignore_index=True)
+        )
+
+
+def test_simulator_rejects_uncertified_future_lap_baseline_map() -> None:
+    state = _state(
+        metadata={
+            **_state().metadata,
+            "event_lap_baseline_by_lap": {2: 89.0, 3: 88.5},
+        }
+    )
+
+    with pytest.raises(ValueError, match="event_lap_baseline_by_lap is prohibited"):
+        LiveRaceSimulator().step(state, StrategyAction(ACTION_STAY_OUT))
+
+
 def test_simulator_calibration_report_exposes_phase5_metric_groups() -> None:
     result = build_simulator_calibration_report(_race_rows(), simulator=LiveRaceSimulator(config=RaceSimulatorConfig(seed=3)))
 
     assert result.metrics["one_step_lap_time"]["available"] is True
     assert result.metrics["pit_loss"]["available"] is True
+    assert result.metrics["pit_loss"]["matching"] == "transition_aligned_explicit_observed_pit_loss"
     assert result.metrics["track_status"]["available"] is True
     assert result.metrics["final_order_proxy"]["proxy_only"] is True
+
+
+def test_pit_loss_estimate_is_not_accepted_as_observed_calibration_truth() -> None:
+    laps = pd.DataFrame({"pit_loss_estimate_seconds": [21.0]})
+    rows = [
+        {
+            "is_pit_action": True,
+            "predicted_pit_loss_seconds": 21.0,
+            "observed_pit_loss_seconds": float("nan"),
+        }
+    ]
+
+    metrics = pit_loss_calibration(rows, laps)
+
+    assert metrics["available"] is False
+    assert metrics["reason"] == "no_explicit_observed_pit_loss_column"
+
+
+def test_simulator_calibration_uses_the_same_semi_markov_pit_transition() -> None:
+    laps = pd.DataFrame(
+        {
+            "event_key": [202601] * 4,
+            "driver_id": ["44"] * 4,
+            "lap_number": [1, 2, 3, 4],
+            "total_laps": [6] * 4,
+            "remaining_laps": [5, 4, 3, 2],
+            "stint_id": [1, 1, 2, 2],
+            "compound": ["MEDIUM", "MEDIUM", "HARD", "HARD"],
+            "tyre_age": [4, 5, 0, 1],
+            "used_compounds": ["MEDIUM", "MEDIUM", "MEDIUM,HARD", "MEDIUM,HARD"],
+            "available_compounds": ["MEDIUM,HARD"] * 4,
+            "pit_lane_open": [True] * 4,
+            "behavior_action_probability": [0.2] * 4,
+            "race_time_seconds": [90.0, 202.0, 310.0, 401.0],
+            "is_pit_in_lap": [False, True, False, False],
+            "is_pit_out_lap": [False, False, True, False],
+            "observed_pit_loss_seconds": [float("nan"), 21.0, float("nan"), float("nan")],
+        }
+    )
+
+    result = build_simulator_calibration_report(
+        laps,
+        simulator=LiveRaceSimulator(config=RaceSimulatorConfig(seed=3)),
+    )
+
+    assert result.metrics["one_step_lap_time"]["matching"] == "semi_markov_decision_transition"
+    assert result.metrics["one_step_lap_time"]["replay_transition_count"] == 1
+    assert len(result.rows) == 1
+    assert result.rows[0]["transition_kind"] == "pit_stop_semi_markov"
+    assert result.rows[0]["elapsed_laps"] == 3
+    assert result.rows[0]["lap_number"] == 1
+    assert result.rows[0]["next_lap_number"] == 4
+    assert result.metrics["pit_loss"]["available"] is True

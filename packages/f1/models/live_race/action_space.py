@@ -23,6 +23,9 @@ DRY_COMPOUNDS: tuple[str, ...] = ("SOFT", "MEDIUM", "HARD")
 WET_COMPOUNDS: tuple[str, ...] = ("INTER", "WET")
 KNOWN_COMPOUNDS: tuple[str, ...] = (*DRY_COMPOUNDS, *WET_COMPOUNDS)
 STRATEGY_MODES: tuple[str, ...] = ("conservative", "aggressive")
+LEGAL_ACTION_MASK_SCHEMA_VERSION = (
+    "live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback"
+)
 
 
 def normalize_compound(value: object) -> str:
@@ -156,6 +159,7 @@ class StrategyAction:
 
     def to_payload(self) -> dict[str, object]:
         return {
+            "schema_version": LEGAL_ACTION_MASK_SCHEMA_VERSION,
             "action_type": self.action_type,
             "compound": self.compound,
             "mode": self.mode,
@@ -220,6 +224,8 @@ class LegalActionMask:
     actions: tuple[StrategyAction, ...]
     mask: np.ndarray
     reasons: tuple[str, ...]
+    constraint_feasible: bool = True
+    operational_fallback_applied: bool = False
 
     def __post_init__(self) -> None:
         mask = np.asarray(self.mask, dtype=bool)
@@ -230,25 +236,72 @@ class LegalActionMask:
         reasons = tuple(self.reasons)
         if len(reasons) != len(self.actions):
             raise ValueError("reasons length must match actions")
+        feasible = bool(self.constraint_feasible)
+        fallback_applied = bool(self.operational_fallback_applied)
+        if feasible and fallback_applied:
+            raise ValueError(
+                "an operational fallback cannot be constraint-feasible"
+            )
+        if feasible and not bool(mask.any()):
+            raise ValueError("a constraint-feasible mask must contain an action")
+        if fallback_applied and not bool(mask.any()):
+            raise ValueError("an applied operational fallback must be selectable")
         object.__setattr__(self, "mask", mask)
         object.__setattr__(self, "reasons", reasons)
+        object.__setattr__(self, "constraint_feasible", feasible)
+        object.__setattr__(
+            self,
+            "operational_fallback_applied",
+            fallback_applied,
+        )
+
+    @property
+    def selectable_actions(self) -> tuple[StrategyAction, ...]:
+        """Actions exposed to runtime code solely to avoid an all-false tensor."""
+
+        return tuple(
+            action
+            for action, selectable in zip(self.actions, self.mask.tolist())
+            if bool(selectable)
+        )
+
+    @property
+    def constraint_legal_mask(self) -> np.ndarray:
+        if not self.constraint_feasible:
+            return np.zeros_like(self.mask, dtype=bool)
+        return self.mask.copy()
 
     @property
     def legal_actions(self) -> tuple[StrategyAction, ...]:
-        return tuple(action for action, legal in zip(self.actions, self.mask.tolist()) if bool(legal))
+        if not self.constraint_feasible:
+            return ()
+        return self.selectable_actions
 
     @property
     def illegal_actions(self) -> tuple[StrategyAction, ...]:
-        return tuple(action for action, legal in zip(self.actions, self.mask.tolist()) if not bool(legal))
+        legal = set(self.legal_actions)
+        return tuple(action for action in self.actions if action not in legal)
 
     @property
     def legal_count(self) -> int:
+        return int(len(self.legal_actions))
+
+    @property
+    def selectable_count(self) -> int:
         return int(np.sum(self.mask))
 
     def is_legal(self, action: StrategyAction) -> bool:
+        if not self.constraint_feasible:
+            return False
         for candidate, legal in zip(self.actions, self.mask.tolist()):
             if candidate == action:
                 return bool(legal)
+        return False
+
+    def is_selectable(self, action: StrategyAction) -> bool:
+        for candidate, selectable in zip(self.actions, self.mask.tolist()):
+            if candidate == action:
+                return bool(selectable)
         return False
 
     def reason_for(self, action: StrategyAction) -> str:
@@ -261,8 +314,21 @@ class LegalActionMask:
         return {
             "actions": [action.to_payload() for action in self.actions],
             "mask": [bool(value) for value in self.mask.tolist()],
+            "mask_semantics": (
+                "runtime_selectability_with_explicit_operational_fallback;_constraint_legal_mask_is_authoritative_for_policy_and_learning"
+            ),
+            "constraint_legal_mask": [
+                bool(value) for value in self.constraint_legal_mask.tolist()
+            ],
             "reasons": list(self.reasons),
+            "constraint_feasible": bool(self.constraint_feasible),
+            "operational_fallback_applied": bool(
+                self.operational_fallback_applied
+            ),
             "legal_action_keys": [action.key for action in self.legal_actions],
+            "selectable_action_keys": [
+                action.key for action in self.selectable_actions
+            ],
         }
 
 
@@ -366,6 +432,17 @@ def _forced_pit_compound(state: Any) -> Optional[str]:
     return compound if compound != "UNKNOWN" else None
 
 
+def _compound_satisfies_mandatory_change(
+    compound: object,
+    *,
+    used: set[str],
+) -> bool:
+    normalized = normalize_compound(compound)
+    if normalized in WET_COMPOUNDS:
+        return True
+    return bool(normalized in DRY_COMPOUNDS and normalized not in used)
+
+
 def build_legal_action_mask(
     state: Any,
     *,
@@ -403,8 +480,15 @@ def build_legal_action_mask(
                 reason = "forced_pit_next_lap_commitment"
 
         if legal and action.action_type == ACTION_STAY_OUT:
-            if mandatory_change and remaining <= float(cfg.min_laps_after_stop):
-                reason = "legal_but_mandatory_change_deadline_missed"
+            if mandatory_change and remaining <= float(
+                cfg.min_laps_after_stop + 1
+            ):
+                legal = False
+                reason = (
+                    "mandatory_change_requires_pit_now"
+                    if remaining > float(cfg.min_laps_after_stop)
+                    else "mandatory_change_deadline_infeasible"
+                )
             mask.append(bool(legal))
             reasons.append(reason)
             continue
@@ -436,6 +520,17 @@ def build_legal_action_mask(
                 reason = "same_compound_pit_disabled"
             elif (
                 mandatory_change
+                and action.action_type == ACTION_PIT_NOW
+                and remaining <= float(cfg.min_laps_after_stop + 1)
+                and not _compound_satisfies_mandatory_change(
+                    action.compound,
+                    used=used,
+                )
+            ):
+                legal = False
+                reason = "pit_action_cannot_satisfy_mandatory_change"
+            elif (
+                mandatory_change
                 and action.compound == current
                 and current in DRY_COMPOUNDS
                 and remaining <= float(cfg.mandatory_stop_window_laps)
@@ -451,14 +546,23 @@ def build_legal_action_mask(
     # The environment should never hand an RL policy an all-false mask.  If the
     # state is already impossible, allow the safest no-op so evaluation can fail
     # with diagnostics instead of crashing downstream.
-    if not any(mask):
+    constraint_feasible = bool(any(mask))
+    operational_fallback_applied = False
+    if not constraint_feasible:
         for idx, action in enumerate(actions):
             if action.action_type == ACTION_STAY_OUT and action.mode == "conservative":
                 mask[idx] = True
                 reasons[idx] = "fallback_safe_noop_after_all_actions_masked"
+                operational_fallback_applied = True
                 break
 
-    return LegalActionMask(actions=actions, mask=np.asarray(mask, dtype=bool), reasons=tuple(reasons))
+    return LegalActionMask(
+        actions=actions,
+        mask=np.asarray(mask, dtype=bool),
+        reasons=tuple(reasons),
+        constraint_feasible=constraint_feasible,
+        operational_fallback_applied=operational_fallback_applied,
+    )
 
 
 __all__ = [
@@ -469,6 +573,7 @@ __all__ = [
     "ActionMaskConfig",
     "DRY_COMPOUNDS",
     "KNOWN_COMPOUNDS",
+    "LEGAL_ACTION_MASK_SCHEMA_VERSION",
     "LegalActionMask",
     "PIT_ACTION_TYPES",
     "STRATEGY_MODES",

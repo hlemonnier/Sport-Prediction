@@ -1,5 +1,5 @@
 profile_name: live_strategy_rl
-profile_version: phase9_production_registry_v1
+profile_version: phase9_production_registry_v7_full_mask_input_and_feasibility_evidence
 model_family: live_strategy
 runtime_family: live_race
 source: local_or_fastf1_replay
@@ -7,15 +7,50 @@ registry:
   model_id: live_strategy_conservative_offline_q_v1
   model_family: live_strategy
   version: v1
-  training_data_cutoff: pending_locked_replay_cutoff
-  feature_schema_version: live_strategy_state_v1_no_future_lap_fields
+  training_data_cutoff: current_r1_r9_replay_not_offline_q_eligible
+  feature_schema_version: live_strategy_state_v6_full_legal_mask_input_and_feasibility_evidence
   artifact_path: artifacts/models/f1/live_strategy/rl/live_strategy_conservative_offline_q_v1
   metrics: {}
   promotion_status: candidate
   fallback_model_id: deterministic_baseline_v1
-  deterministic_fallback: false
+  deterministic_fallback: true
   metadata:
     algorithm: conservative_fitted_q_iteration
+    replay_dataset_schema: live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence
+    transition_fingerprint_schema: live_strategy_transition_fingerprint_v7_full_current_next_mask_input_and_feasibility_evidence
+    replay_record_schema: live_strategy_replay_record_v7_full_current_next_mask_input_and_feasibility_evidence
+    legal_mask_schema: live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback
+    discount: 1.0
+    reward_semantics: undiscounted_interval_total_composite_reward_negative_elapsed_time_plus_position_gain_shaping_minus_action_penalties
+    race_time_weight: 1.0
+    position_gain_weight: 2.0
+    policy_training_propensity_required: false
+    current_and_nonterminal_next_state_legal_masks_required: true
+    current_and_next_mask_payloads_must_match_derived_masks: true
+    next_state_mask_fingerprint_must_match_derived_mask: true
+    legality_driving_inputs_required:
+      - race_horizon
+      - current_compound
+      - full_used_compound_history
+      - red_flag_status
+      - box_lap_status
+      - pit_lane_status
+      - nonempty_available_compound_inventory
+      - explicit_forced_pit_commitment_including_known_none
+      - mandatory_compound_change_requirement_known_or_certified_derived
+      - constraint_legal_mask_feasible_without_operational_fallback
+    infeasible_constraint_mask_is_policy_or_ope_eligible: false
+    propensity_ope_numeric_probability_required: true
+    behavior_cloning_partial_label_rows: 9506
+    behavior_cloning_action_families_supported: 4
+    behavior_cloning_compatible_action_keys: 8
+    exact_mode_action_keys_supported: 0
+    offline_q_rows: 0
+    propensity_ope_rows: 0
+    strategy_training_readiness_gate_pass: false
+    current_candidate_trainable: false
+    candidate_training_status: blocked_current_replay_has_zero_offline_q_and_ope_rows
+    replay_audit_artifact: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
     production_replacement_allowed_by_default: false
 fallback:
   model_id: deterministic_baseline_v1
@@ -59,7 +94,7 @@ promotion:
       - strategy_template_selection_probabilities
   off_policy_evaluation:
     required: true
-    support_checked: true
+    support_check_required: true
     uncertainty_interval_required: true
     report_path: artifacts/reports/f1/live_strategy/rl/locked_ope.json
     registry_enforcement_status: not_implemented

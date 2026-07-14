@@ -11,10 +11,69 @@ import numpy as np
 import pandas as pd
 
 from packages.f1.models.live_race.environment import (
+    REWARD_SEMANTICS,
+    TRANSITION_FINGERPRINT_VERSION,
     StrategyTransition,
     assert_replay_prefix_invariant,
     transition_prefix_fingerprint,
 )
+
+
+_SYNTHETIC_SOURCE_PREFIXES = ("synthetic", "simulator", "self_play")
+REPLAY_RECORD_SCHEMA_VERSION = (
+    "live_strategy_replay_record_v7_full_current_next_mask_input_and_feasibility_evidence"
+)
+
+
+def _is_explicit_synthetic_source(
+    record_source: object,
+    transition_metadata: dict[str, object] | None,
+) -> bool:
+    metadata = transition_metadata or {}
+    tokens = (
+        str(record_source or "").strip().lower(),
+        str(metadata.get("source") or "").strip().lower(),
+    )
+    return any(
+        token.startswith(prefix)
+        for token in tokens
+        for prefix in _SYNTHETIC_SOURCE_PREFIXES
+        if token
+    )
+
+
+def _reported_policy_learning_eligibility(record: "ReplayBufferRecord") -> bool:
+    metadata = record.transition.metadata or {}
+    if "policy_training_eligible" in metadata:
+        return metadata.get("policy_training_eligible") is True
+    if "policy_learning_eligible" in metadata:
+        return metadata.get("policy_learning_eligible") is True
+    return _is_explicit_synthetic_source(record.source, metadata)
+
+
+def _reported_propensity_ope_eligibility(record: "ReplayBufferRecord") -> bool:
+    metadata = record.transition.metadata or {}
+    raw_probability = metadata.get(
+        "behavior_action_probability",
+        record.transition.state_t.metadata.get("behavior_action_probability"),
+    )
+    try:
+        probability = float(raw_probability)
+    except (TypeError, ValueError):
+        return False
+    if not np.isfinite(probability) or not 0.0 < probability <= 1.0:
+        return False
+    if "propensity_ope_eligible" in metadata:
+        return metadata.get("propensity_ope_eligible") is True
+    # Legacy records used policy-learning eligibility for the stricter
+    # training-plus-propensity contract. Preserve that interpretation only
+    # when the v3 training field is absent.
+    if (
+        "policy_training_eligible" not in metadata
+        and "policy_learning_eligible" in metadata
+    ):
+        return metadata.get("policy_learning_eligible") is True
+    return False
 
 
 @dataclass(frozen=True)
@@ -56,6 +115,9 @@ class ReplayBufferRecord:
 
     def to_payload(self) -> dict[str, object]:
         return {
+            "record_schema_version": REPLAY_RECORD_SCHEMA_VERSION,
+            "transition_fingerprint_version": TRANSITION_FINGERPRINT_VERSION,
+            "reward_semantics": REWARD_SEMANTICS,
             "record_id": self.record_id,
             "source": self.source,
             "split_key": self.split_key,
@@ -146,7 +208,43 @@ class LiveStrategyReplayBuffer:
                     "action_mode": transition.action_t.mode,
                     "reward": float(transition.reward_t.value),
                     "done": bool(transition.done),
+                    "elapsed_laps": int(
+                        transition.metadata.get(
+                            "elapsed_laps",
+                            max(1, transition.state_t1.lap_number - transition.state_t.lap_number),
+                        )
+                    ),
+                    "transition_kind": transition.metadata.get("transition_kind", "unknown"),
                     "is_action_legal": bool(transition.is_action_legal()),
+                    "action_legality_status": transition.metadata.get("action_legality_status", "unspecified"),
+                    "behavior_action_support_status": transition.metadata.get(
+                        "behavior_action_support_status",
+                        "unspecified",
+                    ),
+                    "behavior_action_probability": transition.metadata.get(
+                        "behavior_action_probability",
+                        transition.state_t.metadata.get(
+                            "behavior_action_probability"
+                        ),
+                    ),
+                    "reward_observation_status": transition.metadata.get(
+                        "reward_observation_status",
+                        "unspecified",
+                    ),
+                    "reward_observation_blockers": tuple(
+                        transition.metadata.get(
+                            "reward_observation_blockers",
+                            (),
+                        )
+                    ),
+                    "policy_training_eligible": _reported_policy_learning_eligibility(
+                        record
+                    ),
+                    "propensity_ope_eligible": _reported_propensity_ope_eligibility(
+                        record
+                    ),
+                    # Compatibility alias for older reporting code.
+                    "policy_learning_eligible": _reported_policy_learning_eligibility(record),
                     "legal_action_count": int(transition.legal_action_mask.legal_count),
                     "state_fingerprint": transition.state_t.fingerprint(),
                     "transition_fingerprint": transition.fingerprint(),
@@ -197,6 +295,7 @@ def replay_buffer_from_transitions(
 
 __all__ = [
     "LiveStrategyReplayBuffer",
+    "REPLAY_RECORD_SCHEMA_VERSION",
     "ReplayBufferRecord",
     "replay_buffer_from_transitions",
 ]

@@ -280,7 +280,10 @@ class MultiAgentLiveRaceEnv:
                 include_pit_next_lap=self.config.include_pit_next_lap,
             )
         )
-        self.action_index = StrategyActionIndex.from_action_space(self.action_space)
+        self.action_index = StrategyActionIndex.from_action_space(
+            self.action_space,
+            action_mask_config=self.config.action_mask,
+        )
         self.model_id = self.config.model_id
 
     def validate_start_state(self, state: MultiAgentRaceState) -> None:

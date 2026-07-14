@@ -39,8 +39,10 @@ class TrivialLegalActionBaseline:
     @classmethod
     def fit(cls, dataset: RLReplayDataset) -> "TrivialLegalActionBaseline":
         counts = np.zeros(dataset.action_index.size, dtype=float)
-        for example in dataset.learning_examples():
-            counts[int(example.action_index)] += float(example.weight or 1.0)
+        for example in dataset.behavior_cloning_examples():
+            targets = np.flatnonzero(example.behavior_cloning_action_mask)
+            if targets.size:
+                counts[targets] += float(example.weight or 1.0) / float(targets.size)
         fallback = dataset.action_index.index_for(f"{ACTION_STAY_OUT}:conservative", default=0)
         return cls(action_index=dataset.action_index, action_counts=counts, fallback_action_index=fallback)
 
@@ -59,6 +61,8 @@ class TrivialLegalActionBaseline:
 
     def select_action(self, state: StrategyState) -> StrategyAction:
         legal = self.action_index.legal_mask_for_state(state)
+        if not legal.any():
+            raise ValueError("no constraint-legal live-strategy action")
         return self.action_index.action_for(self.predict_index(legal))
 
 
@@ -120,6 +124,8 @@ class MaskedBehaviorCloningPolicy:
     def select_action(self, state: StrategyState) -> StrategyAction:
         features = state_to_feature_vector(state)
         legal = self.action_index.legal_mask_for_state(state)
+        if not legal.any():
+            raise ValueError("no constraint-legal live-strategy action")
         return self.action_index.action_for(self.predict_index(features, legal))
 
 
@@ -133,15 +139,18 @@ def fit_behavior_cloning(
     cfg = config or BehaviorCloningConfig()
     global_counts = np.zeros(dataset.action_index.size, dtype=float)
     bucket_counts: dict[tuple[float, ...], np.ndarray] = {}
-    learning_examples = dataset.learning_examples()
+    learning_examples = dataset.behavior_cloning_examples()
     for example in learning_examples:
         weight = float(example.weight or 1.0)
-        action_idx = int(example.action_index)
-        global_counts[action_idx] += weight
+        targets = np.flatnonzero(example.behavior_cloning_action_mask)
+        if not targets.size:
+            continue
+        target_mass = weight / float(targets.size)
+        global_counts[targets] += target_mass
         bucket = bucket_state_features(example.state_features, precision=int(cfg.bucket_precision))
         if bucket not in bucket_counts:
             bucket_counts[bucket] = np.zeros(dataset.action_index.size, dtype=float)
-        bucket_counts[bucket][action_idx] += weight
+        bucket_counts[bucket][targets] += target_mass
 
     fallback = dataset.action_index.index_for(cfg.fallback_action_key, default=0)
     if not np.any(global_counts) and 0 <= fallback < global_counts.size:
@@ -154,10 +163,14 @@ def fit_behavior_cloning(
         config=cfg,
         training_diagnostics={
             "training_rows": int(len(learning_examples)),
-            "excluded_ood_rows": int(dataset.rows - len(learning_examples)),
+            "excluded_behavior_cloning_rows": int(dataset.rows - len(learning_examples)),
             "state_buckets": int(len(bucket_counts)),
             "legal_mask_aware": True,
-            "target": "observed_team_action",
+            "target": "observed_team_action_partial_label",
+            "partial_label_semantics": (
+                "target_mass_is_uniform_over_modes_when_action_mode_is_unobserved"
+            ),
+            "action_support": dataset.action_support_diagnostics()["behavior_cloning"],
             "diagnostic_note": "behavior cloning is a warm start only, not a promoted strategy optimizer",
         },
     )
@@ -171,23 +184,27 @@ def evaluate_behavior_cloning(
 ) -> dict[str, object]:
     """Evaluate historical action selection/timing against a trivial baseline."""
 
-    examples = dataset.learning_examples()
+    examples = dataset.behavior_cloning_examples()
     trivial = baseline or TrivialLegalActionBaseline.fit(dataset)
+    # Historical target masks are labels, not legal-action evidence.  Score the
+    # classifier over the full action space and use the partial label only for
+    # correctness, avoiding both target leakage and fabricated legality.
+    candidate_mask = np.ones(dataset.action_index.size, dtype=bool)
     policy_predictions = [
-        policy.predict_index(example.state_features, example.legal_action_mask)
+        policy.predict_index(example.state_features, candidate_mask)
         for example in examples
     ]
-    baseline_predictions = [trivial.predict_index(example.legal_action_mask) for example in examples]
+    baseline_predictions = [trivial.predict_index(candidate_mask) for _ in examples]
     policy_metrics = _classification_metrics(examples, policy_predictions, dataset.action_index)
     baseline_metrics = _classification_metrics(examples, baseline_predictions, dataset.action_index)
 
     return {
-        "model": "masked_behavior_cloning_warm_start_v1",
+        "model": "masked_behavior_cloning_partial_label_warm_start_v2",
         "available": bool(examples),
         "rows": int(len(examples)),
         "metrics": policy_metrics,
         "trivial_baseline": {
-            "model": "most_frequent_legal_action",
+            "model": "most_frequent_partial_label_action",
             "metrics": baseline_metrics,
         },
         "delta_vs_trivial_baseline": {
@@ -236,17 +253,24 @@ def _classification_metrics(
             "pit_decision_f1": None,
             "pit_timing_lap_mae": None,
             "illegal_prediction_rate": None,
+            "legal_mask_certified_rows": 0,
+            "legal_mask_unknown_rows": 0,
         }
 
     action_correct = 0
     type_correct = 0
     pit_correct = 0
     illegal = 0
+    certified_mask_rows = 0
+    unknown_mask_rows = 0
     tp = fp = fn = 0
     for example, pred_idx in zip(examples, predictions):
         actual_idx = int(example.action_index)
         pred_idx = int(pred_idx)
-        action_correct += int(pred_idx == actual_idx)
+        action_correct += int(
+            0 <= pred_idx < example.behavior_cloning_action_mask.size
+            and bool(example.behavior_cloning_action_mask[pred_idx])
+        )
         actual_action = action_index.action_for(actual_idx)
         pred_action = action_index.action_for(pred_idx)
         type_correct += int(pred_action.action_type == actual_action.action_type)
@@ -256,8 +280,24 @@ def _classification_metrics(
         tp += int(actual_pit and pred_pit)
         fp += int((not actual_pit) and pred_pit)
         fn += int(actual_pit and not pred_pit)
-        if pred_idx >= example.legal_action_mask.size or not bool(example.legal_action_mask[pred_idx]):
-            illegal += 1
+        transition_metadata = example.metadata.get("transition_metadata", {})
+        full_mask_certified = bool(
+            str(example.source).strip().lower().startswith(
+                ("synthetic", "simulator", "self_play")
+            )
+            or (
+                isinstance(transition_metadata, dict)
+                and transition_metadata.get("full_legal_action_mask_certified") is True
+            )
+        )
+        if full_mask_certified:
+            certified_mask_rows += 1
+            if pred_idx >= example.legal_action_mask.size or not bool(
+                example.legal_action_mask[pred_idx]
+            ):
+                illegal += 1
+        else:
+            unknown_mask_rows += 1
 
     actual_positive = tp + fn
     predicted_positive = tp + fp
@@ -281,7 +321,14 @@ def _classification_metrics(
         "pit_decision_recall": recall,
         "pit_decision_f1": f1,
         "pit_timing_lap_mae": _pit_lap_mae(examples, predictions, action_index),
-        "illegal_prediction_rate": float(illegal / total),
+        # A fail-closed mask with unknown tyre inventory or pit-lane status is
+        # not evidence that a historical prediction was illegal.  Report a
+        # rate only on rows whose complete mask is certified.
+        "illegal_prediction_rate": (
+            float(illegal / certified_mask_rows) if certified_mask_rows else None
+        ),
+        "legal_mask_certified_rows": int(certified_mask_rows),
+        "legal_mask_unknown_rows": int(unknown_mask_rows),
     }
 
 

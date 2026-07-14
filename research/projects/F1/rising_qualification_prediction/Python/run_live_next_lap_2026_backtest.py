@@ -35,6 +35,37 @@ TARGET = "next_eligible_representative_lap_seconds"
 ISSUANCE_PROTOCOL = "post_eligible_lap_assimilation_frozen_until_next_eligible_lap"
 ROUND_PATTERN = re.compile(r"^round_(\d{2})_")
 DEFAULT_WEIGHT_GRID = tuple(float(index) / 20.0 for index in range(21))
+IMPLEMENTATION_DEPENDENCIES: tuple[str, ...] = (
+    "packages/__init__.py",
+    "packages/f1/__init__.py",
+    "packages/f1/data/__init__.py",
+    "packages/f1/data/schemas/__init__.py",
+    "packages/f1/data/schemas/circuit.py",
+    "packages/f1/data/schemas/result.py",
+    "packages/f1/data/schemas/session.py",
+    "packages/f1/data/utils.py",
+    "packages/f1/models/__init__.py",
+    "packages/f1/models/live_race/__init__.py",
+    "packages/f1/models/live_race/action_space.py",
+    "packages/f1/models/live_race/calibration.py",
+    "packages/f1/models/live_race/environment.py",
+    "packages/f1/models/live_race/evaluate.py",
+    "packages/f1/models/live_race/evaluate_policy.py",
+    "packages/f1/models/live_race/mpc.py",
+    "packages/f1/models/live_race/pit_loss.py",
+    "packages/f1/models/live_race/planner.py",
+    "packages/f1/models/live_race/policy.py",
+    "packages/f1/models/live_race/predict.py",
+    "packages/f1/models/live_race/replay_buffer.py",
+    "packages/f1/models/live_race/simulator.py",
+    "packages/f1/models/live_race/simulator_calibration.py",
+    "packages/f1/models/live_race/sources.py",
+    "packages/f1/models/live_race/state.py",
+    "packages/f1/models/live_race/strategy.py",
+    "packages/f1/models/live_race/traffic.py",
+    "packages/sports_core/__init__.py",
+    "packages/sports_core/paths.py",
+)
 
 
 def _repo_root() -> Path:
@@ -43,6 +74,29 @@ def _repo_root() -> Path:
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _validated_generated_at(value: str | None) -> str:
+    """Return a canonical UTC artifact timestamp or fail closed."""
+
+    if value is None:
+        return _utc_now()
+    text = str(value).strip()
+    if not text:
+        raise ValueError(
+            "generated-at must be a non-empty timezone-aware ISO-8601 timestamp"
+        )
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError(
+            "generated-at must be a valid timezone-aware ISO-8601 timestamp"
+        ) from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("generated-at must include an explicit UTC timezone")
+    if parsed.utcoffset() != timezone.utc.utcoffset(parsed):
+        raise ValueError("generated-at must use UTC")
+    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _sha256(path: Path) -> str:
@@ -88,14 +142,17 @@ def _git_dirty(root: Path) -> bool | None:
 
 
 def _implementation_paths(root: Path) -> list[Path]:
-    return sorted(
-        {
-            Path(__file__).resolve(),
-            (root / "packages/f1/data/schemas/session.py").resolve(),
-            (root / "packages/sports_core/paths.py").resolve(),
-            *(path.resolve() for path in (root / "packages/f1/models/live_race").rglob("*.py")),
-        }
+    paths = [Path(__file__).resolve()]
+    paths.extend(
+        (root / relative_path).resolve()
+        for relative_path in IMPLEMENTATION_DEPENDENCIES
     )
+    missing = [path for path in paths if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            f"Live next-lap implementation dependency is missing: {missing}"
+        )
+    return sorted(set(paths))
 
 
 def _hash_manifest(paths: Sequence[Path], *, root: Path) -> dict[str, str]:
@@ -112,6 +169,71 @@ def _assert_manifest_unchanged(
     changed = sorted(name for name, digest in before.items() if after[name] != digest)
     if changed:
         raise RuntimeError(f"{label} changed during evaluation: {changed}")
+
+
+def _assert_embedded_manifests_current(
+    payload: dict[str, Any],
+    *,
+    root: Path,
+) -> None:
+    """Verify the exact code and inputs bound into a completed payload.
+
+    ``run_backtest`` already checks both manifests after the expensive replay.
+    The CLI performs the same check immediately before and after the exclusive
+    artifact write, closing the otherwise unguarded return-to-write window.
+    """
+
+    implementation_manifest = payload.get("implementation_manifest")
+    if not isinstance(implementation_manifest, dict) or not implementation_manifest:
+        raise ValueError("Live next-lap payload requires a non-empty implementation manifest")
+    if not all(isinstance(path, str) and isinstance(digest, str) for path, digest in implementation_manifest.items()):
+        raise ValueError("Live next-lap implementation manifest must map paths to SHA-256 strings")
+
+    raw_input_manifest = payload.get("input_manifest")
+    if not isinstance(raw_input_manifest, dict) or not raw_input_manifest:
+        raise ValueError("Live next-lap payload requires a non-empty input manifest")
+    input_hashes: dict[str, str] = {}
+    for path, entry in raw_input_manifest.items():
+        if not isinstance(path, str) or not isinstance(entry, dict):
+            raise ValueError("Live next-lap input manifest entries must be path mappings")
+        digest = entry.get("sha256")
+        if not isinstance(digest, str):
+            raise ValueError("Live next-lap input manifest entries require SHA-256 strings")
+        input_hashes[path] = digest
+
+    _assert_manifest_unchanged(
+        implementation_manifest,
+        root=root,
+        label="Live next-lap embedded implementation",
+    )
+    _assert_manifest_unchanged(
+        input_hashes,
+        root=root,
+        label="Live next-lap embedded input data",
+    )
+
+
+def _write_artifact_fail_closed(
+    payload: dict[str, Any],
+    *,
+    output: Path,
+    root: Path,
+) -> None:
+    """Exclusively write an artifact only while both manifests remain current."""
+
+    _assert_embedded_manifests_current(payload, root=root)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    created = False
+    try:
+        with output.open("x", encoding="utf-8") as handle:
+            created = True
+            json.dump(payload, handle, ensure_ascii=False, indent=2, allow_nan=False)
+            handle.write("\n")
+        _assert_embedded_manifests_current(payload, root=root)
+    except Exception:
+        if created:
+            output.unlink(missing_ok=True)
+        raise
 
 
 def _round_number(directory: Path) -> int:
@@ -562,8 +684,10 @@ def run_backtest(
     live_seed: int,
     bootstrap_samples: int,
     bootstrap_seed: int,
+    generated_at: str | None = None,
 ) -> dict[str, Any]:
     root = _repo_root()
+    artifact_generated_at = _validated_generated_at(generated_at)
     grid = _validate_weight_grid(weight_grid)
     requested = None if rounds is None else {int(value) for value in rounds}
     selected = [
@@ -700,7 +824,7 @@ def run_backtest(
     return _json_safe(
         {
             "schema_version": SCHEMA_VERSION,
-            "generated_at": _utc_now(),
+            "generated_at": artifact_generated_at,
             "mode": "live_race_intelligence",
             "forecast_subcontract": "next_eligible_representative_lap_time",
             "target": TARGET,
@@ -853,6 +977,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--bootstrap-samples", type=int, default=500_000)
     parser.add_argument("--bootstrap-seed", type=int, default=20260711)
     parser.add_argument(
+        "--generated-at",
+        default=None,
+        help=(
+            "Optional fixed timezone-aware UTC ISO-8601 artifact timestamp "
+            "for reproducible evidence"
+        ),
+    )
+    parser.add_argument(
         "--output",
         default=str(
             _repo_root()
@@ -895,12 +1027,10 @@ def main(argv: Sequence[str] | None = None) -> None:
         live_seed=int(args.live_seed),
         bootstrap_samples=int(args.bootstrap_samples),
         bootstrap_seed=int(args.bootstrap_seed),
+        generated_at=args.generated_at,
     )
     output = Path(args.output).expanduser().resolve()
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open("x", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2, allow_nan=False)
-        handle.write("\n")
+    _write_artifact_fail_closed(payload, output=output, root=_repo_root())
     print(
         json.dumps(
             {

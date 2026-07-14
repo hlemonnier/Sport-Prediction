@@ -13,7 +13,7 @@ from typing import Any, Callable, Optional
 import numpy as np
 
 from packages.f1.models.live_race.action_space import ACTION_STAY_OUT, StrategyAction
-from packages.f1.models.live_race.environment import StrategyState
+from packages.f1.models.live_race.environment import REWARD_SEMANTICS, StrategyState
 from packages.f1.models.live_race.rl.behavior_cloning import MaskedBehaviorCloningPolicy
 from packages.f1.models.live_race.rl.replay_buffer import (
     RLReplayDataset,
@@ -30,7 +30,10 @@ class ConservativeOfflineRLConfig:
     bucket_precision: int = 2
     iterations: int = 60
     learning_rate: float = 0.30
-    discount: float = 0.92
+    # Replay rewards are aggregate composite interval rewards:
+    # -elapsed time + position-gain shaping - action penalties. They are not
+    # per-lap discounted sequences, so gamma=1 is required for multi-lap rows.
+    discount: float = 1.0
     conservative_penalty: float = 0.40
     ood_action_penalty: float = 8.0
     reward_clip: tuple[float, float] = (-500.0, 100.0)
@@ -102,6 +105,8 @@ class ConservativeOfflineRLPolicy:
     def select_action(self, state: StrategyState) -> StrategyAction:
         features = state_to_feature_vector(state)
         legal = self.action_index.legal_mask_for_state(state)
+        if not legal.any():
+            raise ValueError("no constraint-legal live-strategy action")
         return self.action_index.action_for(self.predict_index(features, legal))
 
     def value(self, state: StrategyState, action: StrategyAction | None = None) -> float:
@@ -146,10 +151,19 @@ def fit_conservative_offline_q(
     """Fit bounded conservative fitted Q-iteration from replay transitions."""
 
     cfg = config or ConservativeOfflineRLConfig()
-    examples = dataset.learning_examples()
+    examples = dataset.offline_q_examples()
     action_count = dataset.action_index.size
     reward_low, reward_high = float(cfg.reward_clip[0]), float(cfg.reward_clip[1])
     value_low, value_high = float(cfg.value_clip[0]), float(cfg.value_clip[1])
+    discount = float(np.clip(cfg.discount, 0.0, 1.0))
+    aggregated_smdp_rows = [
+        example for example in examples if int(example.elapsed_laps) > 1
+    ]
+    if aggregated_smdp_rows and not np.isclose(discount, 1.0, atol=0.0, rtol=0.0):
+        raise ValueError(
+            "multi-lap replay rewards are aggregate undiscounted composite interval totals; "
+            "discount must equal 1.0 unless per-lap rewards are supplied"
+        )
 
     observed_rewards = np.asarray(
         [np.clip(example.reward, reward_low, reward_high) for example in examples],
@@ -184,7 +198,6 @@ def fit_conservative_offline_q(
         state_action_counts.setdefault(next_key, np.zeros(action_count, dtype=float))
 
     learning_rate = float(np.clip(cfg.learning_rate, 0.0, 1.0))
-    discount = float(np.clip(cfg.discount, 0.0, 1.0))
     for _ in range(max(0, int(cfg.iterations))):
         for example in examples:
             key = bucket_state_features(example.state_features, precision=int(cfg.bucket_precision))
@@ -204,7 +217,10 @@ def fit_conservative_offline_q(
                 next_value = float(np.max(finite)) if finite.size else value_low
 
             reward = float(np.clip(example.reward, reward_low, reward_high))
-            target = float(np.clip(reward + (discount * next_value), value_low, value_high))
+            duration_discount = discount ** max(1, int(example.elapsed_laps))
+            target = float(
+                np.clip(reward + (duration_discount * next_value), value_low, value_high)
+            )
             q_values[action_idx] = float(q_values[action_idx] + (learning_rate * (target - q_values[action_idx])))
 
             legal_indices = np.flatnonzero(example.legal_action_mask)
@@ -231,6 +247,23 @@ def fit_conservative_offline_q(
             "state_buckets": int(len(q_table)),
             "iterations": int(max(0, cfg.iterations)),
             "discount": float(discount),
+            "discount_semantics": (
+                "undiscounted_composite_interval_reward_gamma_one_for_aggregated_smdp_transitions"
+                if aggregated_smdp_rows
+                else "one_lap_composite_reward_plus_gamma_continuation"
+            ),
+            "reward_semantics": REWARD_SEMANTICS,
+            "aggregated_multi_lap_reward_rows": int(len(aggregated_smdp_rows)),
+            "elapsed_laps_min": (
+                int(min(example.elapsed_laps for example in examples))
+                if examples
+                else None
+            ),
+            "elapsed_laps_max": (
+                int(max(example.elapsed_laps for example in examples))
+                if examples
+                else None
+            ),
             "conservative_penalty": float(cfg.conservative_penalty),
             "ood_action_penalty": float(cfg.ood_action_penalty),
             "reward_clip": (reward_low, reward_high),
@@ -238,6 +271,10 @@ def fit_conservative_offline_q(
             "value_min": float(np.min(all_values)) if all_values.size else None,
             "value_max": float(np.max(all_values)) if all_values.size else None,
             "warm_started_from_behavior_cloning": bool(behavior_policy is not None),
+            "action_support": dataset.action_support_diagnostics()["offline_q"],
+            "strategy_training_readiness_gate_pass": bool(
+                dataset.diagnostics()["strategy_training_readiness_gate_pass"]
+            ),
         },
     )
 
@@ -301,6 +338,12 @@ def evaluate_offline_rl_policy(
         and offline_value is not None
         and not locked_evidence_issues
     )
+    action_support_gate_pass = bool(
+        policy.training_diagnostics.get(
+            "strategy_training_readiness_gate_pass",
+            False,
+        )
+    )
 
     return OfflineRLEvaluationResult(
         available=True,
@@ -314,7 +357,16 @@ def evaluate_offline_rl_policy(
             "missing_comparisons_for_promotion": list(missing_comparisons),
             "locked_evaluation_issues": locked_evidence_issues,
             "historical_accuracy_used_for_promotion": False,
-            "promotion_gate_pass": bool(offline_payload_gate_pass and comparison_gate_pass),
+            "action_support_gate_pass": action_support_gate_pass,
+            "action_support_blockers": policy.training_diagnostics.get(
+                "action_support",
+                {},
+            ).get("blockers", []),
+            "promotion_gate_pass": bool(
+                offline_payload_gate_pass
+                and comparison_gate_pass
+                and action_support_gate_pass
+            ),
         },
         comparison_payloads=comparison_payloads,
         diagnostics={

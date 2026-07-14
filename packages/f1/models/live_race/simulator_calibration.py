@@ -13,7 +13,8 @@ import pandas as pd
 
 from packages.sports_core.paths import find_repo_root
 
-from packages.f1.models.live_race.environment import StrategyState, infer_observed_action
+from packages.f1.models.live_race.action_space import ACTION_STAY_OUT, StrategyAction
+from packages.f1.models.live_race.environment import build_replay_transitions
 from packages.f1.models.live_race.simulator import LiveRaceSimulator, RaceSimulatorConfig
 
 
@@ -44,16 +45,28 @@ def _finite(value: object, default: float = float("nan")) -> float:
         return float(default)
 
 
-def _actual_elapsed(row_t: pd.Series, row_t1: pd.Series) -> float:
-    race_t = _finite(row_t.get("race_time_seconds"), float("nan"))
-    race_t1 = _finite(row_t1.get("race_time_seconds"), float("nan"))
+def _actual_elapsed(state_t: object, state_t1: object) -> float:
+    race_t = _finite(getattr(state_t, "race_time_seconds", None), float("nan"))
+    race_t1 = _finite(getattr(state_t1, "race_time_seconds", None), float("nan"))
     if np.isfinite(race_t) and np.isfinite(race_t1) and race_t1 >= race_t:
         return float(race_t1 - race_t)
-    lap_time = _finite(row_t1.get("lap_time_seconds"), float("nan"))
-    if np.isfinite(lap_time):
-        return float(lap_time)
-    lap_time = _finite(row_t.get("next_actual_lap_time_seconds"), float("nan"))
-    return float(lap_time)
+    return float("nan")
+
+
+def _observed_pit_loss(rows: Iterable[pd.Series]) -> float:
+    """Return an explicitly observed pit loss aligned to this transition.
+
+    ``pit_loss_estimate_seconds`` is deliberately excluded: it is a model input,
+    not ground truth, and comparing the simulator against it would make the
+    calibration circular.
+    """
+
+    for row in rows:
+        for column in ("observed_pit_loss_seconds", "pit_loss_seconds"):
+            value = _finite(row.get(column), float("nan"))
+            if np.isfinite(value):
+                return float(value)
+    return float("nan")
 
 
 def one_step_lap_time_calibration(
@@ -68,51 +81,104 @@ def one_step_lap_time_calibration(
 
     sim = simulator or LiveRaceSimulator(config=RaceSimulatorConfig())
     frame = laps.copy()
-    lap_col = "lap_number" if "lap_number" in frame.columns else "LapNumber"
-    driver_col = "driver_id" if "driver_id" in frame.columns else None
-    sort_cols = [col for col in (driver_col, lap_col, "timestamp") if col and col in frame.columns]
-    if sort_cols:
-        frame = frame.sort_values(sort_cols, kind="mergesort")
-
+    source_rows = {str(index): row for index, row in frame.iterrows()}
     rows: list[dict[str, object]] = []
-    groups: Iterable[tuple[object, pd.DataFrame]]
-    groups = frame.groupby(driver_col, sort=False) if driver_col else [(None, frame)]
-    for _, group in groups:
-        row_list = [row for _, row in group.iterrows()]
-        for idx in range(len(row_list) - 1):
-            row_t = row_list[idx]
-            row_t1 = row_list[idx + 1]
-            actual = _actual_elapsed(row_t, row_t1)
-            if not np.isfinite(actual):
-                continue
-            state = StrategyState.from_mapping(row_t)
-            action = infer_observed_action(row_t, row_t1)
-            transition = sim.step(state, action)
-            predicted = _finite(transition.reward_t.components.get("race_time_delta_seconds"), float("nan"))
-            if not np.isfinite(predicted):
-                continue
-            rows.append(
-                {
-                    "driver_id": state.driver_id,
-                    "lap_number": int(state.lap_number),
-                    "action_key": action.key,
-                    "actual_elapsed_seconds": float(actual),
-                    "predicted_elapsed_seconds": float(predicted),
-                    "error_seconds": float(predicted - actual),
-                    "track_status": state.track_status,
-                    "is_pit_action": bool(action.is_pit_action),
-                    "predicted_pit_loss_seconds": transition.reward_t.components.get("pit_loss"),
-                }
+    observed_transitions = build_replay_transitions(
+        frame,
+        action_space=sim.action_space,
+        action_mask_config=sim.config.action_mask,
+    )
+    invalid_simulator_actions = 0
+    missing_elapsed = 0
+    for observed in observed_transitions:
+        actual = _actual_elapsed(observed.state_t, observed.state_t1)
+        if not np.isfinite(actual):
+            missing_elapsed += 1
+            continue
+        elapsed_laps = max(1, int(observed.metadata.get("elapsed_laps", 1)))
+        actions = [observed.action_t]
+        actions.extend(
+            StrategyAction(ACTION_STAY_OUT)
+            for _ in range(elapsed_laps - 1)
+        )
+        simulated = sim.simulate_action_sequence(
+            observed.state_t,
+            actions,
+            stop_on_done=True,
+        )
+        if len(simulated) != elapsed_laps or any(
+            not transition.is_action_legal() for transition in simulated
+        ):
+            invalid_simulator_actions += 1
+            continue
+        predicted_parts = [
+            _finite(
+                transition.reward_t.components.get("race_time_delta_seconds"),
+                float("nan"),
             )
+            for transition in simulated
+        ]
+        if not predicted_parts or not np.isfinite(predicted_parts).all():
+            continue
+        predicted = float(np.sum(predicted_parts))
+        source_ids = [
+            observed.metadata.get("row_t_index"),
+            observed.metadata.get("pit_in_row_index"),
+            *tuple(observed.metadata.get("pit_out_row_indices", ())),
+            observed.metadata.get("row_t1_index"),
+        ]
+        matched_source_rows = [
+            source_rows[str(source_id)]
+            for source_id in dict.fromkeys(source_ids)
+            if source_id is not None and str(source_id) in source_rows
+        ]
+        predicted_pit_loss = float(
+            np.sum(
+                [
+                    _finite(transition.reward_t.components.get("pit_loss"), 0.0)
+                    for transition in simulated
+                ]
+            )
+        )
+        rows.append(
+            {
+                "driver_id": observed.state_t.driver_id,
+                "lap_number": int(observed.state_t.lap_number),
+                "next_lap_number": int(observed.state_t1.lap_number),
+                "elapsed_laps": int(elapsed_laps),
+                "transition_kind": observed.metadata.get("transition_kind"),
+                "calibration_matching": "semi_markov_decision_transition",
+                "action_key": observed.action_t.key,
+                "actual_elapsed_seconds": float(actual),
+                "predicted_elapsed_seconds": float(predicted),
+                "error_seconds": float(predicted - actual),
+                "track_status": observed.state_t.track_status,
+                "is_pit_action": bool(observed.action_t.is_pit_action),
+                "predicted_pit_loss_seconds": predicted_pit_loss,
+                "observed_pit_loss_seconds": _observed_pit_loss(matched_source_rows),
+            }
+        )
 
     if not rows:
-        return {"available": False, "reason": "no_comparable_one_step_rows", "rows": 0}, rows
+        return {
+            "available": False,
+            "reason": "no_comparable_semi_markov_rows",
+            "rows": 0,
+            "replay_transition_count": int(len(observed_transitions)),
+            "invalid_simulator_action_count": int(invalid_simulator_actions),
+            "missing_elapsed_count": int(missing_elapsed),
+            "matching": "semi_markov_decision_transition",
+        }, rows
     errors = np.asarray([float(row["error_seconds"]) for row in rows], dtype=float)
     abs_errors = np.abs(errors)
     return (
         {
             "available": True,
             "rows": int(len(rows)),
+            "replay_transition_count": int(len(observed_transitions)),
+            "invalid_simulator_action_count": int(invalid_simulator_actions),
+            "missing_elapsed_count": int(missing_elapsed),
+            "matching": "semi_markov_decision_transition",
             "mae": float(np.mean(abs_errors)),
             "rmse": float(np.sqrt(np.mean(errors**2))),
             "crps_deterministic_point_forecast": float(np.mean(abs_errors)),
@@ -123,7 +189,11 @@ def one_step_lap_time_calibration(
 
 
 def pit_loss_calibration(rows: Iterable[dict[str, object]], laps: pd.DataFrame) -> dict[str, object]:
-    explicit_columns = [column for column in ("pit_loss_seconds", "pit_loss_estimate_seconds", "observed_pit_loss_seconds") if column in laps.columns]
+    explicit_columns = [
+        column
+        for column in ("observed_pit_loss_seconds", "pit_loss_seconds")
+        if column in laps.columns
+    ]
     if not explicit_columns:
         predicted = [float(row["predicted_pit_loss_seconds"]) for row in rows if row.get("is_pit_action") and np.isfinite(_finite(row.get("predicted_pit_loss_seconds")))]
         return {
@@ -132,26 +202,29 @@ def pit_loss_calibration(rows: Iterable[dict[str, object]], laps: pd.DataFrame) 
             "pit_action_rows": int(len(predicted)),
             "predicted_pit_loss_mean": float(np.mean(predicted)) if predicted else None,
         }
-    observed = pd.to_numeric(laps[explicit_columns[0]], errors="coerce").dropna().to_numpy(dtype=float)
-    predicted = np.asarray(
-        [
-            float(row["predicted_pit_loss_seconds"])
-            for row in rows
-            if row.get("is_pit_action") and np.isfinite(_finite(row.get("predicted_pit_loss_seconds")))
-        ],
-        dtype=float,
-    )
-    n = min(int(observed.size), int(predicted.size))
-    if n == 0:
+    matched = [
+        (
+            float(row["predicted_pit_loss_seconds"]),
+            float(row["observed_pit_loss_seconds"]),
+        )
+        for row in rows
+        if row.get("is_pit_action")
+        and np.isfinite(_finite(row.get("predicted_pit_loss_seconds")))
+        and np.isfinite(_finite(row.get("observed_pit_loss_seconds")))
+    ]
+    if not matched:
         return {"available": False, "reason": "no_matched_pit_loss_rows", "rows": 0}
-    err = predicted[:n] - observed[:n]
+    predicted = np.asarray([pair[0] for pair in matched], dtype=float)
+    observed = np.asarray([pair[1] for pair in matched], dtype=float)
+    err = predicted - observed
     return {
         "available": True,
-        "rows": int(n),
+        "rows": int(len(matched)),
         "mae": float(np.mean(np.abs(err))),
         "bias_seconds": float(np.mean(err)),
-        "observed_mean": float(np.mean(observed[:n])),
-        "predicted_mean": float(np.mean(predicted[:n])),
+        "observed_mean": float(np.mean(observed)),
+        "predicted_mean": float(np.mean(predicted)),
+        "matching": "transition_aligned_explicit_observed_pit_loss",
     }
 
 

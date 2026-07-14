@@ -114,3 +114,6 @@ def test_phase8_self_play_beats_single_agent_baseline_and_avoids_sync_pattern() 
     assert result.metrics["summary_by_policy"]["multi_agent"]["max_same_lap_pit_count"] <= 2
     assert result.metrics["summary_by_policy"]["single_agent"]["max_same_lap_pit_count"] > 2
     assert result.metrics["summary_by_policy"]["multi_agent"]["illegal_action_count"] == 0
+    assert result.metrics["synthetic_comparator_gate_pass"] is True
+    assert result.metrics["promotion_gate_pass"] is False
+    assert "off_policy_evaluation_with_uncertainty_required" in result.metrics["promotion_blockers"]

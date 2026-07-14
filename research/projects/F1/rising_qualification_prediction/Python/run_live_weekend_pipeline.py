@@ -12,6 +12,12 @@ from pathlib import Path
 from typing import Any, Optional
 
 from packages.f1 import PredictionConfig, run_prediction
+from packages.f1.domain import (
+    PredictionTarget,
+    WeekendFormat,
+    build_weekend_contract,
+    parse_session_cutoff,
+)
 from packages.f1.orchestration.backtest import evaluate_prediction_rows
 from packages.f1.data.providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
 from packages.f1.orchestration.runtime import parse_compare_families, parse_json_object, parse_train_seasons
@@ -103,6 +109,129 @@ def _round_dir(base_output_dir: str, year: int, round_number: int) -> Path:
     return Path(base_output_dir) / str(year) / f"round_{int(round_number):02d}"
 
 
+def _resolve_phase_horizon(requested: str, phase_default: str) -> str:
+    normalized = str(requested or "auto").strip().lower()
+    return str(phase_default) if normalized == "auto" else normalized
+
+
+_RACE_HORIZON_ORDER = {
+    "pre_fp_provisional": 0,
+    "post_fp_pre_qualifying": 1,
+    "post_qualifying_pre_grid": 2,
+    "post_grid_pre_race": 3,
+}
+
+_PHASE_HORIZON_DEFAULTS = {
+    "pre-qualifying": ("pre_qualifying", "post_fp_pre_qualifying"),
+    "post-qualifying": ("post_qualifying", "post_qualifying_pre_grid"),
+    "live-race": ("pre_race", "post_grid_pre_race"),
+}
+
+
+def _weekend_formats_for_year(year: int) -> tuple[WeekendFormat, ...]:
+    if int(year) < 2021:
+        return (WeekendFormat.STANDARD,)
+    if int(year) <= 2022:
+        return (WeekendFormat.STANDARD, WeekendFormat.SPRINT_2021_2022)
+    if int(year) == 2023:
+        return (WeekendFormat.STANDARD, WeekendFormat.SPRINT_2023)
+    return (WeekendFormat.STANDARD, WeekendFormat.SPRINT_2024_PLUS)
+
+
+def _validate_qualifying_horizon_for_phase(
+    *,
+    requested: str,
+    phase: str,
+    phase_maximum: str,
+    year: int,
+) -> None:
+    normalized = str(requested or "auto").strip().lower()
+    if normalized == "auto":
+        return
+
+    recognized = False
+    later_formats: list[str] = []
+    for weekend_format in _weekend_formats_for_year(year):
+        contract = build_weekend_contract(
+            int(year),
+            weekend_format,
+            eligible_cars=22,
+        )
+        try:
+            requested_cutoff = parse_session_cutoff(
+                contract,
+                normalized,
+                target=PredictionTarget.RACE,
+            )
+        except ValueError as exc:
+            if "Unknown F1 session cutoff" in str(exc):
+                raise ValueError(
+                    f"Unknown qualifying_information_horizon={requested!r}."
+                ) from exc
+            # A format-specific session such as FP3 or Sprint may legitimately
+            # be absent from the other possible format for the same season.
+            continue
+
+        recognized = True
+        phase_cutoff = parse_session_cutoff(
+            contract,
+            phase_maximum,
+            target=PredictionTarget.RACE,
+        )
+        if len(contract.completed_sessions(requested_cutoff)) > len(
+            contract.completed_sessions(phase_cutoff)
+        ):
+            later_formats.append(weekend_format.value)
+
+    if not recognized:
+        raise ValueError(
+            f"qualifying_information_horizon={requested!r} is unavailable for the {year} weekend formats."
+        )
+    if later_formats:
+        formats = ", ".join(later_formats)
+        raise ValueError(
+            f"qualifying_information_horizon={requested!r} is later than the {phase!r} "
+            f"phase boundary ({phase_maximum!r}) for: {formats}."
+        )
+
+
+def _validate_phase_information_horizons(
+    *,
+    phase: str,
+    year: int,
+    qualifying_information_horizon: str,
+    race_information_horizon: str,
+) -> None:
+    selected_phases = (
+        ("pre-qualifying", "post-qualifying")
+        if str(phase) == "full"
+        else (str(phase),)
+    )
+    for selected_phase in selected_phases:
+        defaults = _PHASE_HORIZON_DEFAULTS.get(selected_phase)
+        if defaults is None:
+            continue
+        qualifying_maximum, race_maximum = defaults
+        _validate_qualifying_horizon_for_phase(
+            requested=qualifying_information_horizon,
+            phase=selected_phase,
+            phase_maximum=qualifying_maximum,
+            year=year,
+        )
+
+        requested_race = _resolve_phase_horizon(
+            race_information_horizon,
+            race_maximum,
+        )
+        if requested_race not in _RACE_HORIZON_ORDER:
+            raise ValueError(f"Unknown race_information_horizon={race_information_horizon!r}.")
+        if _RACE_HORIZON_ORDER[requested_race] > _RACE_HORIZON_ORDER[race_maximum]:
+            raise ValueError(
+                f"race_information_horizon={race_information_horizon!r} is later than the "
+                f"{selected_phase!r} phase boundary ({race_maximum!r})."
+            )
+
+
 def _run_qualifying_prediction(
     *,
     source: str,
@@ -124,6 +253,11 @@ def _run_qualifying_prediction(
     weather_config: dict[str, Any],
     qualifying_information_horizon: str,
     prediction_as_of: Optional[str],
+    f1_model: str,
+    f1_listwise: str,
+    f1_pl_samples: int,
+    f1_pl_temperature: float,
+    f1_listwise_seed: int,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -146,6 +280,11 @@ def _run_qualifying_prediction(
         disable_circuit_features=disable_circuit_features,
         qualifying_information_horizon=qualifying_information_horizon,
         prediction_as_of=prediction_as_of,
+        f1_model=f1_model,
+        f1_listwise=f1_listwise,
+        f1_pl_samples=f1_pl_samples,
+        f1_pl_temperature=f1_pl_temperature,
+        f1_listwise_seed=f1_listwise_seed,
         **weather_config,
     )
     return _prediction_payload(config)
@@ -185,6 +324,11 @@ def _run_race_prediction(
     f1_live_replay_cutoff_lap: Optional[int] = None,
     f1_live_replay_cutoff_time_seconds: Optional[float] = None,
     f1_live_next_lap_ssm_weight: float = 0.0,
+    f1_model: str = "auto",
+    f1_listwise: str = "pl_gumbel",
+    f1_pl_samples: int = 2000,
+    f1_pl_temperature: float = 1.0,
+    f1_listwise_seed: int = 42,
 ) -> dict[str, Any]:
     config = PredictionConfig(
         source=source,
@@ -208,6 +352,11 @@ def _run_race_prediction(
         qualifying_information_horizon=qualifying_information_horizon,
         race_information_horizon=race_information_horizon,
         prediction_as_of=prediction_as_of,
+        f1_model=f1_model,
+        f1_listwise=f1_listwise,
+        f1_pl_samples=f1_pl_samples,
+        f1_pl_temperature=f1_pl_temperature,
+        f1_listwise_seed=f1_listwise_seed,
         **weather_config,
         f1_mode=f1_mode,
         f1_live_source=f1_live_source,
@@ -246,6 +395,13 @@ def _run_pre_qualifying(
     disable_circuit_features: bool,
     weather_config: dict[str, Any],
     prediction_as_of: Optional[str],
+    f1_model: str,
+    f1_listwise: str,
+    f1_pl_samples: int,
+    f1_pl_temperature: float,
+    f1_listwise_seed: int,
+    qualifying_information_horizon: str,
+    race_information_horizon: str,
 ) -> dict[str, str]:
     qualifying_payload = _run_qualifying_prediction(
         source=source,
@@ -265,8 +421,16 @@ def _run_pre_qualifying(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
-        qualifying_information_horizon="pre_qualifying",
+        qualifying_information_horizon=_resolve_phase_horizon(
+            qualifying_information_horizon,
+            "pre_qualifying",
+        ),
         prediction_as_of=prediction_as_of,
+        f1_model=f1_model,
+        f1_listwise=f1_listwise,
+        f1_pl_samples=f1_pl_samples,
+        f1_pl_temperature=f1_pl_temperature,
+        f1_listwise_seed=f1_listwise_seed,
     )
     qualifying_path = output_dir / "prequal_qualifying_prediction.json"
     _write_json(qualifying_path, qualifying_payload)
@@ -290,10 +454,21 @@ def _run_pre_qualifying(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
-        qualifying_information_horizon="pre_qualifying",
-        race_information_horizon="post_fp_pre_qualifying",
+        qualifying_information_horizon=_resolve_phase_horizon(
+            qualifying_information_horizon,
+            "pre_qualifying",
+        ),
+        race_information_horizon=_resolve_phase_horizon(
+            race_information_horizon,
+            "post_fp_pre_qualifying",
+        ),
         prediction_as_of=prediction_as_of,
         f1_mode="offline",
+        f1_model=f1_model,
+        f1_listwise=f1_listwise,
+        f1_pl_samples=f1_pl_samples,
+        f1_pl_temperature=f1_pl_temperature,
+        f1_listwise_seed=f1_listwise_seed,
     )
     race_path = output_dir / "prequal_race_prediction.json"
     _write_json(race_path, race_payload)
@@ -326,6 +501,13 @@ def _run_post_qualifying(
     disable_circuit_features: bool,
     weather_config: dict[str, Any],
     prediction_as_of: Optional[str],
+    f1_model: str,
+    f1_listwise: str,
+    f1_pl_samples: int,
+    f1_pl_temperature: float,
+    f1_listwise_seed: int,
+    qualifying_information_horizon: str,
+    race_information_horizon: str,
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
         source=source,
@@ -346,10 +528,21 @@ def _run_post_qualifying(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
-        qualifying_information_horizon="post_qualifying",
-        race_information_horizon="post_qualifying_pre_grid",
+        qualifying_information_horizon=_resolve_phase_horizon(
+            qualifying_information_horizon,
+            "post_qualifying",
+        ),
+        race_information_horizon=_resolve_phase_horizon(
+            race_information_horizon,
+            "post_qualifying_pre_grid",
+        ),
         prediction_as_of=prediction_as_of,
         f1_mode="offline",
+        f1_model=f1_model,
+        f1_listwise=f1_listwise,
+        f1_pl_samples=f1_pl_samples,
+        f1_pl_temperature=f1_pl_temperature,
+        f1_listwise_seed=f1_listwise_seed,
     )
     race_path = output_dir / "postqual_race_prediction.json"
     _write_json(race_path, race_payload)
@@ -472,6 +665,13 @@ def _run_live_race(
     f1_live_replay_cutoff_time_seconds: Optional[float],
     f1_live_next_lap_ssm_weight: float,
     prediction_as_of: Optional[str],
+    f1_model: str,
+    f1_listwise: str,
+    f1_pl_samples: int,
+    f1_pl_temperature: float,
+    f1_listwise_seed: int,
+    qualifying_information_horizon: str,
+    race_information_horizon: str,
 ) -> dict[str, Any]:
     race_payload = _run_race_prediction(
         source=source,
@@ -492,8 +692,14 @@ def _run_live_race(
         disable_runsim_features=disable_runsim_features,
         disable_circuit_features=disable_circuit_features,
         weather_config=weather_config,
-        qualifying_information_horizon="pre_race",
-        race_information_horizon="post_grid_pre_race",
+        qualifying_information_horizon=_resolve_phase_horizon(
+            qualifying_information_horizon,
+            "pre_race",
+        ),
+        race_information_horizon=_resolve_phase_horizon(
+            race_information_horizon,
+            "post_grid_pre_race",
+        ),
         prediction_as_of=prediction_as_of,
         f1_mode="live",
         f1_live_source=f1_live_source,
@@ -506,6 +712,11 @@ def _run_live_race(
         f1_live_replay_cutoff_lap=f1_live_replay_cutoff_lap,
         f1_live_replay_cutoff_time_seconds=f1_live_replay_cutoff_time_seconds,
         f1_live_next_lap_ssm_weight=f1_live_next_lap_ssm_weight,
+        f1_model=f1_model,
+        f1_listwise=f1_listwise,
+        f1_pl_samples=f1_pl_samples,
+        f1_pl_temperature=f1_pl_temperature,
+        f1_listwise_seed=f1_listwise_seed,
     )
     snapshot_path = output_dir / "live_race_snapshot.json"
     _write_json(snapshot_path, race_payload)
@@ -576,6 +787,27 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dl-seed", type=int, default=42)
     parser.add_argument("--disable-runsim-features", action="store_true")
     parser.add_argument(
+        "--f1-model",
+        choices=["auto", "baseline", "strategic_baseline", "xgb_rank", "eb_rank", "lgbm_rank"],
+        default="auto",
+    )
+    parser.add_argument("--f1-listwise", choices=["off", "pl_gumbel"], default="pl_gumbel")
+    parser.add_argument("--f1-pl-samples", type=int, default=2000)
+    parser.add_argument("--f1-pl-temperature", type=float, default=1.0)
+    parser.add_argument("--f1-listwise-seed", type=int, default=42)
+    parser.add_argument("--qualifying-information-horizon", default="auto")
+    parser.add_argument(
+        "--race-information-horizon",
+        choices=[
+            "auto",
+            "pre_fp_provisional",
+            "post_fp_pre_qualifying",
+            "post_qualifying_pre_grid",
+            "post_grid_pre_race",
+        ],
+        default="auto",
+    )
+    parser.add_argument(
         "--disable-circuit-features",
         dest="disable_circuit_features",
         action="store_true",
@@ -627,6 +859,16 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+
+    try:
+        _validate_phase_information_horizons(
+            phase=args.phase,
+            year=args.year,
+            qualifying_information_horizon=args.qualifying_information_horizon,
+            race_information_horizon=args.race_information_horizon,
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
 
     train_seasons = parse_train_seasons(args.train_seasons, args.year, args.train_policy)
     compare_families = parse_compare_families(args.compare_families)
@@ -681,6 +923,13 @@ def main() -> None:
             disable_circuit_features=disable_circuit_features,
             weather_config=weather_config,
             prediction_as_of=args.prediction_as_of,
+            f1_model=args.f1_model,
+            f1_listwise=args.f1_listwise,
+            f1_pl_samples=args.f1_pl_samples,
+            f1_pl_temperature=args.f1_pl_temperature,
+            f1_listwise_seed=args.f1_listwise_seed,
+            qualifying_information_horizon=args.qualifying_information_horizon,
+            race_information_horizon=args.race_information_horizon,
         )
         executed.append("pre-qualifying")
 
@@ -707,6 +956,13 @@ def main() -> None:
             disable_circuit_features=disable_circuit_features,
             weather_config=weather_config,
             prediction_as_of=args.prediction_as_of,
+            f1_model=args.f1_model,
+            f1_listwise=args.f1_listwise,
+            f1_pl_samples=args.f1_pl_samples,
+            f1_pl_temperature=args.f1_pl_temperature,
+            f1_listwise_seed=args.f1_listwise_seed,
+            qualifying_information_horizon=args.qualifying_information_horizon,
+            race_information_horizon=args.race_information_horizon,
         )
         executed.append("post-qualifying")
 
@@ -751,6 +1007,13 @@ def main() -> None:
             f1_live_replay_cutoff_time_seconds=args.f1_live_replay_cutoff_time_seconds,
             f1_live_next_lap_ssm_weight=args.f1_live_next_lap_ssm_weight,
             prediction_as_of=args.prediction_as_of,
+            f1_model=args.f1_model,
+            f1_listwise=args.f1_listwise,
+            f1_pl_samples=args.f1_pl_samples,
+            f1_pl_temperature=args.f1_pl_temperature,
+            f1_listwise_seed=args.f1_listwise_seed,
+            qualifying_information_horizon=args.qualifying_information_horizon,
+            race_information_horizon=args.race_information_horizon,
         )
         executed.append("live-race")
 
@@ -765,20 +1028,38 @@ def main() -> None:
     f1_mode_effective = "live" if args.phase == "live-race" else str(args.f1_mode)
     phase_information_contracts = {
         "pre-qualifying": {
-            "session_cutoff": "pre_qualifying",
-            "race_horizon": "post_fp_pre_qualifying",
+            "session_cutoff": _resolve_phase_horizon(
+                args.qualifying_information_horizon,
+                "pre_qualifying",
+            ),
+            "race_horizon": _resolve_phase_horizon(
+                args.race_information_horizon,
+                "post_fp_pre_qualifying",
+            ),
         },
         "post-qualifying": {
-            "session_cutoff": "post_qualifying",
-            "race_horizon": "post_qualifying_pre_grid",
+            "session_cutoff": _resolve_phase_horizon(
+                args.qualifying_information_horizon,
+                "post_qualifying",
+            ),
+            "race_horizon": _resolve_phase_horizon(
+                args.race_information_horizon,
+                "post_qualifying_pre_grid",
+            ),
         },
         "post-race": {
             "prediction_generated": False,
             "outcomes_role": "evaluation_only",
         },
         "live-race": {
-            "session_cutoff": "pre_race",
-            "race_horizon": "post_grid_pre_race",
+            "session_cutoff": _resolve_phase_horizon(
+                args.qualifying_information_horizon,
+                "pre_race",
+            ),
+            "race_horizon": _resolve_phase_horizon(
+                args.race_information_horizon,
+                "post_grid_pre_race",
+            ),
         },
     }
 
@@ -811,6 +1092,13 @@ def main() -> None:
         "disable_circuit_features": bool(disable_circuit_features),
         "circuit_feature_state": "quarantined" if disable_circuit_features else "enabled_research_only",
         "weather": weather_config,
+        "f1_model": str(args.f1_model),
+        "f1_listwise": str(args.f1_listwise),
+        "f1_pl_samples": int(args.f1_pl_samples),
+        "f1_pl_temperature": float(args.f1_pl_temperature),
+        "f1_listwise_seed": int(args.f1_listwise_seed),
+        "qualifying_information_horizon": str(args.qualifying_information_horizon),
+        "race_information_horizon": str(args.race_information_horizon),
         "f1_mode": str(args.f1_mode),
         "f1_mode_effective": f1_mode_effective,
         "f1_live_source": str(args.f1_live_source),

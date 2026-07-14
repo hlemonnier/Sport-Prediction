@@ -26,11 +26,12 @@ from packages.f1.models.live_race.action_space import (
     normalize_compound,
 )
 from packages.f1.models.live_race.environment import (
+    LEAKAGE_CONTRACT_VERSION,
     RewardConfig,
     StrategyReward,
     StrategyState,
     StrategyTransition,
-    infer_observed_action,
+    build_replay_transitions,
 )
 from packages.f1.models.live_race.pit_loss import PitLossConfig, estimate_pit_loss_seconds
 from packages.f1.models.live_race.state import compound_deg_prior, parse_track_status
@@ -433,6 +434,13 @@ class LiveRaceSimulator:
             frame = frame[frame["driver_id"].astype(str) == str(driver_id)].copy()
         if frame.empty:
             return ()
+        if "driver_id" in frame.columns and frame["driver_id"].astype(str).nunique() > 1:
+            raise ValueError("replay_race requires one driver or an explicit driver_id")
+        event_col = "event_key" if "event_key" in frame.columns else (
+            "meeting_key" if "meeting_key" in frame.columns else None
+        )
+        if event_col is not None and frame[event_col].dropna().astype(str).nunique() > 1:
+            raise ValueError("replay_race requires event-isolated input")
         lap_col = "lap_number" if "lap_number" in frame.columns else "LapNumber"
         frame[lap_col] = pd.to_numeric(frame[lap_col], errors="coerce")
         frame = frame[frame[lap_col].notna()].sort_values(lap_col, kind="mergesort")
@@ -445,8 +453,17 @@ class LiveRaceSimulator:
         start_state = StrategyState.from_mapping(rows[0])
         actions: list[StrategyAction] = []
         if policy is None:
-            for idx in range(len(rows) - 1):
-                actions.append(infer_observed_action(rows[idx], rows[idx + 1]))
+            observed_transitions = build_replay_transitions(
+                frame,
+                action_space=self.action_space,
+                action_mask_config=self.config.action_mask,
+            )
+            for observed in observed_transitions:
+                actions.append(observed.action_t)
+                actions.extend(
+                    StrategyAction(ACTION_STAY_OUT)
+                    for _ in range(max(0, int(observed.metadata.get("elapsed_laps", 1)) - 1))
+                )
         return self.simulate_policy(start_state, policy=policy, actions=actions)
 
     def compare_policies_same_seed(
@@ -480,18 +497,26 @@ class LiveRaceSimulator:
         metadata = dict(state.metadata or {})
         metadata.setdefault("ignored_future_columns", tuple())
         metadata.setdefault("available_through_lap", int(state.lap_number))
-        metadata.setdefault("leakage_contract_version", state.metadata.get("leakage_contract_version", "live_strategy_state_v1_no_future_lap_fields"))
+        metadata.setdefault(
+            "leakage_contract_version",
+            state.metadata.get("leakage_contract_version", LEAKAGE_CONTRACT_VERSION),
+        )
         if self.scenario.wet_track:
             metadata["weather_is_wet"] = True
         return replace(state, metadata=metadata)
 
     def _event_lap_baseline(self, state: StrategyState, *, next_lap: int) -> float:
         metadata = state.metadata if isinstance(state.metadata, Mapping) else {}
-        baseline_by_lap = metadata.get("event_lap_baseline_by_lap")
-        if isinstance(baseline_by_lap, Mapping):
-            base = _mapping_float(baseline_by_lap, int(next_lap), float("nan"))
-            if np.isfinite(base):
-                return float(base + self.scenario.baseline_offset_seconds + _mapping_float(self.scenario.lap_baseline_offsets, int(next_lap), 0.0))
+        if "event_lap_baseline_by_lap" in metadata:
+            # A complete per-lap map is indistinguishable here from future
+            # actual race outcomes.  The state contract has no first-seen/as-of
+            # certificate for individual map entries, so accepting it would let
+            # policy evaluation consume future information.  Use the causal
+            # scalar estimate available at the current state cutoff instead.
+            raise ValueError(
+                "event_lap_baseline_by_lap is prohibited in causal policy simulation; "
+                "supply event_lap_baseline_seconds known at the state cutoff"
+            )
 
         explicit = _finite(metadata.get("event_lap_baseline_seconds"), float("nan"))
         if not np.isfinite(explicit):

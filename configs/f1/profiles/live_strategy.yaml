@@ -1,13 +1,16 @@
 model_family: live_race
 profile_name: live_strategy
-profile_version: live_strategy_contracts_v1
+profile_version: live_strategy_contracts_v5_constraint_feasibility_fail_closed
 source: local_or_fastf1_replay
 artifacts:
   report_dir: artifacts/reports/f1
   replay_dir: artifacts/replays/f1/live_strategy
+  replay_audit: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
 contracts:
-  state_schema: live_strategy_state_v1_no_future_lap_fields
-  transition_schema: strategy_transition_v1
+  state_schema: live_strategy_state_v6_full_legal_mask_input_and_feasibility_evidence
+  transition_schema: live_strategy_transition_fingerprint_v7_full_current_next_mask_input_and_feasibility_evidence
+  replay_record_schema: live_strategy_replay_record_v7_full_current_next_mask_input_and_feasibility_evidence
+  legal_mask_schema: live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback
   no_leakage:
     state_available_through_lap_required: true
     replay_prefix_invariance_required: true
@@ -30,6 +33,10 @@ action_space:
   wet_or_intermediate_use_waives_two_dry_specification_rule: true
   missing_tyre_inventory_policy: mask_all_pit_compounds
   missing_pit_lane_state_policy: mask_all_pit_actions
+  mandatory_compound_change_override_evidence_required: true
+  stay_out_blocked_at_last_feasible_mandatory_stop: true
+  constraint_infeasibility_is_all_false_for_policy_training: true
+  operational_noop_fallback_is_not_constraint_legal: true
 evaluation:
   metrics:
     - policy_value
@@ -109,17 +116,58 @@ mpc:
 rl:
   phase: phase_7_behavior_cloning_offline_rl
   replay_dataset:
-    dataset_id: live_strategy_rl_replay_v1
+    dataset_id: live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence
     source_contract: StrategyTransition
     action_index: shared_live_strategy_action_space
-    legal_masks_required: true
+    offline_q_legal_masks_required: true
     ood_flags_required: true
+    behavior_cloning_eligibility:
+      causal_physical_action_family_label_required: true
+      unobserved_pace_mode_target: partial_label_over_both_modes
+      certified_full_legal_action_mask_required: false
+      logged_behavior_propensity_required: false
+    offline_q_eligibility:
+      exact_observed_pace_mode_required: true
+      certified_current_full_legal_action_mask_required: true
+      certified_nonterminal_next_state_full_legal_action_mask_required: true
+      current_and_next_mask_payloads_must_match_derived_masks: true
+      next_state_mask_fingerprint_must_match_derived_mask: true
+      legality_driving_inputs_required_for_current_and_nonterminal_next_state:
+        - race_horizon
+        - current_compound
+        - full_used_compound_history
+        - red_flag_status
+        - box_lap_status
+        - pit_lane_status
+        - nonempty_available_compound_inventory
+        - explicit_forced_pit_commitment_including_known_none
+        - mandatory_compound_change_requirement_known_or_certified_derived
+        - constraint_legal_mask_feasible_without_operational_fallback
+      infeasible_constraint_mask_is_policy_or_ope_eligible: false
+      logged_action_must_be_causal_known_and_legal: true
+      logged_behavior_propensity_required: false
+    propensity_ope_eligibility:
+      numeric_logged_behavior_propensity_required: true
+      nonzero_logged_action_support_required: true
+    pit_action_offline_q_requirements:
+      known_pit_lane_status: true
+      known_compound_inventory: true
+    current_replay_readiness:
+      evidence: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
+      transitions: 9506
+      behavior_cloning_partial_label_rows: 9506
+      behavior_cloning_action_families_supported: 4
+      behavior_cloning_compatible_action_keys: 8
+      exact_mode_action_keys_supported: 0
+      offline_q_rows: 0
+      propensity_ope_rows: 0
+      strategy_training_readiness_gate_pass: false
     reward_clip:
       min: -500.0
       max: 100.0
   behavior_cloning:
-    model_id: masked_behavior_cloning_warm_start_v1
-    target: observed_team_action
+    model_id: masked_behavior_cloning_partial_label_warm_start_v2
+    target: observed_team_action_family_with_unobserved_pace_mode
     bucket_precision: 2
     smoothing: 0.25
     role: warm_start_only
@@ -136,7 +184,12 @@ rl:
     bucket_precision: 2
     iterations: 60
     learning_rate: 0.30
-    discount: 0.92
+    # Replay rewards are interval-total elapsed-time costs. Multi-lap SMDP
+    # transitions therefore require gamma=1 until per-lap rewards are stored.
+    discount: 1.0
+    reward_semantics: undiscounted_interval_total_composite_reward_negative_elapsed_time_plus_position_gain_shaping_minus_action_penalties
+    race_time_weight: 1.0
+    position_gain_weight: 2.0
     conservative_penalty: 0.40
     ood_action_penalty: 8.0
     value_clip:

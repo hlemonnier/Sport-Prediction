@@ -35,7 +35,7 @@ LEAKAGE_CONTRACT_VERSION = (
     "live_strategy_state_v6_full_legal_mask_input_and_feasibility_evidence"
 )
 TRANSITION_FINGERPRINT_VERSION = (
-    "live_strategy_transition_fingerprint_v7_full_current_next_mask_input_and_feasibility_evidence"
+    "live_strategy_transition_fingerprint_v8_sporting_deadlines_derived_from_action_timing"
 )
 LEGAL_ACTION_MASK_EVIDENCE_VERSION = (
     "live_strategy_legal_action_mask_inputs_v2_override_and_feasibility_fail_closed"

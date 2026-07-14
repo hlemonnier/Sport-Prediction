@@ -65,8 +65,8 @@ def test_frozen_input_discovery_binds_nine_laps_and_nine_control_files() -> None
 
 def test_replay_audit_exports_constraint_legality_contract_version() -> None:
     assert replay_audit.LEGAL_ACTION_MASK_SCHEMA_VERSION == (
-        "live_strategy_legal_action_mask_v2_"
-        "constraint_feasibility_separated_from_operational_fallback"
+        "live_strategy_legal_action_mask_v3_"
+        "sporting_deadlines_derived_from_action_timing"
     )
 
 

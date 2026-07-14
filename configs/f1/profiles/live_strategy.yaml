@@ -1,6 +1,6 @@
 model_family: live_race
 profile_name: live_strategy
-profile_version: live_strategy_contracts_v5_constraint_feasibility_fail_closed
+profile_version: live_strategy_contracts_v6_sporting_deadlines_from_action_timing
 source: local_or_fastf1_replay
 artifacts:
   report_dir: artifacts/reports/f1
@@ -8,9 +8,9 @@ artifacts:
   replay_audit: artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v1_20260714.json
 contracts:
   state_schema: live_strategy_state_v6_full_legal_mask_input_and_feasibility_evidence
-  transition_schema: live_strategy_transition_fingerprint_v7_full_current_next_mask_input_and_feasibility_evidence
-  replay_record_schema: live_strategy_replay_record_v7_full_current_next_mask_input_and_feasibility_evidence
-  legal_mask_schema: live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback
+  transition_schema: live_strategy_transition_fingerprint_v8_sporting_deadlines_derived_from_action_timing
+  replay_record_schema: live_strategy_replay_record_v8_sporting_deadlines_derived_from_action_timing
+  legal_mask_schema: live_strategy_legal_action_mask_v3_sporting_deadlines_derived_from_action_timing
   no_leakage:
     state_available_through_lap_required: true
     replay_prefix_invariance_required: true
@@ -28,8 +28,10 @@ action_space:
   modes:
     - conservative
     - aggressive
-  min_laps_after_stop: 2
   enforce_dry_mandatory_change: true
+  sporting_deadlines_derived_from_action_timing: true
+  pit_now_minimum_remaining_laps: 1
+  pit_next_lap_minimum_remaining_laps: 2
   wet_or_intermediate_use_waives_two_dry_specification_rule: true
   missing_tyre_inventory_policy: mask_all_pit_compounds
   missing_pit_lane_state_policy: mask_all_pit_actions
@@ -116,7 +118,7 @@ mpc:
 rl:
   phase: phase_7_behavior_cloning_offline_rl
   replay_dataset:
-    dataset_id: live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence
+    dataset_id: live_strategy_rl_replay_v8_sporting_deadlines_derived_from_action_timing
     source_contract: StrategyTransition
     action_index: shared_live_strategy_action_space
     offline_q_legal_masks_required: true

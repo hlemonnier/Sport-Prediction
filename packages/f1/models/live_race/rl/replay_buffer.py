@@ -41,7 +41,7 @@ from packages.f1.models.live_race.replay_buffer import (
 
 COMPOUND_FEATURES: tuple[str, ...] = (*KNOWN_COMPOUNDS, "UNKNOWN")
 REPLAY_DATASET_SCHEMA_VERSION = (
-    "live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence"
+    "live_strategy_rl_replay_v8_sporting_deadlines_derived_from_action_timing"
 )
 MIN_STRATEGY_SUPPORTED_ACTION_KEYS = 2
 DEFAULT_STATE_FEATURE_NAMES: tuple[str, ...] = (

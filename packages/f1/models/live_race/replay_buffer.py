@@ -21,7 +21,7 @@ from packages.f1.models.live_race.environment import (
 
 _SYNTHETIC_SOURCE_PREFIXES = ("synthetic", "simulator", "self_play")
 REPLAY_RECORD_SCHEMA_VERSION = (
-    "live_strategy_replay_record_v7_full_current_next_mask_input_and_feasibility_evidence"
+    "live_strategy_replay_record_v8_sporting_deadlines_derived_from_action_timing"
 )
 
 

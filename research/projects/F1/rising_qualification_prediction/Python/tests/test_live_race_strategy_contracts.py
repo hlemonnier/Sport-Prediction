@@ -270,7 +270,7 @@ def _physical_pit_rows(*, extra_lap: bool = False) -> pd.DataFrame:
     return frame
 
 
-def test_action_mask_blocks_impossible_pit_and_compound_actions() -> None:
+def test_action_mask_blocks_impossible_actions_but_keeps_executable_late_pits() -> None:
     action_space = build_action_space(compounds=("SOFT", "MEDIUM", "HARD"), include_pit_next_lap=True)
 
     red_state = _state(track_status="5", is_red=True, is_greenish=False)
@@ -286,19 +286,28 @@ def test_action_mask_blocks_impossible_pit_and_compound_actions() -> None:
     assert not limited_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="SOFT"))
     assert limited_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
 
-    late_state = _state(remaining_laps=2)
-    late_mask = build_legal_action_mask(late_state, action_space=action_space, config=ActionMaskConfig(min_laps_after_stop=2))
-    assert not late_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
-    assert not late_mask.is_legal(StrategyAction(ACTION_PIT_NEXT_LAP, compound="HARD"))
+    two_laps_left = _state(remaining_laps=2)
+    two_lap_mask = build_legal_action_mask(two_laps_left, action_space=action_space)
+    assert two_lap_mask.is_legal(StrategyAction(ACTION_STAY_OUT))
+    assert two_lap_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
+    assert two_lap_mask.is_legal(StrategyAction(ACTION_PIT_NEXT_LAP, compound="HARD"))
+
+    final_lap = replace(two_laps_left, remaining_laps=1)
+    final_lap_mask = build_legal_action_mask(final_lap, action_space=action_space)
+    assert not final_lap_mask.is_legal(StrategyAction(ACTION_STAY_OUT))
+    assert final_lap_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
+    assert not final_lap_mask.is_legal(
+        StrategyAction(ACTION_PIT_NEXT_LAP, compound="HARD")
+    )
 
 
-def test_mandatory_change_forces_last_feasible_pit_or_marks_mask_infeasible() -> None:
+def test_mandatory_change_deadline_follows_action_execution_timing() -> None:
     action_space = build_action_space(
         compounds=("MEDIUM", "HARD"),
         include_pit_next_lap=True,
     )
-    last_feasible = _state(
-        remaining_laps=3,
+    two_laps_left = _state(
+        remaining_laps=2,
         compound="MEDIUM",
         used_compounds=("MEDIUM",),
         metadata={
@@ -307,22 +316,34 @@ def test_mandatory_change_forces_last_feasible_pit_or_marks_mask_infeasible() ->
             "mandatory_compound_change_required": True,
         },
     )
-    mask = build_legal_action_mask(last_feasible, action_space=action_space)
+    mask = build_legal_action_mask(two_laps_left, action_space=action_space)
 
     assert mask.constraint_feasible is True
     assert mask.operational_fallback_applied is False
-    assert not mask.is_legal(StrategyAction(ACTION_STAY_OUT))
-    assert not mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="MEDIUM"))
+    assert mask.is_legal(StrategyAction(ACTION_STAY_OUT))
+    assert mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="MEDIUM"))
     assert mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
+    assert mask.is_legal(StrategyAction(ACTION_PIT_NEXT_LAP, compound="HARD"))
+    assert not mask.is_legal(
+        StrategyAction(ACTION_PIT_NEXT_LAP, compound="MEDIUM")
+    )
+
+    final_lap = replace(two_laps_left, remaining_laps=1)
+    final_lap_mask = build_legal_action_mask(final_lap, action_space=action_space)
+    assert not final_lap_mask.is_legal(StrategyAction(ACTION_STAY_OUT))
+    assert not final_lap_mask.is_legal(
+        StrategyAction(ACTION_PIT_NOW, compound="MEDIUM")
+    )
+    assert final_lap_mask.is_legal(StrategyAction(ACTION_PIT_NOW, compound="HARD"))
     assert all(
-        not mask.is_legal(action)
+        not final_lap_mask.is_legal(action)
         for action in action_space
         if action.action_type == ACTION_PIT_NEXT_LAP
     )
 
-    already_too_late = replace(last_feasible, remaining_laps=2)
+    race_over = replace(two_laps_left, remaining_laps=0)
     infeasible = build_legal_action_mask(
-        already_too_late,
+        race_over,
         action_space=action_space,
     )
     fallback = StrategyAction(ACTION_STAY_OUT)
@@ -374,6 +395,8 @@ def test_operational_fallback_masks_are_never_offline_q_or_ope_eligible() -> Non
     rows["stint_id"] = 1
     rows["compound"] = "MEDIUM"
     rows["used_compounds"] = "MEDIUM"
+    rows["available_compounds"] = "MEDIUM"
+    rows["forced_pit_next_compound"] = "HARD"
     rows["observed_action"] = "stay_out"
     rows["action_mode"] = "conservative"
     rows["pit_lane_open_known"] = True
@@ -878,12 +901,12 @@ def test_replay_is_event_disjoint_and_versions_changed_record_semantics() -> Non
     )
     record_payload = ReplayBufferRecord.from_transition(transitions[0]).to_payload()
     assert record_payload["record_schema_version"] == (
-        "live_strategy_replay_record_v7_full_current_next_mask_input_and_feasibility_evidence"
+        "live_strategy_replay_record_v8_sporting_deadlines_derived_from_action_timing"
     )
     assert record_payload["transition_fingerprint_version"] == TRANSITION_FINGERPRINT_VERSION
     dataset = build_rl_replay_dataset(transitions)
     assert dataset.metadata["dataset_builder"] == (
-        "live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence"
+        "live_strategy_rl_replay_v8_sporting_deadlines_derived_from_action_timing"
     )
     assert dataset.metadata["bellman_discount_semantics"] == (
         "aggregated_multi_lap_rewards_require_gamma_one_unless_per_lap_rewards_exist"

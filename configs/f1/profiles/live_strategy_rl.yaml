@@ -1,5 +1,5 @@
 profile_name: live_strategy_rl
-profile_version: phase9_production_registry_v7_full_mask_input_and_feasibility_evidence
+profile_version: phase9_production_registry_v8_sporting_deadlines_from_action_timing
 model_family: live_strategy
 runtime_family: live_race
 source: local_or_fastf1_replay
@@ -16,10 +16,10 @@ registry:
   deterministic_fallback: true
   metadata:
     algorithm: conservative_fitted_q_iteration
-    replay_dataset_schema: live_strategy_rl_replay_v7_full_current_next_mask_input_and_feasibility_evidence
-    transition_fingerprint_schema: live_strategy_transition_fingerprint_v7_full_current_next_mask_input_and_feasibility_evidence
-    replay_record_schema: live_strategy_replay_record_v7_full_current_next_mask_input_and_feasibility_evidence
-    legal_mask_schema: live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback
+    replay_dataset_schema: live_strategy_rl_replay_v8_sporting_deadlines_derived_from_action_timing
+    transition_fingerprint_schema: live_strategy_transition_fingerprint_v8_sporting_deadlines_derived_from_action_timing
+    replay_record_schema: live_strategy_replay_record_v8_sporting_deadlines_derived_from_action_timing
+    legal_mask_schema: live_strategy_legal_action_mask_v3_sporting_deadlines_derived_from_action_timing
     discount: 1.0
     reward_semantics: undiscounted_interval_total_composite_reward_negative_elapsed_time_plus_position_gain_shaping_minus_action_penalties
     race_time_weight: 1.0

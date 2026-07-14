@@ -24,7 +24,7 @@ WET_COMPOUNDS: tuple[str, ...] = ("INTER", "WET")
 KNOWN_COMPOUNDS: tuple[str, ...] = (*DRY_COMPOUNDS, *WET_COMPOUNDS)
 STRATEGY_MODES: tuple[str, ...] = ("conservative", "aggressive")
 LEGAL_ACTION_MASK_SCHEMA_VERSION = (
-    "live_strategy_legal_action_mask_v2_constraint_feasibility_separated_from_operational_fallback"
+    "live_strategy_legal_action_mask_v3_sporting_deadlines_derived_from_action_timing"
 )
 
 
@@ -203,7 +203,6 @@ class ActionMaskConfig:
     """Business rules for converting state into legal action masks."""
 
     allow_pit_next_lap: bool = True
-    min_laps_after_stop: int = 2
     dry_compounds: tuple[str, ...] = DRY_COMPOUNDS
     wet_compounds: tuple[str, ...] = WET_COMPOUNDS
     # Unknown tyre inventory is not permission to fit every dry compound.
@@ -213,7 +212,6 @@ class ActionMaskConfig:
     allow_wet_compounds_when_declared: bool = True
     allow_same_compound_pit: bool = True
     enforce_dry_mandatory_change: bool = True
-    mandatory_stop_window_laps: int = 2
     pit_lane_closed_on_red: bool = True
     pit_lane_closed_on_box_lap: bool = True
     aggressive_disallowed_under_red: bool = True
@@ -443,6 +441,22 @@ def _compound_satisfies_mandatory_change(
     return bool(normalized in DRY_COMPOUNDS and normalized not in used)
 
 
+def _minimum_remaining_laps_to_use_pit_compound(action: StrategyAction) -> int:
+    """Return the race-horizon needed for a pit compound to be used on track.
+
+    The simulator applies ``pit_now`` to the immediately following lap.  A
+    ``pit_next_lap`` commitment first runs one lap on the current compound and
+    applies its forced stop to the lap after that.  Sporting deadlines therefore
+    follow from action timing; they are not a tunable strategy preference.
+    """
+
+    if action.action_type == ACTION_PIT_NOW:
+        return 1
+    if action.action_type == ACTION_PIT_NEXT_LAP:
+        return 2
+    raise ValueError(f"action does not use a pit compound: {action.action_type!r}")
+
+
 def build_legal_action_mask(
     state: Any,
     *,
@@ -480,13 +494,14 @@ def build_legal_action_mask(
                 reason = "forced_pit_next_lap_commitment"
 
         if legal and action.action_type == ACTION_STAY_OUT:
-            if mandatory_change and remaining <= float(
-                cfg.min_laps_after_stop + 1
-            ):
+            # With two future laps, staying out once still permits a pit-now
+            # change whose new compound is used on the final lap.  With only
+            # one future lap, the mandatory change must happen now.
+            if mandatory_change and remaining < 2.0:
                 legal = False
                 reason = (
                     "mandatory_change_requires_pit_now"
-                    if remaining > float(cfg.min_laps_after_stop)
+                    if remaining >= 1.0
                     else "mandatory_change_deadline_infeasible"
                 )
             mask.append(bool(legal))
@@ -494,6 +509,7 @@ def build_legal_action_mask(
             continue
 
         if legal and action.action_type in PIT_ACTION_TYPES:
+            minimum_remaining = _minimum_remaining_laps_to_use_pit_compound(action)
             if not pit_lane_open:
                 legal = False
                 reason = "pit_lane_closed"
@@ -506,10 +522,10 @@ def build_legal_action_mask(
             elif action.action_type == ACTION_PIT_NEXT_LAP and not cfg.allow_pit_next_lap:
                 legal = False
                 reason = "pit_next_lap_disabled"
-            elif action.action_type == ACTION_PIT_NOW and remaining <= float(cfg.min_laps_after_stop):
+            elif action.action_type == ACTION_PIT_NOW and remaining < float(minimum_remaining):
                 legal = False
                 reason = "too_late_to_pit_now"
-            elif action.action_type == ACTION_PIT_NEXT_LAP and remaining <= float(cfg.min_laps_after_stop + 1):
+            elif action.action_type == ACTION_PIT_NEXT_LAP and remaining < float(minimum_remaining):
                 legal = False
                 reason = "too_late_to_pit_next_lap"
             elif action.compound not in available:
@@ -520,23 +536,16 @@ def build_legal_action_mask(
                 reason = "same_compound_pit_disabled"
             elif (
                 mandatory_change
-                and action.action_type == ACTION_PIT_NOW
-                and remaining <= float(cfg.min_laps_after_stop + 1)
                 and not _compound_satisfies_mandatory_change(
                     action.compound,
                     used=used,
                 )
+                # After a non-compliant pit action has taken effect, at least
+                # one further lap must remain for a later pit-now change.
+                and remaining < float(minimum_remaining + 1)
             ):
                 legal = False
-                reason = "pit_action_cannot_satisfy_mandatory_change"
-            elif (
-                mandatory_change
-                and action.compound == current
-                and current in DRY_COMPOUNDS
-                and remaining <= float(cfg.mandatory_stop_window_laps)
-            ):
-                legal = False
-                reason = "same_dry_compound_misses_mandatory_change"
+                reason = "pit_action_leaves_no_lap_for_mandatory_change"
             elif mandatory_change and action.compound in DRY_COMPOUNDS and action.compound not in used:
                 reason = "legal_satisfies_mandatory_dry_change"
 

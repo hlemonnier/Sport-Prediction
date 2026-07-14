@@ -81,7 +81,6 @@ class MultiAgentRaceConfig:
             allow_pit_next_lap=False,
             allow_same_compound_pit=False,
             default_available_compounds=("MEDIUM", "HARD"),
-            mandatory_stop_window_laps=2,
         )
     )
     traffic: TrafficModelConfig = field(default_factory=TrafficModelConfig)

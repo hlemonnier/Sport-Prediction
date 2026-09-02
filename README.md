@@ -14,8 +14,23 @@ environment managers, and each F1 service declares `requires-python` in its
 python3 -c 'import sys; assert sys.version_info >= (3, 10), sys.version'
 ```
 
-The old repository `.venv` may still point to Python 3.9. It is not a supported
-F1 runtime and must not be used for the platform services.
+Local virtual environments, FastF1 caches, and Next.js build output are
+intentionally ignored and may be removed without changing the tracked project.
+Recreate the recommended Python environment after a cleanup with:
+
+```bash
+python3.12 -m venv .venv-f1
+.venv-f1/bin/python -m pip install -r services/f1-platform/requirements.txt
+.venv-f1/bin/python -m pip install -r services/f1-prediction-service/requirements.txt
+```
+
+The web dependencies and build output are recreated independently:
+
+```bash
+cd apps/web
+pnpm install
+pnpm build
+```
 
 ## Architecture
 

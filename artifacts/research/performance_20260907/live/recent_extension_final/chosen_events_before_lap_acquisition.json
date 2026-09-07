@@ -1,0 +1,55 @@
+{
+  "latest_cached_official_race_start_utc": "2026-07-05T14:00:00+00:00",
+  "chosen": [
+    {
+      "round_number": 10,
+      "event_name": "Belgian Grand Prix",
+      "country": "Belgium",
+      "race_start_utc": "2026-07-19T13:00:00+00:00"
+    },
+    {
+      "round_number": 11,
+      "event_name": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "race_start_utc": "2026-07-26T13:00:00+00:00"
+    },
+    {
+      "round_number": 12,
+      "event_name": "Dutch Grand Prix",
+      "country": "Netherlands",
+      "race_start_utc": "2026-08-23T13:00:00+00:00"
+    },
+    {
+      "round_number": 13,
+      "event_name": "Italian Grand Prix",
+      "country": "Italy",
+      "race_start_utc": "2026-09-06T13:00:00+00:00"
+    }
+  ],
+  "all_absent_past_date_candidates": [
+    {
+      "round_number": 10,
+      "event_name": "Belgian Grand Prix",
+      "country": "Belgium",
+      "race_start_utc": "2026-07-19T13:00:00+00:00"
+    },
+    {
+      "round_number": 11,
+      "event_name": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "race_start_utc": "2026-07-26T13:00:00+00:00"
+    },
+    {
+      "round_number": 12,
+      "event_name": "Dutch Grand Prix",
+      "country": "Netherlands",
+      "race_start_utc": "2026-08-23T13:00:00+00:00"
+    },
+    {
+      "round_number": 13,
+      "event_name": "Italian Grand Prix",
+      "country": "Italy",
+      "race_start_utc": "2026-09-06T13:00:00+00:00"
+    }
+  ]
+}

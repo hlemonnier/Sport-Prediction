@@ -1,0 +1,43 @@
+{
+  "results_sha256": "bfad09dd5d60aadafe279bd0df649fc23a44b0852802d9803cfdd0f215acef93",
+  "frozen_manifest_sha256": "2662ef069f2fe84954992643f781e1b497c1d81fdb41a93a292dcfbd196540c3",
+  "schedule_sha256": "1eabafc2c1ba8a4215b547eb76a739b532fc02f8db44586d1992af74cd89d3d3",
+  "chosen_events_sha256": "11c619349e829831ea86e6d270eb3835e79bd86ab538222a5e19640f057aa5e7",
+  "model_coefficients_sha256": "b6e52e72f2a3fc5307e5754ae84130efbfdcfb9e34f05f62cacb9ef06416fdb1",
+  "same_model_as_initial_pre_acquisition_freeze": true,
+  "extension_runner_sha256": "da409ae20c21a20354071644b177dd19fce82eac855b03191ce1a28702cfb4dc",
+  "feature_runner_sha256": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+  "matched_forecasts_sha256": "29fb73cdfa33ca4990faafbe28608511bdcba503a2ee68a55aecf2e2a2a1f4b5",
+  "raw_files_checked": [
+    {
+      "event_key": 202610,
+      "raw_hash_valid": true,
+      "full_stream_replayed": true,
+      "matched_rows": 640
+    },
+    {
+      "event_key": 202611,
+      "raw_hash_valid": true,
+      "full_stream_replayed": true,
+      "matched_rows": 1229
+    },
+    {
+      "event_key": 202612,
+      "raw_hash_valid": true,
+      "full_stream_replayed": true,
+      "matched_rows": 1059
+    },
+    {
+      "event_key": 202613,
+      "raw_hash_valid": true,
+      "full_stream_replayed": true,
+      "matched_rows": 851
+    }
+  ],
+  "metrics_and_bootstrap_independently_recomputed": true,
+  "python": "3.12.14",
+  "fastf1": "3.8.3",
+  "threads": 1,
+  "execution_context": "approved_network_context",
+  "initial_default_sandbox_attempt_did_not_establish_provider_outage": true
+}

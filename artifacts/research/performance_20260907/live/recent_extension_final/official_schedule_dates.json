@@ -1,0 +1,84 @@
+{
+  "backend": "f1timing",
+  "source": "https://livetiming.formula1.com/static/2026/Index.json",
+  "events": [
+    {
+      "round_number": 1,
+      "event_name": "Australian Grand Prix",
+      "country": "Australia",
+      "race_start_utc": "2026-03-08T04:00:00+00:00"
+    },
+    {
+      "round_number": 2,
+      "event_name": "Chinese Grand Prix",
+      "country": "China",
+      "race_start_utc": "2026-03-15T07:00:00+00:00"
+    },
+    {
+      "round_number": 3,
+      "event_name": "Japanese Grand Prix",
+      "country": "Japan",
+      "race_start_utc": "2026-03-29T05:00:00+00:00"
+    },
+    {
+      "round_number": 6,
+      "event_name": "Miami Grand Prix",
+      "country": "United States",
+      "race_start_utc": "2026-05-03T17:00:00+00:00"
+    },
+    {
+      "round_number": 5,
+      "event_name": "Canadian Grand Prix",
+      "country": "Canada",
+      "race_start_utc": "2026-05-24T20:00:00+00:00"
+    },
+    {
+      "round_number": 6,
+      "event_name": "Monaco Grand Prix",
+      "country": "Monaco",
+      "race_start_utc": "2026-06-07T13:00:00+00:00"
+    },
+    {
+      "round_number": 7,
+      "event_name": "Barcelona Grand Prix",
+      "country": "Spain",
+      "race_start_utc": "2026-06-14T13:00:00+00:00"
+    },
+    {
+      "round_number": 8,
+      "event_name": "Austrian Grand Prix",
+      "country": "Austria",
+      "race_start_utc": "2026-06-28T13:00:00+00:00"
+    },
+    {
+      "round_number": 9,
+      "event_name": "British Grand Prix",
+      "country": "United Kingdom",
+      "race_start_utc": "2026-07-05T14:00:00+00:00"
+    },
+    {
+      "round_number": 10,
+      "event_name": "Belgian Grand Prix",
+      "country": "Belgium",
+      "race_start_utc": "2026-07-19T13:00:00+00:00"
+    },
+    {
+      "round_number": 11,
+      "event_name": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "race_start_utc": "2026-07-26T13:00:00+00:00"
+    },
+    {
+      "round_number": 12,
+      "event_name": "Dutch Grand Prix",
+      "country": "Netherlands",
+      "race_start_utc": "2026-08-23T13:00:00+00:00"
+    },
+    {
+      "round_number": 13,
+      "event_name": "Italian Grand Prix",
+      "country": "Italy",
+      "race_start_utc": "2026-09-06T13:00:00+00:00"
+    }
+  ]
+}

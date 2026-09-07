@@ -1,0 +1,303 @@
+{
+  "status": "completed",
+  "freeze": {
+    "frozen_at_utc": "2026-09-07T12:45:57.948387+00:00",
+    "selected_models_sha256": "17a8f7e7652bda9dfce0e972e16665de76bad49de3955c949c4b45a2f0facf57",
+    "model_coefficients_sha256": "b6e52e72f2a3fc5307e5754ae84130efbfdcfb9e34f05f62cacb9ef06416fdb1",
+    "model": {
+      "alpha": 100.0,
+      "mean": [
+        0.7455448311354291,
+        -0.017795180319872796,
+        -0.04153422744170905,
+        -0.034268718002807425,
+        0.9671925098434656,
+        2.345321119334193,
+        14.570919945786272,
+        1.0346740500575462,
+        0.05808304296112117
+      ],
+      "scale": [
+        4.6564941165862885,
+        0.45918609648257736,
+        0.2655723992902823,
+        0.2558535425393567,
+        0.1643071036641139,
+        0.7078646545498033,
+        9.053656244301505,
+        0.38080192094141274,
+        0.23390041274332485
+      ],
+      "coef": [
+        -0.01286227774979256,
+        -0.14559001584738474,
+        -0.04374529625785265,
+        0.13898232213864542,
+        0.11963777574320078,
+        -0.028106526257105288,
+        0.018118793865143624,
+        0.016521871836291304,
+        -0.02348423999051187
+      ],
+      "intercept": -0.048210287258784526
+    },
+    "specification_sha256": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a",
+    "feature_runner_sha256": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+    "extension_runner_sha256": "da409ae20c21a20354071644b177dd19fce82eac855b03191ce1a28702cfb4dc",
+    "base_results_sha256": "00239406489515dbd7da5cb760d7816a8b7ffc21c5fcb70f498fac9b63196f52",
+    "model_fit_years": [
+      2022,
+      2023
+    ],
+    "selection_year": 2023,
+    "refit_permitted": false,
+    "maximum_absent_events": 4,
+    "event_selection": "earliest four official Race session dates after latest cached race date, absent by normalized event name, at least six hours before freeze",
+    "evidence_role": "historical_2026_transfer_held_aside_in_this_cycle_not_prospective",
+    "load_flags": {
+      "laps": true,
+      "telemetry": false,
+      "weather": false,
+      "messages": false
+    },
+    "maximum_attempts_per_acquisition": 2
+  },
+  "events": [
+    {
+      "round_number": 10,
+      "event_name": "Belgian Grand Prix",
+      "country": "Belgium",
+      "race_start_utc": "2026-07-19T13:00:00+00:00",
+      "event_key": 202610,
+      "status": "evaluated",
+      "data_path": "data/f1/performance_20260907/live_recent_final/2026_round_10_belgian_grand_prix_race_laps.csv",
+      "data_sha256": "1453f3eee20ebf4f458502faab0ffd5c46d9c0da86b2f2c76c8b20e905f51b59",
+      "raw_rows": 872,
+      "issuances": 661,
+      "session_status_values": [
+        "Ends",
+        "Finalised",
+        "Finished",
+        "Inactive",
+        "Started"
+      ],
+      "prefix_invariance_passed": true,
+      "metrics": {
+        "events": 1,
+        "rows": 640,
+        "baseline_event_mae_seconds": 0.46447187499999965,
+        "candidate_event_mae_seconds": 0.45992282384299044,
+        "delta_seconds": -0.00454905115700921,
+        "relative_improvement": 0.009794029309114216,
+        "events_improved": 1,
+        "loo_mean_deltas": [],
+        "loo_all_improve": false,
+        "per_event": [
+          {
+            "event_key": 202610,
+            "baseline_mae": 0.46447187499999965,
+            "candidate_mae": 0.45992282384299044,
+            "delta": -0.00454905115700921
+          }
+        ]
+      }
+    },
+    {
+      "round_number": 11,
+      "event_name": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "race_start_utc": "2026-07-26T13:00:00+00:00",
+      "event_key": 202611,
+      "status": "evaluated",
+      "data_path": "data/f1/performance_20260907/live_recent_final/2026_round_11_hungarian_grand_prix_race_laps.csv",
+      "data_sha256": "f654eff8690d05d0c2bb96a5a19e975280aeb93b946a9be7fb78415a1e1e0445",
+      "raw_rows": 1431,
+      "issuances": 1251,
+      "session_status_values": [
+        "Ends",
+        "Finalised",
+        "Finished",
+        "Inactive",
+        "Started"
+      ],
+      "prefix_invariance_passed": true,
+      "metrics": {
+        "events": 1,
+        "rows": 1229,
+        "baseline_event_mae_seconds": 0.5630439381611062,
+        "candidate_event_mae_seconds": 0.5538436558977932,
+        "delta_seconds": -0.009200282263313042,
+        "relative_improvement": 0.016340256309944512,
+        "events_improved": 1,
+        "loo_mean_deltas": [],
+        "loo_all_improve": false,
+        "per_event": [
+          {
+            "event_key": 202611,
+            "baseline_mae": 0.5630439381611062,
+            "candidate_mae": 0.5538436558977932,
+            "delta": -0.009200282263313042
+          }
+        ]
+      }
+    },
+    {
+      "round_number": 12,
+      "event_name": "Dutch Grand Prix",
+      "country": "Netherlands",
+      "race_start_utc": "2026-08-23T13:00:00+00:00",
+      "event_key": 202612,
+      "status": "evaluated",
+      "data_path": "data/f1/performance_20260907/live_recent_final/2026_round_12_dutch_grand_prix_race_laps.csv",
+      "data_sha256": "2569f43a071bc41c462485991ad4c24b1e95a4456ddcfbf5a4de87a877b39c2e",
+      "raw_rows": 1368,
+      "issuances": 1079,
+      "session_status_values": [
+        "Aborted",
+        "Ends",
+        "Finalised",
+        "Finished",
+        "Inactive",
+        "Started"
+      ],
+      "prefix_invariance_passed": true,
+      "metrics": {
+        "events": 1,
+        "rows": 1059,
+        "baseline_event_mae_seconds": 0.5084372049102927,
+        "candidate_event_mae_seconds": 0.5296774575539618,
+        "delta_seconds": 0.021240252643669133,
+        "relative_improvement": -0.041775567245156076,
+        "events_improved": 0,
+        "loo_mean_deltas": [],
+        "loo_all_improve": false,
+        "per_event": [
+          {
+            "event_key": 202612,
+            "baseline_mae": 0.5084372049102927,
+            "candidate_mae": 0.5296774575539618,
+            "delta": 0.021240252643669133
+          }
+        ]
+      }
+    },
+    {
+      "round_number": 13,
+      "event_name": "Italian Grand Prix",
+      "country": "Italy",
+      "race_start_utc": "2026-09-06T13:00:00+00:00",
+      "event_key": 202613,
+      "status": "evaluated",
+      "data_path": "data/f1/performance_20260907/live_recent_final/2026_round_13_italian_grand_prix_race_laps.csv",
+      "data_sha256": "fb557ab6ebff37f0096547f21fcac3d461014193a38f927db6df09c24a3dc75a",
+      "raw_rows": 1054,
+      "issuances": 872,
+      "session_status_values": [
+        "Aborted",
+        "Ends",
+        "Finalised",
+        "Finished",
+        "Inactive",
+        "Started"
+      ],
+      "prefix_invariance_passed": true,
+      "metrics": {
+        "events": 1,
+        "rows": 851,
+        "baseline_event_mae_seconds": 0.43513748531139823,
+        "candidate_event_mae_seconds": 0.4230529525325793,
+        "delta_seconds": -0.012084532778818935,
+        "relative_improvement": 0.02777175763235118,
+        "events_improved": 1,
+        "loo_mean_deltas": [],
+        "loo_all_improve": false,
+        "per_event": [
+          {
+            "event_key": 202613,
+            "baseline_mae": 0.43513748531139823,
+            "candidate_mae": 0.4230529525325793,
+            "delta": -0.012084532778818935
+          }
+        ]
+      }
+    }
+  ],
+  "acquisition_attempts": [
+    {
+      "label": "official_2026_f1timing_schedule",
+      "attempt": 1,
+      "status": "success"
+    },
+    {
+      "label": "Belgian Grand Prix",
+      "attempt": 1,
+      "status": "success"
+    },
+    {
+      "label": "Hungarian Grand Prix",
+      "attempt": 1,
+      "status": "success"
+    },
+    {
+      "label": "Dutch Grand Prix",
+      "attempt": 1,
+      "status": "success"
+    },
+    {
+      "label": "Italian Grand Prix",
+      "attempt": 1,
+      "status": "success"
+    }
+  ],
+  "official_schedule_sha256": "1eabafc2c1ba8a4215b547eb76a739b532fc02f8db44586d1992af74cd89d3d3",
+  "chosen_events_sha256": "11c619349e829831ea86e6d270eb3835e79bd86ab538222a5e19640f057aa5e7",
+  "aggregate": {
+    "events": 4,
+    "rows": 3779,
+    "baseline_event_mae_seconds": 0.49277262584569914,
+    "candidate_event_mae_seconds": 0.49162422245683113,
+    "delta_seconds": -0.0011484033888680134,
+    "relative_improvement": 0.0023304934743424432,
+    "ci95_delta_seconds": [
+      -0.010642407521065989,
+      0.01363011891692359
+    ],
+    "bootstrap_fraction_improving": 0.6265,
+    "events_improved": 3,
+    "loo_mean_deltas": [
+      -1.4854132820948015e-05,
+      0.001535556235946996,
+      -0.008611288733047062,
+      0.0024969730744489604
+    ],
+    "loo_all_improve": false,
+    "per_event": [
+      {
+        "event_key": 202610,
+        "baseline_mae": 0.46447187499999965,
+        "candidate_mae": 0.45992282384299044,
+        "delta": -0.00454905115700921
+      },
+      {
+        "event_key": 202611,
+        "baseline_mae": 0.5630439381611062,
+        "candidate_mae": 0.5538436558977932,
+        "delta": -0.009200282263313042
+      },
+      {
+        "event_key": 202612,
+        "baseline_mae": 0.5084372049102927,
+        "candidate_mae": 0.5296774575539618,
+        "delta": 0.021240252643669133
+      },
+      {
+        "event_key": 202613,
+        "baseline_mae": 0.43513748531139823,
+        "candidate_mae": 0.4230529525325793,
+        "delta": -0.012084532778818935
+      }
+    ]
+  },
+  "matched_forecasts_sha256": "29fb73cdfa33ca4990faafbe28608511bdcba503a2ee68a55aecf2e2a2a1f4b5",
+  "uncertainty_note": "At most four events: event-bootstrap interval is descriptive and underpowered, not prospective validation."
+}

@@ -1,0 +1,17 @@
+{
+  "results_sha256": "00239406489515dbd7da5cb760d7816a8b7ffc21c5fcb70f498fac9b63196f52",
+  "specification_sha256": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a",
+  "runner_sha256": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+  "matched_forecasts_sha256": "d77daf440184f53b2d5204529d0976eb39fdba9bee87319cb2b0729fb55377b0",
+  "selected_models_sha256": "17a8f7e7652bda9dfce0e972e16665de76bad49de3955c949c4b45a2f0facf57",
+  "input_files_verified": 101,
+  "csv_metrics_independently_recomputed": true,
+  "serialized_model_predictions_recomputed": true,
+  "unit_tests_passed": 5,
+  "real_prefix_regression_cases": 6,
+  "python": "3.12.14",
+  "numpy": "2.5.3",
+  "pandas": "2.3.3",
+  "sklearn": "1.9.0",
+  "threads": 1
+}

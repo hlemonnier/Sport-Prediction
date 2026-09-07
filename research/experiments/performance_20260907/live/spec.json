@@ -1,0 +1,26 @@
+{
+  "experiment_id": "live_next_lap_performance_first_cycle_20260907",
+  "declared_at_utc": "2026-09-07T12:16:10Z",
+  "purpose": "Bounded predictive-performance research; no production promotion",
+  "fit_years": [2022],
+  "selection_years": [2023],
+  "locked_transfer_years": [2024, 2025],
+  "exposed_diagnostic_years": [2026],
+  "post_selection_refit_years": [2022, 2023],
+  "baseline": "last eligible completed lap of the same driver",
+  "target": "same driver's next eligible completed lap after immutable issuance",
+  "eligibility": "At completed-row timestamp: finite positive LapTime, IsAccurate true, no observed pit-in/out and no TrackStatus 4/5/6/7. No event-wide pace filter. Three cumulative eligible observations before issuance.",
+  "availability_assumption": "Recorded per-lap accuracy/pit/status fields are treated as available on completed-lap receipt; source files do not prove original vendor publication latency.",
+  "stint_reset": "Reset local summaries on observed pit-out, compound change, or causal known Stint change. Forward state only; never backward-fill missing Stint.",
+  "timestamp_ties": "Emit every tied row using other-car state strictly before the entire timestamp batch.",
+  "mechanisms": {
+    "robust_level": {"alpha": [0.4, 0.7], "innovation_clip_seconds": [1.0, 2.0]},
+    "robust_trend": {"shrinkage": [0.25, 0.5, 1.0], "median_recent_differences": 4, "minimum_differences": 2, "max_abs_trend_seconds_per_lap": 1.0},
+    "common_increment": {"shrinkage": [0.25, 0.5, 1.0], "lookback_seconds": 180.0, "maximum_lap_distance": 1, "minimum_other_drivers": 3, "max_abs_increment_seconds": 1.0},
+    "ridge_correction": {"alpha": [1.0, 10.0, 100.0], "training_response_clip_seconds": 3.0, "prediction_correction_clip_seconds": 2.0, "event_balanced_training": true, "features": ["level_gap", "own_last_delta", "own_robust_trend", "common_increment", "common_support", "log_stint_clean_count", "tyre_age", "clean_lap_gap", "wet_compound"]}
+  },
+  "selection": "For each mechanism choose minimum event-balanced 2023 MAE, then declare the best mechanism using 2023 only. Refit selected ridge using 2022-2023 once. Report all four selected mechanisms on transfer and exposed data, including losses. No adaptive second cycle.",
+  "evaluation": {"primary": "event-balanced MAE", "paired_bootstrap_samples": 20000, "paired_bootstrap_seed": 20260907, "leave_one_event_out": true, "bootstrap_interpretation": "event-resampling frequency, not posterior probability; historical transfer is not prospective validation"},
+  "prefix_regression": "All emitted features and mechanism forecasts must be unchanged on real-stream truncations and future-value/quality/stint poisoning, including 2025 Miami missing-Stint data. Check strict other-driver evidence timestamps.",
+  "threads": 1
+}

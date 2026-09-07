@@ -1,0 +1,76 @@
+{
+  "selected_variants": {
+    "robust_level": {
+      "all_variant_event_mae_seconds": {
+        "robust_level_a0.4_c1": 1.9390793743520254,
+        "robust_level_a0.4_c2": 1.6522648633106563,
+        "robust_level_a0.7_c1": 1.6895914725280934,
+        "robust_level_a0.7_c2": 1.3169523298553312
+      },
+      "selected_variant": "robust_level_a0.7_c2"
+    },
+    "robust_trend": {
+      "all_variant_event_mae_seconds": {
+        "robust_trend_w0.25": 0.572816490749988,
+        "robust_trend_w0.5": 0.5854637304509431,
+        "robust_trend_w1": 0.6244082636622694
+      },
+      "selected_variant": "robust_trend_w0.25"
+    },
+    "common_increment": {
+      "all_variant_event_mae_seconds": {
+        "common_increment_w0.25": 0.5634940419367538,
+        "common_increment_w0.5": 0.5662186482674322,
+        "common_increment_w1": 0.5859089766402301
+      },
+      "selected_variant": "common_increment_w0.25"
+    },
+    "ridge_correction": {
+      "all_variant_event_mae_seconds": {
+        "ridge_correction_a1": 0.5539099955953085,
+        "ridge_correction_a10": 0.5539013462046589,
+        "ridge_correction_a100": 0.5538186893758132
+      },
+      "selected_variant": "ridge_correction_a100"
+    }
+  },
+  "preferred_mechanism_by_2023_only": "ridge_correction",
+  "baseline_2023_event_mae_seconds": 0.5661628581239757,
+  "final_ridge_model": {
+    "alpha": 100.0,
+    "mean": [
+      0.7455448311354291,
+      -0.017795180319872796,
+      -0.04153422744170905,
+      -0.034268718002807425,
+      0.9671925098434656,
+      2.345321119334193,
+      14.570919945786272,
+      1.0346740500575462,
+      0.05808304296112117
+    ],
+    "scale": [
+      4.6564941165862885,
+      0.45918609648257736,
+      0.2655723992902823,
+      0.2558535425393567,
+      0.1643071036641139,
+      0.7078646545498033,
+      9.053656244301505,
+      0.38080192094141274,
+      0.23390041274332485
+    ],
+    "coef": [
+      -0.01286227774979256,
+      -0.14559001584738474,
+      -0.04374529625785265,
+      0.13898232213864542,
+      0.11963777574320078,
+      -0.028106526257105288,
+      0.018118793865143624,
+      0.016521871836291304,
+      -0.02348423999051187
+    ],
+    "intercept": -0.048210287258784526
+  }
+}

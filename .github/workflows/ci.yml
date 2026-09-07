@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: platform/web
+        working-directory: apps/web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: platform/web/pnpm-lock.yaml
+          cache-dependency-path: apps/web/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: platform/backend
+        working-directory: apps/api
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -121,8 +121,30 @@ jobs:
           python-version: "3.11"
 
       - name: Install test dependencies
-        run: python -m pip install --upgrade pip pytest pandas numpy scikit-learn
+        run: python -m pip install --upgrade pip pytest pandas numpy scikit-learn requests
 
       - name: Run test shard
         timeout-minutes: 10
         run: python -m pytest -q --durations=20 ${{ matrix.shard.tests }}
+
+  live_frontier_integration:
+    name: Frozen lap-time model and API integration
+    runs-on: ubuntu-latest
+    env:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      PYTHONPATH: .:research/projects/F1/rising_qualification_prediction/Python:services/f1-platform:services/f1-prediction-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install integration dependencies
+        run: python -m pip install pytest numpy pandas scikit-learn requests fastapi httpx
+      - name: Verify packaged model, causal inputs, fallback and API transport
+        run: >-
+          python -m pytest -q --import-mode=importlib
+          research/projects/F1/rising_qualification_prediction/Python/tests/test_live_next_lap_frontier.py
+          services/f1-platform/tests/test_frontier_integration.py
+          services/f1-prediction-service/tests/test_model.py

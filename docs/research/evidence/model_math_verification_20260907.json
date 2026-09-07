@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-09-07T11:05:28.506043+00:00",
+  "f1_services": {
+    "passed": 1037,
+    "skipped": 3,
+    "skip_scope": "optional XGBoost and LightGBM runtimes",
+    "log": "artifacts/validation/model_math_20260907/pytest_f1_services.txt",
+    "command": "PYTHONPATH=\"$PWD:$PWD/research/projects/F1/rising_qualification_prediction/Python:$PWD/services/f1-platform:$PWD/services/f1-prediction-service\" OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 .venv-f1/bin/python -m pytest -q research/projects/F1/rising_qualification_prediction/Python/tests services/f1-platform/tests services/f1-prediction-service/tests"
+  },
+  "football": {
+    "passed": 31,
+    "log": "artifacts/validation/model_math_20260907/pytest_football.txt",
+    "command": "PYTHONPATH=\"$PWD:$PWD/research/projects/Football/Match Result Prediction/Python\" OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 .venv-f1/bin/python -m pytest -q \"research/projects/Football/Match Result Prediction/Python/tests\""
+  },
+  "notebook": {
+    "executed_code_cells": 9,
+    "cell_errors": 0,
+    "path": "research/projects/F1/rising_qualification_prediction/Jupyter/f1_model_research_v2.ipynb",
+    "sha256": "0655d3d9e5751aedfd5d2087d5562fe680596b81b527d949cd180c6b6df88409"
+  },
+  "evidence_integrity": {
+    "aggregate_manifest_digests_checked": 41,
+    "artifacts_passed": 11,
+    "implementation_manifest_direct_entries": 115,
+    "input_manifest_direct_entries": 1007,
+    "nested_json_references": 158,
+    "registered_artifacts": 11,
+    "status": "pass",
+    "transitive_file_references": 4145
+  },
+  "logs": {
+    "artifacts/validation/model_math_20260907/notebook_execution.txt": "5ae9921ae9a80b400bbac61a722944cac5a0905b96fb390017f9bb8ecc6a9f98",
+    "artifacts/validation/model_math_20260907/pytest_f1_services.txt": "7431c8c294108f1cdf336075c1806e2cf4586eca8d53412dbae3609de6b630bc",
+    "artifacts/validation/model_math_20260907/pytest_football.txt": "3427c40e0a7f3d17c28d4d3a21307e0ed2e8f4c665f256663e832fb394f51264"
+  }
+}

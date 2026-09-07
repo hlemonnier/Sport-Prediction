@@ -1,0 +1,62 @@
+........................................................................ [  6%]
+........................................................................ [ 13%]
+........................................................................ [ 20%]
+....ss.................................................................. [ 27%]
+........................................................................ [ 34%]
+........................................................................ [ 41%]
+........................................................................ [ 48%]
+........................................................................ [ 55%]
+........................................................................ [ 62%]
+........................................................................ [ 69%]
+........................................................................ [ 76%]
+........................................................................ [ 83%]
+....s................................................................... [ 90%]
+........................................................................ [ 96%]
+................................                                         [100%]
+=============================== warnings summary ===============================
+test_app_ingest.py::test_api_ingress_persists_live_events_to_replay_store
+test_app_ingest.py::test_api_ingress_persists_live_events_to_replay_store
+test_app_ingest.py::test_track_geometry_endpoint_exposes_fastf1_centerline
+test_app_session_status.py::test_session_status_prefers_openf1_when_live_timing_is_available
+test_app_session_status.py::test_session_status_keeps_fastf1_live_when_openf1_auth_is_missing
+test_app_stream.py::test_websocket_stream_sends_periodic_full_snapshots
+test_fastf1_analysis.py::test_fastf1_import_endpoint_uses_state_service
+test_fastf1_analysis.py::test_fastf1_artifact_endpoints_list_and_preview
+  /Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/services/f1-platform/f1_platform/app.py:101: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+test_app_ingest.py: 6 warnings
+test_app_session_status.py: 4 warnings
+test_app_stream.py: 2 warnings
+test_fastf1_analysis.py: 4 warnings
+  /Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/lib/python3.12/site-packages/fastapi/applications.py:4681: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)  # ty: ignore[deprecated]
+
+test_app_ingest.py::test_api_ingress_persists_live_events_to_replay_store
+test_app_ingest.py::test_api_ingress_persists_live_events_to_replay_store
+test_app_ingest.py::test_track_geometry_endpoint_exposes_fastf1_centerline
+test_app_session_status.py::test_session_status_prefers_openf1_when_live_timing_is_available
+test_app_session_status.py::test_session_status_keeps_fastf1_live_when_openf1_auth_is_missing
+test_app_stream.py::test_websocket_stream_sends_periodic_full_snapshots
+test_fastf1_analysis.py::test_fastf1_import_endpoint_uses_state_service
+test_fastf1_analysis.py::test_fastf1_artifact_endpoints_list_and_preview
+  /Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/services/f1-platform/f1_platform/app.py:105: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("shutdown")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1037 passed, 3 skipped, 32 warnings in 86.30s (0:01:26)

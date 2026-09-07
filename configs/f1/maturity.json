@@ -1,8 +1,8 @@
 {
   "schema_version": "f1_maturity_evidence_v2_four_modes",
-  "as_of": "2026-07-14",
+  "as_of": "2026-09-07",
   "evaluation_data_cutoff": "2026-07-05_after_round_09",
-  "evidence_finalized_timezone": "Europe/Paris",
+  "evidence_finalized_timezone": "UTC",
   "runtime": {
     "requires_python": ">=3.10",
     "recommended_python": "3.12",
@@ -36,7 +36,21 @@
       "leakage and information-horizon checks",
       "registered immutable artifact with a passing promotion report"
     ],
-    "historical_reports_must_match_current_code_and_population": true
+    "historical_reports_must_match_current_code_and_population": true,
+    "minimum_confirmatory_audit_events": 8,
+    "minimum_events_per_required_weekend_stratum": 2,
+    "known_development_exposed_events": [
+      202601,
+      202602,
+      202603,
+      202604,
+      202605,
+      202606,
+      202607,
+      202608,
+      202609
+    ],
+    "bootstrap_interpretation": "empirical event-resampling frequency, not posterior superiority probability"
   },
   "evidence_validation": {
     "validator": "packages/f1/orchestration/evidence.py",
@@ -48,7 +62,7 @@
     "required_temporal_partition_schema": "f1_temporal_selection_calibration_audit_v1"
   },
   "provider_feature_contract": {
-    "version": "f1_practice_lap_features_v3_quality_weighted",
+    "version": "f1_practice_lap_features_v4_independent_clock_peers",
     "implementation": "packages/f1/data/providers/practice_features.py",
     "providers": [
       "local",
@@ -68,14 +82,15 @@
     "complete_field_policy": "exact one-to-one target roster equality with no missing or extra drivers",
     "run_intent_labels_calibrated": false,
     "degradation_is_universally_fuel_corrected": false,
-    "contract_test": "research/projects/F1/rising_qualification_prediction/Python/tests/test_provider_feature_contract.py"
+    "contract_test": "research/projects/F1/rising_qualification_prediction/Python/tests/test_provider_feature_contract.py",
+    "practice_comparison_semantics": "independent same-compound known-age session-clock peers; unsupported remains missing; relative drift is not identified fuel/tyre physics"
   },
   "stages": {
     "qualifying_prediction": {
       "implementation_status": "executable_research",
       "deployment_status": "research_rehearsal_rank_baseline_retained_after_postdevelopment_replay_diagnostic",
       "target": "official grand-prix qualifying classification",
-      "absolute_walk_forward_evidence_status": "measured_on_nine_event_2026_point_in_time_walk_forward",
+      "absolute_walk_forward_evidence_status": "measured_causal_historical_replay_not_prospective_development",
       "predictive_edge_status": "shared_latent_meal_challenger_evaluated_not_promoted_no_postdevelopment_replay_gain",
       "retained_point_policy": "chronological causal expert selector using target-aligned rehearsal ranks",
       "probability_status": "diagnostic_temperature_sinkhorn_not_promoted_two_calibration_events_below_four",
@@ -83,10 +98,10 @@
       "mean_field_mae": 1.8686868686868685,
       "stale_comparison_runs_status": "quarantined_not_current_evidence",
       "mean_kendall_tau_b": 0.7739297739297739,
-      "all_round_research_selected_output_mae": 1.8585858585858586,
-      "all_round_research_selected_output_kendall": 0.7768157768157767,
+      "all_round_challenger_with_baseline_substitution_mae": 1.8585858585858586,
+      "all_round_challenger_with_baseline_substitution_kendall": 0.7768157768157767,
       "shared_latent_challenger": {
-        "artifact": "artifacts/backtests/f1/qualifying/shared_latent_same_season_v2_20260713.json",
+        "artifact": "artifacts/backtests/f1/qualifying/shared_latent_same_season_math_repaired_strict_v2_20260907.json",
         "schema_version": "f1_shared_qualifying_latent_event_block_v6",
         "selection_block_winner_model_id": "shared_qualifying_latent_lap_v4",
         "retained_public_output_model_id": "qualifying_rehearsal_rank_baseline_v1",
@@ -103,10 +118,11 @@
           0.09090909090909094
         ],
         "bootstrap_probability_of_improvement": 0.59605,
-        "decision": "evaluated_not_promoted_baseline_retained"
+        "decision": "diagnostic_only_baseline_retained_no_confirmatory_protocol",
+        "sha256": "9c0384ed4a263df502faadd48fb04217aa243972aae84cef54d27fa55357fcbb"
       },
       "position_probability_audit": {
-        "artifact": "artifacts/backtests/f1/qualifying/shared_latent_same_season_probability_audit_v4_20260714.json",
+        "artifact": "artifacts/backtests/f1/qualifying/shared_latent_same_season_probability_math_repaired_strict_v2_20260907.json",
         "schema_version": "f1_qualifying_probability_temperature_sinkhorn_audit_v3",
         "calibration_events": 2,
         "audit_events": 3,
@@ -115,12 +131,13 @@
         "calibrated_multiclass_log_loss": 2.834998795650037,
         "uncalibrated_normalized_multiclass_brier": 0.46776106221121433,
         "calibrated_normalized_multiclass_brier": 0.46798753033180224,
-        "promotion_status": "diagnostic_only_insufficient_independent_calibration_events"
+        "promotion_status": "diagnostic_only_insufficient_independent_calibration_events",
+        "sha256": "f5a84a304df101ee2a4bed8577cfdc48d14d62cf4b32ec7c1457eb9cd6a8cbc3"
       },
       "stage_probability_status": "implemented_but_not_posthoc_calibrated",
       "current_evidence": [
-        "artifacts/backtests/f1/qualifying/shared_latent_same_season_v2_20260713.json",
-        "artifacts/backtests/f1/qualifying/shared_latent_same_season_probability_audit_v4_20260714.json",
+        "artifacts/backtests/f1/qualifying/shared_latent_same_season_math_repaired_strict_v2_20260907.json",
+        "artifacts/backtests/f1/qualifying/shared_latent_same_season_probability_math_repaired_strict_v2_20260907.json",
         "docs/research/f1_model_research_v2_results_20260713.md"
       ]
     },
@@ -134,34 +151,177 @@
       "starting_grid_resolver": "packages/f1/domain/starting_grid.py",
       "frozen_2026_final_grid_snapshot_status": "fia_final_grid_snapshots_available_all_nine_rounds_authoritative_pre_race_document_timestamps",
       "qualifying_snapshot_status": "retrospective_provider_snapshot_not_first_seen_verified",
-      "mean_field_mae": 3.717171717171717,
-      "mean_kendall_tau_b": 0.5286195286195285,
       "survival_order_challenger": {
-        "artifact": "artifacts/backtests/f1/race_final_position/survival_order_same_season_v8_selector_safe_20260713.json",
-        "schema_version": "f1_race_survival_order_event_block_v8",
+        "artifact": "artifacts/backtests/f1/race_final_position/survival_order_same_season_math_repaired_v11_20260907.json",
+        "schema_version": "f1_race_survival_order_event_block_v10",
         "prospective_development_evidence": false,
         "all_scored_events": 7,
         "all_scored_matched_baseline_mae": 3.584415584415584,
-        "all_scored_challenger_mae": 4.025974025974026,
+        "all_scored_challenger_mae": 3.779220779220779,
         "all_scored_matched_baseline_kendall": 0.5547309833024119,
-        "all_scored_challenger_kendall": 0.4867037724180581,
+        "all_scored_challenger_kendall": 0.5250463821892393,
         "audit_events": 3,
         "audit_matched_baseline_mae": 3.0909090909090913,
-        "audit_challenger_mae": 3.7878787878787876,
+        "audit_challenger_mae": 3.3636363636363633,
         "audit_matched_baseline_kendall": 0.6277056277056277,
-        "audit_challenger_kendall": 0.5209235209235209,
+        "audit_challenger_kendall": 0.593073593073593,
         "audit_baseline_terminal_brier": 0.1640962985432656,
-        "audit_challenger_terminal_brier": 0.17361093939393943,
+        "audit_challenger_terminal_brier": 0.16604001515151515,
         "audit_baseline_terminal_log_loss": 0.5082213140262889,
-        "audit_challenger_terminal_log_loss": 0.529870345034543,
+        "audit_challenger_terminal_log_loss": 0.5111883877676681,
         "same_horizon_selection_events": 2,
         "same_horizon_calibration_events": 2,
-        "decision": "reject_joint_challenger_retain_legal_grid_baseline"
+        "decision": "diagnostic_only_baseline_retained",
+        "sha256": "563c5f1360dfd8d3e85f6c3b497d46cf9f86e98d94f033661b15c70a9d7441fe",
+        "terminal_status_categories": [
+          "dns_withdrawal",
+          "disqualified",
+          "mechanical_power_unit",
+          "collision_incident",
+          "non_classified",
+          "classified_finish"
+        ],
+        "untimed_failure_likelihood": "interval_censored_event_by_end",
+        "current_all_event_metrics": {
+          "baseline_mean_kendall": 0.5547309833024119,
+          "baseline_mean_mae": 3.584415584415584,
+          "baseline_status_brier": 0.1695018249551081,
+          "baseline_status_log_loss": 0.5232317241779836,
+          "by_horizon": {
+            "post_grid_pre_race": {
+              "baseline_mean_kendall": 0.5547309833024119,
+              "baseline_mean_mae": 3.584415584415584,
+              "baseline_status_brier": 0.1695018249551081,
+              "baseline_status_log_loss": 0.5232317241779836,
+              "candidate_mean_kendall": 0.5250463821892393,
+              "candidate_mean_mae": 3.779220779220779,
+              "candidate_retirement_fraction_mae": 0.2772582545343919,
+              "candidate_status_brier": 0.16891407142857143,
+              "candidate_status_log_loss": 0.5196428444356904,
+              "candidate_status_terminal_ece": 0.08808441558441557,
+              "dns_constrained_meal_mae": 3.779220779220779,
+              "dns_constrained_minus_global_meal_mae": 0.0,
+              "events": 7,
+              "global_meal_mae": 3.779220779220779,
+              "selected_mean_kendall": 0.5547309833024119,
+              "selected_mean_mae": 3.584415584415584,
+              "selected_status_brier": 0.1695018249551081,
+              "selected_status_log_loss": 0.5232317241779836
+            }
+          },
+          "by_year": {
+            "2026": {
+              "baseline_mean_kendall": 0.5547309833024119,
+              "baseline_mean_mae": 3.584415584415584,
+              "baseline_status_brier": 0.1695018249551081,
+              "baseline_status_log_loss": 0.5232317241779836,
+              "candidate_mean_kendall": 0.5250463821892393,
+              "candidate_mean_mae": 3.779220779220779,
+              "candidate_retirement_fraction_mae": 0.2772582545343919,
+              "candidate_status_brier": 0.16891407142857143,
+              "candidate_status_log_loss": 0.5196428444356904,
+              "candidate_status_terminal_ece": 0.08808441558441557,
+              "dns_constrained_meal_mae": 3.779220779220779,
+              "dns_constrained_minus_global_meal_mae": 0.0,
+              "events": 7,
+              "global_meal_mae": 3.779220779220779,
+              "selected_mean_kendall": 0.5547309833024119,
+              "selected_mean_mae": 3.584415584415584,
+              "selected_status_brier": 0.1695018249551081,
+              "selected_status_log_loss": 0.5232317241779836
+            }
+          },
+          "candidate_mean_kendall": 0.5250463821892393,
+          "candidate_mean_mae": 3.779220779220779,
+          "candidate_retirement_fraction_mae": 0.2772582545343919,
+          "candidate_status_brier": 0.16891407142857143,
+          "candidate_status_log_loss": 0.5196428444356904,
+          "candidate_status_terminal_ece": 0.08808441558441557,
+          "dns_constrained_meal_mae": 3.779220779220779,
+          "dns_constrained_minus_global_meal_mae": 0.0,
+          "events": 7,
+          "global_meal_mae": 3.779220779220779,
+          "population": "all_scored_selection_calibration_and_audit_events",
+          "selected_mean_kendall": 0.5547309833024119,
+          "selected_mean_mae": 3.584415584415584,
+          "selected_status_brier": 0.1695018249551081,
+          "selected_status_log_loss": 0.5232317241779836
+        },
+        "current_audit_metrics": {
+          "baseline_mean_kendall": 0.6277056277056277,
+          "baseline_mean_mae": 3.0909090909090913,
+          "baseline_status_brier": 0.1640962985432656,
+          "baseline_status_log_loss": 0.5082213140262889,
+          "by_horizon": {
+            "post_grid_pre_race": {
+              "baseline_mean_kendall": 0.6277056277056277,
+              "baseline_mean_mae": 3.0909090909090913,
+              "baseline_status_brier": 0.1640962985432656,
+              "baseline_status_log_loss": 0.5082213140262889,
+              "candidate_mean_kendall": 0.593073593073593,
+              "candidate_mean_mae": 3.3636363636363633,
+              "candidate_retirement_fraction_mae": 0.3414398145506268,
+              "candidate_status_brier": 0.16604001515151515,
+              "candidate_status_log_loss": 0.5111883877676681,
+              "candidate_status_terminal_ece": 0.09343939393939393,
+              "dns_constrained_meal_mae": 3.3636363636363633,
+              "dns_constrained_minus_global_meal_mae": 0.0,
+              "events": 3,
+              "global_meal_mae": 3.3636363636363633,
+              "selected_mean_kendall": 0.6277056277056277,
+              "selected_mean_mae": 3.0909090909090913,
+              "selected_status_brier": 0.1640962985432656,
+              "selected_status_log_loss": 0.5082213140262889
+            }
+          },
+          "by_year": {
+            "2026": {
+              "baseline_mean_kendall": 0.6277056277056277,
+              "baseline_mean_mae": 3.0909090909090913,
+              "baseline_status_brier": 0.1640962985432656,
+              "baseline_status_log_loss": 0.5082213140262889,
+              "candidate_mean_kendall": 0.593073593073593,
+              "candidate_mean_mae": 3.3636363636363633,
+              "candidate_retirement_fraction_mae": 0.3414398145506268,
+              "candidate_status_brier": 0.16604001515151515,
+              "candidate_status_log_loss": 0.5111883877676681,
+              "candidate_status_terminal_ece": 0.09343939393939393,
+              "dns_constrained_meal_mae": 3.3636363636363633,
+              "dns_constrained_minus_global_meal_mae": 0.0,
+              "events": 3,
+              "global_meal_mae": 3.3636363636363633,
+              "selected_mean_kendall": 0.6277056277056277,
+              "selected_mean_mae": 3.0909090909090913,
+              "selected_status_brier": 0.1640962985432656,
+              "selected_status_log_loss": 0.5082213140262889
+            }
+          },
+          "candidate_mean_kendall": 0.593073593073593,
+          "candidate_mean_mae": 3.3636363636363633,
+          "candidate_retirement_fraction_mae": 0.3414398145506268,
+          "candidate_status_brier": 0.16604001515151515,
+          "candidate_status_log_loss": 0.5111883877676681,
+          "candidate_status_terminal_ece": 0.09343939393939393,
+          "dns_constrained_meal_mae": 3.3636363636363633,
+          "dns_constrained_minus_global_meal_mae": 0.0,
+          "event_keys": [
+            202607,
+            202608,
+            202609
+          ],
+          "events": 3,
+          "global_meal_mae": 3.3636363636363633,
+          "partition_role": "audit",
+          "selected_mean_kendall": 0.6277056277056277,
+          "selected_mean_mae": 3.0909090909090913,
+          "selected_status_brier": 0.1640962985432656,
+          "selected_status_log_loss": 0.5082213140262889
+        }
       },
       "certified_grid_prior_ablation": {
-        "artifact": "artifacts/backtests/f1/race_final_position/certified_grid_prior_state_ablation_v1_20260714.json",
-        "artifact_sha256": "b85f0312eead971e8f1ea3669247d89091d556352ba21eca0b057f1ef2500dbd",
-        "result_sha256": "460024b5d14b39258f95d0893b7a5d61f654a6f42c78a650d4261aa0f99d3a4a",
+        "artifact": "artifacts/backtests/f1/race_final_position/certified_grid_prior_math_remediation_v3_20260907.json",
+        "artifact_sha256": "4392de97b18731c5bbfca167ded9d3ad8393952ecebbbca385f6f7c2c453e34f",
+        "result_sha256": "08a5551b4f3c6f78ff833a58efd9c1a40fcb14f65b53e0fe9c417c591abda39c",
         "input_manifest_sha256": "d96ea9644505beb165b041a6de44dfa1907f6e7acca8a026a7315ba80b52a65b",
         "schema_version": "f1_race_certified_grid_prior_ablation_v1",
         "authoritative_grid_events": 9,
@@ -180,17 +340,16 @@
       "terminal_probability_calibration": {
         "calibration_events": 2,
         "same_product_calibration_evidence": false,
-        "raw_terminal_brier": 0.2126888888888889,
-        "raw_terminal_log_loss": 0.6207777982856008,
         "status": "blocked_requires_simulation_in_loop_or_marginal_preserving_copula",
-        "rejection_reason": "zero_shock_platt_rejected_for_final_distribution_mismatch"
+        "rejection_reason": "zero_shock_platt_rejected_for_final_distribution_mismatch",
+        "current_evidence_role": "diagnostic_only_insufficient_same_product_calibration"
       },
       "immutable_final_grid_snapshot_contract_status": "implemented_fia_final_grid_used_for_every_scored_event",
       "promotion_status": "evaluated_not_promoted_insufficient_selection_and_same_product_calibration_evidence",
       "stale_automatic_ml_comparison_status": "quarantined_not_current_evidence",
       "current_evidence": [
-        "artifacts/backtests/f1/race_final_position/survival_order_same_season_v8_selector_safe_20260713.json",
-        "artifacts/backtests/f1/race_final_position/certified_grid_prior_state_ablation_v1_20260714.json",
+        "artifacts/backtests/f1/race_final_position/survival_order_same_season_math_repaired_v11_20260907.json",
+        "artifacts/backtests/f1/race_final_position/certified_grid_prior_math_remediation_v3_20260907.json",
         "docs/research/f1_model_research_v2_results_20260713.md"
       ]
     },
@@ -218,7 +377,7 @@
       "conditional_fastest_driver_hit_rate": 0.6666666666666666,
       "probabilistic_interval_status": "not_promoted_no_distinct_non_tautological_interval_width_comparator",
       "shared_latent_challenger": {
-        "artifact": "artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json",
+        "artifact": "artifacts/backtests/f1/best_estimated_lap/same_season_math_remediation_v20_20260907.json",
         "schema_version": "f1_best_estimated_lap_shared_latent_v11",
         "prospective_development_evidence": false,
         "observed_target_coverage": 1.0,
@@ -237,7 +396,8 @@
         ],
         "bootstrap_probability_of_improvement": 0.03737,
         "bootstrap_samples": 200000,
-        "decision": "rejected_retain_rehearsal_shift_baseline"
+        "decision": "diagnostic_only_point_and_interval_not_promoted",
+        "sha256": "3377bbc04f49be113f28afcc45d3c6deb0d2e80f57c66623cc8a36d1d6f3f657"
       },
       "telemetry_sequence_diagnostic": {
         "artifact": "artifacts/backtests/f1/telemetry/prequal_telemetry_residual_sequence_v6_repository_bound_2026.json",
@@ -270,11 +430,12 @@
         "decision": "retain_zero_correction_pending_prospective_parameter_stability_evidence"
       },
       "current_evidence": [
-        "artifacts/backtests/f1/best_estimated_lap/same_season_event_gated_v18_tcn_matrix_bound_20260714.json",
+        "artifacts/backtests/f1/best_estimated_lap/same_season_math_remediation_v20_20260907.json",
         "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json",
         "artifacts/backtests/f1/telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json",
         "docs/research/f1_model_research_v2_results_20260713.md"
-      ]
+      ],
+      "confirmatory_gate": "frozen specification and fitted-input hashes, matching actual partitions, adequate unexposed event evidence"
     },
     "live_race_intelligence": {
       "implementation_status": "experimental_research",
@@ -291,21 +452,23 @@
           "matched_next_eligible_rows": 8144,
           "issuances_without_next_eligible_target": 187,
           "matched_target_rate_given_eligible_issuance": 0.9775537150402113,
-          "evaluated_blend_event_mean_mae_seconds": 0.5379462306879169,
+          "evaluated_blend_event_mean_mae_seconds": 0.5402546649213343,
           "naive_event_mean_mae_seconds": 0.5491839143927711,
-          "paired_blend_minus_naive_mae_seconds": -0.011237683704854352,
+          "paired_blend_minus_naive_mae_seconds": -0.008929249471436924,
           "paired_event_bootstrap_ci95": [
-            -0.025451893005493616,
-            0.0010315447943620838
+            -0.019130645730580105,
+            0.0004977500185012813
           ],
-          "bootstrap_probability_of_improvement": 0.960432,
+          "bootstrap_probability_of_improvement": 0.967758,
           "bootstrap_samples": 500000,
           "bootstrap_seed": 20260711,
-          "evidence_artifact": "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v7_20260714.json",
-          "evidence_sha256": "13de7a53e2b5eda07a92acb2bb8dea5fbcff435565676796b052fa8831c84c53",
-          "point_status": "blend_evaluated_not_promoted_ci_crosses_zero_naive_baseline_retained",
+          "evidence_artifact": "artifacts/backtests/f1/live_next_lap/2026_math_remediation_v10_20260907.json",
+          "evidence_sha256": "7d857a91dd5546b799ccea1da7a95cadb41da35ab4899f1f005212f41f4fe565",
+          "point_status": "diagnostic_replay_naive_runtime_retained_final_refit_unvalidated",
           "interval_status": "not_promoted",
-          "service_integration_status": "not_integrated_service_next_lap_currently_means_relative_order_not_seconds"
+          "service_integration_status": "not_integrated_service_next_lap_currently_means_relative_order_not_seconds",
+          "posterior_and_elapsed_lap_contract": "initial_P_once_then_A_delta_Q_sum; explicit_stint_boundary_reset",
+          "pit_transition_contract": "clean_baseline_persists; first_full_new_tyre_lap_ends_at_age1"
         },
         "degradation": {
           "status": "not_promotion_certified"
@@ -325,7 +488,7 @@
         ],
         "reinforcement_learning_scope": "decision_subcontracts_only",
         "policy_status": "offline_research_not_promotable_awaiting_locked_simulator_ope_and_live_shadow_reports",
-        "registry_enforcement_status": "locked replay audit and baseline gates exist; OPE uncertainty and live-shadow report enforcement remain unimplemented",
+        "registry_enforcement_status": "mandatory_family_gates_model_and_baseline_hashes_supported_ope_and_prospective_shadow_required",
         "replay_transition_status": "semi_markov_pit_boundaries_full_current_nonterminal_next_mask_input_and_constraint_feasibility_evidence_fail_closed_implemented",
         "policy_training_evidence_required": [
           "causal_logged_action_known",
@@ -343,9 +506,9 @@
         "legal_action_timing_contract": "pit_now_uses_the_next_lap_and_requires_one_remaining_lap; pit_next_lap_uses_the_following_lap_and_requires_two; known_inventory_requires_a_reachable_mandatory_compound; terminal_states_have_no_constraint_action",
         "deterministic_fallback_is_production_replacement": false,
         "replay_audit": {
-          "artifact": "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json",
+          "artifact": "artifacts/backtests/f1/live_strategy/live_strategy_math_remediation_v4_20260907.json",
           "schema_version": "f1_live_strategy_replay_audit_v1",
-          "sha256": "004a5028eedd335247548db7fe18187c24165eeed2f521704a2524d0845d044e",
+          "sha256": "53514c61baccd9aa91e9855371101e2f1cfc7b22580da67386cbbd53a412ff78",
           "transitions": 9506,
           "behavior_cloning_partial_label_rows": 9506,
           "offline_q_rows": 0,
@@ -369,11 +532,22 @@
         }
       },
       "current_evidence": [
-        "artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v7_20260714.json",
-        "artifacts/backtests/f1/live_strategy/live_strategy_replay_audit_v2_20260714.json",
+        "artifacts/backtests/f1/live_next_lap/2026_math_remediation_v10_20260907.json",
+        "artifacts/backtests/f1/live_strategy/live_strategy_math_remediation_v4_20260907.json",
         "docs/research/f1_model_research_v2_results_20260713.md"
       ],
       "historical_diagnostic_evidence": "artifacts/reports/f1/live_race_round09_global_prefix_invariance_v2_20260711a.json"
     }
+  },
+  "math_remediation": {
+    "date": "2026-09-07",
+    "implementation_status": "all_16_audit_findings_and_cross_review_defects_addressed",
+    "report": "docs/research/model_math_remediation_20260907.md",
+    "artifact_register": "docs/research/evidence/f1_model_research_v2_artifact_register.csv",
+    "python_runtime": "docs/research/evidence/model_math_runtime_20260907.json",
+    "f1_service_tests_passed": 1037,
+    "football_tests_passed": 31,
+    "optional_backend_tests_skipped": 3,
+    "promotion_changed": false
   }
 }

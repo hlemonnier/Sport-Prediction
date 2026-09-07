@@ -1,3 +1,5 @@
+> Historical July 2026 report. Its fixed artifact results predate the mathematical repairs. See [the September remediation and current verified results](model_math_remediation_20260907.md); shared CSV/chart exports now follow the current register.
+
 # F1 four-mode model research v2: final evidence package
 
 Frozen on 2026-07-14 from 2026 rounds 1-9. A race weekend is the independent

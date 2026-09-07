@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-09-07T10:54:43.335079+00:00",
+  "python": "3.12.14",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "2.3.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.0",
+    "torch": "2.14.0",
+    "pytest": "8.4.2",
+    "fastf1": "3.8.3",
+    "pypdf": "6.17.0",
+    "fastapi": "0.141.1",
+    "nbclient": "0.11.0",
+    "nbformat": "5.11.1",
+    "ipykernel": "7.3.0"
+  },
+  "thread_limits": {
+    "OMP_NUM_THREADS": 2,
+    "OPENBLAS_NUM_THREADS": 2,
+    "MKL_NUM_THREADS": 2
+  }
+}

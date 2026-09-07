@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "title": "F1 four-mode model research v2",
+  "title": "F1 mathematical remediation — September 2026",
   "surface": "report",
-  "description": "Chronological 2026 evidence for the Qualifying, race-final-position, Best-Lap, and Live F1 model review.",
+  "description": "Current code-bound historical diagnostics after the complete model mathematics audit.",
   "blocks": [
     {
       "id": "overview",
@@ -17,7 +17,7 @@
     {
       "id": "decision_context",
       "type": "markdown",
-      "body": "## Evidence decisions\n\nQualifying's research winner is shared latent v4 plus MEAL, but the public output is the rehearsal-rank baseline because the challenger ties it on R7-R9. The main Race survival challenger loses on rank, MAE, Brier, and log loss; an ablation bound to nine parsed official FIA grid PDFs covers R1-R9 but adds no edge. Each PDF header is converted from a pinned venue timezone to UTC and the claimed publication lag must be 0-300 seconds; all nine pass, with a maximum observed lag of 60 seconds. The Best-Lap challenger is 1.76% worse and its interval is 31.45% wider. The true bounded TCN was trained, but its post-development profiles are outer-target-informed and parameter-sensitive, so its nested selector retains zero correction. Live uses state v6, transition/replay/dataset v8, and legal-mask v3. Pit-now needs one remaining lap and pit-next-lap needs two; known inventory must contain a reachable mandatory compound, and terminal states have no constraint action. Constraint legality remains authoritative while a separately tagged, explicitly penalized nonlegal operational fallback is excluded from learning and learned-policy selection. The replay contains 9,506 partial-label BC rows but zero offline-Q or propensity-OPE rows, and rolling BC exactly ties the trivial classifier."
+      "body": "## Evidence decisions\n\nAll retained baselines remain active. Corrected race candidate audit MAE is 3.363636 positions versus 3.090909 for its baseline; Qualifying ties its baseline. Best lap remains 1.76% worse with a 31.45% wider interval. The live blend is numerically ahead but its event-level confidence interval crosses zero, and its final refit weight is unvalidated. The bounded TCN controls remain diagnostic. Strategy has 9,506 partial-label BC rows and zero eligible offline-Q/propensity-OPE rows. No challenger is promoted."
     },
     {
       "id": "mode_table_block",
@@ -83,7 +83,7 @@
       "dataset": "mode_decisions",
       "source": {
         "label": "Final technical report decision summary",
-        "path": "docs/research/f1_model_research_v2_results_20260713.md",
+        "path": "docs/research/model_math_remediation_20260907.md",
         "query": {
           "engine": "duckdb",
           "language": "sql",
@@ -131,7 +131,7 @@
     {
       "id": "technical_report",
       "label": "F1 model research v2 technical report",
-      "path": "docs/research/f1_model_research_v2_results_20260713.md"
+      "path": "docs/research/model_math_remediation_20260907.md"
     },
     {
       "id": "artifact_register",

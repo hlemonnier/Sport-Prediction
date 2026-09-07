@@ -31,7 +31,7 @@ Legacy F1 experiment scripts now import this package directly.
 
 `LocalWeekendProvider`, `FastF1Provider`, and `OpenF1Provider` normalize
 practice laps through `data/providers/practice_features.py` under contract
-`f1_practice_lap_features_v3_quality_weighted`. The shared contract defines:
+`f1_practice_lap_features_v4_independent_clock_peers`. The shared contract defines:
 
 - season-aware, named point-in-time session selection;
 - completed-session gating plus inaccurate, deleted, pit-transition, yellow,
@@ -41,6 +41,11 @@ practice laps through `data/providers/practice_features.py` under contract
   and raw long-run slope features without invented fallback laps or a claimed
   universal fuel correction;
 - roster preservation for drivers with no representative lap;
+- race-practice comparisons against at least two other drivers on the same
+  compound and comparable tyre age within a session-clock window; no supported
+  peers means missing pace and uncertainty, never a self-comparison at zero;
+- relative pace drift as a descriptive feature; timing alone does not identify
+  fuel-corrected or absolute tyre degradation;
 - provider and contract-version provenance on the resulting rows.
 
 This guarantees consistent feature *semantics*, not identical raw coverage or
@@ -48,6 +53,13 @@ values. FastF1, OpenF1, and local snapshots can still differ in freshness,
 missing stint/tyre metadata, lap deletion flags, or session availability. A run
 must retain `fp_feature_contract_version`, feature counts, and source notes so
 those differences remain observable.
+
+Derived v3 feature frames and fitted models must be rebuilt from raw laps; the
+v4 contract cannot be attached retrospectively to old cached values. Pre-race
+terminal distributions also add `p_disqualified`: exclusions are estimated
+separately from running failures and appended outside the classified order.
+Known failures with missing distance contribute their integrated failure
+likelihood across all race intervals, without becoming fabricated timing labels.
 
 The target/cutoff matrix and 2026 regulation-era rules are documented in
 `docs/architecture/f1_point_in_time_contract.md` and implemented in

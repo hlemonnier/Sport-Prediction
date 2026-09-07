@@ -1,0 +1,2512 @@
+{
+  "schema_version": "1.0",
+  "version": "0.4.0",
+  "sport": "Football",
+  "project": "Match Result Prediction",
+  "entrypoint": "run_experiment.py",
+  "workflow": "single_prediction",
+  "config": {
+    "league": "epl",
+    "season": 2025,
+    "round_number": 1,
+    "mode": "scoreline",
+    "data_source": "artifacts/validation/football/math_remediation_20260907/synthetic-data",
+    "train_seasons": [
+      2024
+    ],
+    "cache_dir": null,
+    "football_model": "hybrid",
+    "football_calibration": "auto",
+    "shadow_eval": true,
+    "goal_strength_half_life_days": null,
+    "weather_enabled": false,
+    "weather_provider": "open_meteo",
+    "weather_latitude": null,
+    "weather_longitude": null,
+    "weather_timezone": null,
+    "weather_cache_dir": null,
+    "weather_hours_before": 2.0,
+    "weather_hours_after": 3.0
+  },
+  "rows": [
+    {
+      "mode": "scoreline",
+      "match_id": "target",
+      "date": "2025-07-01T12:00:00",
+      "league": "epl",
+      "season": "2025",
+      "round": "1",
+      "home_team_id": "0",
+      "away_team_id": "1",
+      "home_team_name": "0",
+      "away_team_name": "1",
+      "lambda_home_goals": "1.096217",
+      "lambda_away_goals": "0.836894",
+      "expected_home_goals": "1.096217",
+      "expected_away_goals": "0.836894",
+      "dixon_base_lambda_home_goals": "0.640802",
+      "dixon_base_lambda_away_goals": "1.303893",
+      "home_win_prob": "0.529135033139",
+      "draw_prob": "0.213867847305",
+      "away_win_prob": "0.256997119556",
+      "predicted_outcome": "home_win",
+      "prediction_confidence": "0.529135033139",
+      "outcome_rank_1": "home_win",
+      "outcome_rank_2": "away_win",
+      "outcome_rank_3": "draw",
+      "raw_home_win_prob": "0.177258324404",
+      "raw_draw_prob": "0.301748424126",
+      "raw_away_win_prob": "0.520993251470",
+      "baseline_home_win_prob": "0.332752613240",
+      "baseline_draw_prob": "0.247038327526",
+      "baseline_away_win_prob": "0.420209059233",
+      "baseline_predicted_outcome": "away_win",
+      "baseline_confidence": "0.420209059233",
+      "baseline_outcome_rank_1": "away_win",
+      "baseline_outcome_rank_2": "home_win",
+      "baseline_outcome_rank_3": "draw",
+      "predicted_scoreline": "1-0",
+      "scoreline_prob": "0.255980445528",
+      "score_distribution_omitted_mass": "7.505107646466058e-14",
+      "score_distribution_tail_error_bound": "2.606542057220863e-13",
+      "calibration_method": "dixon:platt;gbdt:platt",
+      "calibration_method_effective": "dixon:platt;gbdt:platt",
+      "primary_model": "hybrid",
+      "model_used": "hybrid",
+      "gbdt_enabled": "true",
+      "hybrid_weight_w": "0.0",
+      "baseline_model": "frequency_by_season_and_team",
+      "forecast_status": "fitted",
+      "maturity": "research_only"
+    }
+  ],
+  "notes": [
+    "Donnees locales detectees: /Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/validation/football/math_remediation_20260907/synthetic-data.",
+    "teams: fichier manquant (attendu: teams.parquet, teams.csv).",
+    "matches: 260 lignes chargees depuis matches.csv.",
+    "fixtures: 1 lignes chargees depuis fixtures.csv.",
+    "Matches historiques utilisables: 260.",
+    "Fixtures candidates: 1.",
+    "Fixtures apres filtre league='epl': 1.",
+    "Fixtures apres filtre season=2025: 1.",
+    "Fixtures apres filtre round=1: 1.",
+    "Training matches apres filtre league='epl': 260.",
+    "Training matches apres filtre train_seasons=[2024]: 260.",
+    "Causal training: 260 results available by 2025-07-01T12:00:00; excluded=0.",
+    "Baseline frequence entraine (n=130, seasons=1, teams_home=8, teams_away=8).",
+    "Joint Dixon-Coles converged: n=130, teams=8, rho=-0.04939, iterations=15.",
+    "GBDT fitted on 130 causal rows; evaluation is external to fitting.",
+    "Calibration dixon: Platt active sur 3/3 classes.",
+    "Calibration gbdt_heldout_calibration: Platt active sur 3/3 classes.",
+    "Hybrid weight selection: w=0.0 (log-loss=1.0641).",
+    "Research forecasts: executable models and held-out metrics do not establish a deployable betting edge."
+  ],
+  "model_name": "hybrid",
+  "model_family": "ml",
+  "maturity": "research_only",
+  "predictive_edge_established": false,
+  "device_used": null,
+  "dl_available": false,
+  "candidate_leaderboard": [],
+  "diagnostics": {
+    "schema_version": "football_forecast_diagnostics_v2",
+    "model_version": "0.4.0",
+    "status": "fitted",
+    "maturity": "research_only",
+    "predictive_edge_established": false,
+    "training_sample_size": 130,
+    "available_history_sample_size": 260,
+    "model_used": "hybrid",
+    "gbdt_enabled": true,
+    "hybrid_weight_w": 0.0,
+    "calibration_method_effective": "dixon:platt;gbdt:platt",
+    "protocol": {
+      "name": "disjoint_chronological_fit_calibration_selection_test_v1",
+      "evaluation_status": "held_out",
+      "parameter_policy": "Frozen fit-prefix parameters are used for evaluation and fixtures; completed history may update form features.",
+      "availability_policy": "explicit result publication time, otherwise following UTC day",
+      "excluded_boundary_ids": [],
+      "fit": {
+        "sample_size": 130,
+        "match_ids": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "30",
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "40",
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "50",
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "60",
+          "61",
+          "62",
+          "63",
+          "64",
+          "65",
+          "66",
+          "67",
+          "68",
+          "69",
+          "70",
+          "71",
+          "72",
+          "73",
+          "74",
+          "75",
+          "76",
+          "77",
+          "78",
+          "79",
+          "80",
+          "81",
+          "82",
+          "83",
+          "84",
+          "85",
+          "86",
+          "87",
+          "88",
+          "89",
+          "90",
+          "91",
+          "92",
+          "93",
+          "94",
+          "95",
+          "96",
+          "97",
+          "98",
+          "99",
+          "100",
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108",
+          "109",
+          "110",
+          "111",
+          "112",
+          "113",
+          "114",
+          "115",
+          "116",
+          "117",
+          "118",
+          "119",
+          "120",
+          "121",
+          "122",
+          "123",
+          "124",
+          "125",
+          "126",
+          "127",
+          "128",
+          "129"
+        ],
+        "data_sha256": "1dde312c03d46cc3cb188375fe7b0d537abc6078399080e57b25667750d2e709",
+        "population_sha256": "64726a5b03ade69039f83c4a9f39d5b071bcdfda6fb08c7cc432e1320e81abe2",
+        "first_kickoff": "2024-01-01T00:00:00",
+        "last_kickoff": "2024-05-09T00:00:00",
+        "latest_result_available_at": "2024-05-10T00:00:00"
+      },
+      "calibration": {
+        "sample_size": 39,
+        "match_ids": [
+          "130",
+          "131",
+          "132",
+          "133",
+          "134",
+          "135",
+          "136",
+          "137",
+          "138",
+          "139",
+          "140",
+          "141",
+          "142",
+          "143",
+          "144",
+          "145",
+          "146",
+          "147",
+          "148",
+          "149",
+          "150",
+          "151",
+          "152",
+          "153",
+          "154",
+          "155",
+          "156",
+          "157",
+          "158",
+          "159",
+          "160",
+          "161",
+          "162",
+          "163",
+          "164",
+          "165",
+          "166",
+          "167",
+          "168"
+        ],
+        "data_sha256": "880b033778e52029f9979485ed3866507f1414847e10bafde93de73016bbc870",
+        "population_sha256": "6f0fdb423d0c6136910a8ce8f8ea41398fcef04702b93728160cd0910a50f72c",
+        "first_kickoff": "2024-05-10T00:00:00",
+        "last_kickoff": "2024-06-17T00:00:00",
+        "latest_result_available_at": "2024-06-18T00:00:00"
+      },
+      "selection": {
+        "sample_size": 39,
+        "match_ids": [
+          "169",
+          "170",
+          "171",
+          "172",
+          "173",
+          "174",
+          "175",
+          "176",
+          "177",
+          "178",
+          "179",
+          "180",
+          "181",
+          "182",
+          "183",
+          "184",
+          "185",
+          "186",
+          "187",
+          "188",
+          "189",
+          "190",
+          "191",
+          "192",
+          "193",
+          "194",
+          "195",
+          "196",
+          "197",
+          "198",
+          "199",
+          "200",
+          "201",
+          "202",
+          "203",
+          "204",
+          "205",
+          "206",
+          "207"
+        ],
+        "data_sha256": "6dddcd477c37cbfb2e5167681e82a925e42ec92d46e9c923885a5d986cd0ebba",
+        "population_sha256": "2d771749028edfa03e3d32edc7596a23e1008d4331e38b5b8839b2bfe87d85a3",
+        "first_kickoff": "2024-06-18T00:00:00",
+        "last_kickoff": "2024-07-26T00:00:00",
+        "latest_result_available_at": "2024-07-27T00:00:00"
+      },
+      "test": {
+        "sample_size": 52,
+        "match_ids": [
+          "208",
+          "209",
+          "210",
+          "211",
+          "212",
+          "213",
+          "214",
+          "215",
+          "216",
+          "217",
+          "218",
+          "219",
+          "220",
+          "221",
+          "222",
+          "223",
+          "224",
+          "225",
+          "226",
+          "227",
+          "228",
+          "229",
+          "230",
+          "231",
+          "232",
+          "233",
+          "234",
+          "235",
+          "236",
+          "237",
+          "238",
+          "239",
+          "240",
+          "241",
+          "242",
+          "243",
+          "244",
+          "245",
+          "246",
+          "247",
+          "248",
+          "249",
+          "250",
+          "251",
+          "252",
+          "253",
+          "254",
+          "255",
+          "256",
+          "257",
+          "258",
+          "259"
+        ],
+        "data_sha256": "79c9691d00271b63e43922a8515faded5e4de86ae39baa63f65dcc032dccadc0",
+        "population_sha256": "974338678aa9ac69d07adaf32c73865c4b8bfbf07911af2707fa51035384da2c",
+        "first_kickoff": "2024-07-27T00:00:00",
+        "last_kickoff": "2024-09-16T00:00:00",
+        "latest_result_available_at": "2024-09-17T00:00:00"
+      },
+      "metrics_status": "computed"
+    },
+    "goal_model_fit": {
+      "status": "fitted",
+      "objective": "joint_dixon_coles_penalized_negative_log_likelihood",
+      "solver": "SLSQP",
+      "converged": true,
+      "optimizer_message": "Optimization terminated successfully",
+      "iterations": 15,
+      "fit_sample_size": 130,
+      "fit_match_ids": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31",
+        "32",
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50",
+        "51",
+        "52",
+        "53",
+        "54",
+        "55",
+        "56",
+        "57",
+        "58",
+        "59",
+        "60",
+        "61",
+        "62",
+        "63",
+        "64",
+        "65",
+        "66",
+        "67",
+        "68",
+        "69",
+        "70",
+        "71",
+        "72",
+        "73",
+        "74",
+        "75",
+        "76",
+        "77",
+        "78",
+        "79",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "95",
+        "96",
+        "97",
+        "98",
+        "99",
+        "100",
+        "101",
+        "102",
+        "103",
+        "104",
+        "105",
+        "106",
+        "107",
+        "108",
+        "109",
+        "110",
+        "111",
+        "112",
+        "113",
+        "114",
+        "115",
+        "116",
+        "117",
+        "118",
+        "119",
+        "120",
+        "121",
+        "122",
+        "123",
+        "124",
+        "125",
+        "126",
+        "127",
+        "128",
+        "129"
+      ],
+      "latest_fit_result_available_at": "2024-05-10T00:00:00",
+      "negative_log_likelihood_per_weight": 2.9206148379259727,
+      "initial_negative_log_likelihood_per_weight": 2.972422355164597,
+      "kkt_stationarity_inf_norm": 2.791309540467794e-06,
+      "kkt_tolerance": 1e-05,
+      "gradient_inf_norm": 2.643629045337549e-06,
+      "gradient_note": "Unconstrained gradient; may be nonzero at active support/rate constraints.",
+      "minimum_tau_all_team_pairs": 0.9056180592085442,
+      "constraint_violation_max": 5.551115123125783e-17,
+      "half_life_days": null,
+      "weight_sum": 130.0,
+      "effective_sample_size": 130.0,
+      "regularization_sum_objective": 0.002
+    },
+    "models": {
+      "baseline_frequency": {
+        "sample_size": 52,
+        "calibration": {
+          "log_loss": 1.1242128139819487,
+          "brier": 0.6823247729360431,
+          "ece": 0.08026986014866389,
+          "bins": [
+            {
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.2,
+              "upper": 0.3,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.3,
+              "upper": 0.4,
+              "count": 2,
+              "avg_confidence": 0.39890306295105143,
+              "accuracy": 0.0
+            },
+            {
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 50,
+              "avg_confidence": 0.4075245320365684,
+              "accuracy": 0.34
+            },
+            {
+              "lower": 0.5,
+              "upper": 0.6,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.6,
+              "upper": 0.7,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.7,
+              "upper": 0.8,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            }
+          ]
+        },
+        "ranking": {
+          "top1_accuracy": 0.3269230769230769,
+          "top2_accuracy": 0.6538461538461539,
+          "mean_reciprocal_rank": 0.6057692307692305,
+          "avg_confidence": 0.4071929370717409
+        },
+        "population_sha256": "974338678aa9ac69d07adaf32c73865c4b8bfbf07911af2707fa51035384da2c",
+        "evaluation_kind": "untouched_chronological_test"
+      },
+      "dixon_coles_raw": {
+        "sample_size": 52,
+        "calibration": {
+          "log_loss": 1.0891790679256264,
+          "brier": 0.6600354782044795,
+          "ece": 0.03076241184845814,
+          "bins": [
+            {
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.2,
+              "upper": 0.3,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.3,
+              "upper": 0.4,
+              "count": 14,
+              "avg_confidence": 0.37708185004650785,
+              "accuracy": 0.35714285714285715
+            },
+            {
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 32,
+              "avg_confidence": 0.4423818331470523,
+              "accuracy": 0.40625
+            },
+            {
+              "lower": 0.5,
+              "upper": 0.6,
+              "count": 6,
+              "avg_confidence": 0.5273801424605066,
+              "accuracy": 0.5
+            },
+            {
+              "lower": 0.6,
+              "upper": 0.7,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.7,
+              "upper": 0.8,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            }
+          ]
+        },
+        "ranking": {
+          "top1_accuracy": 0.40384615384615385,
+          "top2_accuracy": 0.6923076923076923,
+          "mean_reciprocal_rank": 0.6506410256410255,
+          "avg_confidence": 0.4346085656946119
+        },
+        "population_sha256": "974338678aa9ac69d07adaf32c73865c4b8bfbf07911af2707fa51035384da2c",
+        "evaluation_kind": "untouched_chronological_test"
+      },
+      "dixon_coles_calibrated": {
+        "sample_size": 52,
+        "calibration": {
+          "log_loss": 1.195177315263181,
+          "brier": 0.7353749677072163,
+          "ece": 0.21128754509218078,
+          "bins": [
+            {
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.2,
+              "upper": 0.3,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.3,
+              "upper": 0.4,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.5,
+              "upper": 0.6,
+              "count": 52,
+              "avg_confidence": 0.5382106220152577,
+              "accuracy": 0.3269230769230769
+            },
+            {
+              "lower": 0.6,
+              "upper": 0.7,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.7,
+              "upper": 0.8,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            }
+          ]
+        },
+        "ranking": {
+          "top1_accuracy": 0.3269230769230769,
+          "top2_accuracy": 0.6538461538461539,
+          "mean_reciprocal_rank": 0.6057692307692305,
+          "avg_confidence": 0.5382106220152577
+        },
+        "population_sha256": "974338678aa9ac69d07adaf32c73865c4b8bfbf07911af2707fa51035384da2c",
+        "evaluation_kind": "untouched_chronological_test"
+      },
+      "selected_model": {
+        "sample_size": 52,
+        "calibration": {
+          "log_loss": 1.195177315263181,
+          "brier": 0.7353749677072163,
+          "ece": 0.21128754509218078,
+          "bins": [
+            {
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.2,
+              "upper": 0.3,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.3,
+              "upper": 0.4,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.5,
+              "upper": 0.6,
+              "count": 52,
+              "avg_confidence": 0.5382106220152577,
+              "accuracy": 0.3269230769230769
+            },
+            {
+              "lower": 0.6,
+              "upper": 0.7,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.7,
+              "upper": 0.8,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            }
+          ]
+        },
+        "ranking": {
+          "top1_accuracy": 0.3269230769230769,
+          "top2_accuracy": 0.6538461538461539,
+          "mean_reciprocal_rank": 0.6057692307692305,
+          "avg_confidence": 0.5382106220152577
+        },
+        "population_sha256": "974338678aa9ac69d07adaf32c73865c4b8bfbf07911af2707fa51035384da2c",
+        "evaluation_kind": "untouched_chronological_test",
+        "scoreline_log_loss": 3.2952464880296573
+      },
+      "gbdt_raw": {
+        "sample_size": 52,
+        "calibration": {
+          "log_loss": 1.3425853645698083,
+          "brier": 0.8047138578587347,
+          "ece": 0.2859268443910827,
+          "bins": [
+            {
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.2,
+              "upper": 0.3,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.3,
+              "upper": 0.4,
+              "count": 3,
+              "avg_confidence": 0.3732850391902572,
+              "accuracy": 0.0
+            },
+            {
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 7,
+              "avg_confidence": 0.4485442888140682,
+              "accuracy": 0.42857142857142855
+            },
+            {
+              "lower": 0.5,
+              "upper": 0.6,
+              "count": 8,
+              "avg_confidence": 0.5615772312251033,
+              "accuracy": 0.5
+            },
+            {
+              "lower": 0.6,
+              "upper": 0.7,
+              "count": 8,
+              "avg_confidence": 0.6674922347363322,
+              "accuracy": 0.375
+            },
+            {
+              "lower": 0.7,
+              "upper": 0.8,
+              "count": 8,
+              "avg_confidence": 0.7670787507257495,
+              "accuracy": 0.5
+            },
+            {
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 13,
+              "avg_confidence": 0.843784368433327,
+              "accuracy": 0.3076923076923077
+            },
+            {
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 5,
+              "avg_confidence": 0.9340296491872635,
+              "accuracy": 0.6
+            }
+          ]
+        },
+        "ranking": {
+          "top1_accuracy": 0.40384615384615385,
+          "top2_accuracy": 0.7307692307692307,
+          "mean_reciprocal_rank": 0.6570512820512822,
+          "avg_confidence": 0.6897729982372366
+        },
+        "population_sha256": "974338678aa9ac69d07adaf32c73865c4b8bfbf07911af2707fa51035384da2c",
+        "evaluation_kind": "untouched_chronological_test"
+      },
+      "gbdt_calibrated": {
+        "sample_size": 52,
+        "calibration": {
+          "log_loss": 1.2096029369937167,
+          "brier": 0.7510763713252616,
+          "ece": 0.2133226945331168,
+          "bins": [
+            {
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.2,
+              "upper": 0.3,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.3,
+              "upper": 0.4,
+              "count": 1,
+              "avg_confidence": 0.3946026104327693,
+              "accuracy": 0.0
+            },
+            {
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 16,
+              "avg_confidence": 0.43851405428240275,
+              "accuracy": 0.4375
+            },
+            {
+              "lower": 0.5,
+              "upper": 0.6,
+              "count": 21,
+              "avg_confidence": 0.5473102772846977,
+              "accuracy": 0.23809523809523808
+            },
+            {
+              "lower": 0.6,
+              "upper": 0.7,
+              "count": 13,
+              "avg_confidence": 0.6507304377547152,
+              "accuracy": 0.38461538461538464
+            },
+            {
+              "lower": 0.7,
+              "upper": 0.8,
+              "count": 1,
+              "avg_confidence": 0.7289411229809097,
+              "accuracy": 0.0
+            },
+            {
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            },
+            {
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 0,
+              "avg_confidence": null,
+              "accuracy": null
+            }
+          ]
+        },
+        "ranking": {
+          "top1_accuracy": 0.3269230769230769,
+          "top2_accuracy": 0.75,
+          "mean_reciprocal_rank": 0.6217948717948716,
+          "avg_confidence": 0.5402457714561936
+        },
+        "population_sha256": "974338678aa9ac69d07adaf32c73865c4b8bfbf07911af2707fa51035384da2c",
+        "evaluation_kind": "untouched_chronological_test"
+      }
+    },
+    "fixture_distributions": {
+      "target": {
+        "score_probability_matrix": [
+          [
+            0.10555793865296953,
+            0.08908437102866158,
+            0.05997626937566418,
+            0.02606753742483884,
+            0.0084973171197827,
+            0.0022159177388302474,
+            0.00048155311416184644,
+            8.969907567109761e-05,
+            1.4619744836396147e-05,
+            2.1180640811857795e-06,
+            2.7617280273981257e-07,
+            3.273633333839778e-08,
+            3.5570551625412495e-09,
+            3.567706009918734e-10,
+            3.322789552642931e-11,
+            2.88837374915248e-12,
+            2.3538306771181367e-13
+          ],
+          [
+            0.25598044552803595,
+            0.08888559199996747,
+            0.0384329430971643,
+            0.016704143037921948,
+            0.005445102016893362,
+            0.0014199656172515446,
+            0.0003085804373546793,
+            5.7479391549724145e-05,
+            9.368368977285236e-06,
+            1.3572607492221038e-06,
+            1.7697222123305927e-07,
+            2.0977524102473604e-08,
+            2.2793698254078585e-09,
+            2.2861949149883986e-10,
+            2.1292518379343366e-11,
+            1.850877106897266e-12,
+            1.5083405722922106e-13
+          ],
+          [
+            0.08766130510197032,
+            0.11430092477791037,
+            0.017693028259610534,
+            0.005352028273401076,
+            0.0017446174808134248,
+            0.00045495875565329833,
+            9.88695571865846e-05,
+            1.8416468777453963e-05,
+            3.001637110521394e-06,
+            4.348680376911993e-07,
+            5.6702120515591164e-08,
+            6.72122489896724e-09,
+            7.303129363431124e-10,
+            7.324997035613177e-11,
+            6.822149458337884e-12,
+            5.930233346431692e-13,
+            4.8327420152588316e-14
+          ],
+          [
+            0.018724527694471856,
+            0.02441477261852473,
+            0.01591712036053783,
+            0.0016425767385394704,
+            0.000372651745234129,
+            9.717956868384753e-05,
+            2.1118619663794645e-05,
+            3.9337730513672465e-06,
+            6.41152183843645e-07,
+            9.288817461384651e-08,
+            1.2111620112140034e-08,
+            1.4356592297489896e-09,
+            1.559954507439829e-10,
+            1.5646254604094455e-11,
+            1.457216799588838e-12,
+            1.26670277610828e-13,
+            1.0322777147760925e-14
+          ],
+          [
+            0.002999681019235388,
+            0.003911261806318272,
+            0.0025499326127455197,
+            0.001108279399594197,
+            8.577716573450635e-05,
+            1.5568227535292258e-05,
+            3.3832160464393946e-06,
+            6.30192897183185e-07,
+            1.0271297987852114e-07,
+            1.4880743527797534e-08,
+            1.9402890986298277e-09,
+            2.2999350434027654e-10,
+            2.4990568537648396e-11,
+            2.506539749565109e-12,
+            2.3344704047878895e-13,
+            2.029265750519618e-14,
+            1.6537153396439064e-15
+          ],
+          [
+            0.0003844406166706191,
+            0.000501269265344924,
+            0.0003268006364097627,
+            0.00014203764103289226,
+            4.630045635428133e-05,
+            2.8668019416321635e-06,
+            4.335946571927925e-07,
+            8.076583625425018e-08,
+            1.3163746768861679e-08,
+            1.9071235180205985e-09,
+            2.486684193463561e-10,
+            2.9476082314028965e-11,
+            3.202803737449331e-12,
+            3.2123938540566987e-13,
+            2.991868922932105e-14,
+            2.600717114639018e-15,
+            2.1194098335576298e-16
+          ],
+          [
+            4.1058417766854855e-05,
+            5.353576603964811e-05,
+            3.4902443899891765e-05,
+            1.5169679142263108e-05,
+            4.9449079971143376e-06,
+            1.2895257636294292e-06,
+            6.653669052903602e-08,
+            8.625824906158599e-09,
+            1.4058936303186798e-09,
+            2.036815849844828e-10,
+            2.6557890618757917e-11,
+            3.1480578515888542e-12,
+            3.4206077135212547e-13,
+            3.430849997947605e-14,
+            3.1953284542425047e-15,
+            2.7775766960062445e-16,
+            2.2635385178342415e-17
+          ],
+          [
+            3.7586195104916803e-06,
+            4.900836069435153e-06,
+            3.1950818794550817e-06,
+            1.3886811789916772e-06,
+            4.5267276934729317e-07,
+            1.1804733251002072e-07,
+            2.5653506713073066e-08,
+            1.1345695461705312e-09,
+            1.2870002099441714e-10,
+            1.864566685442418e-11,
+            2.431194655478171e-12,
+            2.881833325464935e-13,
+            3.13133422792492e-14,
+            3.1407103442417943e-15,
+            2.9251063542542083e-16,
+            2.542682969611131e-17,
+            2.0721159018332313e-18
+          ],
+          [
+            3.0106659532668427e-07,
+            3.9255849802313127e-07,
+            2.5592705527984936e-07,
+            1.1123379564923788e-07,
+            3.625923004019713e-08,
+            9.455628160015534e-09,
+            2.0548538905670757e-09,
+            3.827583898898376e-10,
+            1.48121177105137e-11,
+            1.4935237317285032e-12,
+            1.9473945033757736e-13,
+            2.3083574838443995e-14,
+            2.508208485056109e-15,
+            2.5157187834755913e-16,
+            2.343019314898843e-17,
+            2.0366969907944355e-18,
+            1.659771301526621e-19
+          ],
+          [
+            2.143602507216966e-08,
+            2.7950273914600828e-08,
+            1.8222077303769077e-08,
+            7.919877095040584e-09,
+            2.581667233443295e-09,
+            6.732433470118745e-10,
+            1.4630616681350942e-10,
+            2.725250349796823e-11,
+            4.441792117838593e-12,
+            1.527911298218249e-13,
+            1.3865502864730659e-14,
+            1.6435569295067957e-15,
+            1.7858513965506694e-16,
+            1.7911987498511845e-17,
+            1.6682362493338306e-18,
+            1.4501339051484084e-19,
+            1.1817617691855193e-20
+          ],
+          [
+            1.3736258363584834e-09,
+            1.7910605279258646e-09,
+            1.1676752612626646e-09,
+            5.075077007936341e-10,
+            1.6543388061912275e-10,
+            4.314160169613797e-11,
+            9.375335682664855e-12,
+            1.746347225487273e-12,
+            2.8463114743777466e-13,
+            4.12364932850124e-14,
+            1.2766273631409247e-15,
+            1.0531953822108707e-16,
+            1.1443780318132402e-17,
+            1.1478046291534629e-18,
+            1.0690099519475806e-19,
+            9.292494254811302e-21,
+            7.572758909866478e-22
+          ],
+          [
+            8.002026036921083e-11,
+            1.0433782329079642e-10,
+            6.802265650494048e-11,
+            2.956474556750233e-11,
+            9.637313051802798e-12,
+            2.5132041849341037e-12,
+            5.461580457487886e-13,
+            1.0173306003693346e-13,
+            1.6581122693162498e-14,
+            2.4022225281723297e-15,
+            3.132240116355006e-16,
+            8.8154560591598e-18,
+            6.666548170735053e-19,
+            6.686509735528561e-20,
+            6.2274931373523214e-21,
+            5.413321372293538e-22,
+            4.4114934623480107e-23
+          ],
+          [
+            4.273098545758645e-12,
+            5.571661463164539e-12,
+            3.632424004230562e-12,
+            1.5787635619694552e-12,
+            5.146345212658731e-13,
+            1.3420562615375516e-13,
+            2.916495322903869e-14,
+            5.4325665636881816e-15,
+            8.854354002384646e-16,
+            1.2827918260150333e-16,
+            1.6726227363430734e-17,
+            1.9826548777830263e-18,
+            5.115031345230362e-20,
+            3.5706101048980995e-21,
+            3.3254942868420185e-22,
+            2.8907248710442847e-23,
+            2.355746683603169e-24
+          ],
+          [
+            2.106317086449762e-13,
+            2.746411208191221e-13,
+            1.790512590198814e-13,
+            7.782120235306121e-14,
+            2.536762196825844e-14,
+            6.615330782528364e-15,
+            1.437613447338036e-15,
+            2.677847855329662e-16,
+            4.3645324171634526e-17,
+            6.323201565700958e-18,
+            8.244775567464207e-19,
+            9.773001490341078e-20,
+            1.0619120060085039e-20,
+            2.5288763872860627e-22,
+            1.639219260276344e-23,
+            1.4249105474408993e-24,
+            1.1612064261765751e-25
+          ],
+          [
+            9.640951754847069e-15,
+            1.2570765402550111e-14,
+            8.195463830969947e-15,
+            3.562001477444451e-15,
+            1.1611168190417255e-15,
+            3.0279431965397883e-16,
+            6.580187749066128e-17,
+            1.2256939919510894e-17,
+            1.9977166181214722e-18,
+            2.8942309599666437e-19,
+            3.77376625707585e-20,
+            4.473259818028548e-21,
+            4.860541883120238e-22,
+            4.875095745065972e-23,
+            1.0780466056515214e-24,
+            6.522044535091933e-26,
+            5.315028399193381e-27
+          ],
+          [
+            4.11863063012151e-16,
+            5.370251894994149e-16,
+            3.5011157840630883e-16,
+            1.5216929575614814e-16,
+            4.960310369409544e-17,
+            1.2935423714019646e-17,
+            2.8110671544050234e-18,
+            5.236185126502318e-19,
+            8.534278630282771e-20,
+            1.236420281469782e-20,
+            1.6121592237506382e-21,
+            1.9109840367950685e-22,
+            2.076431579355522e-23,
+            2.082649013393207e-24,
+            1.9396789882030348e-25,
+            4.0033266245257244e-27,
+            2.270588975188871e-28
+          ],
+          [
+            1.6495179915892466e-17,
+            2.1507942604451887e-17,
+            1.4022023325453624e-17,
+            6.094404030347005e-18,
+            1.986612040023204e-18,
+            5.180657374093316e-19,
+            1.12583678003188e-19,
+            2.0971003105473362e-20,
+            3.4179919031660636e-21,
+            4.951882512926574e-22,
+            6.456722837524219e-23,
+            7.653520874826094e-24,
+            8.316140863425666e-25,
+            8.341041783725911e-26,
+            7.76844460279784e-27,
+            6.752811487751108e-28,
+            1.3066132745289595e-29
+          ]
+        ],
+        "outcome_probabilities": [
+          0.5291350331388012,
+          0.21386784730498942,
+          0.25699711955620935
+        ],
+        "expected_goals": [
+          1.0962165098143588,
+          0.8368941394041316
+        ],
+        "base_omitted_probability_mass": 7.505107646466058e-14,
+        "reconciled_tail_error_bound": 2.606542057220863e-13,
+        "reconciliation": "Preserve conditional score probabilities within each selected 1X2 region."
+      }
+    },
+    "expected_goals_semantics": "Mean of the selected joint score distribution; lambda_* output fields are compatibility aliases.",
+    "model_comparison_scope": "All reported metrics use the identical untouched outer test population.",
+    "historical_xg_policy": "xG is used only with xg_available_at <= forecast cutoff; otherwise final goals are the explicit proxy.",
+    "calibration_note": "Classwise calibration followed by normalization is assessed on the final joint forecast; exact multiclass calibration is not assumed.",
+    "weather": {
+      "enabled": false,
+      "provider": "open_meteo",
+      "fixture_count": 0,
+      "available_count": 0,
+      "used_by_model": false
+    },
+    "evaluation_rows": [
+      {
+        "match_id": "208",
+        "kickoff": "2024-07-27T00:00:00",
+        "outcome": 0,
+        "score": [
+          2,
+          1
+        ],
+        "selected_probabilities": [
+          0.5346159301443627,
+          0.21225589200805947,
+          0.2531281778475778
+        ],
+        "baseline_probabilities": [
+          0.3462093862815884,
+          0.24729241877256317,
+          0.4064981949458484
+        ],
+        "score_probability": 0.14145137460335616
+      },
+      {
+        "match_id": "209",
+        "kickoff": "2024-07-28T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          1
+        ],
+        "selected_probabilities": [
+          0.535900462877671,
+          0.2098970788003837,
+          0.2542024583219453
+        ],
+        "baseline_probabilities": [
+          0.3420526793823796,
+          0.2514078110808356,
+          0.40653950953678475
+        ],
+        "score_probability": 0.04857155214239492
+      },
+      {
+        "match_id": "210",
+        "kickoff": "2024-07-29T00:00:00",
+        "outcome": 2,
+        "score": [
+          1,
+          4
+        ],
+        "selected_probabilities": [
+          0.5366203130627489,
+          0.20753188110721896,
+          0.25584780583003214
+        ],
+        "baseline_probabilities": [
+          0.34436841131866097,
+          0.24949140003698908,
+          0.40614018864434986
+        ],
+        "score_probability": 0.007948555823672668
+      },
+      {
+        "match_id": "211",
+        "kickoff": "2024-07-30T00:00:00",
+        "outcome": 0,
+        "score": [
+          2,
+          0
+        ],
+        "selected_probabilities": [
+          0.5400380698388296,
+          0.20523582836233475,
+          0.25472610179883565
+        ],
+        "baseline_probabilities": [
+          0.34552102376599636,
+          0.24661791590493604,
+          0.4078610603290676
+        ],
+        "score_probability": 0.0774518208652665
+      },
+      {
+        "match_id": "212",
+        "kickoff": "2024-07-31T00:00:00",
+        "outcome": 2,
+        "score": [
+          1,
+          3
+        ],
+        "selected_probabilities": [
+          0.538191853061198,
+          0.2045021031069005,
+          0.2573060438319015
+        ],
+        "baseline_probabilities": [
+          0.3441582002902757,
+          0.24727866473149493,
+          0.4085631349782293
+        ],
+        "score_probability": 0.02071162956676229
+      },
+      {
+        "match_id": "213",
+        "kickoff": "2024-08-01T00:00:00",
+        "outcome": 0,
+        "score": [
+          3,
+          1
+        ],
+        "selected_probabilities": [
+          0.5419801992179514,
+          0.20117942001634853,
+          0.25684038076570015
+        ],
+        "baseline_probabilities": [
+          0.3498077979132345,
+          0.24821526633717744,
+          0.40197693574958815
+        ],
+        "score_probability": 0.05898033927230817
+      },
+      {
+        "match_id": "214",
+        "kickoff": "2024-08-02T00:00:00",
+        "outcome": 0,
+        "score": [
+          4,
+          0
+        ],
+        "selected_probabilities": [
+          0.5423902497310449,
+          0.19802386706423195,
+          0.25958588320472314
+        ],
+        "baseline_probabilities": [
+          0.3509536784741144,
+          0.2501362397820164,
+          0.3989100817438692
+        ],
+        "score_probability": 0.02191133547100322
+      },
+      {
+        "match_id": "215",
+        "kickoff": "2024-08-03T00:00:00",
+        "outcome": 1,
+        "score": [
+          2,
+          2
+        ],
+        "selected_probabilities": [
+          0.5410369845243087,
+          0.2039947188081831,
+          0.25496829666750825
+        ],
+        "baseline_probabilities": [
+          0.34724510342302767,
+          0.24437122460186714,
+          0.4083836719751053
+        ],
+        "score_probability": 0.05520112536108174
+      },
+      {
+        "match_id": "216",
+        "kickoff": "2024-08-04T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5372283578103391,
+          0.20834831880174443,
+          0.2544233233879165
+        ],
+        "baseline_probabilities": [
+          0.34459582198001815,
+          0.24504995458673934,
+          0.4103542234332425
+        ],
+        "score_probability": 0.09801322043658728
+      },
+      {
+        "match_id": "217",
+        "kickoff": "2024-08-05T00:00:00",
+        "outcome": 0,
+        "score": [
+          2,
+          1
+        ],
+        "selected_probabilities": [
+          0.5372283578103391,
+          0.20834831880174443,
+          0.2544233233879165
+        ],
+        "baseline_probabilities": [
+          0.34459582198001815,
+          0.24504995458673934,
+          0.4103542234332425
+        ],
+        "score_probability": 0.13221403461012263
+      },
+      {
+        "match_id": "218",
+        "kickoff": "2024-08-06T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5436480402874866,
+          0.1992802475331904,
+          0.25707171217932306
+        ],
+        "baseline_probabilities": [
+          0.35160993560257586,
+          0.24949402023919048,
+          0.39889604415823365
+        ],
+        "score_probability": 0.09208936673091019
+      },
+      {
+        "match_id": "219",
+        "kickoff": "2024-08-07T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          1
+        ],
+        "selected_probabilities": [
+          0.5382097570426613,
+          0.20731963449898494,
+          0.2544706084583538
+        ],
+        "baseline_probabilities": [
+          0.34758093852309935,
+          0.24790833030192802,
+          0.40451073117497277
+        ],
+        "score_probability": 0.046140292630697265
+      },
+      {
+        "match_id": "220",
+        "kickoff": "2024-08-08T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          1
+        ],
+        "selected_probabilities": [
+          0.5396311988869325,
+          0.203233777709515,
+          0.2571350234035526
+        ],
+        "baseline_probabilities": [
+          0.3487364620938628,
+          0.24981949458483754,
+          0.4014440433212996
+        ],
+        "score_probability": 0.07523515588297804
+      },
+      {
+        "match_id": "221",
+        "kickoff": "2024-08-09T00:00:00",
+        "outcome": 1,
+        "score": [
+          3,
+          3
+        ],
+        "selected_probabilities": [
+          0.5370146074123351,
+          0.20617828384788384,
+          0.25680710873978113
+        ],
+        "baseline_probabilities": [
+          0.346307748272099,
+          0.24663514005092768,
+          0.40705711167697345
+        ],
+        "score_probability": 0.004163127715206312
+      },
+      {
+        "match_id": "222",
+        "kickoff": "2024-08-10T00:00:00",
+        "outcome": 0,
+        "score": [
+          3,
+          1
+        ],
+        "selected_probabilities": [
+          0.5404640929037157,
+          0.2007839756046003,
+          0.2587519314916841
+        ],
+        "baseline_probabilities": [
+          0.34552102376599636,
+          0.24789762340036567,
+          0.40658135283363805
+        ],
+        "score_probability": 0.04519459480771924
+      },
+      {
+        "match_id": "223",
+        "kickoff": "2024-08-11T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          2
+        ],
+        "selected_probabilities": [
+          0.5370146074123351,
+          0.20617828384788384,
+          0.25680710873978113
+        ],
+        "baseline_probabilities": [
+          0.346307748272099,
+          0.24663514005092768,
+          0.40705711167697345
+        ],
+        "score_probability": 0.049749204684281435
+      },
+      {
+        "match_id": "224",
+        "kickoff": "2024-08-12T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          2
+        ],
+        "selected_probabilities": [
+          0.5291350331388014,
+          0.21386784730498934,
+          0.25699711955620924
+        ],
+        "baseline_probabilities": [
+          0.3391224862888483,
+          0.24661791590493604,
+          0.4142595978062157
+        ],
+        "score_probability": 0.05997626937566418
+      },
+      {
+        "match_id": "225",
+        "kickoff": "2024-08-13T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5390763226253665,
+          0.2068190266222379,
+          0.25410465075239563
+        ],
+        "baseline_probabilities": [
+          0.34459582198001815,
+          0.24250681198910082,
+          0.412897366030881
+        ],
+        "score_probability": 0.09295916455635367
+      },
+      {
+        "match_id": "226",
+        "kickoff": "2024-08-14T00:00:00",
+        "outcome": 2,
+        "score": [
+          1,
+          6
+        ],
+        "selected_probabilities": [
+          0.5354379156035869,
+          0.20965100032957007,
+          0.2549110840668431
+        ],
+        "baseline_probabilities": [
+          0.34388224471021156,
+          0.24691812327506898,
+          0.4091996320147194
+        ],
+        "score_probability": 0.0007444574385586232
+      },
+      {
+        "match_id": "227",
+        "kickoff": "2024-08-15T00:00:00",
+        "outcome": 0,
+        "score": [
+          4,
+          1
+        ],
+        "selected_probabilities": [
+          0.5393513483097777,
+          0.20440943883801024,
+          0.2562392128522121
+        ],
+        "baseline_probabilities": [
+          0.34596375617792424,
+          0.24437122460186714,
+          0.4096650192202087
+        ],
+        "score_probability": 0.017611363359795084
+      },
+      {
+        "match_id": "228",
+        "kickoff": "2024-08-16T00:00:00",
+        "outcome": 0,
+        "score": [
+          1,
+          0
+        ],
+        "selected_probabilities": [
+          0.5382097570426613,
+          0.20731963449898494,
+          0.2544706084583538
+        ],
+        "baseline_probabilities": [
+          0.34758093852309935,
+          0.24790833030192802,
+          0.40451073117497277
+        ],
+        "score_probability": 0.10917539438680081
+      },
+      {
+        "match_id": "229",
+        "kickoff": "2024-08-17T00:00:00",
+        "outcome": 0,
+        "score": [
+          3,
+          0
+        ],
+        "selected_probabilities": [
+          0.5410818364316512,
+          0.20174841780451191,
+          0.25716974576383683
+        ],
+        "baseline_probabilities": [
+          0.3498077979132345,
+          0.246933919092074,
+          0.4032582829946916
+        ],
+        "score_probability": 0.047581423973591296
+      },
+      {
+        "match_id": "230",
+        "kickoff": "2024-08-18T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          3
+        ],
+        "selected_probabilities": [
+          0.5396311988869325,
+          0.203233777709515,
+          0.2571350234035526
+        ],
+        "baseline_probabilities": [
+          0.3487364620938628,
+          0.24981949458483754,
+          0.4014440433212996
+        ],
+        "score_probability": 0.017306146526852764
+      },
+      {
+        "match_id": "231",
+        "kickoff": "2024-08-19T00:00:00",
+        "outcome": 1,
+        "score": [
+          0,
+          0
+        ],
+        "selected_probabilities": [
+          0.5346159301443627,
+          0.21225589200805947,
+          0.2531281778475778
+        ],
+        "baseline_probabilities": [
+          0.3462093862815884,
+          0.24729241877256317,
+          0.4064981949458484
+        ],
+        "score_probability": 0.04590825365195499
+      },
+      {
+        "match_id": "232",
+        "kickoff": "2024-08-20T00:00:00",
+        "outcome": 2,
+        "score": [
+          3,
+          4
+        ],
+        "selected_probabilities": [
+          0.5337348182478252,
+          0.2107863480152179,
+          0.2554788337369569
+        ],
+        "baseline_probabilities": [
+          0.34168190127970743,
+          0.24405850091407677,
+          0.4142595978062157
+        ],
+        "score_probability": 0.0011768696913235115
+      },
+      {
+        "match_id": "233",
+        "kickoff": "2024-08-21T00:00:00",
+        "outcome": 2,
+        "score": [
+          1,
+          2
+        ],
+        "selected_probabilities": [
+          0.5337574525003318,
+          0.21032022557045343,
+          0.2559223219292147
+        ],
+        "baseline_probabilities": [
+          0.33994179701709715,
+          0.2504547108039287,
+          0.4096034921789742
+        ],
+        "score_probability": 0.04752872332368623
+      },
+      {
+        "match_id": "234",
+        "kickoff": "2024-08-22T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.538191853061198,
+          0.2045021031069005,
+          0.2573060438319015
+        ],
+        "baseline_probabilities": [
+          0.3441582002902757,
+          0.24727866473149493,
+          0.4085631349782293
+        ],
+        "score_probability": 0.09539104408460235
+      },
+      {
+        "match_id": "235",
+        "kickoff": "2024-08-23T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5366203130627489,
+          0.20753188110721896,
+          0.25584780583003214
+        ],
+        "baseline_probabilities": [
+          0.34436841131866097,
+          0.24949140003698908,
+          0.40614018864434986
+        ],
+        "score_probability": 0.09848192866778609
+      },
+      {
+        "match_id": "236",
+        "kickoff": "2024-08-24T00:00:00",
+        "outcome": 1,
+        "score": [
+          2,
+          2
+        ],
+        "selected_probabilities": [
+          0.5415417629001362,
+          0.20065820665520026,
+          0.2578000304446636
+        ],
+        "baseline_probabilities": [
+          0.34680073126142597,
+          0.24661791590493604,
+          0.40658135283363805
+        ],
+        "score_probability": 0.03605601849393298
+      },
+      {
+        "match_id": "237",
+        "kickoff": "2024-08-25T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          1
+        ],
+        "selected_probabilities": [
+          0.5381815377520137,
+          0.20685123648569892,
+          0.2549672257622874
+        ],
+        "baseline_probabilities": [
+          0.3424881775190978,
+          0.24790833030192802,
+          0.4096034921789742
+        ],
+        "score_probability": 0.05237049740304049
+      },
+      {
+        "match_id": "238",
+        "kickoff": "2024-08-26T00:00:00",
+        "outcome": 0,
+        "score": [
+          3,
+          0
+        ],
+        "selected_probabilities": [
+          0.5410369845243087,
+          0.2039947188081831,
+          0.25496829666750825
+        ],
+        "baseline_probabilities": [
+          0.34724510342302767,
+          0.24437122460186714,
+          0.4083836719751053
+        ],
+        "score_probability": 0.04155325135920987
+      },
+      {
+        "match_id": "239",
+        "kickoff": "2024-08-27T00:00:00",
+        "outcome": 2,
+        "score": [
+          2,
+          3
+        ],
+        "selected_probabilities": [
+          0.532680216069522,
+          0.2124833473327654,
+          0.2548364365977127
+        ],
+        "baseline_probabilities": [
+          0.3441171154888849,
+          0.24634014097234777,
+          0.4095427435387674
+        ],
+        "score_probability": 0.01091301848438727
+      },
+      {
+        "match_id": "240",
+        "kickoff": "2024-08-28T00:00:00",
+        "outcome": 2,
+        "score": [
+          2,
+          3
+        ],
+        "selected_probabilities": [
+          0.5400380698388296,
+          0.20523582836233475,
+          0.25472610179883565
+        ],
+        "baseline_probabilities": [
+          0.34552102376599636,
+          0.24661791590493604,
+          0.4078610603290676
+        ],
+        "score_probability": 0.022702105259694266
+      },
+      {
+        "match_id": "241",
+        "kickoff": "2024-08-29T00:00:00",
+        "outcome": 0,
+        "score": [
+          1,
+          0
+        ],
+        "selected_probabilities": [
+          0.5412769415859066,
+          0.2025371450178977,
+          0.2561859133961957
+        ],
+        "baseline_probabilities": [
+          0.34885412877409966,
+          0.24408875954892692,
+          0.40705711167697345
+        ],
+        "score_probability": 0.10498282656048104
+      },
+      {
+        "match_id": "242",
+        "kickoff": "2024-08-30T00:00:00",
+        "outcome": 0,
+        "score": [
+          2,
+          1
+        ],
+        "selected_probabilities": [
+          0.5396881536461524,
+          0.20500693734605124,
+          0.2553049090077964
+        ],
+        "baseline_probabilities": [
+          0.3505079825834542,
+          0.2447387518142235,
+          0.40475326560232217
+        ],
+        "score_probability": 0.1224559310228185
+      },
+      {
+        "match_id": "243",
+        "kickoff": "2024-08-31T00:00:00",
+        "outcome": 2,
+        "score": [
+          1,
+          3
+        ],
+        "selected_probabilities": [
+          0.5391885941307378,
+          0.2057243596174782,
+          0.25508704625178397
+        ],
+        "baseline_probabilities": [
+          0.34552102376599636,
+          0.24533820840950638,
+          0.4091407678244972
+        ],
+        "score_probability": 0.027971163173597637
+      },
+      {
+        "match_id": "244",
+        "kickoff": "2024-09-01T00:00:00",
+        "outcome": 1,
+        "score": [
+          0,
+          0
+        ],
+        "selected_probabilities": [
+          0.5396881536461524,
+          0.20500693734605124,
+          0.2553049090077964
+        ],
+        "baseline_probabilities": [
+          0.3505079825834542,
+          0.2447387518142235,
+          0.40475326560232217
+        ],
+        "score_probability": 0.048585378500167704
+      },
+      {
+        "match_id": "245",
+        "kickoff": "2024-09-02T00:00:00",
+        "outcome": 2,
+        "score": [
+          0,
+          2
+        ],
+        "selected_probabilities": [
+          0.5400403975823428,
+          0.20168757635698453,
+          0.2582720260606728
+        ],
+        "baseline_probabilities": [
+          0.34459582198001815,
+          0.25395095367847415,
+          0.4014532243415077
+        ],
+        "score_probability": 0.046371628178300574
+      },
+      {
+        "match_id": "246",
+        "kickoff": "2024-09-03T00:00:00",
+        "outcome": 0,
+        "score": [
+          4,
+          1
+        ],
+        "selected_probabilities": [
+          0.5388595342756279,
+          0.20487321395738897,
+          0.256267251766983
+        ],
+        "baseline_probabilities": [
+          0.3492380261248185,
+          0.24600870827285923,
+          0.40475326560232217
+        ],
+        "score_probability": 0.01634994094587919
+      },
+      {
+        "match_id": "247",
+        "kickoff": "2024-09-04T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5412333235577063,
+          0.2013653413815536,
+          0.25740133506074026
+        ],
+        "baseline_probabilities": [
+          0.3466981132075471,
+          0.2485486211901306,
+          0.40475326560232217
+        ],
+        "score_probability": 0.09598763948524461
+      },
+      {
+        "match_id": "248",
+        "kickoff": "2024-09-05T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5338242434716249,
+          0.2095940901823067,
+          0.2565816663460684
+        ],
+        "baseline_probabilities": [
+          0.34259429622815085,
+          0.24691812327506898,
+          0.41048758049678014
+        ],
+        "score_probability": 0.09479974980772425
+      },
+      {
+        "match_id": "249",
+        "kickoff": "2024-09-06T00:00:00",
+        "outcome": 0,
+        "score": [
+          5,
+          3
+        ],
+        "selected_probabilities": [
+          0.5370146074123351,
+          0.20617828384788384,
+          0.25680710873978113
+        ],
+        "baseline_probabilities": [
+          0.346307748272099,
+          0.24663514005092768,
+          0.40705711167697345
+        ],
+        "score_probability": 0.0005818744267907426
+      },
+      {
+        "match_id": "250",
+        "kickoff": "2024-09-07T00:00:00",
+        "outcome": 1,
+        "score": [
+          2,
+          2
+        ],
+        "selected_probabilities": [
+          0.5415417629001362,
+          0.20065820665520026,
+          0.2578000304446636
+        ],
+        "baseline_probabilities": [
+          0.34680073126142597,
+          0.24661791590493604,
+          0.40658135283363805
+        ],
+        "score_probability": 0.03605601849393298
+      },
+      {
+        "match_id": "251",
+        "kickoff": "2024-09-08T00:00:00",
+        "outcome": 2,
+        "score": [
+          1,
+          4
+        ],
+        "selected_probabilities": [
+          0.5398942332529293,
+          0.2019872355401143,
+          0.2581185312069564
+        ],
+        "baseline_probabilities": [
+          0.34459582198001815,
+          0.2437783832879201,
+          0.41162579473206173
+        ],
+        "score_probability": 0.005012561298719793
+      },
+      {
+        "match_id": "252",
+        "kickoff": "2024-09-09T00:00:00",
+        "outcome": 0,
+        "score": [
+          2,
+          1
+        ],
+        "selected_probabilities": [
+          0.5337574525003318,
+          0.21032022557045343,
+          0.2559223219292147
+        ],
+        "baseline_probabilities": [
+          0.33994179701709715,
+          0.2504547108039287,
+          0.4096034921789742
+        ],
+        "score_probability": 0.1269453096085077
+      },
+      {
+        "match_id": "253",
+        "kickoff": "2024-09-10T00:00:00",
+        "outcome": 1,
+        "score": [
+          0,
+          0
+        ],
+        "selected_probabilities": [
+          0.5337348182478252,
+          0.2107863480152179,
+          0.2554788337369569
+        ],
+        "baseline_probabilities": [
+          0.34168190127970743,
+          0.24405850091407677,
+          0.4142595978062157
+        ],
+        "score_probability": 0.075360119891753
+      },
+      {
+        "match_id": "254",
+        "kickoff": "2024-09-11T00:00:00",
+        "outcome": 0,
+        "score": [
+          2,
+          0
+        ],
+        "selected_probabilities": [
+          0.5372283578103391,
+          0.20834831880174443,
+          0.2544233233879165
+        ],
+        "baseline_probabilities": [
+          0.34459582198001815,
+          0.24504995458673934,
+          0.4103542234332425
+        ],
+        "score_probability": 0.08219864320282827
+      },
+      {
+        "match_id": "255",
+        "kickoff": "2024-09-12T00:00:00",
+        "outcome": 1,
+        "score": [
+          2,
+          2
+        ],
+        "selected_probabilities": [
+          0.5338242434716249,
+          0.2095940901823067,
+          0.2565816663460684
+        ],
+        "baseline_probabilities": [
+          0.34259429622815085,
+          0.24691812327506898,
+          0.41048758049678014
+        ],
+        "score_probability": 0.024789397190749247
+      },
+      {
+        "match_id": "256",
+        "kickoff": "2024-09-13T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5373669580085512,
+          0.2077479306373022,
+          0.2548851113541466
+        ],
+        "baseline_probabilities": [
+          0.34758093852309935,
+          0.24663514005092763,
+          0.4057839214259731
+        ],
+        "score_probability": 0.0986018334291056
+      },
+      {
+        "match_id": "257",
+        "kickoff": "2024-09-14T00:00:00",
+        "outcome": 0,
+        "score": [
+          3,
+          0
+        ],
+        "selected_probabilities": [
+          0.5419890977714293,
+          0.20202145172691718,
+          0.25598945050165345
+        ],
+        "baseline_probabilities": [
+          0.34774609015639374,
+          0.24691812327506904,
+          0.40533578656853725
+        ],
+        "score_probability": 0.04602638076402895
+      },
+      {
+        "match_id": "258",
+        "kickoff": "2024-09-15T00:00:00",
+        "outcome": 1,
+        "score": [
+          0,
+          0
+        ],
+        "selected_probabilities": [
+          0.5412769415859066,
+          0.2025371450178977,
+          0.2561859133961957
+        ],
+        "baseline_probabilities": [
+          0.34885412877409966,
+          0.24408875954892692,
+          0.40705711167697345
+        ],
+        "score_probability": 0.048974388964617865
+      },
+      {
+        "match_id": "259",
+        "kickoff": "2024-09-16T00:00:00",
+        "outcome": 1,
+        "score": [
+          1,
+          1
+        ],
+        "selected_probabilities": [
+          0.5419890977714293,
+          0.20202145172691718,
+          0.25598945050165345
+        ],
+        "baseline_probabilities": [
+          0.34774609015639374,
+          0.24691812327506904,
+          0.40533578656853725
+        ],
+        "score_probability": 0.09321711608348061
+      }
+    ]
+  },
+  "generated_at": "2026-09-07T10:53:38.507669Z"
+}

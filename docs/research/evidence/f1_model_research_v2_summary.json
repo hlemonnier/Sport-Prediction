@@ -14,23 +14,23 @@
   "evidence_integrity": {
     "aggregate_manifest_digests_checked": 41,
     "artifacts_passed": 11,
-    "implementation_manifest_direct_entries": 111,
+    "implementation_manifest_direct_entries": 115,
     "input_manifest_direct_entries": 1007,
     "nested_json_references": 158,
     "registered_artifacts": 11,
     "status": "pass",
-    "transitive_file_references": 4140
+    "transitive_file_references": 4145
   },
   "live_next_lap": {
     "adaptive_blend_retained": false,
-    "blend_mae_seconds": 0.5379462306879169,
+    "blend_mae_seconds": 0.5402546649213343,
     "matched_forecasts": 8144,
     "naive_mae_seconds": 0.5491839143927711,
     "paired_ci95_seconds": [
-      -0.025451893005493616,
-      0.0010315447943620838
+      -0.019130645730580105,
+      0.0004977500185012813
     ],
-    "paired_delta_seconds": -0.011237683704854352,
+    "paired_delta_seconds": -0.008929249471436924,
     "public_forecast": "naive_next_lap_baseline"
   },
   "live_strategy_replay": {
@@ -106,7 +106,7 @@
   },
   "race_main_survival": {
     "audit_baseline_mae_positions": 3.0909090909090913,
-    "audit_candidate_mae_positions": 3.7878787878787876,
+    "audit_candidate_mae_positions": 3.3636363636363633,
     "evidence_role": "postdevelopment_replay_diagnostic_after_prior_R7_R9_inspection",
     "promoted": false,
     "prospective_development_evidence": false,

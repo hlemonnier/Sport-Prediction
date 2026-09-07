@@ -1,0 +1,547 @@
+{
+  "schema_version": "performance_research_publication_v1",
+  "base_commit": "9fc781c5f607eb8bba2d5e951a6ff42552d7ebb8",
+  "destination": "origin/main",
+  "scope": "All canonical summary findings, research code, selection locks and verification; no model promotion. Row-level replay tables remain local.",
+  "frozen_results_unchanged": true,
+  "experiment_source_unchanged": true,
+  "report_publication_change": {
+    "path": "docs/research/performance_research_20260907.md",
+    "experiment_version_sha256": "24f41139d53c89016c495f15fdfd153e0fe0c263c44b85a190fbf8a6c61a830c",
+    "publication_version_sha256": "6f0af82a724f0ca4fc5eec213c46346b3f6b2817791dd25375edbede3c51474f",
+    "changes": [
+      "use repository-relative report links for GitHub",
+      "clarify experiment-time status versus publication"
+    ]
+  },
+  "commit_groups": [
+    {
+      "title": "research(f1): benchmark causal pre-event corrections across seasons",
+      "paths": [
+        "artifacts/research/performance_20260907/pre_event/cycle1/events.csv",
+        "artifacts/research/performance_20260907/pre_event/cycle1/results.json",
+        "artifacts/research/performance_20260907/pre_event/cycle1/verification.json",
+        "research/experiments/performance_20260907/pre_event/README.md",
+        "research/experiments/performance_20260907/pre_event/run_experiment.py",
+        "research/experiments/performance_20260907/pre_event/specification.json",
+        "research/experiments/performance_20260907/pre_event/test_experiment.py",
+        "research/experiments/performance_20260907/pre_event/verify_results.py"
+      ]
+    },
+    {
+      "title": "research(f1): test causal race-order residual challengers",
+      "paths": [
+        "artifacts/research/performance_20260907/race/v3/results.json",
+        "artifacts/research/performance_20260907/race/v3/selection_lock.json",
+        "research/experiments/performance_20260907/race/README.md",
+        "research/experiments/performance_20260907/race/run.py",
+        "research/experiments/performance_20260907/race/specification.json",
+        "research/experiments/performance_20260907/race/test_run.py"
+      ]
+    },
+    {
+      "title": "research(f1-live): evaluate frozen lap corrections and recent transfer",
+      "paths": [
+        "artifacts/research/performance_20260907/live/corrected_cycle_1/results.json",
+        "artifacts/research/performance_20260907/live/corrected_cycle_1/selected_models.json",
+        "artifacts/research/performance_20260907/live/corrected_cycle_1/verification.json",
+        "artifacts/research/performance_20260907/live/recent_extension_final/chosen_events_before_lap_acquisition.json",
+        "artifacts/research/performance_20260907/live/recent_extension_final/frozen_before_acquisition.json",
+        "artifacts/research/performance_20260907/live/recent_extension_final/official_schedule_dates.json",
+        "artifacts/research/performance_20260907/live/recent_extension_final/results.json",
+        "artifacts/research/performance_20260907/live/recent_extension_final/verification.json",
+        "research/experiments/performance_20260907/live/README.md",
+        "research/experiments/performance_20260907/live/run_experiment.py",
+        "research/experiments/performance_20260907/live/run_recent_extension.py",
+        "research/experiments/performance_20260907/live/spec.json",
+        "research/experiments/performance_20260907/live/test_experiment.py",
+        "research/experiments/performance_20260907/live/test_recent_extension.py"
+      ]
+    },
+    {
+      "title": "research(football): benchmark causal models on frozen EPL seasons",
+      "paths": [
+        "artifacts/research/performance_20260907/football/artifact_manifest.json",
+        "artifacts/research/performance_20260907/football/design_lock.json",
+        "artifacts/research/performance_20260907/football/evidence.json",
+        "artifacts/research/performance_20260907/football/reproducibility.json",
+        "artifacts/research/performance_20260907/football/selection_lock.json",
+        "artifacts/research/performance_20260907/football/verification.json",
+        "data/football/performance_20260907/source_manifest.json",
+        "research/experiments/performance_20260907/football/README.md",
+        "research/experiments/performance_20260907/football/acquire.py",
+        "research/experiments/performance_20260907/football/benchmark.py",
+        "research/experiments/performance_20260907/football/replay.py",
+        "research/experiments/performance_20260907/football/spec.json",
+        "research/experiments/performance_20260907/football/test_benchmark.py",
+        "research/experiments/performance_20260907/football/validate_evidence.py"
+      ]
+    },
+    {
+      "title": "research(football): test frozen blend across Spain and Italy",
+      "paths": [
+        "artifacts/research/performance_20260907/football/transfer_artifact_manifest.json",
+        "artifacts/research/performance_20260907/football/transfer_design_lock.json",
+        "artifacts/research/performance_20260907/football/transfer_evidence.json",
+        "artifacts/research/performance_20260907/football/transfer_preservation_check.json",
+        "artifacts/research/performance_20260907/football/transfer_run_lock.json",
+        "data/football/performance_20260907/transfer_source_manifest.json",
+        "research/experiments/performance_20260907/football/transfer_README.md",
+        "research/experiments/performance_20260907/football/transfer_acquire.py",
+        "research/experiments/performance_20260907/football/transfer_run.py",
+        "research/experiments/performance_20260907/football/transfer_spec.json",
+        "research/experiments/performance_20260907/football/transfer_test.py",
+        "research/experiments/performance_20260907/football/transfer_timing_notes.json"
+      ]
+    },
+    {
+      "title": "docs(research): package verified performance findings for main",
+      "paths": [
+        "artifacts/research/performance_20260907/verification/cycle_verification.json",
+        "artifacts/research/performance_20260907/verification/focused_tests.log",
+        "artifacts/research/performance_20260907/verification/race_integrity.json",
+        "docs/research/evidence/performance_research_20260907_publication.json",
+        "docs/research/evidence/performance_research_20260907_scorecard.csv",
+        "docs/research/evidence/performance_research_20260907_summary.json",
+        "docs/research/performance_research_20260907.md",
+        "research/experiments/performance_20260907/README.md",
+        "research/experiments/performance_20260907/summarize.py"
+      ]
+    }
+  ],
+  "files": {
+    "artifacts/research/performance_20260907/football/artifact_manifest.json": {
+      "sha256": "3347933e79bd167ce44a677077f860421a963df082349a510c423691a6b7de51",
+      "bytes": 3499
+    },
+    "artifacts/research/performance_20260907/football/design_lock.json": {
+      "sha256": "3a976119b0faeee26ad4d6e73fce8d08a50bebf6317f742472f8640c8164cc07",
+      "bytes": 5141
+    },
+    "artifacts/research/performance_20260907/football/evidence.json": {
+      "sha256": "4f94a461886df7f8d167356f0d6735f1339f5a8869d618669c6d3de93b6c1418",
+      "bytes": 100672
+    },
+    "artifacts/research/performance_20260907/football/reproducibility.json": {
+      "sha256": "de8c1e6c7cf3a035fa6e6a60e97af26db6238b4a718a98e02cbf40874aa6eb08",
+      "bytes": 247
+    },
+    "artifacts/research/performance_20260907/football/selection_lock.json": {
+      "sha256": "332766697bf79f763a53ef59779936ffc4ddb2aa03a94ad6a92cde601d0efa0b",
+      "bytes": 1057
+    },
+    "artifacts/research/performance_20260907/football/transfer_artifact_manifest.json": {
+      "sha256": "3bac608ad0927fc72ec73e29df0488352801fbeb21037edd340bf426f3374752",
+      "bytes": 4991
+    },
+    "artifacts/research/performance_20260907/football/transfer_design_lock.json": {
+      "sha256": "fd355047a340491d7f2f179219e8ba700b82c88f116dd4b4fce3094283d10569",
+      "bytes": 4214
+    },
+    "artifacts/research/performance_20260907/football/transfer_evidence.json": {
+      "sha256": "47c735c84aa1ecf7d606f75f4ba51ab4af9f9d17d9329c2679d6b77bdc0475c7",
+      "bytes": 54013
+    },
+    "artifacts/research/performance_20260907/football/transfer_preservation_check.json": {
+      "sha256": "759778ebc7f430b5fdcf015aeab7b9f8fa109052c5a828f0b1cfc82b9d1a43b7",
+      "bytes": 6228
+    },
+    "artifacts/research/performance_20260907/football/transfer_run_lock.json": {
+      "sha256": "cd80e1eb443d3e61747fcd69383fca9d0f07c004d8dc8378ddbc7e7a2b1e19e4",
+      "bytes": 9780
+    },
+    "artifacts/research/performance_20260907/football/verification.json": {
+      "sha256": "119810c5c5f78c17a685d54837c00cb66dcb5bda6cd108acf338bc08e5754657",
+      "bytes": 659
+    },
+    "artifacts/research/performance_20260907/live/corrected_cycle_1/results.json": {
+      "sha256": "00239406489515dbd7da5cb760d7816a8b7ffc21c5fcb70f498fac9b63196f52",
+      "bytes": 150317
+    },
+    "artifacts/research/performance_20260907/live/corrected_cycle_1/selected_models.json": {
+      "sha256": "17a8f7e7652bda9dfce0e972e16665de76bad49de3955c949c4b45a2f0facf57",
+      "bytes": 2210
+    },
+    "artifacts/research/performance_20260907/live/corrected_cycle_1/verification.json": {
+      "sha256": "f9baff62b22e794dcb03450b6c2b4da87f6963f9d6ef5d6915721d869e39fbe1",
+      "bytes": 761
+    },
+    "artifacts/research/performance_20260907/live/recent_extension_final/chosen_events_before_lap_acquisition.json": {
+      "sha256": "11c619349e829831ea86e6d270eb3835e79bd86ab538222a5e19640f057aa5e7",
+      "bytes": 1428
+    },
+    "artifacts/research/performance_20260907/live/recent_extension_final/frozen_before_acquisition.json": {
+      "sha256": "2662ef069f2fe84954992643f781e1b497c1d81fdb41a93a292dcfbd196540c3",
+      "bytes": 2031
+    },
+    "artifacts/research/performance_20260907/live/recent_extension_final/official_schedule_dates.json": {
+      "sha256": "1eabafc2c1ba8a4215b547eb76a739b532fc02f8db44586d1992af74cd89d3d3",
+      "bytes": 2214
+    },
+    "artifacts/research/performance_20260907/live/recent_extension_final/results.json": {
+      "sha256": "bfad09dd5d60aadafe279bd0df649fc23a44b0852802d9803cfdd0f215acef93",
+      "bytes": 9571
+    },
+    "artifacts/research/performance_20260907/live/recent_extension_final/verification.json": {
+      "sha256": "649d5334be3bde1a492d3f460fb79cb4a59871c1e1a9c343306357e6cd1407a5",
+      "bytes": 1620
+    },
+    "artifacts/research/performance_20260907/pre_event/cycle1/events.csv": {
+      "sha256": "d6934abd669b6f3f3bb710502a7665d9afa93ab59880bb503b860e359a482163",
+      "bytes": 36181
+    },
+    "artifacts/research/performance_20260907/pre_event/cycle1/results.json": {
+      "sha256": "b3477a1e90f167dd42693e9045a5526700c1e5e726f9aaf01baf86c6af27adba",
+      "bytes": 643166
+    },
+    "artifacts/research/performance_20260907/pre_event/cycle1/verification.json": {
+      "sha256": "504dbb5c70a8630d7819fb1a7693af5641e1dd88b8e38dc65a4ccec211832b47",
+      "bytes": 567
+    },
+    "artifacts/research/performance_20260907/race/v3/results.json": {
+      "sha256": "b068c36190abf19ad0d93c1c608d6af3cdd36884888e1e4ac07a70d83d0008ca",
+      "bytes": 182213
+    },
+    "artifacts/research/performance_20260907/race/v3/selection_lock.json": {
+      "sha256": "4abaf45d2e328f7d6ee3a16382cc41a2f112e4de7091ffe5f026d509f0ecb912",
+      "bytes": 912
+    },
+    "artifacts/research/performance_20260907/verification/cycle_verification.json": {
+      "sha256": "45ab192b9a75b6ced0210e804fd9c58c3b4c535ec5090510e73d5e83814cc76f",
+      "bytes": 8229
+    },
+    "artifacts/research/performance_20260907/verification/focused_tests.log": {
+      "sha256": "f73b48a0d2766af6d60908ac5834c51992e190f78b3696bc561f900ae6da460c",
+      "bytes": 99
+    },
+    "artifacts/research/performance_20260907/verification/race_integrity.json": {
+      "sha256": "f8cc805b644ec92ca30346b486f711d63ae9a7b4c6235333dcbbe52c2a940212",
+      "bytes": 441
+    },
+    "data/football/performance_20260907/source_manifest.json": {
+      "sha256": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b",
+      "bytes": 4949
+    },
+    "data/football/performance_20260907/transfer_source_manifest.json": {
+      "sha256": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6",
+      "bytes": 7936
+    },
+    "docs/research/evidence/performance_research_20260907_scorecard.csv": {
+      "sha256": "a359cc22315e72681097fcbf016f651de764bd225393a99051953ce96a597e39",
+      "bytes": 8081
+    },
+    "docs/research/evidence/performance_research_20260907_summary.json": {
+      "sha256": "746fdceb83f136699fb67abb54d0c0e729f9ff0f34a66db937db98837802d4a6",
+      "bytes": 19052
+    },
+    "docs/research/performance_research_20260907.md": {
+      "sha256": "6f0af82a724f0ca4fc5eec213c46346b3f6b2817791dd25375edbede3c51474f",
+      "bytes": 18338
+    },
+    "research/experiments/performance_20260907/README.md": {
+      "sha256": "e1f9b07d0b6fa0133176700563c1d6c4c4b8ed79b0f9d3b2f15091b651d39313",
+      "bytes": 4255
+    },
+    "research/experiments/performance_20260907/football/README.md": {
+      "sha256": "59bbd4601bd838467972697b6a851b00a65c728b1d6258a3c9d29977ffdc635a",
+      "bytes": 8557
+    },
+    "research/experiments/performance_20260907/football/acquire.py": {
+      "sha256": "74dfd35a6c20bca9af98dac426ce941959675d1f4efb4924a6a82b9b31c65f42",
+      "bytes": 3640
+    },
+    "research/experiments/performance_20260907/football/benchmark.py": {
+      "sha256": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+      "bytes": 20056
+    },
+    "research/experiments/performance_20260907/football/replay.py": {
+      "sha256": "354fde96b87e075c2f1415e3c463e4eee7fc77b89ff75f4c452f160646bec5c1",
+      "bytes": 863
+    },
+    "research/experiments/performance_20260907/football/spec.json": {
+      "sha256": "c95057dbce099ecdaae40573ec3f389dc77ef5dc05b23073d60d6136d912a13d",
+      "bytes": 4397
+    },
+    "research/experiments/performance_20260907/football/test_benchmark.py": {
+      "sha256": "98519b114b2e14aa9ebe50a2e881ec5921148a323723b036996711bf1ef0d70d",
+      "bytes": 3635
+    },
+    "research/experiments/performance_20260907/football/transfer_README.md": {
+      "sha256": "27af176ca654412d15709a5ff4a4fc119c9473d0648aa4a29895cfa433d72b07",
+      "bytes": 7404
+    },
+    "research/experiments/performance_20260907/football/transfer_acquire.py": {
+      "sha256": "df7f0c65dba39fee0ceb385f065a4534e0149bc476ea179cab87a0db88df9eae",
+      "bytes": 3163
+    },
+    "research/experiments/performance_20260907/football/transfer_run.py": {
+      "sha256": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6",
+      "bytes": 10869
+    },
+    "research/experiments/performance_20260907/football/transfer_spec.json": {
+      "sha256": "9e2dd99685014ad4d8bbeed500b14c39177a6c80d4e47c5102af61d48f47e2b5",
+      "bytes": 3841
+    },
+    "research/experiments/performance_20260907/football/transfer_test.py": {
+      "sha256": "3afef36db46c68e5224dd51991ca50976665b855cc95ed8c432216659479dc59",
+      "bytes": 2410
+    },
+    "research/experiments/performance_20260907/football/transfer_timing_notes.json": {
+      "sha256": "0c1611ea4a88e39fd42c03de50cfbe533ac25391c874105fe52fe92514fa3e4c",
+      "bytes": 1289
+    },
+    "research/experiments/performance_20260907/football/validate_evidence.py": {
+      "sha256": "63fb1a092d4470d3ae9f3156b299aa0b607c046cc6a147d677f16a67eff7dd13",
+      "bytes": 3946
+    },
+    "research/experiments/performance_20260907/live/README.md": {
+      "sha256": "d497417166af3877655829b1e3c8119468027be5bafe448098967e8adc4dc2a7",
+      "bytes": 8542
+    },
+    "research/experiments/performance_20260907/live/run_experiment.py": {
+      "sha256": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+      "bytes": 18439
+    },
+    "research/experiments/performance_20260907/live/run_recent_extension.py": {
+      "sha256": "da409ae20c21a20354071644b177dd19fce82eac855b03191ce1a28702cfb4dc",
+      "bytes": 10534
+    },
+    "research/experiments/performance_20260907/live/spec.json": {
+      "sha256": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a",
+      "bytes": 2805
+    },
+    "research/experiments/performance_20260907/live/test_experiment.py": {
+      "sha256": "2bc4e7765407c827ff58b3541fa59c3c54f59f6890c593f1f731bc3d5ac55d6f",
+      "bytes": 3451
+    },
+    "research/experiments/performance_20260907/live/test_recent_extension.py": {
+      "sha256": "51db02da636b438c99127f1ded5534e42097d3031d024ad527c22377b96f7f39",
+      "bytes": 984
+    },
+    "research/experiments/performance_20260907/pre_event/README.md": {
+      "sha256": "45ab4153e1a22f2505978f75d2220b70297a939f338265ee563be2dd61b1fbe8",
+      "bytes": 7379
+    },
+    "research/experiments/performance_20260907/pre_event/run_experiment.py": {
+      "sha256": "aa0f51a231189522f0d02f2720c4ff43a10550c3a33375b649d2435867e48f09",
+      "bytes": 21162
+    },
+    "research/experiments/performance_20260907/pre_event/specification.json": {
+      "sha256": "d315482d2e8ec772b861dbc942ed3eb4e96f23c413f8b00f6fa33f5eef0ff434",
+      "bytes": 4176
+    },
+    "research/experiments/performance_20260907/pre_event/test_experiment.py": {
+      "sha256": "1bdc80894612804557493873ecaecd6b128000620811c2e47256ac0a84ff07a4",
+      "bytes": 2055
+    },
+    "research/experiments/performance_20260907/pre_event/verify_results.py": {
+      "sha256": "15984f920a9dbeedea4fd9603f12c62b4ba739f4620049d0f08446d17ff6ca49",
+      "bytes": 4507
+    },
+    "research/experiments/performance_20260907/race/README.md": {
+      "sha256": "0f5f47001986f7e08263aa6d4f0b1fc8c5e0785454f6c6ae58fd2c509aec949c",
+      "bytes": 3707
+    },
+    "research/experiments/performance_20260907/race/run.py": {
+      "sha256": "09b09b7c583a37d4e23482c856c1ddac4170ad5aea825ac3ed01c808de23396c",
+      "bytes": 14291
+    },
+    "research/experiments/performance_20260907/race/specification.json": {
+      "sha256": "cc4958cbe496aa985bf76ca24062d3925cb2124920c37166a90b8a55d56ac25f",
+      "bytes": 2955
+    },
+    "research/experiments/performance_20260907/race/test_run.py": {
+      "sha256": "1a24996e8d002138847caebe6f799984bb48fd02ab3b3d1bbbb2f1072d5f72d6",
+      "bytes": 2728
+    },
+    "research/experiments/performance_20260907/summarize.py": {
+      "sha256": "38f4ce98f3f63a67aa23b24ac718df180c1f60087e7bce6a16d82af58fe2744d",
+      "bytes": 5741
+    }
+  },
+  "self_hash_omitted": true,
+  "omitted_research_artifacts": [
+    {
+      "path": "artifacts/research/performance_20260907/football/replay_stdout.txt",
+      "sha256": "31d33abe5ddc42c952dd84247cd209bd2eb349eb7f4e3895a50f6b565dbabbe5",
+      "reason": "console rendering of retained structured results"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/replays/reproducibility_check/design_lock.json",
+      "sha256": "3a976119b0faeee26ad4d6e73fce8d08a50bebf6317f742472f8640c8164cc07",
+      "reason": "duplicate reproduction output"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/replays/reproducibility_check/evidence.json",
+      "sha256": "1d0dbb7ce3e246ecc3ef18e3e127594ef2855b1c4b6654d25e9950dd0936e91c",
+      "reason": "duplicate reproduction output"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/replays/reproducibility_check/selection_lock.json",
+      "sha256": "0af5fd9a71c00359e0689e72caabfab20ad4871af5a424789c978c0adadf2da3",
+      "reason": "duplicate reproduction output"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/replays/reproducibility_check/test.json",
+      "sha256": "a3ce1ba433bece2ad320fcb05de0425763dc6c04495e6e7bee54b4a19457704d",
+      "reason": "duplicate reproduction output"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/replays/reproducibility_check/validation.json",
+      "sha256": "439661f373fff71ac48211f07657cda79a5ee9cd0f83f18c865683da9e403f2d",
+      "reason": "duplicate reproduction output"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/report_stdout.json",
+      "sha256": "e4d4fe1e8afc933910f4772080393a921523dc9bb0423b8c54e2df90d900d1ae",
+      "reason": "console rendering of retained structured results"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/test.json",
+      "sha256": "d6d1e9689ea374d14d50d7544b4a535e1412523a44f570193ce76c7ef59e4ac2",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/transfer_I1.json",
+      "sha256": "91954ab77d0e577204f7990bee152e4fced274721f050a9c1279d0ecb043070b",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/transfer_SP1.json",
+      "sha256": "24b81de69dadf622a84b387165f46fc228c7deeb584e32f4884dca88118d21d2",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/transfer_stdout.txt",
+      "sha256": "907715d591b1e5e98400479c90e8a4471ded0e0283635a41169dcd286a45be05",
+      "reason": "console rendering of retained structured results"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/football/validation.json",
+      "sha256": "3be870cd30c263e1164de0d4b0d3ee32be65702c4624829d6e012867fc5ac98b",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/INVALIDATED_EXECUTION.md",
+      "sha256": "3874f67d6b899755b5870fce73d1b3ee75565b64ab672ac494a1a15b227db414",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/corrected_cycle_1/matched_forecasts.csv.gz",
+      "sha256": "d77daf440184f53b2d5204529d0976eb39fdba9bee87319cb2b0729fb55377b0",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/matched_forecasts.csv.gz",
+      "sha256": "f918f809854d70340f5169b613cb88e10a06f1145e6d208b2cf7cf67e0ec633b",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension/frozen_before_acquisition.json",
+      "sha256": "6dd811688468206469ee98b816a2e04b2b347f084d1dc8b2b7bc5917ceb91780",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension/results.json",
+      "sha256": "ac662a1069be4481fc620903a90577ba2a4fb0e476e087db39aa347c2339dde2",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension/transport_context.json",
+      "sha256": "d2b70567ac298443087f3235db4f5a49a7809809464a497ed9ae4f3cc7034f08",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_approved/chosen_events_before_lap_acquisition.json",
+      "sha256": "11c619349e829831ea86e6d270eb3835e79bd86ab538222a5e19640f057aa5e7",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_approved/frozen_before_acquisition.json",
+      "sha256": "5cec296fb46e29c9db15ee4bf60519297d3761f650d0aac530ce1ad819f1cbff",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_approved/official_schedule_dates.json",
+      "sha256": "1eabafc2c1ba8a4215b547eb76a739b532fc02f8db44586d1992af74cd89d3d3",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_final/matched_forecasts.csv.gz",
+      "sha256": "29fb73cdfa33ca4990faafbe28608511bdcba503a2ee68a55aecf2e2a2a1f4b5",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_verified/chosen_events_before_lap_acquisition.json",
+      "sha256": "11c619349e829831ea86e6d270eb3835e79bd86ab538222a5e19640f057aa5e7",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_verified/frozen_before_acquisition.json",
+      "sha256": "9494143c58bf4dac8d5c8878f3b40d2de4852b42dd587f946490d5662cdfbc3f",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_verified/official_schedule_dates.json",
+      "sha256": "1eabafc2c1ba8a4215b547eb76a739b532fc02f8db44586d1992af74cd89d3d3",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/results.json",
+      "sha256": "5e57efae01d58871a6641cdd5f2595e4fd9c0b58e9cdaf7099c0d35b3c8c390d",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/live/selected_models.json",
+      "sha256": "17a8f7e7652bda9dfce0e972e16665de76bad49de3955c949c4b45a2f0facf57",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/pre_event/cycle1/predictions.csv",
+      "sha256": "b3c3a85d84eb506898047ad896a01ed2c89a7b9ef43d9b942a17055e98840fe2",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/pre_event/cycle1_execution.log",
+      "sha256": "b63babffa284ac327af2c698d71808dcfff62a38a456241674a888cf3bcd9f1e",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/pre_event/cycle1_retry_execution.log",
+      "sha256": "da69dadbbee03b92eb8a3c9a91753ffeb49541c4d8fddb155bfc4204f4c214f8",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/race/v1/predictions.csv",
+      "sha256": "3963f869224226f3b2a0d577f75f65ba60fd5572c08d37fc37d7167ed1aa875a",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/race/v1/results.json",
+      "sha256": "b71afcbed181b05b9c842793cb33b23f167d8a9ed95d957850db6983b629a436",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/race/v1/selection_lock.json",
+      "sha256": "dbb11873a9b346e76db30ba527e8e44d53a629962b09375bcf8056399e7b51fe",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/race/v2/predictions.csv",
+      "sha256": "0238feeb41e147821e20eeba0d9cc431c45bf1071e3fe98e25cc168aebfdc53a",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/race/v2/selection_lock.json",
+      "sha256": "4abaf45d2e328f7d6ee3a16382cc41a2f112e4de7091ffe5f026d509f0ecb912",
+      "reason": "superseded or incomplete execution; see lane README"
+    },
+    {
+      "path": "artifacts/research/performance_20260907/race/v3/predictions.csv",
+      "sha256": "0238feeb41e147821e20eeba0d9cc431c45bf1071e3fe98e25cc168aebfdc53a",
+      "reason": "local row-level prediction and observed-target table; reconstruct with matching inputs and runner"
+    }
+  ],
+  "raw_data_policy": "Raw provider datasets, downloaded source pages and caches remain local; input provenance and acquisition code are shipped.",
+  "verification_snapshot_note": "cycle_verification.json records the completed research state before publication; its main-report hash predates the documented portable-link and status edits."
+}

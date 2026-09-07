@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "input_files_checked": 303,
+  "implementation_files_checked": 2,
+  "predictions_sha256": "0238feeb41e147821e20eeba0d9cc431c45bf1071e3fe98e25cc168aebfdc53a",
+  "results_sha256": "b068c36190abf19ad0d93c1c608d6af3cdd36884888e1e4ac07a70d83d0008ca",
+  "scope": "Manifest and prediction file integrity; eight mathematical/chronology tests in combined suite; independent agent inspected label chronology and selection."
+}

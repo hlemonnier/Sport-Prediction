@@ -1,0 +1,109 @@
+{
+  "schema_version": "performance_research_verification_v1",
+  "status": "passed",
+  "baseline_commit": "9fc781c5f607eb8bba2d5e951a6ff42552d7ebb8",
+  "branch": "codex/performance-research-20260907",
+  "tracked_diff_empty": true,
+  "research_tests": {
+    "passed": 31,
+    "duration_seconds": 5.09,
+    "command": "OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=\"$PWD:$PWD/research/projects/F1/rising_qualification_prediction/Python\" .venv-f1/bin/python -m pytest -q --import-mode=importlib research/experiments/performance_20260907",
+    "log_sha256": "f73b48a0d2766af6d60908ac5834c51992e190f78b3696bc561f900ae6da460c"
+  },
+  "summary_review": {
+    "independent_agent_review_passed": true,
+    "comparison_rows": 31,
+    "canonical_sources": 6,
+    "checks": [
+      "every baseline/candidate metric and count",
+      "every interval and unit",
+      "delta and relative reduction arithmetic",
+      "CSV equals JSON",
+      "six source hashes and scorecard hash",
+      "selection roles",
+      "only within-task match-weighted football pooling"
+    ]
+  },
+  "report_review": {
+    "independent_football_race_review_passed": true,
+    "clarifications_applied": [
+      "fitted coefficients refit while hyperparameters stay fixed",
+      "Jensen bound versus the better component",
+      "120 canonical fits excludes repeated reproduction"
+    ]
+  },
+  "result_sources": {
+    "pre_event": {
+      "path": "artifacts/research/performance_20260907/pre_event/cycle1/results.json",
+      "sha256": "b3477a1e90f167dd42693e9045a5526700c1e5e726f9aaf01baf86c6af27adba"
+    },
+    "race": {
+      "path": "artifacts/research/performance_20260907/race/v3/results.json",
+      "sha256": "b068c36190abf19ad0d93c1c608d6af3cdd36884888e1e4ac07a70d83d0008ca"
+    },
+    "live": {
+      "path": "artifacts/research/performance_20260907/live/corrected_cycle_1/results.json",
+      "sha256": "00239406489515dbd7da5cb760d7816a8b7ffc21c5fcb70f498fac9b63196f52"
+    },
+    "football": {
+      "path": "artifacts/research/performance_20260907/football/evidence.json",
+      "sha256": "4f94a461886df7f8d167356f0d6735f1339f5a8869d618669c6d3de93b6c1418"
+    },
+    "football_transfer": {
+      "path": "artifacts/research/performance_20260907/football/transfer_evidence.json",
+      "sha256": "47c735c84aa1ecf7d606f75f4ba51ab4af9f9d17d9329c2679d6b77bdc0475c7"
+    },
+    "live_recent": {
+      "path": "artifacts/research/performance_20260907/live/recent_extension_final/results.json",
+      "sha256": "bfad09dd5d60aadafe279bd0df649fc23a44b0852802d9803cfdd0f215acef93"
+    }
+  },
+  "research_source_and_report_files": {
+    "docs/research/evidence/performance_research_20260907_scorecard.csv": "a359cc22315e72681097fcbf016f651de764bd225393a99051953ce96a597e39",
+    "docs/research/evidence/performance_research_20260907_summary.json": "746fdceb83f136699fb67abb54d0c0e729f9ff0f34a66db937db98837802d4a6",
+    "docs/research/performance_research_20260907.md": "24f41139d53c89016c495f15fdfd153e0fe0c263c44b85a190fbf8a6c61a830c",
+    "research/experiments/performance_20260907/football/README.md": "59bbd4601bd838467972697b6a851b00a65c728b1d6258a3c9d29977ffdc635a",
+    "research/experiments/performance_20260907/football/acquire.py": "74dfd35a6c20bca9af98dac426ce941959675d1f4efb4924a6a82b9b31c65f42",
+    "research/experiments/performance_20260907/football/benchmark.py": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+    "research/experiments/performance_20260907/football/replay.py": "354fde96b87e075c2f1415e3c463e4eee7fc77b89ff75f4c452f160646bec5c1",
+    "research/experiments/performance_20260907/football/spec.json": "c95057dbce099ecdaae40573ec3f389dc77ef5dc05b23073d60d6136d912a13d",
+    "research/experiments/performance_20260907/football/test_benchmark.py": "98519b114b2e14aa9ebe50a2e881ec5921148a323723b036996711bf1ef0d70d",
+    "research/experiments/performance_20260907/football/transfer_README.md": "27af176ca654412d15709a5ff4a4fc119c9473d0648aa4a29895cfa433d72b07",
+    "research/experiments/performance_20260907/football/transfer_acquire.py": "df7f0c65dba39fee0ceb385f065a4534e0149bc476ea179cab87a0db88df9eae",
+    "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6",
+    "research/experiments/performance_20260907/football/transfer_spec.json": "9e2dd99685014ad4d8bbeed500b14c39177a6c80d4e47c5102af61d48f47e2b5",
+    "research/experiments/performance_20260907/football/transfer_test.py": "3afef36db46c68e5224dd51991ca50976665b855cc95ed8c432216659479dc59",
+    "research/experiments/performance_20260907/football/transfer_timing_notes.json": "0c1611ea4a88e39fd42c03de50cfbe533ac25391c874105fe52fe92514fa3e4c",
+    "research/experiments/performance_20260907/football/validate_evidence.py": "63fb1a092d4470d3ae9f3156b299aa0b607c046cc6a147d677f16a67eff7dd13",
+    "research/experiments/performance_20260907/live/README.md": "d497417166af3877655829b1e3c8119468027be5bafe448098967e8adc4dc2a7",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+    "research/experiments/performance_20260907/live/run_recent_extension.py": "da409ae20c21a20354071644b177dd19fce82eac855b03191ce1a28702cfb4dc",
+    "research/experiments/performance_20260907/live/spec.json": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a",
+    "research/experiments/performance_20260907/live/test_experiment.py": "2bc4e7765407c827ff58b3541fa59c3c54f59f6890c593f1f731bc3d5ac55d6f",
+    "research/experiments/performance_20260907/live/test_recent_extension.py": "51db02da636b438c99127f1ded5534e42097d3031d024ad527c22377b96f7f39",
+    "research/experiments/performance_20260907/pre_event/README.md": "45ab4153e1a22f2505978f75d2220b70297a939f338265ee563be2dd61b1fbe8",
+    "research/experiments/performance_20260907/pre_event/run_experiment.py": "aa0f51a231189522f0d02f2720c4ff43a10550c3a33375b649d2435867e48f09",
+    "research/experiments/performance_20260907/pre_event/specification.json": "d315482d2e8ec772b861dbc942ed3eb4e96f23c413f8b00f6fa33f5eef0ff434",
+    "research/experiments/performance_20260907/pre_event/test_experiment.py": "1bdc80894612804557493873ecaecd6b128000620811c2e47256ac0a84ff07a4",
+    "research/experiments/performance_20260907/pre_event/verify_results.py": "15984f920a9dbeedea4fd9603f12c62b4ba739f4620049d0f08446d17ff6ca49",
+    "research/experiments/performance_20260907/race/README.md": "0f5f47001986f7e08263aa6d4f0b1fc8c5e0785454f6c6ae58fd2c509aec949c",
+    "research/experiments/performance_20260907/race/run.py": "09b09b7c583a37d4e23482c856c1ddac4170ad5aea825ac3ed01c808de23396c",
+    "research/experiments/performance_20260907/race/specification.json": "cc4958cbe496aa985bf76ca24062d3925cb2124920c37166a90b8a55d56ac25f",
+    "research/experiments/performance_20260907/race/test_run.py": "1a24996e8d002138847caebe6f799984bb48fd02ab3b3d1bbbb2f1072d5f72d6",
+    "research/experiments/performance_20260907/summarize.py": "38f4ce98f3f63a67aa23b24ac718df180c1f60087e7bce6a16d82af58fe2744d"
+  },
+  "verification_artifacts": {
+    "pre_event/cycle1/verification.json": "504dbb5c70a8630d7819fb1a7693af5641e1dd88b8e38dc65a4ccec211832b47",
+    "live/corrected_cycle_1/verification.json": "f9baff62b22e794dcb03450b6c2b4da87f6963f9d6ef5d6915721d869e39fbe1",
+    "live/recent_extension_final/verification.json": "649d5334be3bde1a492d3f460fb79cb4a59871c1e1a9c343306357e6cd1407a5",
+    "football/verification.json": "119810c5c5f78c17a685d54837c00cb66dcb5bda6cd108acf338bc08e5754657",
+    "football/reproducibility.json": "de8c1e6c7cf3a035fa6e6a60e97af26db6238b4a718a98e02cbf40874aa6eb08",
+    "football/transfer_artifact_manifest.json": "3bac608ad0927fc72ec73e29df0488352801fbeb21037edd340bf426f3374752",
+    "verification/race_integrity.json": "f8cc805b644ec92ca30346b486f711d63ae9a7b4c6235333dcbbe52c2a940212",
+    "verification/focused_tests.log": "f73b48a0d2766af6d60908ac5834c51992e190f78b3696bc561f900ae6da460c"
+  },
+  "production_changed": false,
+  "promotion": false,
+  "committed": false,
+  "scope_note": "Current cycle adds local research only. Earlier audit repair commit and push were completed before this branch."
+}

@@ -14,6 +14,7 @@ import base64
 import binascii
 from bisect import bisect_right
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Protocol, Sequence
 
@@ -728,6 +729,7 @@ def fastf1_runtime_events(loaded: FastF1LoadedSession) -> list[F1Event]:
     lap_rows = sorted(
         loaded.laps,
         key=lambda row: (
+            _finite_float(row.get("TimeSeconds")) if _finite_float(row.get("TimeSeconds")) is not None else math.inf,
             _optional_int(row.get("LapNumber")) or 10_000,
             _fastf1_driver_number(row, driver_numbers) or 10_000,
         ),
@@ -741,7 +743,8 @@ def fastf1_runtime_events(loaded: FastF1LoadedSession) -> list[F1Event]:
         sector_1 = _finite_float(row.get("Sector1TimeSeconds"))
         sector_2 = _finite_float(row.get("Sector2TimeSeconds"))
         sector_3 = _finite_float(row.get("Sector3TimeSeconds"))
-        if lap_time is None and sector_1 is None and sector_2 is None and sector_3 is None:
+        if (lap_time is None and sector_1 is None and sector_2 is None and sector_3 is None
+                and _finite_float(row.get("TimeSeconds")) is None):
             continue
         payload = {
             "lap_number": lap_number,
@@ -762,7 +765,7 @@ def fastf1_runtime_events(loaded: FastF1LoadedSession) -> list[F1Event]:
                 session_key,
                 {key: value for key, value in payload.items() if value is not None},
                 driver_number=driver_number,
-                event_time=_fastf1_event_time(row.get("LapStartDate"), row.get("Time")),
+                event_time=_fastf1_lap_completion_time(row),
             )
         )
         source_id += 1
@@ -1002,6 +1005,25 @@ def _fastf1_weather_payload(row: JsonObject) -> JsonObject:
         "raw_fastf1": row,
     }
     return {key: value for key, value in payload.items() if value is not None}
+
+
+def _fastf1_lap_completion_time(row: JsonObject) -> str | None:
+    """Completed-lap information becomes available at its endpoint, not start."""
+    start_date = _fastf1_event_time(row.get("LapStartDate"))
+    if start_date is None:
+        return None
+    completed = _finite_float(row.get("TimeSeconds"))
+    started = _finite_float(row.get("LapStartTimeSeconds"))
+    elapsed = completed - started if completed is not None and started is not None else _finite_float(row.get("LapTimeSeconds"))
+    if elapsed is None or elapsed < 0:
+        return None
+    try:
+        start = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if start.tzinfo is None:
+        start = start.replace(tzinfo=timezone.utc)  # FastF1 dates are UTC.
+    return (start + timedelta(seconds=elapsed)).astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _fastf1_event_time(*values: Any) -> str | None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -47,19 +48,19 @@ def create_app() -> FastAPI:
 
     @app.post("/api/f1/predict/race")
     async def predict_race(body: dict[str, Any]) -> dict[str, Any]:
-        return _predict(body, "race")
+        return await asyncio.to_thread(_predict, body, "race")
 
     @app.post("/api/f1/predict/qualifying")
     async def predict_qualifying(body: dict[str, Any]) -> dict[str, Any]:
-        return _predict(body, "qualifying")
+        return await asyncio.to_thread(_predict, body, "qualifying")
 
     @app.post("/api/f1/predict/next-lap")
     async def predict_next_lap(body: dict[str, Any]) -> dict[str, Any]:
-        return _predict(body, "next-lap")
+        return await asyncio.to_thread(_predict, body, "next-lap")
 
     @app.post("/api/f1/predict/strategy")
     async def predict_strategy(body: dict[str, Any]) -> dict[str, Any]:
-        return _predict(body, "strategy")
+        return await asyncio.to_thread(_predict, body, "strategy")
 
     return app
 

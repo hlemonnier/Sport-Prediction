@@ -3201,7 +3201,15 @@ function PredictionList({
             <span>P10-90 {formatPositionRange(prediction)}</span>
             <span>Win {(prediction.win_probability * 100).toFixed(1)}%</span>
             <span>Podium {(prediction.podium_probability * 100).toFixed(1)}%</span>
-            <span>Pts {(prediction.points_probability * 100).toFixed(1)}%</span>
+            {prediction.lap_time_forecast ? (
+              <span title="Time estimate for the next eligible clean completed lap; may skip laps. No calibrated interval.">
+                Next clean {formatLap(prediction.lap_time_forecast.seconds)}
+                {prediction.lap_time_forecast.status === "fallback" ? " · baseline" : ""}
+                {prediction.lap_time_forecast.status === "unavailable" ? " · unavailable" : ""}
+              </span>
+            ) : (
+              <span>Pts {(prediction.points_probability * 100).toFixed(1)}%</span>
+            )}
           </div>
         );
       })}

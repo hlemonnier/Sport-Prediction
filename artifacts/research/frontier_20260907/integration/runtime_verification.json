@@ -1,0 +1,507 @@
+{
+  "status": "passed",
+  "model_id": "frontier_live_hgb_l15_i150_20260907",
+  "model_sha256": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36",
+  "canonical_results_sha256": "c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097",
+  "frozen_transfer_rows": 55757,
+  "portable_prediction_max_difference_seconds": 0.0,
+  "production_source_and_encoder_events": [
+    {
+      "event_key": 202401,
+      "source_sha256": "ed3ab172c6a075623151093882e30c64e405f949157c729c3af398e53a7977ee",
+      "matched_forecasts": 964,
+      "issuances": 984,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202402,
+      "source_sha256": "15240aff063910c1edee51cd6a00ac34d7891ed62df4a19b0ad40f4f189df1cb",
+      "matched_forecasts": 759,
+      "issuances": 778,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202403,
+      "source_sha256": "6ae00e4f1263dbba297b68a685036312aea4279a468eecce4b508dc151c79f95",
+      "matched_forecasts": 801,
+      "issuances": 819,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202404,
+      "source_sha256": "07311c6d1677b6e5a8d4fe6ded46c6b28c0e03edf348c5e1b395ac1f716589bd",
+      "matched_forecasts": 731,
+      "issuances": 749,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202405,
+      "source_sha256": "c150a129c162060cb2c04f194befb5920a83957e6cebad66328760055661f4f4",
+      "matched_forecasts": 702,
+      "issuances": 722,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202406,
+      "source_sha256": "a1c478dd4ced62130f31c14492ed5d61b1a898c9bacd8b975eb002561fba3a8a",
+      "matched_forecasts": 874,
+      "issuances": 894,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202407,
+      "source_sha256": "4761a03fb9cbd79d9e247ee378a4a2252d0b373e4f2fb8e91b95eec8c9bf1af0",
+      "matched_forecasts": 1104,
+      "issuances": 1124,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202408,
+      "source_sha256": "677eb01cf2df15e8123645fde7d7e7f918f01f0df2a0ad1954ea1a14bd227de6",
+      "matched_forecasts": 1139,
+      "issuances": 1155,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202409,
+      "source_sha256": "cb4930d6ead8079f056e26e5d59ec722c1269182fc406061ce3410201ea052d7",
+      "matched_forecasts": 962,
+      "issuances": 982,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202410,
+      "source_sha256": "0154710d8183488142397406492cb3603f529c225ccb3e0188ae9ffe9cbc6111",
+      "matched_forecasts": 1146,
+      "issuances": 1166,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202411,
+      "source_sha256": "7c3ab096d229ffc52faf1c42794a57d54e621db875ede76ee20dc1cc849d4f4c",
+      "matched_forecasts": 1209,
+      "issuances": 1229,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202412,
+      "source_sha256": "1100e51ba2091bb65cd241a5ac88e8fd2a73cd3347ee28ff1ff00aee02c5d0a1",
+      "matched_forecasts": 793,
+      "issuances": 812,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202413,
+      "source_sha256": "3262bb5899e767de9f62cd2629cbab819ad7f16f42f1a51a369ebd4fb3419d9a",
+      "matched_forecasts": 1194,
+      "issuances": 1214,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202414,
+      "source_sha256": "733296f8f3ce1660a2d69e6657a8ade62b33d7711102090f18d8bfaf5a26dcbd",
+      "matched_forecasts": 692,
+      "issuances": 711,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202415,
+      "source_sha256": "78e784515e041535366397ef8960e3d27ad99b0bf5bdc5622067fe643a2189bb",
+      "matched_forecasts": 1294,
+      "issuances": 1314,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202416,
+      "source_sha256": "51639765ff9295eabc05eb13f2d2084caeaea4a335b9f6ff98a8aba8a011f4bb",
+      "matched_forecasts": 867,
+      "issuances": 887,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202417,
+      "source_sha256": "062f665fb8ae82799d9a8cccdd46a6eae409e9860463ef925193bd9a6f8ddb61",
+      "matched_forecasts": 821,
+      "issuances": 841,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202418,
+      "source_sha256": "006d7ea6bed4ce0738bb43268ebac580307e89ae69a0f87700051660bd07f153",
+      "matched_forecasts": 1049,
+      "issuances": 1069,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202419,
+      "source_sha256": "e3a32c516e7caafdd7df93834ecb8691da12302ccfbfac1b6c7a6b9259e311d3",
+      "matched_forecasts": 880,
+      "issuances": 899,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202420,
+      "source_sha256": "0fde9ec9151a55a047ec730f1029f7ecbc62b2c162ebab444e0dd23a534c8192",
+      "matched_forecasts": 1007,
+      "issuances": 1025,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202421,
+      "source_sha256": "abe6f44be4e552d099c44ebdbe99631bb4b80a37146e66b46535757062556e9d",
+      "matched_forecasts": 889,
+      "issuances": 907,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202422,
+      "source_sha256": "dd2881dea12061f57b57eaccb54861740eeb0faa29aadc78fbf14695e8cad866",
+      "matched_forecasts": 766,
+      "issuances": 786,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202423,
+      "source_sha256": "1cf5af6884ade406762d2af1edbb0cd76f4432688d6f400064799e13958e3339",
+      "matched_forecasts": 664,
+      "issuances": 681,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202424,
+      "source_sha256": "9d0bf28b0736acf87e4b4faab9f7c1b0edf551d074ea87f741d77af16bf05b98",
+      "matched_forecasts": 864,
+      "issuances": 883,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202501,
+      "source_sha256": "2a5f00792c2e510767634db80708fbaca7868667d81e9aa98f3df68c77097c0d",
+      "matched_forecasts": 517,
+      "issuances": 534,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202502,
+      "source_sha256": "7931dea49b2d964b34a2caee720506aa2c1153860c4d31aaa6778573f249f7eb",
+      "matched_forecasts": 936,
+      "issuances": 955,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202503,
+      "source_sha256": "8900e6b334a48337242b2114bea40a8dcfc8ce148d245577c3374b079038b283",
+      "matched_forecasts": 937,
+      "issuances": 957,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202504,
+      "source_sha256": "bed5e21ace18bb070e134604103e4391e1f2e293880e199c9cb145edffb55c6f",
+      "matched_forecasts": 892,
+      "issuances": 912,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202505,
+      "source_sha256": "b13f5c0b8aa4b3e05dc0848dd6b5c9cf74be62ba12463e93aa26735519d03d49",
+      "matched_forecasts": 756,
+      "issuances": 774,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202506,
+      "source_sha256": "52ecd135c54a1723f64a3870ca9459f79a5c758377f0b8c6ed68d6bbefce22de",
+      "matched_forecasts": 804,
+      "issuances": 823,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202507,
+      "source_sha256": "959d5a0e3e029f9b9b6837b95c463c665caab7e2e6ad05e4c3b067ebaf5384cd",
+      "matched_forecasts": 896,
+      "issuances": 916,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202508,
+      "source_sha256": "a8d05a0a066fe98dcb1a8cddff1058860f764072c6afe7acc599f6d2490553aa",
+      "matched_forecasts": 1211,
+      "issuances": 1231,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202509,
+      "source_sha256": "0ab99e68a2af077cbdc7b3338e7becd97f8543082ec8d0441aaccb768cb5c556",
+      "matched_forecasts": 933,
+      "issuances": 952,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202510,
+      "source_sha256": "b65dcd4e75b8305f4ab9e9b9a4f9ee34dffb9c85198a2d663cb40f7f519c4983",
+      "matched_forecasts": 1137,
+      "issuances": 1157,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202511,
+      "source_sha256": "b48b3af8c3153329504dc747c93b0663567d57c9098eb3454d1ad5487f2edc4c",
+      "matched_forecasts": 959,
+      "issuances": 976,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202512,
+      "source_sha256": "efce45858b841750f0cb666a536020f431eb4bd20bb7a15e1a92a00544edfe5a",
+      "matched_forecasts": 445,
+      "issuances": 462,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202513,
+      "source_sha256": "8979ff19c5b416ec22b56f574a3a95c811d89693735b6c5add5d76d6c75e6736",
+      "matched_forecasts": 687,
+      "issuances": 707,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202514,
+      "source_sha256": "0b37a1c974aeaf07edbcc8edf9917e50f26323f4cc74cb89b5e81f268381bf60",
+      "matched_forecasts": 1229,
+      "issuances": 1249,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202515,
+      "source_sha256": "dbcc040d079ce26fea0000835b8e643c7f9009354f4b137fcce47f7d436cb2d7",
+      "matched_forecasts": 981,
+      "issuances": 1001,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202516,
+      "source_sha256": "caa34a9804ed3df91a9a55e693f7455490ea42b63c73fc8be1c166e0f4542c5c",
+      "matched_forecasts": 859,
+      "issuances": 878,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202517,
+      "source_sha256": "9f63991ca55aacf9c4a4d4fb17745009ccf999d4f4281e417cd72ab0fcd624a6",
+      "matched_forecasts": 798,
+      "issuances": 817,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202518,
+      "source_sha256": "e2dcbe27b15ab5423cf16959846c14a538df3f6b971970a756d91dc6bed1b831",
+      "matched_forecasts": 1103,
+      "issuances": 1123,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202519,
+      "source_sha256": "9a39c37683e7fe2430b231b6a81daa1564c4c70fb078173826ab76fb8adcf640",
+      "matched_forecasts": 903,
+      "issuances": 923,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202520,
+      "source_sha256": "457c1e54a11697b282572de7f78eb19ef466dc42d23ac4509fa8c318780aa6d2",
+      "matched_forecasts": 1095,
+      "issuances": 1114,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202521,
+      "source_sha256": "69f3e067024f43ac4c1e0446c2f4721df9538b076f7a24f5fd1bb770ccdff9b3",
+      "matched_forecasts": 995,
+      "issuances": 1013,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202522,
+      "source_sha256": "2e74783ef10d26f97a0728ac672eb2d6d8f003e69c502dbae42f2f70f4fe69c6",
+      "matched_forecasts": 706,
+      "issuances": 724,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202523,
+      "source_sha256": "83656e738343bbed2705909b97e9b70b8cca8e6db786296faddb5c016e87cda9",
+      "matched_forecasts": 862,
+      "issuances": 882,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202524,
+      "source_sha256": "e958cd1cb7d4729549e682df1d5e5076e0ad15e18854c6b04c7c347ccd070851",
+      "matched_forecasts": 1022,
+      "issuances": 1042,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202601,
+      "source_sha256": "b28b1c6f1cfa6386b0e70d49c4e9a4a3756d0927f010feb27f86ce14f8b62897",
+      "matched_forecasts": 775,
+      "issuances": 795,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202602,
+      "source_sha256": "1d37818735961ff0fb7c2ac6869c73e77f1e0a0d3367dce693c0122e8ba98358",
+      "matched_forecasts": 762,
+      "issuances": 780,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202603,
+      "source_sha256": "6f6622e981e5ef166e86bd5f382cfbe0c4490ab3bbaf91cdb0ca7bcdbae16ceb",
+      "matched_forecasts": 857,
+      "issuances": 879,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202604,
+      "source_sha256": "ca751d91781b39d8ff6e10cd95b52882441c1f236d260e8e3fa0875bf06dbca7",
+      "matched_forecasts": 793,
+      "issuances": 814,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202605,
+      "source_sha256": "25c34b99e6c3f88c8ce369aefd4fcceb51ecaa7668efdc486b64a22a3fb69bbb",
+      "matched_forecasts": 982,
+      "issuances": 1003,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202606,
+      "source_sha256": "dab9724de863a0f211cda5e43a65ca0ee31780deb311227be5d213fafcd0402a",
+      "matched_forecasts": 1114,
+      "issuances": 1135,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202607,
+      "source_sha256": "2f6b43bbc6a3bbfa54696f7bbc292e17e169b57c9e6019270bb4db6d09bb17a4",
+      "matched_forecasts": 969,
+      "issuances": 991,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202608,
+      "source_sha256": "5fe48376806be2a8314cc791800e1eb3b3f6433bec2ccd7f72f2397fc841adcb",
+      "matched_forecasts": 1102,
+      "issuances": 1122,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202609,
+      "source_sha256": "85636e3a52b8b576020de7df4200b26b5796a3896c0068f1f2191b6e70ba97dc",
+      "matched_forecasts": 790,
+      "issuances": 812,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202610,
+      "source_sha256": "fb63da074182a3f34827d7a064a2d17c6ca08f75f1f4a7f18f43d8001fadbf74",
+      "matched_forecasts": 640,
+      "issuances": 661,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202611,
+      "source_sha256": "152f3b8edf80c879d86ca4605bf2ad7e64ef68df3eed07d9648b918b02745321",
+      "matched_forecasts": 1229,
+      "issuances": 1251,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202612,
+      "source_sha256": "cc7de7926af981b9b59c3356b83b74592ad29b5784b2037a159322f8ec6fa2d4",
+      "matched_forecasts": 1059,
+      "issuances": 1079,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    },
+    {
+      "event_key": 202613,
+      "source_sha256": "e7f496dfbe072ffc63a9ab353379250fb6ca5d3268b7b645e8e1442480b7331e",
+      "matched_forecasts": 851,
+      "issuances": 872,
+      "max_feature_difference": 0.0,
+      "max_forecast_difference_seconds": 0.0
+    }
+  ],
+  "source_hashes": {
+    "packages/f1/models/live_race/next_lap.py": "eef4d0bab94a933bc284f0d27b2ed94b93eee3721c5d4f46ceafc38b1c9180e9",
+    "packages/f1/models/live_race/next_lap_features.py": "86e8e7d143bacb7c76748f1584667488c8042bb5a0cc53964eee92d4e9adb072",
+    "packages/f1/models/live_race/sources.py": "7dfbe6e2e48be13fd860370b578b15150e616e5173c93d61fb3f4baafb9a7b44",
+    "packages/f1/models/live_race/predict.py": "4369127ccc86009f4e4b7b397e1deb71aaabd1b2a66074f14abba47b29254a40",
+    "research/experiments/frontier_20260907/verify_runtime.py": "d128a5d2d7fe48b621ebd315f7f38e4a37b9e5072c00135661bfecd86611140f"
+  },
+  "seconds_elapsed": 140.25917612499325,
+  "scope": "numeric equivalence to frozen retrospective evidence; no prospective claim"
+}

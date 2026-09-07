@@ -263,6 +263,17 @@ class HeuristicPredictionService(PredictionService):
                     participation_status=participation,
                 )
             )
+        if kind in {"race", "next-lap"}:
+            from packages.f1.models.live_race.next_lap import snapshot_lap_forecasts, lap_time_payload
+            forecasts, diagnostics = snapshot_lap_forecasts(state.to_dict())
+            by_number = {driver.driver_number: driver for driver in drivers}
+            for prediction in snapshots:
+                driver = by_number[prediction.driver_number]
+                prediction.lap_time_forecast = lap_time_payload(
+                    forecasts.get(str(driver.driver_number)), diagnostics,
+                    last_lap=driver.last_lap_time,
+                    eligible=_target_status_for_driver(state, driver, "next-lap")[0],
+                )
         return snapshots
 
     def _unavailable_strategy_predictions(
@@ -872,6 +883,43 @@ def _validate_strategy_prediction_payloads(
         )
 
 
+def _validated_lap_time_forecast(payload: Any, state: SessionSnapshot, driver: DriverState) -> dict[str, Any] | None:
+    if payload is None:
+        return None  # Backwards-compatible servers may not expose this target.
+    if not isinstance(payload, dict):
+        raise RuntimeError("lap_time_forecast must be an object")
+    from packages.f1.models.live_race.next_lap import MODEL_ID, MODEL_SHA256, TARGET
+    if payload.get("target") != TARGET or payload.get("interval_seconds") is not None:
+        raise RuntimeError("lap-time target or unsupported interval contract")
+    status = payload.get("status")
+    if status not in {"available", "fallback", "unavailable"}:
+        raise RuntimeError("unknown lap-time availability status")
+    value = _optional_float(payload.get("seconds"))
+    if status == "unavailable":
+        if payload.get("seconds") is not None:
+            raise RuntimeError("unavailable lap-time forecast must not contain seconds")
+    elif value is None or not math.isfinite(value) or value <= 0:
+        raise RuntimeError("lap-time forecast must be a positive finite duration")
+    if status != "unavailable" and not _target_status_for_driver(state, driver, "next-lap")[0]:
+        raise RuntimeError("lap-time forecast is unavailable for a non-running driver")
+    if status == "available":
+        if payload.get("model_id") != MODEL_ID or payload.get("model_sha256") != MODEL_SHA256:
+            raise RuntimeError("lap-time model identity differs from the frozen runtime")
+        issued = _optional_float(payload.get("issued_at_session_seconds"))
+        as_of = state.lap_observations_as_of_time_seconds
+        if issued is None or not math.isfinite(issued) or as_of is None or issued > as_of:
+            raise RuntimeError("lap-time issuance exceeds the observation cutoff")
+        matches_observation = any(
+            _optional_int(row.get("DriverNumber")) == driver.driver_number
+            and _optional_int(row.get("LapNumber")) == payload.get("issued_after_lap")
+            and _optional_float(row.get("Time")) == issued
+            for row in state.lap_observations
+        )
+        if not matches_observation:
+            raise RuntimeError("lap-time issuance does not match a supplied completed observation")
+    return dict(payload)
+
+
 def _prediction_from_payload(
     payload: dict[str, Any],
     state: SessionSnapshot,
@@ -939,6 +987,7 @@ def _prediction_from_payload(
         or fallback_sequence,
         features_version=str(payload.get("features_version") or payload.get("featuresVersion") or "remote_features"),
         driver_number=driver_number,
+        lap_time_forecast=_validated_lap_time_forecast(payload.get("lap_time_forecast"), state, driver),
         expected_position=round(expected_position, 6) if expected_position is not None else None,
         position_distribution=distribution,
         win_probability=_probability(payload.get("win_probability", payload.get("winProbability"))),

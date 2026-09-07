@@ -168,6 +168,7 @@ class PredictionSnapshot:
     unavailable_reason: str | None = None
     eligibility_status: str = "classification_eligible"
     participation_status: str = "running_or_unknown"
+    lap_time_forecast: JsonObject | None = None
 
     def to_dict(self) -> JsonObject:
         return asdict(self)
@@ -215,6 +216,8 @@ class SessionSnapshot:
     predictions: list[PredictionSnapshot] = field(default_factory=list)
     topic_watermarks: dict[str, int] = field(default_factory=dict)
     replay: JsonObject = field(default_factory=dict)
+    lap_observations: list[JsonObject] = field(default_factory=list)
+    lap_observations_as_of_time_seconds: float | None = None
 
     def to_dict(self) -> JsonObject:
         return {
@@ -236,6 +239,8 @@ class SessionSnapshot:
             "predictions": [prediction.to_dict() for prediction in self.predictions],
             "topicWatermarks": dict(self.topic_watermarks),
             "replay": dict(self.replay),
+            "lapObservations": self.lap_observations,
+            "lapObservationsAsOfTimeSeconds": self.lap_observations_as_of_time_seconds,
         }
 
 

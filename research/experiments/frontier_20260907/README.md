@@ -1,5 +1,7 @@
 **Live forecasting frontier — 7 September 2026**
 
+Runtime update: the frozen winner is now implemented in `packages/f1/models/live_race/next_lap.py` and exposed through the global runner and platform API. See [integration details](../../../docs/research/frontier_live_integration_20260907.md). The research commands and experiment-time evidence below remain unchanged. The committed candidate pickle is research-only; production uses the bundled numeric JSON trees. Large fitting and row-level replay caches remain local.
+
 The 2023-selected boosting residual model clears the predeclared research gate: 10.07% lower event MAE in 2024–2025 and 10.58% in the 13 available 2026 races. See the [full report](../../../docs/research/frontier_live_performance_20260907.md) for exact populations, uncertainty, input recovery, all competitors and limitations.
 
 Canonical artifacts are under `artifacts/research/frontier_20260907/live/`:

@@ -1,0 +1,51 @@
+{
+  "status": "passed",
+  "checks": {
+    "broader_f1_and_services": {
+      "passed": 1054,
+      "skipped": 3,
+      "scope": "before final importer refinements",
+      "local_log_sha256": "dcb5260b99192d51e2369651acde560432c064872c4a6069b02e629e5fc07c9c"
+    },
+    "final_affected_integration": {
+      "passed": 181,
+      "skipped": 0,
+      "scope": "after final importer refinements",
+      "local_log_sha256": "8b3553210f2bcd2d7b6d507b90a5665956ec676becf2cd261bbd604bc835105a"
+    },
+    "web_production_build": {
+      "status": "passed",
+      "local_log_sha256": "fb6baa0dd15117092bc2862a17b29fc81bbed720efb255882f3f0de98d945ddf"
+    },
+    "research_contract_tests": {
+      "passed": 10,
+      "skipped": 0
+    },
+    "backend_syntax": {
+      "status": "passed",
+      "command": "node --check apps/api/src/index.js"
+    },
+    "git_diff_check": {
+      "status": "passed"
+    }
+  },
+  "portable_equivalence": {
+    "artifact": "artifacts/research/frontier_20260907/integration/runtime_verification.json",
+    "sha256": "dcfea0dc298634bef70da6a4f999738242a30ae6b3f1be9a88096a1be69552e2"
+  },
+  "global_http_equivalence": {
+    "artifact": "artifacts/research/frontier_20260907/integration/global_prediction_verification.json",
+    "sha256": "99ec8f6c295c4f37f5995a6c3d668dcbf9b00c361e13109215f465ebb056a864"
+  },
+  "ci_before_release": {
+    "commit": "ca1da098641529c39e1c261319c235382230002e",
+    "status": "failed",
+    "causes": [
+      "obsolete platform/web and platform/backend paths",
+      "requests absent from pytest dependency installation"
+    ],
+    "repair": "updated workflow paths, dependency and added frontier integration job"
+  },
+  "hosted_deployment_performed": false,
+  "future_race_validation_performed": false
+}

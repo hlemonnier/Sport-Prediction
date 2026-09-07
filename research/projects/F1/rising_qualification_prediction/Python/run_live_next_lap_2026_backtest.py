@@ -56,6 +56,8 @@ IMPLEMENTATION_DEPENDENCIES: tuple[str, ...] = (
     "packages/f1/models/live_race/evaluate.py",
     "packages/f1/models/live_race/evaluate_policy.py",
     "packages/f1/models/live_race/mpc.py",
+    "packages/f1/models/live_race/next_lap.py",
+    "packages/f1/models/live_race/next_lap_features.py",
     "packages/f1/models/live_race/pit_loss.py",
     "packages/f1/models/live_race/planner.py",
     "packages/f1/models/live_race/policy.py",
@@ -642,6 +644,7 @@ def _run_event(
         f1_live_replay_path=str(race_path),
         f1_live_calibration_path=None,
         f1_live_next_lap_ssm_weight=1.0,
+        f1_live_next_lap_point_model="baseline",
     )
     result = run_live_race_prediction(config)
     if not bool(result.summary.get("available", False)):

@@ -1,5 +1,7 @@
 **A substantial live F1 forecasting gain — 7 September 2026**
 
+Publication update: the frozen winner is now integrated into both prediction runtimes. See the [integration and verification record](frontier_live_integration_20260907.md). The research account below describes the experiment-time state before that authorized integration.
+
 The selected frozen challenger reduces next-eligible-lap error by **10.07% across 2024–2025** and **10.58% across all 13 available 2026 races**. It improves 59 of the 61 evaluation races. Against the previous research ridge, its reduction is 7.55% historically and 9.57% in 2026. This meets the research gate defined before the sweep. It is a usable research model with an observed-prefix inference interface; production defaults and maturity records remain unchanged.
 
 The winning method is histogram gradient boosting trained on an absolute-error residual objective, using causal lap, sector, speed and peer history. A neural residual model and Extra Trees also produce substantially larger gains than the earlier linear correction. The stronger results therefore extend beyond a single selected tree configuration, although the preferred model remains the one chosen using 2023 alone.

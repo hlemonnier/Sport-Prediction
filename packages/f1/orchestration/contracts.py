@@ -165,8 +165,8 @@ LIVE_FORECASTING_SUBCONTRACTS: tuple[F1ContractComponent, ...] = (
     F1ContractComponent(
         key="next_lap",
         layer="forecasting",
-        output="next_representative_lap_p05_p50_p90",
-        target="next completed representative green-condition lap time",
+        output="next_eligible_clean_lap_point_seconds_with_explicit_model_and_interval_status",
+        target="same driver next eligible clean completed lap time; may skip numbered laps",
         unit="seconds",
         legal_information_horizons=LIVE_EVENT_TIME_HORIZONS,
         reference_baseline="raw last eligible clean lap with no unvalidated adjustment",
@@ -185,7 +185,7 @@ LIVE_FORECASTING_SUBCONTRACTS: tuple[F1ContractComponent, ...] = (
             "interval coverage and width",
             "calibration by track-status regime",
         ),
-        maturity="experimental_causal_replay_only",
+        maturity="point_runtime_enabled_retrospective_transfer_passed_intervals_not_calibrated",
     ),
     F1ContractComponent(
         key="degradation",

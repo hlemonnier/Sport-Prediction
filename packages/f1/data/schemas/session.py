@@ -42,9 +42,10 @@ class PredictionConfig:
     f1_live_calibration_path: Optional[str] = None
     f1_live_replay_cutoff_lap: Optional[int] = None
     f1_live_replay_cutoff_time_seconds: Optional[float] = None
-    # The emitted-forecast walk-forward gate rejected the SSM blend.  Default
-    # to the causal last-clean-lap baseline until a future locked artifact
-    # clears the paired event-level gate.
+    # The frozen HGB point model passed retrospective multi-season transfer.
+    # Baseline remains selectable and is used when required inputs are absent.
+    f1_live_next_lap_point_model: str = "frontier_hgb"
+    # Weight applies only to the baseline/SSM fallback, never to the HGB output.
     f1_live_next_lap_ssm_weight: float = 0.0
     season_weight_year: Optional[int] = None
     season_weight_multiplier: float = 1.0

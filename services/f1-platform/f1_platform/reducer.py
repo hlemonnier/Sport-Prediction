@@ -45,6 +45,7 @@ class F1StateReducer:
         self.session_info: JsonObject | None = None
         self.drivers: dict[int, DriverState] = {}
         self.lap_points_by_key: dict[tuple[int, int], LapPoint] = {}
+        self.lap_observations_by_key: dict[tuple[int, int], JsonObject] = {}
         self.stints_by_key: dict[tuple[int, int], StintSegment] = {}
         self.race_control: list[JsonObject] = []
         self.pit_stops_by_key: dict[str, JsonObject] = {}
@@ -82,6 +83,11 @@ class F1StateReducer:
         )
 
     def snapshot(self) -> SessionSnapshot:
+        # Accepted lap events already form the observation prefix. Preserve
+        # their original per-lap fields; never join the latest tyre/track state
+        # back onto earlier laps. OpenF1-only snapshots fall back explicitly
+        # until that source can supply the same completed-lap input contract.
+        lap_observations = list(self.lap_observations_by_key.values())
         drivers = sorted(
             self.drivers.values(),
             key=lambda driver: (
@@ -147,7 +153,30 @@ class F1StateReducer:
             predictions=[],
             topic_watermarks=dict(self.topic_watermarks),
             replay=dict(self.replay_meta),
+            lap_observations=lap_observations,
+            lap_observations_as_of_time_seconds=max(
+                (row["Time"] for row in lap_observations if row.get("Time") is not None),
+                default=None,
+            ),
         )
+
+    def _record_lap_observation(self, event: F1Event, lap_number: int) -> None:
+        columns = ("DriverNumber", "LapNumber", "Time", "LapTime", "IsAccurate", "Stint", "Compound",
+                   "TyreLife", "PitInTime", "PitOutTime", "TrackStatus", "Sector1Time", "Sector2Time",
+                   "Sector3Time", "SpeedI1", "SpeedI2", "SpeedFL", "SpeedST", "Position", "FreshTyre")
+        time_columns = {"Time", "LapTime", "PitInTime", "PitOutTime", "Sector1Time", "Sector2Time", "Sector3Time"}
+        raw = event.payload.get("raw_fastf1")
+        if not isinstance(raw, dict) or event.driver_number is None:
+            return
+        observed = {}
+        for key in columns:
+            if key not in raw:
+                continue
+            # Convert each accepted lap once. Snapshots must not scan every
+            # telemetry event in the session just to recover lap history.
+            observed[key] = (_seconds(raw.get(f"{key}Seconds", raw[key]))
+                             if key in time_columns else raw[key])
+        self.lap_observations_by_key[(event.driver_number, lap_number)] = observed
 
     def _driver(self, driver_number: int | None) -> DriverState | None:
         if driver_number is None:
@@ -240,6 +269,7 @@ class F1StateReducer:
         lap_number = _optional_int(payload.get("lap_number"))
         lap_time = _seconds(payload.get("lap_duration", payload.get("lap_time")))
         if lap_number is not None:
+            self._record_lap_observation(event, lap_number)
             driver.current_lap = max(driver.current_lap or 0, lap_number)
         if lap_time is not None:
             driver.last_lap_time = lap_time

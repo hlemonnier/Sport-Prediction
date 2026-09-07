@@ -30,7 +30,7 @@ def _safe_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_std: Optional[np.nda
     mae = float(np.mean(np.abs(err)))
     rmse = float(np.sqrt(np.mean(err**2)))
 
-    if y_std is None or y_std.size != y_true.size:
+    if y_std is None or y_std.size != y_true.size or not np.isfinite(y_std).all():
         nll_like = None
     else:
         sigma = np.clip(y_std, 1e-3, None)

@@ -1,10 +1,9 @@
 """Target-specific snapshot baselines for the live F1 platform.
 
 The full ``packages.f1`` live-race model consumes a causal lap-history trace.
-The platform contract currently supplies only the latest state per driver, so
-claiming that the package model produced these forecasts would be incorrect.
-This module instead exposes honest, deterministic snapshot baselines and uses
-the canonical package strategy adapter where its input contract is satisfied.
+The platform can also supply original completed-lap observations. Those power
+the canonical frozen nonlinear lap-time point model, independently of the
+deterministic order heuristics and legal strategy adapter below.
 
 All available position outputs are uncalibrated conditional assignment
 marginals over the target-eligible field. A score-magnitude kernel is
@@ -25,8 +24,8 @@ from typing import Any
 
 JsonObject = dict[str, Any]
 
-MODEL_VERSION = "f1_snapshot_target_dispatch_v4"
-FEATURES_VERSION = "platform_target_specific_snapshot_v4"
+MODEL_VERSION = "f1_snapshot_target_dispatch_v5_lap_time_frontier"
+FEATURES_VERSION = "platform_target_specific_snapshot_v5_observed_lap_history"
 
 POSITION_SEMANTICS = {
     "race": "conditional_classification_order_given_latest_snapshot_and_observed_participation_status",
@@ -73,6 +72,10 @@ def predict_from_snapshot(snapshot: JsonObject, *, prediction_kind: str = "race"
     if len(set(driver_numbers)) != len(driver_numbers):
         raise ValueError("snapshot contains duplicate driver_number values")
     generated_at = _utc_now()
+    lap_forecasts, lap_diagnostics = {}, {}
+    if prediction_kind in {"race", "next-lap"}:
+        from packages.f1.models.live_race.next_lap import snapshot_lap_forecasts, lap_time_payload
+        lap_forecasts, lap_diagnostics = snapshot_lap_forecasts(snapshot)
     if not drivers:
         return {
             "modelVersion": target["model_version"],
@@ -165,9 +168,12 @@ def predict_from_snapshot(snapshot: JsonObject, *, prediction_kind: str = "race"
                 "position_p10": position_p10,
                 "position_p90": position_p90,
                 "position_distribution": distribution,
-                "win_probability": round(win_probability, 12),
-                "podium_probability": round(podium_probability, 12),
-                "points_probability": round(points_probability, 12),
+                # Marginals are rounded for transport; summing those entries
+                # can yield 1 + 1e-12 for a whole-field event. Keep serialized
+                # probabilities in their mathematical domain.
+                "win_probability": min(1.0, max(0.0, round(win_probability, 12))),
+                "podium_probability": min(1.0, max(0.0, round(podium_probability, 12))),
+                "points_probability": min(1.0, max(0.0, round(points_probability, 12))),
                 "dnf_probability": _dnf_status_indicator(driver)
                 if prediction_kind in {"race", "strategy"}
                 else 0.0,
@@ -200,6 +206,15 @@ def predict_from_snapshot(snapshot: JsonObject, *, prediction_kind: str = "race"
         str(policy.get("policy_version") or "").startswith("fallback_strategy_policy")
         for _, _, policy in scored
     )
+    if prediction_kind in {"race", "next-lap"}:
+        drivers_by_number = {int(driver["driver_number"]): driver for driver in drivers}
+        for prediction in predictions:
+            driver = drivers_by_number[prediction["driver_number"]]
+            prediction["lap_time_forecast"] = lap_time_payload(
+                lap_forecasts.get(str(prediction["driver_number"])), lap_diagnostics,
+                last_lap=_optional_float(driver.get("last_lap_time")),
+                eligible=_target_eligibility(driver, "next-lap")[0],
+            )
 
     return {
         "modelVersion": target["model_version"],
@@ -224,6 +239,7 @@ def predict_from_snapshot(snapshot: JsonObject, *, prediction_kind: str = "race"
             "strategySafetyContract": "shared_legal_action_mask_or_explicit_unavailable",
             "sourceEventSequence": _optional_int(snapshot.get("seq")) or 0,
             "jointDistribution": joint_diagnostics,
+            "lapTimeForecast": lap_diagnostics,
             "provenance": {
                 "modelType": "deterministic_uncalibrated_snapshot_heuristic",
                 "canonicalPackageComponents": (
@@ -232,9 +248,11 @@ def predict_from_snapshot(snapshot: JsonObject, *, prediction_kind: str = "race"
                     else []
                 ),
                 "canonicalLiveRaceModelUsed": False,
+                "canonicalLapTimeModelUsed": bool(lap_forecasts),
+                "lapTimeDoesNotCalibrateOrderOrStrategy": True,
                 "canonicalLiveRaceUnavailableReason": (
                     "run_live_race_prediction_requires_a_causal_lap_history_trace; "
-                    "the_platform_request_contains_only_the_latest_driver_state"
+                    "order_probabilities_still_use_the_snapshot_heuristic"
                 ),
                 "fallbackStrategyPolicyUsed": fallback_strategy_used,
                 "promotionEligible": False,

@@ -164,6 +164,8 @@ def test_implementation_manifest_uses_only_declared_numeric_dependencies() -> No
         "packages/f1/models/live_race/evaluate.py",
         "packages/f1/models/live_race/evaluate_policy.py",
         "packages/f1/models/live_race/mpc.py",
+        "packages/f1/models/live_race/next_lap.py",
+        "packages/f1/models/live_race/next_lap_features.py",
         "packages/f1/models/live_race/pit_loss.py",
         "packages/f1/models/live_race/planner.py",
         "packages/f1/models/live_race/policy.py",

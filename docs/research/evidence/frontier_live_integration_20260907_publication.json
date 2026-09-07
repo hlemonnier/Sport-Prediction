@@ -1,0 +1,344 @@
+{
+  "schema_version": "frontier_runtime_publication_v1",
+  "destination": "origin/main",
+  "research_commit": "d2d3348",
+  "production_model_id": "frontier_live_hgb_l15_i150_20260907",
+  "production_model_sha256": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36",
+  "research_report_original_sha256": "eca466fdc6ab16c6e3253e737a81ff5c6e77b63172780ba84f8d70ef46c9ac27",
+  "research_report_publication_sha256": "cfd4d4de9b87bb65f96a64d7fea84ed32562ab6304bfae613294d2056e4bcb7b",
+  "publication_annotation": "Research report retains experiment-time claims, with an explicit link to subsequent runtime integration.",
+  "raw_race_data_and_large_replay_caches_included": false,
+  "prospective_promotion_claimed": false,
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 4229,
+      "sha256": "6627f0ac1080ea4bfb47d94a4d40a9e9e7d782d56cb2fc5b813f5e82982f0de4"
+    },
+    {
+      "path": "apps/web/components/F1LivePlatformDashboard.tsx",
+      "bytes": 164384,
+      "sha256": "8a852b2ec9ef926980ba5145ea4bab1fa5e4afdd8518d9b18a90888566ec19da"
+    },
+    {
+      "path": "apps/web/lib/f1Platform.ts",
+      "bytes": 38102,
+      "sha256": "223d703fdc40f21f204bcb704fdfd530311c07de737999fc3323c559ff8d147a"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/final_verification/verification.json",
+      "bytes": 3767,
+      "sha256": "e6f8e5ba7bb187d95b83fedc08bcc5ee603b1af4d5cc7303eda4eb69f9d38d0e"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/input_recovery/before_recovery.json",
+      "bytes": 7037,
+      "sha256": "3b6e43eea9ce22f35c563272ecfd721cef5f0b78caf83aafe67a40042fdd416d"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/input_recovery/manifest.json",
+      "bytes": 11222,
+      "sha256": "1874c835ee1ae717c22c8dcbdec16f6c3e3a244353e87ff5d585ee46f5568f3c"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/integration/global_prediction_verification.json",
+      "bytes": 12838,
+      "sha256": "99ec8f6c295c4f37f5995a6c3d668dcbf9b00c361e13109215f465ebb056a864"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/integration/release_verification.json",
+      "bytes": 1753,
+      "sha256": "3e81d96c2099e51e03c2eac0c6fada6f53d42314f7d641d233fd5308d9be1654"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/integration/runtime_verification.json",
+      "bytes": 17602,
+      "sha256": "dcfea0dc298634bef70da6a4f999738242a30ae6b3f1be9a88096a1be69552e2"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/attribution/design.json",
+      "bytes": 4004,
+      "sha256": "4feaf570c255fd90f5b4e1ad4d3bec03009a9478051d4b7e199de3bc383394d0"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/attribution/results.json",
+      "bytes": 36194,
+      "sha256": "ccb613c0d02e749c271c7ba11ede28415f4e43cad1b6a5ec495d1f237451026d"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/candidate/manifest.json",
+      "bytes": 1095,
+      "sha256": "0fbc50e12e4763e6784a0416231509edfb962a6913b75df4469fe4be851d2346"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/candidate/model.pkl",
+      "bytes": 366272,
+      "sha256": "8845658bc0e37c9cc2d4878d846b643d1449efb342469ff509c3c6ec41ab484c"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/candidate/verification.json",
+      "bytes": 719,
+      "sha256": "038ab374d0d1856c3babcc1b0ae7ab2832ae3548d1561a94c51268dfb841d1d1"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/corrected_input_contract/replay_lock.json",
+      "bytes": 542,
+      "sha256": "3b9828d04b9f5557a98e969903fc81cd68b7b74fb095fc28096dc9c427867276"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/corrected_input_contract/results.json",
+      "bytes": 152824,
+      "sha256": "c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/corrected_input_contract/verification.json",
+      "bytes": 1267,
+      "sha256": "bed21c01017740f6d68104bf3f6bdb240b4c11320c27bb58da9272d094968e95"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/design_lock.json",
+      "bytes": 4132,
+      "sha256": "35cddc16c5a28147dfc0fefd72ea595ac028253e102c198823b890055b30e7da"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/fit_lock.json",
+      "bytes": 398,
+      "sha256": "baea1d02ea80303027beeb4e9e8899df1ba50f8c40fb5c2f1800e6f9b145e008"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/results.json",
+      "bytes": 140545,
+      "sha256": "28741c5fef5349a888171988e25be4693af802928e43e9def4d82847531379f8"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/selection.json",
+      "bytes": 148862,
+      "sha256": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/rl_readiness.json",
+      "bytes": 742,
+      "sha256": "9aed59c0aeb11214189d4e5101d313d6750d99d380742be6e7a1d7d0d61378b8"
+    },
+    {
+      "path": "configs/f1/maturity.json",
+      "bytes": 32472,
+      "sha256": "4662ffe5701d4da1d17035486a8c7685caf2c071126c1575d560572b2819ea20"
+    },
+    {
+      "path": "configs/f1/profiles/live_race.yaml",
+      "bytes": 3802,
+      "sha256": "893a9af3ef41eec480a277d5d3e0a7b7a9b93de87f2d01a5765d75f7485871d4"
+    },
+    {
+      "path": "docs/research/assets/frontier_live_performance_20260907.pdf",
+      "bytes": 31536,
+      "sha256": "c055875914c887af78f0968cf263e30dd3d606f0d63e0df446b386f809a20c95"
+    },
+    {
+      "path": "docs/research/assets/frontier_live_performance_20260907.png",
+      "bytes": 151573,
+      "sha256": "72efadcaa224d164308eaf23ab05ad40fe6fa994b776aafd56471fd0a4cb3be5"
+    },
+    {
+      "path": "docs/research/evidence/frontier_live_performance_20260907_scorecard.csv",
+      "bytes": 14395,
+      "sha256": "3576c8b0870f829f819ffa148533e9d84d7c39f8adefaeccf61480fa45d52b54"
+    },
+    {
+      "path": "docs/research/evidence/frontier_live_performance_20260907_summary.json",
+      "bytes": 2051,
+      "sha256": "b6948cdef9c9d7e6c22d69cb3b3cb18824f65fc80d99a7d63fd8baa083e28885"
+    },
+    {
+      "path": "docs/research/frontier_live_integration_20260907.md",
+      "bytes": 6103,
+      "sha256": "8d17893671e6c80e80b3b947194319b3a4281bafeb199c87b8873038fdcd6014"
+    },
+    {
+      "path": "docs/research/frontier_live_performance_20260907.md",
+      "bytes": 12450,
+      "sha256": "cfd4d4de9b87bb65f96a64d7fea84ed32562ab6304bfae613294d2056e4bcb7b"
+    },
+    {
+      "path": "packages/f1/data/schemas/session.py",
+      "bytes": 2341,
+      "sha256": "2940e3433e4207a95c383ce36b375464a8a75c3187ec66db2a184ce5bc4e1090"
+    },
+    {
+      "path": "packages/f1/models/live_race/assets/frontier_live_hgb_l15_i150_20260907.json",
+      "bytes": 217803,
+      "sha256": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36"
+    },
+    {
+      "path": "packages/f1/models/live_race/evaluate.py",
+      "bytes": 8757,
+      "sha256": "44c68fd7024ce0435a4666656e0570dea516a0f12ebdd5cb237dac22c4198a4a"
+    },
+    {
+      "path": "packages/f1/models/live_race/next_lap.py",
+      "bytes": 9562,
+      "sha256": "eef4d0bab94a933bc284f0d27b2ed94b93eee3721c5d4f46ceafc38b1c9180e9"
+    },
+    {
+      "path": "packages/f1/models/live_race/next_lap_features.py",
+      "bytes": 16353,
+      "sha256": "86e8e7d143bacb7c76748f1584667488c8042bb5a0cc53964eee92d4e9adb072"
+    },
+    {
+      "path": "packages/f1/models/live_race/predict.py",
+      "bytes": 68690,
+      "sha256": "4369127ccc86009f4e4b7b397e1deb71aaabd1b2a66074f14abba47b29254a40"
+    },
+    {
+      "path": "packages/f1/models/live_race/sources.py",
+      "bytes": 26348,
+      "sha256": "7dfbe6e2e48be13fd860370b578b15150e616e5173c93d61fb3f4baafb9a7b44"
+    },
+    {
+      "path": "packages/f1/orchestration/contracts.py",
+      "bytes": 25369,
+      "sha256": "c5305703e19b2b46658f80d94f569423c381fc648264c152959e20aaa3be4c13"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/README.md",
+      "bytes": 4817,
+      "sha256": "88acba1500051157a1648deaf40479708459890e620506fe2e9158fea75a6530"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/ablate_live_frontier.py",
+      "bytes": 2189,
+      "sha256": "3805cd664c016cc0cb56e34ba7290b60e0f4768d327d4f1844b0f604b6e80969"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/candidate.py",
+      "bytes": 3745,
+      "sha256": "26ef9e64a809a70a72d72fc2ad543c808948612cfe290778f7a032aa3daf9b52"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/corrected_transfer.py",
+      "bytes": 5347,
+      "sha256": "3e37e84411fe379a5b95fc9c89459b15fabf367171735ea665f284fec0b8b4b6"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/export_runtime.py",
+      "bytes": 2996,
+      "sha256": "6e3e1ad57d7118308508d3a12e969bd91227de9f1fe77aeb6fd4527aef32894a"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/feature_encoder.py",
+      "bytes": 6850,
+      "sha256": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/live_frontier.py",
+      "bytes": 19675,
+      "sha256": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/recover_recent_inputs.py",
+      "bytes": 4162,
+      "sha256": "f36c835417fef2014a613af1e475fb169def59e5c6dfc6a38c4293fc5a8c3be7"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/specification.json",
+      "bytes": 3611,
+      "sha256": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/summarize_frontier.py",
+      "bytes": 5752,
+      "sha256": "f34a845459fa78610db1d5319b019588cf43c8bd1c625465a99ed847860b809f"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/test_feature_encoder.py",
+      "bytes": 1877,
+      "sha256": "b026e3f65e5221196b711649400ac775ef7f1aa1a722d3be0d2271c3361a9525"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/test_live_frontier.py",
+      "bytes": 3033,
+      "sha256": "501eb234613146082cc28dc280aa8e520854a8ed9781aa3ddf0eb56a7f82c87e"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/test_recent_input_contract.py",
+      "bytes": 2004,
+      "sha256": "7bd0b582b5f279425f798feb093881cb478e41ddd03d99a397c683767b225c18"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/verify_global.py",
+      "bytes": 4992,
+      "sha256": "2a67c3b9f08e6de7d158f76260a6e350af7aa38a978c5d5a4e9ef1cc5fc6d481"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/verify_live_frontier.py",
+      "bytes": 5842,
+      "sha256": "da3bdb826fa6e2f04a35b165c4a40ccf8db49ff91e8f4d85cfb6e4e8bf49fb63"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/verify_runtime.py",
+      "bytes": 3778,
+      "sha256": "d128a5d2d7fe48b621ebd315f7f38e4a37b9e5072c00135661bfecd86611140f"
+    },
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/run_live_next_lap_2026_backtest.py",
+      "bytes": 43077,
+      "sha256": "794390aa44c89307e6366226d38061f7e0e621513c4d785d6c3fe81edc7004ba"
+    },
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/tests/fixtures/live_frontier_prefix.json",
+      "bytes": 18945,
+      "sha256": "1b08b277116702648def13614f944ebae58b00890a03a026ef6fbd233a2e381a"
+    },
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/tests/test_live_next_lap_2026_backtest.py",
+      "bytes": 12510,
+      "sha256": "2e007dac7c0f684a76b36f315b330ffd1a5b6a26c4b6bbbd55ab4a35753f4d59"
+    },
+    {
+      "path": "research/projects/F1/rising_qualification_prediction/Python/tests/test_live_next_lap_frontier.py",
+      "bytes": 6227,
+      "sha256": "cb55177240718c05f3a2bbd21e717c2b9b3e20012c0b06195b11a70dcf2170a9"
+    },
+    {
+      "path": "services/f1-platform/Dockerfile",
+      "bytes": 357,
+      "sha256": "665dd89e8f99e0339ba0fae43ec81c623c588a01078c23fb268bf76de93d6d57"
+    },
+    {
+      "path": "services/f1-platform/f1_platform/fastf1_analysis.py",
+      "bytes": 66991,
+      "sha256": "60eb75bc995519ce29c63d4a0df36bd9b6273f93bb34b5eaeb4ac22e5a873ab3"
+    },
+    {
+      "path": "services/f1-platform/f1_platform/predictions.py",
+      "bytes": 64029,
+      "sha256": "83f84d282b4335fe8a0ff483950fa7f56ad3d0d6e1c4fed4aa2a0e816c2ac893"
+    },
+    {
+      "path": "services/f1-platform/f1_platform/reducer.py",
+      "bytes": 31552,
+      "sha256": "dead967acfb114cab1359b002711856060a2a2b850bc6bc234c353ae489eb981"
+    },
+    {
+      "path": "services/f1-platform/f1_platform/schemas.py",
+      "bytes": 10104,
+      "sha256": "e88baab75fc79c3963ca1fad3f1c3dedcf8c86bc9a66308162944ac81629ff92"
+    },
+    {
+      "path": "services/f1-platform/tests/test_frontier_integration.py",
+      "bytes": 7368,
+      "sha256": "f5ed97b74949f23868762b5c64935bf03cc9085b22d00a5c2f0cb478d9251951"
+    },
+    {
+      "path": "services/f1-prediction-service/f1_prediction_service/app.py",
+      "bytes": 2559,
+      "sha256": "815329bd57d0e37474c5f60ee612f6c35d317f6f1aa81534ec6b9c4471e18171"
+    },
+    {
+      "path": "services/f1-prediction-service/f1_prediction_service/model.py",
+      "bytes": 57075,
+      "sha256": "a74e19d22af625fe5a6b09d69eb42b89e6c67672d19fcedb3d34cddc28e6488f"
+    }
+  ]
+}

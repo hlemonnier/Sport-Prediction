@@ -455,6 +455,20 @@ def _standardize_laps(
         else float("nan")
     )
     out["source"] = str(source_used)
+    # Preserve the observed schema required by the frozen nonlinear point
+    # model, including sectors/speeds and original missing stints. Do not
+    # create absent columns from the SSM's imputed state or latest snapshots.
+    from .next_lap import NUMERIC_COLUMNS, SECONDS_COLUMNS
+    from .next_lap_features import REQUIRED
+    for column in REQUIRED:
+        if column not in laps.columns:
+            continue
+        values = work[column]
+        if column in SECONDS_COLUMNS:
+            values = _to_seconds(values)
+        elif column in NUMERIC_COLUMNS:
+            values = pd.to_numeric(values, errors="coerce")
+        out[column] = values
     out["tyre_life_raw"] = pd.to_numeric(work.get("TyreLife"), errors="coerce")
     # Lap timing identifies that a stop occurred, not whether the lane was
     # legally open or which tyre sets were physically available at decision

@@ -27,6 +27,7 @@ from packages.f1.models.live_race.strategy import (
     TelemetryFeatureAdapter,
 )
 from packages.f1.models.live_race.sources import load_live_observations
+from packages.f1.models.live_race.next_lap import MODEL_ID as FRONTIER_MODEL_ID, TARGET as NEXT_LAP_TARGET, forecast_laps
 from packages.f1.models.live_race.state import (
     BaselineModel,
     FilterConfig,
@@ -875,8 +876,15 @@ def _build_snapshot(trace: pd.DataFrame) -> pd.DataFrame:
         "next_lap_mean",
         "next_lap_mean_ssm",
         "next_lap_mean_naive",
+        "next_lap_point_model",
+        "next_lap_point_status",
+        "next_lap_target",
+        "next_lap_interval_status",
+        "next_lap_issued_at_timestamp",
+        "next_lap_issued_after_lap",
         "next_lap_ssm_weight",
         "next_lap_std",
+        "next_lap_std_ssm",
         "next_lap_pi90_low",
         "next_lap_pi90_high",
     ]
@@ -920,10 +928,15 @@ def run_live_race_prediction(
 
     telemetry = telemetry_adapter or NoopTelemetryFeatureAdapter()
     strategy = strategy_adapter or NoopStrategyPolicyAdapter()
+    point_model = str(getattr(config, "f1_live_next_lap_point_model", "frontier_hgb"))
+    if point_model not in {"frontier_hgb", "baseline"}:
+        raise ValueError("f1_live_next_lap_point_model must be frontier_hgb or baseline")
     next_lap_ssm_weight = float(getattr(config, "f1_live_next_lap_ssm_weight", 0.0))
     if not np.isfinite(next_lap_ssm_weight) or not 0.0 <= next_lap_ssm_weight <= 1.0:
         raise ValueError("f1_live_next_lap_ssm_weight must be between zero and one")
-    if next_lap_ssm_weight == 0.0:
+    if point_model == "frontier_hgb":
+        notes.append("Frozen nonlinear next-eligible-lap point model enabled when its observed-input contract is satisfied; intervals remain uncalibrated.")
+    elif next_lap_ssm_weight == 0.0:
         notes.append(
             "Next-lap point forecast uses the fail-closed causal last-clean-lap naive baseline; "
             "the evaluated SSM blend did not clear its paired event-level gate."
@@ -1117,6 +1130,17 @@ def run_live_race_prediction(
 
     event_key = int(pd.to_numeric(observations.get("event_key"), errors="coerce").dropna().iloc[0])
     seed = _event_seed(event_key=event_key, base_seed=int(config.f1_live_seed))
+    frontier = forecast_laps(observations, event_key, enabled=point_model == "frontier_hgb")
+    frontier_by_key = {
+        (r["driver_id"], r["issued_after_lap_number"], r["issued_at_timestamp"]): r
+        for r in frontier.frame.to_dict("records")
+    }
+    fallback_model = (
+        "last_clean_lap_naive_v1" if next_lap_ssm_weight == 0.0 else
+        "ssm_last_clean_lap_causal_blend_v1" if next_lap_ssm_weight < 1.0 else "ssm_v1"
+    )
+    if frontier.reason:
+        notes.append(f"Nonlinear next-lap model {frontier.status}: {frontier.reason}.")
 
     states: dict[str, FilterState] = {}
     trace_rows: list[dict[str, Any]] = []
@@ -1131,6 +1155,7 @@ def run_live_race_prediction(
         last_clean_lap_time = float("nan")
         previous_lap_number: Optional[int] = None
         previous_known_timestamp: Optional[float] = None
+        pending_frontier: Optional[dict[str, Any]] = None
 
         for _, row in driver_frame.iterrows():
             lap_number = int(as_float(row.get("lap_number"), 0.0))
@@ -1207,6 +1232,12 @@ def run_live_race_prediction(
                 one_step_naive_mean,
                 ssm_weight=next_lap_ssm_weight,
             )
+            one_step_point_model = fallback_model
+            if pending_frontier is not None:
+                # Score the prediction actually emitted before the target.
+                one_step_pred_mean = float(pending_frontier["forecast_seconds"])
+                one_step_pred_std = float("nan")
+                one_step_point_model = FRONTIER_MODEL_ID
 
             gate = apply_track_gating(filter_cfg.r_obs, flags)
             can_assimilate = (
@@ -1266,6 +1297,16 @@ def run_live_race_prediction(
                 next_lap_naive_mean,
                 ssm_weight=next_lap_ssm_weight,
             )
+            frontier_issuance = frontier_by_key.get((str(driver_id), lap_number, row_timestamp))
+            if frontier_issuance is not None:
+                pending_frontier = frontier_issuance
+            using_frontier = pending_frontier is not None
+            if using_frontier:
+                next_lap_mean = float(pending_frontier["forecast_seconds"])
+            # SSM observation variance belongs to its own distribution. It is
+            # not an interval around this separately fitted median estimate.
+            point_std = float("nan") if using_frontier else next_lap_std
+            point_status = "available" if using_frontier else ("warming_up" if frontier.status == "available" else frontier.status)
 
             trace_row: dict[str, Any] = {
                 "event_key": event_key,
@@ -1298,6 +1339,7 @@ def run_live_race_prediction(
                 "baseline_evidence_row_count": int(baseline_evidence_row_count),
                 "lap_time_seconds": lap_time,
                 "one_step_pred_mean": float(one_step_pred_mean),
+                "one_step_point_model": one_step_point_model,
                 "one_step_pred_mean_ssm": float(one_step_ssm_mean),
                 "one_step_pred_mean_naive": float(one_step_naive_mean),
                 "next_lap_ssm_weight": float(next_lap_ssm_weight),
@@ -1315,9 +1357,16 @@ def run_live_race_prediction(
                 "next_lap_mean": float(next_lap_mean),
                 "next_lap_mean_ssm": float(next_lap_ssm_mean),
                 "next_lap_mean_naive": float(next_lap_naive_mean),
-                "next_lap_std": float(next_lap_std),
-                "next_lap_pi90_low": float(next_lap_mean - (1.645 * next_lap_std)),
-                "next_lap_pi90_high": float(next_lap_mean + (1.645 * next_lap_std)),
+                "next_lap_point_model": FRONTIER_MODEL_ID if using_frontier else fallback_model,
+                "next_lap_point_status": point_status,
+                "next_lap_target": NEXT_LAP_TARGET,
+                "next_lap_interval_status": "unavailable_point_model_only" if using_frontier else "ssm_proxy_uncalibrated",
+                "next_lap_issued_at_timestamp": pending_frontier["issued_at_timestamp"] if using_frontier else row_timestamp,
+                "next_lap_issued_after_lap": pending_frontier["issued_after_lap_number"] if using_frontier else lap_number,
+                "next_lap_std": float(point_std),
+                "next_lap_std_ssm": float(next_lap_std),
+                "next_lap_pi90_low": float(next_lap_mean - (1.645 * point_std)),
+                "next_lap_pi90_high": float(next_lap_mean + (1.645 * point_std)),
                 "race_time_seconds": race_time_seconds,
                 "total_laps": as_float(row.get("total_laps", row.get("race_total_laps", row.get("scheduled_laps")))),
                 "remaining_laps": as_float(row.get("remaining_laps", row.get("laps_remaining"))),
@@ -1379,15 +1428,9 @@ def run_live_race_prediction(
         "year": int(config.year),
         "round_number": int(config.round_number),
         "f1_live_model": str(config.f1_live_model),
-        "next_lap_point_model": (
-            "last_clean_lap_naive_v1"
-            if next_lap_ssm_weight == 0.0
-            else (
-                "ssm_last_clean_lap_causal_blend_v1"
-                if next_lap_ssm_weight < 1.0
-                else "ssm_v1"
-            )
-        ),
+        "next_lap_point_model": FRONTIER_MODEL_ID if not frontier.frame.empty else fallback_model,
+        "next_lap_frontier": frontier.diagnostics(),
+        "next_lap_point_model_counts": snapshot["next_lap_point_model"].value_counts().to_dict(),
         "next_lap_ssm_weight": float(next_lap_ssm_weight),
         "f1_live_source": str(config.f1_live_source),
         "calibration_path": str(calibration_path) if calibration_path else None,

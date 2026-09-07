@@ -1,5 +1,5 @@
 profile_name: live_race_intelligence_2026
-profile_version: live_race_intelligence_v8_sporting_deadlines_from_action_timing
+profile_version: live_race_intelligence_v9_frozen_lap_time_frontier
 model_family: live_race
 source: local_or_fastf1_first_seen_replay
 user_facing_mode: live_race_intelligence
@@ -15,30 +15,27 @@ features:
   - weather
 forecasting:
   next_lap:
-    target: next_eligible_representative_lap_seconds
-    point_model: last_clean_lap_naive_v1
-    evaluated_candidate_model: causal_ssm_naive_convex_blend
+    target: same_driver_next_eligible_clean_completed_lap_may_skip_numbered_laps
+    units: seconds
+    point_statistic: conditional_median_estimate
+    point_model: frontier_live_hgb_l15_i150_20260907
+    runtime_default: frontier_hgb_when_complete_observed_schema_else_baseline
+    fallback_model: last_clean_lap_naive_v1
     next_lap_ssm_weight: 0.00
-    research_selected_ssm_weight: 0.20
-    research_weight_grid: 0.00_to_1.00_step_0.05
-    research_weight_selection: strictly_prior_event_mean_mae_only
-    artifact_runtime_gate: blend_rejected_fallback_to_naive
-    statistical_interpretation: paired_event_ci_crosses_zero
-    point_status: blend_evaluated_not_promoted_naive_baseline_retained
-    interval_status: not_promoted
-    evidence: artifacts/backtests/f1/live_next_lap/2026_walk_forward_ssm_naive_emitted_forecast_v7_20260714.json
-    evidence_sha256: 13de7a53e2b5eda07a92acb2bb8dea5fbcff435565676796b052fa8831c84c53
-    matched_forecasts: 8144
-    blend_event_mean_mae_seconds: 0.5379462306879169
-    naive_event_mean_mae_seconds: 0.5491839143927711
-    paired_blend_minus_naive_mae_seconds: -0.011237683704854352
-    paired_event_bootstrap_ci95_seconds:
-      - -0.025451893005493616
-      - 0.0010315447943620838
-    bootstrap_probability_of_improvement: 0.960432
-    bootstrap_samples: 500000
-    bootstrap_seed: 20260711
-    service_integration_status: not_integrated_service_next_lap_currently_means_relative_order_not_seconds
+    model_artifact: packages/f1/models/live_race/assets/frontier_live_hgb_l15_i150_20260907.json
+    model_sha256: d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36
+    point_status: runtime_enabled_retrospective_multi_season_transfer_passed
+    interval_status: unavailable_for_frontier_point_model_not_calibrated
+    promotion_status: prospective_evidence_pending
+    evidence: artifacts/research/frontier_20260907/live/corrected_input_contract/results.json
+    evidence_sha256: c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097
+    evaluation_events: 61
+    matched_forecasts: 55757
+    events_improved: 59
+    historical_2024_2025_mae_reduction: 0.100700112812
+    transfer_2026_mae_reduction: 0.105833392958
+    service_integration_status: canonical_runner_and_platform_lap_time_forecast_integrated
+    platform_position_probabilities: separate_uncalibrated_snapshot_heuristic
   degradation:
     target: clean_lap_stint_pace_loss_seconds_per_lap
     status: experimental_not_promotion_certified

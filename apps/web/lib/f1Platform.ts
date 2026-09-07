@@ -75,6 +75,15 @@ export type F1PredictionSnapshot = {
   points_probability: number;
   dnf_probability: number;
   confidence: number;
+  lap_time_forecast?: {
+    seconds: number | null;
+    status: "available" | "fallback" | "unavailable";
+    model_id?: string | null;
+    issued_after_lap?: number;
+    reason?: string | null;
+    target: string;
+    interval_seconds: null;
+  } | null;
 };
 
 export type F1CustomMicroSectorPassage = {

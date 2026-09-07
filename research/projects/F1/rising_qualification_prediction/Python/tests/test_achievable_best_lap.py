@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from math_promotion_fixtures import protocol_fixture, paired_fixture
+
 from dataclasses import replace
 import hashlib
 import itertools
@@ -1339,6 +1341,9 @@ def test_interval_promotion_gates_require_event_and_format_stability() -> None:
     }
 
     gates = best_runner._best_lap_interval_promotion_gates(
+        evaluation_protocol=protocol_fixture(),
+        audit_event_keys=protocol_fixture().audit,
+        audit_strata=[event.stratum for event in paired_fixture(2.,1.)],
         retained_interval_summary=summary,
         retained_interval_calibration_event_count=4,
         interval_width_comparison=comparison,
@@ -1348,6 +1353,9 @@ def test_interval_promotion_gates_require_event_and_format_stability() -> None:
 
     weak_event = dict(summary, minimum_event_coverage=0.69)
     weak_gates = best_runner._best_lap_interval_promotion_gates(
+        evaluation_protocol=protocol_fixture(),
+        audit_event_keys=protocol_fixture().audit,
+        audit_strata=[event.stratum for event in paired_fixture(2.,1.)],
         retained_interval_summary=weak_event,
         retained_interval_calibration_event_count=4,
         interval_width_comparison=comparison,
@@ -1366,6 +1374,9 @@ def test_interval_promotion_gates_require_event_and_format_stability() -> None:
         all_required_weekend_strata_comparable=False,
     )
     tautological_gates = best_runner._best_lap_interval_promotion_gates(
+        evaluation_protocol=protocol_fixture(),
+        audit_event_keys=protocol_fixture().audit,
+        audit_strata=[event.stratum for event in paired_fixture(2.,1.)],
         retained_interval_summary=summary,
         retained_interval_calibration_event_count=4,
         interval_width_comparison=tautological,
@@ -1380,6 +1391,9 @@ def test_interval_promotion_gates_require_event_and_format_stability() -> None:
 
 def test_best_lap_point_gates_do_not_use_qualifying_ranking_diagnostics() -> None:
     gates = best_runner._best_lap_point_promotion_gates(
+        evaluation_protocol=protocol_fixture(),
+        audit_event_keys=protocol_fixture().audit,
+        audit_strata=[event.stratum for event in paired_fixture(2.,1.)],
         relative_mae_gain=0.06,
         paired_retained={
             "ci95_seconds": [-0.2, -0.01],

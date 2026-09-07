@@ -269,6 +269,7 @@ class BradleyTerryOrderRanker:
         engineered["race_grid_prior_score"] = -(
             grid_for_score - 1.0
         ) / full_field_size
+        engineered["race_event_field_size"] = full_field_size.astype(int)
         mobility = pd.to_numeric(
             engineered["race_circuit_mobility"], errors="coerce"
         ).clip(lower=0.0, upper=1.0)
@@ -434,7 +435,34 @@ class BradleyTerryOrderRanker:
         result["conditional_order_rank"] = rank_by_index.reindex(result.index).astype(int)
         return result
 
-    def pairwise_probability(self, left: pd.Series, right: pd.Series) -> float:
+    def pairwise_probability(
+        self, left: pd.Series, right: pd.Series, *, roster: pd.DataFrame | None = None
+    ) -> float:
+        """Return a pair probability using the original event feature context.
+
+        Raw driver rows require the complete roster. Already engineered rows
+        retain race_event_field_size and can be evaluated without rebuilding it
+        from a two-car subset.
+        """
+        if str(left.get("driver_id")) == str(right.get("driver_id")):
+            raise ValueError("pairwise drivers must be distinct")
+        if roster is not None:
+            if "driver_id" not in roster or roster["driver_id"].duplicated().any():
+                raise ValueError("pairwise roster requires unique driver ids")
+            if "event_key" in roster and roster["event_key"].nunique(dropna=False) != 1:
+                raise ValueError("pairwise roster must contain one complete event")
+            scored = self.score(roster).set_index("driver_id")["conditional_order_score"]
+            drivers = [str(left.get("driver_id")), str(right.get("driver_id"))]
+            if drivers[0] == drivers[1] or any(driver not in scored.index for driver in drivers):
+                raise ValueError("pairwise drivers must be distinct members of the supplied roster")
+            values = scored.loc[drivers].to_numpy(dtype=float)
+            return float(1.0 / (1.0 + np.exp(-np.clip(values[0] - values[1], -35.0, 35.0))))
+        if "race_event_field_size" not in left or "race_event_field_size" not in right:
+            raise ValueError("raw pairwise rows require the complete roster; field size cannot be inferred from two rows")
+        if left["race_event_field_size"] != right["race_event_field_size"]:
+            raise ValueError("pairwise rows must use the same event field size")
+        if "event_key" in left and "event_key" in right and left["event_key"] != right["event_key"]:
+            raise ValueError("pairwise rows must belong to the same event")
         pair = pd.DataFrame([left, right])
         scored = self.score(pair)["conditional_order_score"].to_numpy(dtype=float)
         return float(1.0 / (1.0 + np.exp(-np.clip(scored[0] - scored[1], -35.0, 35.0))))

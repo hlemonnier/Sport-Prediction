@@ -89,11 +89,9 @@ def _as_dataframe(data: pd.DataFrame | Sequence[Mapping[str, Any]] | Sequence[Ul
 
 
 def _find_target_column(frame: pd.DataFrame, target_column: str) -> str:
-    candidates = (target_column, "lap_time_seconds", "lap_duration", "LapTime", "lap_time", "duration")
-    for candidate in candidates:
-        if candidate in frame.columns:
-            return candidate
-    raise ValueError(f"training data is missing target column from {candidates}")
+    if target_column not in frame.columns:
+        raise ValueError(f"training data is missing configured target column: {target_column}")
+    return target_column
 
 
 def _finite_target(frame: pd.DataFrame, target_column: str) -> pd.Series:

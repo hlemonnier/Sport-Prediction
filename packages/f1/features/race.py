@@ -50,8 +50,7 @@ RACE_ORDER_FEATURE_COLUMNS: tuple[str, ...] = (
     "race_teammate_long_run_score",
     "race_long_run_pace_score",
     "race_compound_pace_score",
-    "race_tyre_age_pace_score",
-    "race_degradation_score",
+    "race_relative_pace_drift_score",
     "race_longest_clean_stint_score",
     "race_long_run_evidence_score",
     "race_long_run_uncertainty_score",
@@ -146,6 +145,10 @@ _ALIASES: dict[str, tuple[str, ...]] = {
         "fuel_track_adjusted_degradation",
         "fp_degradation_track_adj",
         "fp_race_fuel_track_adjusted_degradation",
+    ),
+    "race_relative_pace_drift": (
+        "race_relative_pace_drift_seconds_per_tyre_lap",
+        "fp_race_relative_pace_drift_seconds_per_tyre_lap",
     ),
     "race_longest_clean_stint_laps": (
         "longest_clean_stint_laps",
@@ -263,11 +266,22 @@ def engineer_survival_aware_race_features(frame: pd.DataFrame) -> pd.DataFrame:
     out["race_signed_qualifying_surprise"] = qualifying - causal_qualifying_prior
     out["race_signed_grid_vs_qualifying"] = grid - qualifying
 
-    if "event_key" in out.columns:
+    if "race_event_field_size" in out.columns:
+        field_size = pd.to_numeric(out["race_event_field_size"], errors="coerce")
+        if (
+            not np.isfinite(field_size).all()
+            or not np.equal(field_size, np.floor(field_size)).all()
+            or field_size.le(0).any()
+        ):
+            raise ValueError("race_event_field_size must contain positive finite integers")
+        if "event_key" in out and out.assign(_field_size=field_size).groupby("event_key", dropna=False)["_field_size"].nunique().gt(1).any():
+            raise ValueError("race_event_field_size must be constant within each event")
+    elif "event_key" in out.columns:
         field_size = out.groupby("event_key", dropna=False)["driver_id"].transform("size")
     else:
         field_size = pd.Series(max(1, len(out)), index=out.index, dtype=float)
     field_size = pd.to_numeric(field_size, errors="coerce").clip(lower=1.0)
+    out["race_event_field_size"] = field_size.astype(int)
     # A pit-lane starter has no physical grid box and receives the weakest grid
     # prior only after starter eligibility is explicitly known.
     status = out.get("grid_status", pd.Series("", index=out.index)).astype(str).str.lower()
@@ -289,6 +303,7 @@ def engineer_survival_aware_race_features(frame: pd.DataFrame) -> pd.DataFrame:
     out["race_compound_pace_score"] = -out["race_compound_pace_delta"]
     out["race_tyre_age_pace_score"] = -out["race_tyre_age_pace_delta"]
     out["race_degradation_score"] = -out["race_fuel_track_adjusted_degradation"]
+    out["race_relative_pace_drift_score"] = -out["race_relative_pace_drift"]
     out["race_longest_clean_stint_score"] = out["race_longest_clean_stint_laps"]
     out["race_long_run_evidence_score"] = out["race_long_run_evidence_share"]
     out["race_long_run_uncertainty_score"] = -out["race_long_run_uncertainty"]
@@ -331,6 +346,8 @@ def engineer_survival_aware_race_features(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _lap_seconds(values: pd.Series) -> pd.Series:
+    if pd.api.types.is_timedelta64_dtype(values):
+        return values.dt.total_seconds()
     numeric = pd.to_numeric(values, errors="coerce")
     if numeric.notna().sum() >= max(1, int(values.notna().sum() * 0.8)):
         return numeric.astype(float)
@@ -407,13 +424,15 @@ def _attach_openf1_stints(laps: pd.DataFrame, stints: pd.DataFrame | None) -> pd
                 if target not in out.columns:
                     out[target] = np.nan if "age" in target else pd.NA
                 out.loc[mask, target] = stint.get(source)
-        if "tyre_life" not in out.columns and "_tyre_age_at_start" in out.columns:
-            out.loc[mask, "tyre_life"] = (
-                out_lap.loc[mask] - float(start)
-                + pd.to_numeric(
-                    pd.Series([stint.get("tyre_age_at_start")]), errors="coerce"
-                ).fillna(0.0).iloc[0]
-            )
+        if "_tyre_age_at_start" in out.columns:
+            if "tyre_life" not in out.columns:
+                out["tyre_life"] = np.nan
+            starting_age = pd.to_numeric(
+                pd.Series([stint.get("tyre_age_at_start")]), errors="coerce"
+            ).iloc[0]
+            current_age = pd.to_numeric(out.loc[mask, "tyre_life"], errors="coerce")
+            inferred_age = out_lap.loc[mask] - float(start) + starting_age
+            out.loc[mask, "tyre_life"] = current_age.where(current_age.notna(), inferred_age)
     return out
 
 
@@ -422,15 +441,23 @@ def derive_race_practice_evidence(
     *,
     session_label: str,
     stints: pd.DataFrame | None = None,
+    comparison_window_seconds: float = 120.0,
+    minimum_peer_drivers: int = 2,
+    maximum_tyre_age_difference: float = 2.0,
 ) -> pd.DataFrame:
-    """Extract causal compound, stint, and relative-degradation evidence.
+    """Estimate pace relative to independent, contemporaneous practice laps.
 
-    Degradation is estimated from lap-time residuals after subtracting the
-    same-lap field median.  That removes the shared fuel-burn and track-state
-    trend instead of pretending the raw within-stint slope is pure tyre wear.
-    The output remains relative degradation and carries explicit evidence and
-    uncertainty fields.
+    Peers must use the same known compound and comparable tyre age. Each peer
+    driver contributes its nearest lap within the clock-time window. Residual
+    slopes describe relative pace drift; fuel loads and absolute tyre wear are
+    not identified from timing alone. Missing comparison support stays missing.
     """
+    if not np.isfinite(comparison_window_seconds) or comparison_window_seconds <= 0:
+        raise ValueError("comparison_window_seconds must be finite and positive")
+    if minimum_peer_drivers < 2:
+        raise ValueError("at least two independent peer drivers are required")
+    if not np.isfinite(maximum_tyre_age_difference) or maximum_tyre_age_difference < 0:
+        raise ValueError("maximum_tyre_age_difference must be finite and nonnegative")
 
     if laps.empty:
         return pd.DataFrame()
@@ -445,6 +472,20 @@ def derive_race_practice_evidence(
         return pd.DataFrame()
     work = work.copy()
     work["driver_id"] = work[driver_col].map(_normalize_driver)
+    clock_column = _first_column(work, (
+        "Time", "SessionTime", "session_time", "date_start", "LapStartDate", "Date", "timestamp", "LapStartTime",
+    ))
+    if clock_column is None:
+        work["_session_clock"] = np.nan
+    else:
+        clock = work[clock_column]
+        if pd.api.types.is_numeric_dtype(clock):
+            work["_session_clock"] = pd.to_numeric(clock, errors="coerce")
+        elif pd.api.types.is_datetime64_any_dtype(clock) or clock.astype(str).str.match(r"^\d{4}-\d{2}-\d{2}").any():
+            parsed = pd.to_datetime(clock, errors="coerce", utc=True)
+            work["_session_clock"] = parsed.map(lambda value: value.timestamp() if pd.notna(value) else np.nan)
+        else:
+            work["_session_clock"] = pd.to_timedelta(clock, errors="coerce").dt.total_seconds()
     work["_lap_seconds"] = _lap_seconds(work[lap_time_col])
     work["_lap_number"] = (
         pd.to_numeric(work[lap_number_col], errors="coerce")
@@ -512,14 +553,12 @@ def derive_race_practice_evidence(
         )
     tyre_life_col = _first_column(work, ("TyreLife", "tyre_life"))
     if tyre_life_col is None:
-        work["_tyre_life"] = work.groupby(
-            ["driver_id", "_stint"], sort=False
-        ).cumcount().astype(float)
+        work["_tyre_life"] = np.nan
     else:
-        fallback_age = work.groupby(["driver_id", "_stint"], sort=False).cumcount()
         work["_tyre_life"] = pd.to_numeric(
             work[tyre_life_col], errors="coerce"
-        ).fillna(fallback_age).astype(float)
+        ).astype(float)
+        work.loc[work["_tyre_life"].lt(0.0), "_tyre_life"] = np.nan
     compound_col = _first_column(work, ("Compound", "compound"))
     work["_compound"] = (
         work[compound_col].astype("string").str.strip().str.upper().fillna("UNKNOWN")
@@ -527,18 +566,38 @@ def derive_race_practice_evidence(
         else "UNKNOWN"
     )
 
-    # Lap-matched field subtraction is causal inside the completed practice
-    # session and removes common track evolution, weather and fuel-burn trend.
-    lap_field = work.groupby("_lap_number", dropna=False)["_lap_seconds"].transform("median")
-    session_field = float(work["_lap_seconds"].median())
-    work["_track_residual"] = work["_lap_seconds"] - lap_field.fillna(session_field)
-    compound_lap_field = work.groupby(
-        ["_lap_number", "_compound"], dropna=False
-    )["_lap_seconds"].transform("median")
-    compound_field = work.groupby("_compound", dropna=False)["_lap_seconds"].transform("median")
-    work["_compound_residual"] = work["_lap_seconds"] - compound_lap_field.fillna(
-        compound_field
-    )
+    work = work.reset_index(drop=True)
+    work["_compound_residual"] = np.nan
+    work["_peer_uncertainty"] = np.nan
+    work["_peer_count"] = 0
+    clock_values = work["_session_clock"].to_numpy(dtype=float)
+    age_values = work["_tyre_life"].to_numpy(dtype=float)
+    drivers = work["driver_id"].to_numpy()
+    compounds = work["_compound"].to_numpy()
+    for row in range(len(work)):
+        if not np.isfinite(clock_values[row]) or compounds[row] in {"UNKNOWN", "", "NAN", "NONE"}:
+            continue
+        separation = np.abs(clock_values - clock_values[row])
+        eligible = (
+            (drivers != drivers[row]) & (compounds == compounds[row])
+            & (separation <= comparison_window_seconds)
+            & (np.abs(age_values - age_values[row]) <= maximum_tyre_age_difference)
+        )
+        candidates = work.loc[eligible, ["driver_id", "_lap_seconds"]].copy()
+        candidates["_separation"] = separation[eligible]
+        peers = candidates.sort_values("_separation", kind="mergesort").drop_duplicates("driver_id")
+        work.at[row, "_peer_count"] = len(peers)
+        if len(peers) < minimum_peer_drivers:
+            continue
+        peer_laps = peers["_lap_seconds"].to_numpy(dtype=float)
+        center = float(np.median(peer_laps))
+        work.at[row, "_compound_residual"] = float(work.at[row, "_lap_seconds"]) - center
+        # A finite measurement floor avoids claiming exact knowledge from a
+        # repeated or coincidentally identical peer timing sample.
+        work.at[row, "_peer_uncertainty"] = max(
+            0.02, float(np.std(peer_laps, ddof=1) / np.sqrt(len(peer_laps)))
+        )
+    work["_track_residual"] = work["_compound_residual"]
     stint_size = work.groupby(["driver_id", "_stint"], sort=False)[
         "_lap_seconds"
     ].transform("size")
@@ -548,9 +607,9 @@ def derive_race_practice_evidence(
 
     rows: list[dict[str, object]] = []
     for driver_id, driver in work.groupby("driver_id", sort=False):
-        representative_driver = driver.loc[driver["_representative"]].copy()
-        if representative_driver.empty:
-            representative_driver = driver.copy()
+        representative_driver = driver.loc[
+            driver["_representative"] & driver["_compound_residual"].notna()
+        ].copy()
         slopes: list[float] = []
         longest = 0
         for _, stint in representative_driver.groupby("_stint", sort=False):
@@ -570,8 +629,12 @@ def derive_race_practice_evidence(
         residual = representative_driver["_compound_residual"].astype(float)
         degradation = float(np.median(slopes)) if slopes else float("nan")
         uncertainty = (
-            float(np.median(np.abs(residual - residual.median())))
-            if len(residual)
+            max(
+                0.02,
+                float(1.4826 * np.median(np.abs(residual - residual.median()))),
+                float(representative_driver["_peer_uncertainty"].median()),
+            )
+            if len(residual) >= 3
             else float("nan")
         )
         rows.append(
@@ -579,8 +642,9 @@ def derive_race_practice_evidence(
                 "driver_id": str(driver_id),
                 "session": str(session_label),
                 "race_compound_pace_delta": float(residual.median()),
-                "race_tyre_age_pace_delta": degradation,
-                "race_fuel_track_adjusted_degradation": degradation,
+                "race_tyre_age_pace_delta": np.nan,
+                "race_fuel_track_adjusted_degradation": np.nan,
+                "race_relative_pace_drift_seconds_per_tyre_lap": degradation,
                 "race_longest_clean_stint_laps": int(longest),
                 "race_practice_evidence_count": int(len(representative_driver)),
                 "race_practice_evidence_share": float(
@@ -588,8 +652,10 @@ def derive_race_practice_evidence(
                 ),
                 "race_practice_uncertainty": uncertainty,
                 "race_degradation_stint_count": int(len(slopes)),
+                "race_practice_minimum_independent_peer_count": int(representative_driver["_peer_count"].min()) if len(representative_driver) else 0,
+                "race_practice_clock_evidence_available": bool(driver["_session_clock"].notna().any()),
                 "race_degradation_adjustment_method": (
-                    "lap_matched_field_residual_common_fuel_track_removed"
+                    "relative_clock_compound_age_matched_leave_driver_out_pace_drift"
                 ),
             }
         )
@@ -611,6 +677,7 @@ def aggregate_race_practice_evidence(
     for suffix, output, reduction in (
         ("_race_compound_pace_delta", "race_compound_pace_delta", "median"),
         ("_race_tyre_age_pace_delta", "race_tyre_age_pace_delta", "median"),
+        ("_race_relative_pace_drift_seconds_per_tyre_lap", "race_relative_pace_drift", "median"),
         (
             "_race_fuel_track_adjusted_degradation",
             "race_fuel_track_adjusted_degradation",

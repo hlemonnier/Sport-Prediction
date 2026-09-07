@@ -714,6 +714,12 @@ def _legal_grid_order(frame: pd.DataFrame) -> pd.Series:
     return ranks
 
 
+def _canonical_capture_paths(directory: Path) -> list[Path]:
+    """Use writer-format captures; OS duplicate copies are not extra observations."""
+    return sorted(path for path in directory.glob("grid_*.json")
+                  if re.fullmatch(r"grid_[0-9A-Za-z]+_[0-9a-f]{20}\.json", path.name))
+
+
 def _load_event(
     *,
     root: Path,
@@ -725,9 +731,7 @@ def _load_event(
 
     weekend_dir = _round_directory(weekends_dir, year, round_number)
     metadata_path = (weekend_dir / "weekend_metadata.json").resolve()
-    capture_paths = sorted(
-        (weekend_dir / "first_seen_grid_snapshots").glob("grid_*.json")
-    )
+    capture_paths = _canonical_capture_paths(weekend_dir / "first_seen_grid_snapshots")
     if len(capture_paths) != 1:
         raise ValueError(
             f"{year} round {round_number} must bind exactly one grid capture; "

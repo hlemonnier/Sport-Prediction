@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 
 from packages.f1.data.schemas.circuit import (
@@ -1051,6 +1052,16 @@ def build_training_data(
     session_cutoff: Optional[str] = None,
     prediction_as_of: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, List[str]]:
+    try:
+        values = [target_year, target_round, *train_seasons]
+        if any(isinstance(value, (bool, np.bool_)) or int(value) != value or int(value) <= 0 for value in values):
+            raise ValueError("event coordinates must be positive integers")
+        if any(int(year) > int(target_year) for year in train_seasons):
+            raise ValueError("training seasons cannot be later than target_year")
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("training seasons and target coordinates must be positive integers, with no future training year") from exc
+    target_year, target_round = int(target_year), int(target_round)
+    train_seasons = [int(year) for year in train_seasons]
     rows: List[pd.DataFrame] = []
     notes: List[str] = []
     for year in train_seasons:

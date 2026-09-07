@@ -45,7 +45,7 @@ _LEGACY_CROSS_SEASON_MINIMUM_PRIOR_EVENTS = 4
 _MINIMUM_RELATIVE_SELECTION_GAIN = 0.05
 _MINIMUM_INDEPENDENT_LOCK_EVENTS = 4
 _MINIMUM_INDEPENDENT_AUDIT_EVENTS = 3
-RACE_BACKTEST_SCHEMA_VERSION = "f1_race_survival_order_event_block_v8"
+RACE_BACKTEST_SCHEMA_VERSION = "f1_race_survival_order_event_block_v10"
 
 
 def _root() -> Path:
@@ -66,6 +66,7 @@ def _canonical_json_sha256(value: object) -> str:
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=True,
+        allow_nan=False,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
@@ -1544,11 +1545,26 @@ def _audit_aggregate_payload(
     }
 
 
+def _nullable_json_payload(value: Any) -> Any:
+    """Represent missing estimates as JSON null; numerical overflow is an error."""
+    if isinstance(value, dict):
+        return {key: _nullable_json_payload(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_nullable_json_payload(item) for item in value]
+    if isinstance(value, float):
+        if np.isnan(value):
+            return None
+        if not np.isfinite(value):
+            raise ValueError("Race evidence contains an infinite numeric result")
+    return value
+
+
 def _attach_result_sha256(payload: dict[str, Any]) -> dict[str, Any]:
     """Bind all result content while excluding only the digest field itself."""
 
     if "result_sha256" in payload:
         raise ValueError("result_sha256 must not exist before finalization")
+    payload = _nullable_json_payload(payload)
     payload["result_sha256"] = _canonical_json_sha256(payload)
     return payload
 
@@ -2418,6 +2434,7 @@ def run(
         root / "research/projects/F1/rising_qualification_prediction/Python/capture_fia_final_grid_snapshot.py",
         root / "packages/f1/domain/starting_grid.py",
         root / "packages/f1/data/providers/local_weekends.py",
+        root / "packages/f1/data/providers/practice_features.py",
         root / "packages/f1/models/pre_race/joint.py",
         root / "packages/f1/models/pre_race/ranking.py",
         root / "packages/f1/models/pre_race/survival.py",
@@ -2425,6 +2442,7 @@ def run(
         root / "packages/f1/models/pre_race/evaluate.py",
         root / "packages/f1/features/race.py",
         root / "packages/f1/orchestration/non_live_validation.py",
+        root / "packages/f1/orchestration/evaluation_protocol.py",
     ]
     history_event_year = pd.to_numeric(
         history.get("event_key", pd.Series(index=history.index, dtype=float)),
@@ -2600,6 +2618,10 @@ def run(
                 "candidate_probability_promotion_status": "diagnostic_only_not_promoted",
             },
             "known_model_limitations": {
+                "exclusions": "separate_post_running_disqualification_mechanism; excluded_cars_appended_outside_classification",
+                "timing_likelihood": "unknown_failure_distances_integrated_over_all_intervals; exclusion_distance_is_right_censored",
+                "classification_distance": "completed_laps_only; same_lap_order_approximated_by_joint_running_utility",
+                "practice_pace": "relative_clock_compound_age_matched_leave_driver_out; absolute_fuel_and_tyre_effects_not_identified",
                 "terminal_cause_factorization": (
                     "coarse non_classified remains an explicit competing cause; "
                     "binary terminal prediction followed by observed-cause "
@@ -2687,6 +2709,7 @@ def run(
         "order_residual_candidates": list(residual_weights),
     }
     payload["configuration_manifest"] = configuration_manifest
+    payload = _nullable_json_payload(payload)
     payload["manifest_hashes"] = {
         "data_input_manifest_sha256": _canonical_json_sha256(
             payload["input_manifest"]
@@ -2802,7 +2825,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not output.is_absolute():
         output = _root() / output
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    with output.open("x", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True, allow_nan=False)
     print(json.dumps({"output": str(output), "aggregate": payload["aggregate"], "promotion": payload["promotion"]}, indent=2))
     return 0
 

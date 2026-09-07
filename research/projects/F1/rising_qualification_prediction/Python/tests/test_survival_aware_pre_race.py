@@ -678,7 +678,7 @@ def test_late_retiree_can_rank_ahead_of_pace_coupled_lapped_finisher() -> None:
         driver_ids=np.asarray(["WIN", "RET", "LAP"]),
     )
 
-    assert distance.tolist() == pytest.approx([60.0, 59.4, 58.0])
+    assert distance.tolist() == pytest.approx([60.0, 59.0, 58.0])
     assert classification.tolist() == [0, 1, 2]
 
 

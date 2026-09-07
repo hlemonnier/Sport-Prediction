@@ -854,10 +854,26 @@ def test_v8_result_hash_binds_every_field_except_itself() -> None:
     without_hash = dict(finalized)
     observed = without_hash.pop("result_sha256")
 
-    assert RACE_BACKTEST_SCHEMA_VERSION.endswith("_v8")
+    assert RACE_BACKTEST_SCHEMA_VERSION.endswith("_v10")
     assert observed == _canonical_json_sha256(without_hash)
     with pytest.raises(ValueError, match="must not exist before finalization"):
         _attach_result_sha256(finalized)
+
+
+def test_race_result_hash_binds_standard_json_null_for_unsupported_timing() -> None:
+    import json
+
+    finalized = _attach_result_sha256({
+        "predictions": [{"expected_retirement_fraction_disqualified": float("nan")}],
+    })
+    assert finalized["predictions"][0]["expected_retirement_fraction_disqualified"] is None
+    encoded = json.dumps(finalized, allow_nan=False)
+    assert "NaN" not in encoded
+    assert finalized["result_sha256"] == _canonical_json_sha256({
+        "predictions": [{"expected_retirement_fraction_disqualified": None}],
+    })
+    with pytest.raises(ValueError, match="infinite"):
+        _attach_result_sha256({"probability": float("inf")})
 
 
 def test_race_policy_selects_challenger_only_after_material_same_event_gain() -> None:

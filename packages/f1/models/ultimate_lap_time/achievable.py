@@ -688,6 +688,10 @@ class AchievableBestLapModel:
                     for calibration in self.calibrations.values()
                     for event_key in calibration.event_keys
                 }
+                | set(self.residual_model.event_keys)
+                | set(self.stage_calibration.event_keys)
+                | set(self.stage_time_effects.event_keys)
+                | set(getattr(self.stage_probability_model, "training_event_keys", ()))
             )
         )
 
@@ -1280,6 +1284,17 @@ def fit_achievable_best_lap_model(
         )
     frame = history.copy()
     frame[EVENT_KEY_COLUMN] = pd.to_numeric(frame[EVENT_KEY_COLUMN], errors="coerce")
+    # The valid-lap hurdle deliberately consumes rows without a continuous
+    # target. Validate all component evidence before target-specific filtering.
+    event_values = frame[EVENT_KEY_COLUMN].to_numpy(dtype=float)
+    if (
+        not np.isfinite(event_values).all()
+        or not np.equal(event_values, np.floor(event_values)).all()
+    ):
+        raise ValueError("history event keys must be finite integers")
+    if np.any(event_values >= int(target_event_key)):
+        raise ValueError("history must contain only events strictly earlier than target_event_key")
+    frame[EVENT_KEY_COLUMN] = frame[EVENT_KEY_COLUMN].astype(int)
     anchor_column = next(
         column
         for column in (

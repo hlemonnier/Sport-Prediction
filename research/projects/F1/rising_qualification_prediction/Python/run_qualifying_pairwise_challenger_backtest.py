@@ -106,6 +106,21 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _nullable_prediction_rows(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    """Keep unsupported prediction fields missing in standard JSON."""
+    result = []
+    for row in rows:
+        clean = dict(row)
+        for key, value in clean.items():
+            if isinstance(value, float):
+                if np.isnan(value):
+                    clean[key] = None
+                elif not np.isfinite(value):
+                    raise ValueError("Qualifying evidence contains an infinite numeric result")
+        result.append(clean)
+    return result
+
+
 def _resolve_snapshot_path(root: Path, event_dir: Path, value: object) -> Path:
     candidate = Path(str(value)).expanduser()
     if candidate.is_absolute():
@@ -1872,6 +1887,7 @@ def _run_same_season(
         root / "packages/f1/models/pre_quali/selection.py",
         root / "packages/f1/models/ultimate_lap_time/achievable.py",
         root / "packages/f1/orchestration/non_live_validation.py",
+        root / "packages/f1/orchestration/evaluation_protocol.py",
     ]
     candidate_available_events = [
         event for event in events if bool(event.get("candidate_available"))
@@ -1989,7 +2005,7 @@ def _run_same_season(
         "shared_forecast_artifacts": shared_forecast_artifacts,
         "runtime": f1_model_runtime_doctor(),
         "events": events,
-        "predictions": rows,
+        "predictions": _nullable_prediction_rows(rows),
         "input_manifest": [
             {"path": str(path.relative_to(root)), "sha256": _sha256(path)}
             for path in sorted(inputs)
@@ -2269,6 +2285,7 @@ def _run_legacy_cross_season(
         root / "packages/f1/models/ultimate_lap_time/achievable.py",
         root / "packages/f1/models/pre_quali/evaluate.py",
         root / "packages/f1/orchestration/non_live_validation.py",
+        root / "packages/f1/orchestration/evaluation_protocol.py",
     ]
     return {
         "schema_version": "f1_shared_qualifying_latent_event_block_v4",
@@ -2340,7 +2357,7 @@ def _run_legacy_cross_season(
         "shared_forecast_artifacts": shared_forecast_artifacts,
         "runtime": f1_model_runtime_doctor(),
         "events": events,
-        "predictions": rows,
+        "predictions": _nullable_prediction_rows(rows),
         "input_manifest": [
             {"path": str(path.relative_to(root)), "sha256": _sha256(path)}
             for path in sorted(inputs)
@@ -2423,7 +2440,8 @@ def main() -> int:
     if not output.is_absolute():
         output = _root() / output
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    with output.open("x", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True, allow_nan=False)
     print(json.dumps({"output": str(output), "aggregate": payload["aggregate"], "promotion": payload["promotion"]}, indent=2))
     return 0
 

@@ -18,7 +18,7 @@ import pandas as pd
 from packages.f1.data.utils import first_available
 
 
-FP_FEATURE_CONTRACT_VERSION = "f1_practice_lap_features_v3_quality_weighted"
+FP_FEATURE_CONTRACT_VERSION = "f1_practice_lap_features_v4_independent_clock_peers"
 
 
 # FastF1 track-status digits: 1=all clear, 2=yellow, 4=Safety Car,

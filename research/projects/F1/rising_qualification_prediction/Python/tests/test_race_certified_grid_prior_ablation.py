@@ -49,11 +49,7 @@ def _certified_capture_fixture() -> tuple[
 
 
 def test_all_nine_certified_grid_captures_pass_reconstructed_evidence_gates() -> None:
-    capture_paths = sorted(
-        (_root() / "data/f1/raw/weekends/2026").glob(
-            "round_*/first_seen_grid_snapshots/grid_*.json"
-        )
-    )
+    capture_paths = [path for directory in sorted((_root() / "data/f1/raw/weekends/2026").glob("round_*/first_seen_grid_snapshots")) for path in race_module._canonical_capture_paths(directory)]
     assert len(capture_paths) == 9
     for capture_path in capture_paths:
         capture = json.loads(capture_path.read_text(encoding="utf-8"))
@@ -402,3 +398,12 @@ def test_descriptive_material_gain_cannot_promote_posthoc_profile_grid() -> None
 
 
 # Suggested commit name: test(f1-race): verify certified-grid ablation boundaries
+
+
+def test_capture_discovery_ignores_os_duplicate_copies(tmp_path):
+    canonical = tmp_path / "grid_20260713T125218030021Z_a3170a59bbcc4f813284.json"
+    duplicate = canonical.with_name(canonical.stem + " 2.json")
+    canonical.write_text("{}")
+    duplicate.write_text("{}")
+    assert race_module._canonical_capture_paths(tmp_path) == [canonical]
+    assert duplicate.exists()

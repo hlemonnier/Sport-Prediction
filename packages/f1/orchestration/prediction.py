@@ -29,6 +29,7 @@ from packages.f1.data.schemas import PredictionConfig, PredictionResult
 from packages.f1.features.assembly import build_current_features, build_training_data
 from packages.f1.models.live_race.predict import run_live_race_prediction
 from packages.f1.data.providers import BaseProvider, FastF1Provider, LocalWeekendProvider, OpenF1Provider
+from packages.f1.data.providers.practice_features import FP_FEATURE_CONTRACT_VERSION
 from packages.f1.models.probability import pl_gumbel_probabilities
 from packages.f1.models.race_probability import race_stochastic_score_layer as _race_stochastic_score_layer
 from packages.f1.models.training import train_model
@@ -166,7 +167,7 @@ def _practice_quality_evidence(features: pd.DataFrame) -> dict[str, object]:
     """Summarize the point-in-time practice sample without overstating run intent."""
 
     evidence: dict[str, object] = {
-        "contract": "f1_practice_lap_features_v3_quality_weighted",
+        "contract": FP_FEATURE_CONTRACT_VERSION,
         "neutralised_laps_excluded_from_pace": True,
         "deleted_and_pit_transition_laps_excluded_from_pace": True,
         "run_intent_labels_calibrated": False,

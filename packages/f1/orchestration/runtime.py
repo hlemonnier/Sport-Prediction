@@ -7,7 +7,10 @@ import json
 
 def parse_train_seasons(value: str, target_year: int, train_policy: str) -> list[int]:
     if value.lower() not in {"auto", "default"}:
-        return sorted({int(x.strip()) for x in value.split(",") if x.strip()})
+        seasons = sorted({int(x.strip()) for x in value.split(",") if x.strip()})
+        if any(year <= 0 or year > int(target_year) for year in seasons):
+            raise ValueError("training seasons must be positive and no later than the target season")
+        return seasons
 
     if train_policy in {"same_season", "same_season_walk_forward"}:
         seasons = [target_year]

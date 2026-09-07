@@ -54,6 +54,76 @@ def _sigmoid(value: float) -> float:
     return float(1.0 / (1.0 + np.exp(-np.clip(value, -35.0, 35.0))))
 
 
+def _observed_hazard_terms(
+    hazards: np.ndarray,
+    cause_codes: np.ndarray,
+    fractions: np.ndarray,
+    censor_bins: np.ndarray,
+    *,
+    log_no_event: np.ndarray | None = None,
+    log_cause_hazard: np.ndarray | None = None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Observed log likelihood and conditional sufficient statistics.
+
+    A known failure without a distance is interval censored over the entire
+    race. Its posterior interval weights are proportional to S(b-1) h_k(b).
+    They are an integration device, never newly asserted timing observations.
+    Non-failures contribute only the intervals through which survival is known.
+    """
+    from scipy.special import logsumexp
+
+    n, bins, causes = hazards.shape
+    log_survival = (
+        np.log1p(-hazards.sum(axis=2)) if log_no_event is None else log_no_event
+    )
+    prefix = np.concatenate([np.zeros((n, 1)), np.cumsum(log_survival, axis=1)], axis=1)
+    likelihood = prefix[np.arange(n), censor_bins].copy()
+    exposure = (np.arange(bins)[None, :] < censor_bins[:, None]).astype(float)
+    events = np.zeros((n, bins, causes), dtype=float)
+    failures = np.flatnonzero(cause_codes >= 0)
+    if failures.size:
+        cause_log_probability = (
+            np.log(hazards[failures, :, cause_codes[failures]])
+            if log_cause_hazard is None
+            else log_cause_hazard[failures, :, cause_codes[failures]]
+        )
+        event_log_mass = prefix[failures, :-1] + cause_log_probability
+        normalizer = logsumexp(event_log_mass, axis=1)
+        posterior = np.exp(event_log_mass - normalizer[:, None])
+        observed = np.isfinite(fractions[failures])
+        if observed.any():
+            local = np.flatnonzero(observed)
+            event_bin = np.minimum(
+                bins - 1, np.floor(fractions[failures[local]] * bins).astype(int)
+            )
+            posterior[local] = 0.0
+            posterior[local, event_bin] = 1.0
+            normalizer[local] = event_log_mass[local, event_bin]
+        likelihood[failures] = normalizer
+        exposure[failures] = np.cumsum(posterior[:, ::-1], axis=1)[:, ::-1]
+        events[failures, :, cause_codes[failures]] = posterior
+    return likelihood, exposure, events
+
+
+def _observation_encoding(
+    statuses: pd.Series, fractions: pd.Series, bins: int
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    codes = np.asarray([
+        _TIMED_CAUSES.index(status) if status in _TIMED_CAUSES else -1
+        for status in statuses
+    ], dtype=int)
+    distances = fractions.to_numpy(dtype=float)
+    censor = np.full(len(statuses), bins, dtype=int)
+    for row, status in enumerate(statuses):
+        if status is TerminalStatus.DNS_WITHDRAWAL:
+            censor[row] = 0
+        elif status is TerminalStatus.DISQUALIFIED:
+            # A steward's exclusion is not evidence of a running failure.
+            # Use only positively observed distance as right-censored survival.
+            censor[row] = int(np.floor(distances[row] * bins)) if np.isfinite(distances[row]) else 0
+    return codes, distances, censor
+
+
 @dataclass(frozen=True)
 class TerminalHazardConfig:
     """Regularization, interval, and shared-shock contract."""
@@ -138,6 +208,7 @@ class PreparedTerminalHazards:
     features: pd.DataFrame
     driver_ids: tuple[str, ...]
     dns_probabilities: np.ndarray
+    exclusion_given_start_probabilities: np.ndarray
     interval_hazards: np.ndarray
     event_masses: np.ndarray
     survival_traces: np.ndarray
@@ -174,12 +245,13 @@ class PartialPooledTerminalHazard:
 
     Historical rows are expanded into at-risk intervals up to an observed
     retirement bin; classified finishers are right-censored after the final
-    interval.  Missing retirement distance is excluded from the timing fit but
-    still informs the coarse outcome model.  Team, power-unit, driver and
+    interval. Untimed failures contribute their event-by-race-end likelihood,
+    integrating over every possible failure interval. Exclusions are modeled
+    separately from running failures. Team, power-unit, driver and
     circuit evidence shrink to a recency-weighted global prior.
     """
 
-    backend = "partial_pooled_discrete_competing_risk_v3"
+    backend = "partial_pooled_interval_censored_competing_risk_v4"
 
     def __init__(self, config: TerminalHazardConfig | None = None) -> None:
         self.config = config or TerminalHazardConfig()
@@ -206,6 +278,9 @@ class PartialPooledTerminalHazard:
         self.training_rows = 0
         self.timing_evidence_rows = 0
         self.coarse_terminal_rows = 0
+        self.interval_censored_failure_rows = 0
+        self._baseline_em_iterations = 0
+        self._covariate_optimization: dict[str, object] = {}
         self.status_column = "terminal_status"
 
     @property
@@ -222,6 +297,10 @@ class PartialPooledTerminalHazard:
             "training_max_as_of": self.training_max_as_of,
             "timing_evidence_rows": self.timing_evidence_rows,
             "coarse_terminal_rows": self.coarse_terminal_rows,
+            "interval_censored_failure_rows": self.interval_censored_failure_rows,
+            "untimed_failure_likelihood": "sum_over_all_failure_intervals",
+            "baseline_em_iterations": self._baseline_em_iterations,
+            "exclusion_model": "pooled_exclusion_given_start_applied_after_running_order",
             "time_bins": int(self.config.time_bins),
             "timed_causes": [status.value for status in _TIMED_CAUSES],
             "global_status_probabilities": {
@@ -233,7 +312,8 @@ class PartialPooledTerminalHazard:
                 for index, status in enumerate(_TIMED_CAUSES)
             },
             "covariate_model": {
-                "backend": "sklearn_l2_logistic_discrete_hazard",
+                "backend": "l2_multinomial_discrete_hazard_observed_data_likelihood",
+                "optimization": self._covariate_optimization,
                 "regularization_c": float(self.config.covariate_l2_c),
                 "columns": list(_HAZARD_COVARIATE_COLUMNS),
                 "missingness_indicators": True,
@@ -337,7 +417,7 @@ class PartialPooledTerminalHazard:
     ) -> "PartialPooledTerminalHazard":
         if frame.empty:
             raise ValueError("terminal hazard requires non-empty historical rows")
-        rows = frame.copy()
+        rows = frame.reset_index(drop=True).copy()
         self.status_column = status_col
         if status_col not in rows.columns:
             raise ValueError(f"missing terminal status column: {status_col}")
@@ -416,48 +496,45 @@ class PartialPooledTerminalHazard:
         )
         fractions = pd.to_numeric(raw_fractions, errors="coerce").clip(0.0, 1.0)
         n_bins = int(self.config.time_bins)
-        at_risk = np.zeros(n_bins, dtype=float)
-        event_counts = np.zeros((n_bins, len(_TIMED_CAUSES)), dtype=float)
-        timing_rows = 0
-        for index, status in encoded.items():
-            if status is TerminalStatus.DNS_WITHDRAWAL:
-                continue
-            weight = float(weights.loc[index])
-            fraction = fractions.loc[index]
-            if status is TerminalStatus.CLASSIFIED_FINISH:
-                at_risk += weight
-                timing_rows += 1
-                continue
-            if pd.isna(fraction) or status not in _TIMED_CAUSES:
-                continue
-            event_bin = min(n_bins - 1, max(0, int(np.floor(float(fraction) * n_bins))))
-            at_risk[: event_bin + 1] += weight
-            event_counts[event_bin, _TIMED_CAUSES.index(status)] += weight
-            timing_rows += 1
-
+        codes, distances, censor_bins = _observation_encoding(encoded, fractions, n_bins)
         starter_terminal = float(
             self._global[[status_index[cause] for cause in _TIMED_CAUSES]].sum()
         )
-        starter_mass = max(
+        outcome_mass = max(
             self.config.minimum_probability,
-            1.0 - float(self._global[status_index[TerminalStatus.DNS_WITHDRAWAL]]),
+            starter_terminal + float(self._global[status_index[TerminalStatus.CLASSIFIED_FINISH]]),
         )
-        conditional_terminal = np.clip(starter_terminal / starter_mass, 0.0, 0.95)
+        conditional_terminal = np.clip(starter_terminal / outcome_mass, 0.0, 0.95)
         prior_total_hazard = 1.0 - (1.0 - conditional_terminal) ** (1.0 / n_bins)
         global_cause = np.asarray(
-            [self._global[status_index[cause]] for cause in _TIMED_CAUSES],
-            dtype=float,
+            [self._global[status_index[cause]] for cause in _TIMED_CAUSES], dtype=float
         )
-        cause_share = global_cause / max(global_cause.sum(), self.config.minimum_probability)
-        prior_hazard = prior_total_hazard * cause_share
-        baseline = np.empty_like(event_counts)
-        for bin_index in range(n_bins):
-            baseline[bin_index] = (
-                event_counts[bin_index] + self.config.prior_strength * prior_hazard
-            ) / (at_risk[bin_index] + self.config.prior_strength)
-            baseline[bin_index] = self._cap_hazard_row(baseline[bin_index])
+        prior_hazard = prior_total_hazard * global_cause / global_cause.sum()
+        baseline = np.tile(prior_hazard, (n_bins, 1))
+        row_weight = weights.to_numpy(dtype=float)
+        # EM maximizes the penalized observed likelihood. Fully observed rows
+        # retain exact timing; unknown failure intervals are integrated out.
+        for iteration in range(500):
+            _, exposure, events = _observed_hazard_terms(
+                np.broadcast_to(baseline, (len(rows), *baseline.shape)),
+                codes, distances, censor_bins,
+            )
+            at_risk = np.einsum("n,nb->b", row_weight, exposure)
+            event_counts = np.einsum("n,nbk->bk", row_weight, events)
+            updated = (event_counts + self.config.prior_strength * prior_hazard) / (
+                at_risk[:, None] + self.config.prior_strength
+            )
+            updated = np.vstack([self._cap_hazard_row(values) for values in updated])
+            change = float(np.max(np.abs(updated - baseline)))
+            baseline = updated
+            self._baseline_em_iterations = iteration + 1
+            if change < 1e-10:
+                break
         self._baseline_hazard = baseline
-        self.timing_evidence_rows = int(timing_rows)
+        self.interval_censored_failure_rows = int(((codes >= 0) & ~np.isfinite(distances)).sum())
+        self.timing_evidence_rows = int(
+            (((codes >= 0) & np.isfinite(distances)) | encoded.eq(TerminalStatus.CLASSIFIED_FINISH).to_numpy()).sum()
+        )
         self._fit_covariate_hazards(
             rows,
             encoded=encoded,
@@ -560,100 +637,83 @@ class PartialPooledTerminalHazard:
         fractions: pd.Series,
         row_weights: pd.Series,
     ) -> None:
-        """Learn cause-specific interval hazards from strictly causal features."""
+        """Fit a joint competing-risk likelihood, including untimed failures.
+
+        Multinomial logits include the no-event outcome, so cause probabilities
+        share one denominator. This also avoids separately fitted binary heads
+        producing incompatible hazards that need an arbitrary rescaling.
+        """
+        from scipy.optimize import minimize
+        from scipy.special import log_softmax
 
         features = engineer_survival_aware_race_features(rows)
         standardized = self._standardized_covariates(features, fit=True)
-        n_bins = int(self.config.time_bins)
-        expanded_design: list[np.ndarray] = []
-        expanded_labels: list[np.ndarray] = []
-        expanded_weights: list[float] = []
-        encoded_values = encoded.to_numpy(dtype=object)
-        fraction_values = fractions.to_numpy(dtype=float)
-        weight_values = row_weights.to_numpy(dtype=float)
-        for row_offset in range(len(rows)):
-            status = encoded_values[row_offset]
-            if status is TerminalStatus.DNS_WITHDRAWAL:
-                continue
-            fraction = fraction_values[row_offset]
-            if status is TerminalStatus.CLASSIFIED_FINISH:
-                final_bin = n_bins - 1
-                event_bin: int | None = None
-            elif pd.notna(fraction) and status in _TIMED_CAUSES:
-                final_bin = min(
-                    n_bins - 1,
-                    max(0, int(np.floor(float(fraction) * n_bins))),
-                )
-                event_bin = final_bin
-            else:
-                # Unknown retirement timing is useful to the outcome prior but
-                # cannot be invented for the interval likelihood.
-                continue
-            for bin_index in range(final_bin + 1):
-                interval = np.zeros(n_bins, dtype=float)
-                interval[bin_index] = 1.0
-                expanded_design.append(
-                    np.concatenate([interval, standardized[row_offset]])
-                )
-                label = np.zeros(len(_TIMED_CAUSES), dtype=int)
-                if event_bin == bin_index:
-                    label[_TIMED_CAUSES.index(status)] = 1
-                expanded_labels.append(label)
-                expanded_weights.append(float(weight_values[row_offset]))
-
-        width = n_bins + 2 * len(_HAZARD_COVARIATE_COLUMNS)
-        self._covariate_coefficients = np.zeros(
-            (len(_TIMED_CAUSES), width), dtype=float
-        )
-        self._covariate_intercepts = np.zeros(len(_TIMED_CAUSES), dtype=float)
-        self._covariate_fit_causes = set()
-        if not expanded_design:
+        bins = int(self.config.time_bins)
+        codes, distances, censor_bins = _observation_encoding(encoded, fractions, bins)
+        width = bins + standardized.shape[1]
+        self._covariate_coefficients = np.zeros((len(_TIMED_CAUSES), width))
+        self._covariate_intercepts = np.zeros(len(_TIMED_CAUSES))
+        minimum = int(self.config.minimum_cause_events_for_covariate_fit)
+        fitted_indices = np.asarray([
+            index for index in range(len(_TIMED_CAUSES)) if int((codes == index).sum()) >= minimum
+        ], dtype=int)
+        self._covariate_fit_causes = {_TIMED_CAUSES[index] for index in fitted_indices}
+        self._covariate_optimization = {"success": True, "iterations": 0}
+        if not len(fitted_indices):
             return
-        x = np.asarray(expanded_design, dtype=float)
-        y = np.asarray(expanded_labels, dtype=int)
-        sample_weight = np.asarray(expanded_weights, dtype=float)
-        try:
-            from sklearn.linear_model import LogisticRegression
-        except Exception as exc:
-            raise RuntimeError(
-                "regularized person-period terminal hazard requires scikit-learn"
-            ) from exc
-        for cause_index, cause in enumerate(_TIMED_CAUSES):
-            target = y[:, cause_index]
-            positives = int(target.sum())
-            negatives = int((1 - target).sum())
-            minimum = int(self.config.minimum_cause_events_for_covariate_fit)
-            if positives < minimum or negatives < minimum:
-                continue
-            estimator = LogisticRegression(
-                C=float(self.config.covariate_l2_c),
-                solver="lbfgs",
-                max_iter=1000,
-                random_state=0,
+        design = np.concatenate([
+            np.broadcast_to(np.eye(bins), (len(rows), bins, bins)),
+            np.broadcast_to(standardized[:, None, :], (len(rows), bins, standardized.shape[1])),
+        ], axis=2)
+        base = self._baseline_hazard
+        offset = np.log(base) - np.log1p(-base.sum(axis=1))[:, None]
+        weight = row_weights.to_numpy(dtype=float)
+
+        def objective(flat: np.ndarray) -> tuple[float, np.ndarray]:
+            coefficients = np.zeros_like(self._covariate_coefficients)
+            coefficients[fitted_indices] = flat.reshape(len(fitted_indices), width)
+            logits = offset[None, :, :] + np.einsum("nbf,kf->nbk", design, coefficients)
+            log_probabilities = log_softmax(np.concatenate([np.zeros((*logits.shape[:2], 1)), logits], axis=2), axis=2)
+            probabilities = np.exp(log_probabilities)
+            hazard = probabilities[:, :, 1:]
+            log_likelihood, exposure, expected_event = _observed_hazard_terms(
+                hazard, codes, distances, censor_bins,
+                log_no_event=log_probabilities[:, :, 0],
+                log_cause_hazard=log_probabilities[:, :, 1:],
             )
-            estimator.fit(x, target, sample_weight=sample_weight)
-            self._covariate_coefficients[cause_index] = estimator.coef_[0]
-            self._covariate_intercepts[cause_index] = float(estimator.intercept_[0])
-            self._covariate_fit_causes.add(cause)
+            score = exposure[:, :, None] * hazard - expected_event
+            gradient = np.einsum("n,nbk,nbf->kf", weight, score, design)
+            penalty = 1.0 / float(self.config.covariate_l2_c)
+            value = -float(np.dot(weight, log_likelihood)) + 0.5 * penalty * float(np.dot(flat, flat))
+            gradient += penalty * coefficients
+            return value, gradient[fitted_indices].ravel()
+
+        result = minimize(
+            objective, np.zeros(len(fitted_indices) * width), jac=True,
+            method="L-BFGS-B", bounds=[(-8.0, 8.0)] * (len(fitted_indices) * width),
+            options={"maxiter": 500, "ftol": 1e-11, "gtol": 1e-6},
+        )
+        if not result.success or not np.isfinite(result.fun):
+            raise RuntimeError(f"interval-censored hazard fit did not converge: {result.message}")
+        self._covariate_coefficients[fitted_indices] = result.x.reshape(len(fitted_indices), width)
+        self._covariate_optimization = {
+            "success": bool(result.success), "iterations": int(result.nit),
+            "penalized_negative_log_likelihood": float(result.fun),
+            "untimed_failure_rows": int(((codes >= 0) & ~np.isfinite(distances)).sum()),
+        }
 
     def _learned_interval_hazard(self, row: pd.Series) -> np.ndarray:
-        hazard = self._baseline_hazard.copy()
+        from scipy.special import softmax
+
+        base = self._baseline_hazard
         if not self._covariate_fit_causes:
-            return hazard
+            return base.copy()
         standardized = self._standardized_covariates(pd.DataFrame([row]), fit=False)[0]
-        n_bins = int(self.config.time_bins)
-        for bin_index in range(n_bins):
-            interval = np.zeros(n_bins, dtype=float)
-            interval[bin_index] = 1.0
-            design = np.concatenate([interval, standardized])
-            for cause_index, cause in enumerate(_TIMED_CAUSES):
-                if cause not in self._covariate_fit_causes:
-                    continue
-                logit = self._covariate_intercepts[cause_index] + float(
-                    np.dot(self._covariate_coefficients[cause_index], design)
-                )
-                hazard[bin_index, cause_index] = _sigmoid(logit)
-        return hazard
+        bins = int(self.config.time_bins)
+        design = np.concatenate([np.eye(bins), np.tile(standardized, (bins, 1))], axis=1)
+        logits = np.log(base) - np.log1p(-base.sum(axis=1))[:, None]
+        logits += design @ self._covariate_coefficients.T
+        return softmax(np.column_stack([np.zeros(bins), logits]), axis=1)[:, 1:]
 
     def _apply_binary_calibration(
         self,
@@ -772,13 +832,14 @@ class PartialPooledTerminalHazard:
     def _row_hazard(
         self,
         row: pd.Series,
-    ) -> tuple[float, np.ndarray, np.ndarray, np.ndarray, dict[str, float]]:
+    ) -> tuple[float, float, np.ndarray, np.ndarray, np.ndarray, dict[str, float]]:
         pooled = self._pooled_outcome_prior(row)
         status_index = {status: index for index, status in enumerate(TERMINAL_STATUSES)}
         eligible = self._numeric(row, "race_starter_eligible")
         if eligible is not None and eligible <= 0.0:
             means = {status.value: self._retirement_mean(status) for status in TERMINAL_STATUSES}
-            return 1.0, np.zeros_like(self._baseline_hazard), np.zeros_like(
+            means[TerminalStatus.DNS_WITHDRAWAL.value] = 0.0
+            return 1.0, 0.0, np.zeros_like(self._baseline_hazard), np.zeros_like(
                 self._baseline_hazard
             ), np.zeros(int(self.config.time_bins)), means
 
@@ -789,6 +850,10 @@ class PartialPooledTerminalHazard:
                 0.45,
             )
         )
+        exclusion = float(np.clip(
+            pooled[status_index[TerminalStatus.DISQUALIFIED]] / (1.0 - dns),
+            0.0, 1.0 - self.config.minimum_probability,
+        ))
         global_cause = np.asarray(
             [self._global[status_index[cause]] for cause in _TIMED_CAUSES], dtype=float
         )
@@ -802,23 +867,19 @@ class PartialPooledTerminalHazard:
         )
         hazard = self._learned_interval_hazard(row) * np.sqrt(cause_ratio)[None, :]
         hazard = np.vstack([self._cap_hazard_row(values) for values in hazard])
-        dns, hazard = self._apply_binary_calibration(dns, hazard)
+        pre_running_terminal = dns + (1.0 - dns) * exclusion
+        calibrated_pre, hazard = self._apply_binary_calibration(pre_running_terminal, hazard)
+        if pre_running_terminal > 0.0:
+            dns = calibrated_pre * dns / pre_running_terminal
+            exclusion = (calibrated_pre - dns) / max(1.0 - dns, self.config.minimum_probability)
 
         event_mass = np.zeros_like(hazard)
         survival_trace = np.zeros(int(self.config.time_bins), dtype=float)
-        survival = 1.0 - dns
+        survival = (1.0 - dns) * (1.0 - exclusion)
         for bin_index in range(int(self.config.time_bins)):
             event_mass[bin_index] = survival * hazard[bin_index]
             survival *= max(0.0, 1.0 - float(hazard[bin_index].sum()))
             survival_trace[bin_index] = survival
-        probabilities = np.zeros(len(TERMINAL_STATUSES), dtype=float)
-        probabilities[status_index[TerminalStatus.DNS_WITHDRAWAL]] = dns
-        for cause_index, cause in enumerate(_TIMED_CAUSES):
-            probabilities[status_index[cause]] = float(event_mass[:, cause_index].sum())
-        probabilities[status_index[TerminalStatus.CLASSIFIED_FINISH]] = survival
-        probabilities = np.clip(probabilities, self.config.minimum_probability, None)
-        probabilities /= probabilities.sum()
-
         bin_centres = (np.arange(int(self.config.time_bins), dtype=float) + 0.5) / float(
             self.config.time_bins
         )
@@ -831,13 +892,15 @@ class PartialPooledTerminalHazard:
                 else self._retirement_mean(cause)
             )
         means[TerminalStatus.DNS_WITHDRAWAL.value] = 0.0
+        means[TerminalStatus.DISQUALIFIED.value] = float("nan")
         means[TerminalStatus.CLASSIFIED_FINISH.value] = 1.0
-        return dns, hazard, event_mass, survival_trace, means
+        return dns, exclusion, hazard, event_mass, survival_trace, means
 
     def _predict_row(self, row: pd.Series) -> tuple[np.ndarray, dict[str, float], np.ndarray, np.ndarray]:
-        dns, hazard, event_mass, survival_trace, means = self._row_hazard(row)
+        dns, exclusion, hazard, event_mass, survival_trace, means = self._row_hazard(row)
         probabilities = self._probabilities_from_prepared_row(
             dns=dns,
+            exclusion=exclusion,
             event_mass=event_mass,
             survival_trace=survival_trace,
         )
@@ -847,6 +910,7 @@ class PartialPooledTerminalHazard:
         self,
         *,
         dns: float,
+        exclusion: float,
         event_mass: np.ndarray,
         survival_trace: np.ndarray,
     ) -> np.ndarray:
@@ -858,12 +922,14 @@ class PartialPooledTerminalHazard:
             probabilities[status_index[TerminalStatus.DNS_WITHDRAWAL]] = 1.0
             return probabilities
         probabilities[status_index[TerminalStatus.DNS_WITHDRAWAL]] = dns
+        probabilities[status_index[TerminalStatus.DISQUALIFIED]] = (1.0 - dns) * exclusion
         for cause_index, cause in enumerate(_TIMED_CAUSES):
             probabilities[status_index[cause]] = float(event_mass[:, cause_index].sum())
         probabilities[status_index[TerminalStatus.CLASSIFIED_FINISH]] = float(
             survival_trace[-1]
         )
-        probabilities = np.clip(probabilities, self.config.minimum_probability, None)
+        # Components already form one normalized law. Flooring each final
+        # outcome separately would change both the sampler law and distances.
         probabilities /= probabilities.sum()
         return probabilities
 
@@ -906,6 +972,8 @@ class PartialPooledTerminalHazard:
             raise ValueError("prepared terminal hazards do not match the entrant order")
         if prepared.dns_probabilities.shape != (count,):
             raise ValueError("prepared DNS probabilities have an invalid shape")
+        if prepared.exclusion_given_start_probabilities.shape != (count,):
+            raise ValueError("prepared exclusion probabilities have an invalid shape")
         expected_hazard_shape = (
             count,
             int(self.config.time_bins),
@@ -941,13 +1009,15 @@ class PartialPooledTerminalHazard:
         )
         features = engineer_survival_aware_race_features(frame)
         dns_values: list[float] = []
+        exclusion_values: list[float] = []
         hazards: list[np.ndarray] = []
         event_masses: list[np.ndarray] = []
         survival_traces: list[np.ndarray] = []
         retirement_means: list[Mapping[str, float]] = []
         for _, row in features.iterrows():
-            dns, hazard, event_mass, survival_trace, means = self._row_hazard(row)
+            dns, exclusion, hazard, event_mass, survival_trace, means = self._row_hazard(row)
             dns_values.append(float(dns))
+            exclusion_values.append(float(exclusion))
             hazards.append(np.asarray(hazard, dtype=float))
             event_masses.append(np.asarray(event_mass, dtype=float))
             survival_traces.append(np.asarray(survival_trace, dtype=float))
@@ -959,6 +1029,7 @@ class PartialPooledTerminalHazard:
             features=features,
             driver_ids=self._driver_ids(frame),
             dns_probabilities=np.asarray(dns_values, dtype=float),
+            exclusion_given_start_probabilities=np.asarray(exclusion_values, dtype=float),
             interval_hazards=(
                 np.stack(hazards, axis=0)
                 if hazards
@@ -1174,6 +1245,8 @@ class PartialPooledTerminalHazard:
                 break
             statuses.append(sampled_status)
             fractions[output_index] = sampled_fraction
+            if rng.random() < float(prepared_hazards.exclusion_given_start_probabilities[output_index]):
+                statuses[-1] = TerminalStatus.DISQUALIFIED
         return statuses, fractions, shared
 
     def predict_proba(
@@ -1210,6 +1283,7 @@ class PartialPooledTerminalHazard:
             retirement_means = prepared_hazards.retirement_means[output_index]
             probabilities = self._probabilities_from_prepared_row(
                 dns=dns,
+                exclusion=float(prepared_hazards.exclusion_given_start_probabilities[output_index]),
                 event_mass=event_mass,
                 survival_trace=survival_trace,
             )
@@ -1220,8 +1294,11 @@ class PartialPooledTerminalHazard:
                     sum(
                         probabilities[offset] * retirement_means[status.value]
                         for offset, status in enumerate(TERMINAL_STATUSES)
+                        if status is not TerminalStatus.DISQUALIFIED
                     )
+                    / max(1.0 - float(prepared_hazards.exclusion_given_start_probabilities[output_index]), self.config.minimum_probability)
                 ),
+                "distance_semantics": "expected_running_distance_including_excluded_cars",
                 "terminal_hazard_backend": self.backend,
                 "terminal_hazard_time_bins": int(self.config.time_bins),
                 "terminal_training_rows": self.training_rows,

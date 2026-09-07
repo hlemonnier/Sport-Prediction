@@ -11,6 +11,7 @@ class TerminalStatus(str, Enum):
     """Mutually exclusive status classes used by the joint race model."""
 
     DNS_WITHDRAWAL = "dns_withdrawal"
+    DISQUALIFIED = "disqualified"
     MECHANICAL_POWER_UNIT = "mechanical_power_unit"
     COLLISION_INCIDENT = "collision_incident"
     NON_CLASSIFIED = "non_classified"
@@ -24,6 +25,7 @@ class TerminalLabelGranularity(str, Enum):
     COARSE_TERMINAL = "coarse_terminal"
     PRESTART_OUTCOME = "prestart_outcome"
     CLASSIFIED_OUTCOME = "classified_outcome"
+    EXCLUDED_OUTCOME = "excluded_outcome"
 
 
 TERMINAL_STATUSES: tuple[TerminalStatus, ...] = tuple(TerminalStatus)
@@ -52,6 +54,12 @@ def reason_code_terminal_status(value: object) -> TerminalStatus | None:
     direct = {status.value: status for status in TerminalStatus}
     if text in direct:
         return direct[text]
+
+    # Exclusion changes eligibility for the final classification, not the
+    # distance at which the car stopped running. Check it before mechanical
+    # keywords such as "fuel" or "technical" in a steward's decision.
+    if any(token in text for token in ("disqualif", "excluded", "underweight")):
+        return TerminalStatus.DISQUALIFIED
 
     if any(
         token in text
@@ -125,9 +133,6 @@ def reason_code_terminal_status(value: object) -> TerminalStatus | None:
             "non_classified",
             "dnf",
             "retired",
-            "disqualified",
-            "excluded",
-            "underweight",
         )
     ):
         return TerminalStatus.NON_CLASSIFIED
@@ -158,6 +163,8 @@ def terminal_label_granularity(value: object) -> TerminalLabelGranularity | None
         return TerminalLabelGranularity.COARSE_TERMINAL
     if status is TerminalStatus.DNS_WITHDRAWAL:
         return TerminalLabelGranularity.PRESTART_OUTCOME
+    if status is TerminalStatus.DISQUALIFIED:
+        return TerminalLabelGranularity.EXCLUDED_OUTCOME
     if status is TerminalStatus.CLASSIFIED_FINISH:
         return TerminalLabelGranularity.CLASSIFIED_OUTCOME
     return TerminalLabelGranularity.EXACT_CAUSE

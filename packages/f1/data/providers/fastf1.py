@@ -33,6 +33,7 @@ from .base import (
     time,
 )
 from .practice_features import FP_FEATURE_CONTRACT_VERSION, build_session_pace_features, normalize_driver_id
+from packages.f1.features.race import aggregate_race_practice_evidence, derive_race_practice_evidence
 
 class FastF1Provider(BaseProvider):
     def __init__(self, cache_dir: Optional[str]) -> None:
@@ -106,7 +107,13 @@ class FastF1Provider(BaseProvider):
         if results is None or results.empty:
             return pd.DataFrame()
         laps = session.laps.copy()
-        return build_session_pace_features(laps, session_name, provider="fastf1")
+        features = build_session_pace_features(laps, session_name, provider="fastf1")
+        race_evidence = derive_race_practice_evidence(laps, session_label=session_name).drop(
+            columns=["session"], errors="ignore"
+        )
+        if not features.empty and not race_evidence.empty:
+            features = features.merge(race_evidence, on="driver_id", how="left", validate="one_to_one")
+        return features
 
     def get_fp_features(
         self,
@@ -123,12 +130,13 @@ class FastF1Provider(BaseProvider):
                 "prediction_as_of requires a frozen local weekend snapshot.",
             )
         frames: List[pd.DataFrame] = []
-        for session_name, label in self._pre_qualifying_sessions(
+        selected_sessions = self._pre_qualifying_sessions(
             year,
             round_number,
             session_cutoff=session_cutoff,
             prediction_target=prediction_target,
-        ):
+        )
+        for session_name, label in selected_sessions:
             df = self._session_pace_features(year, round_number, session_name)
             if df.empty:
                 continue
@@ -136,6 +144,7 @@ class FastF1Provider(BaseProvider):
             frames.append(df)
         merged = merge_fp_frames(frames)
         if not merged.empty:
+            merged = aggregate_race_practice_evidence(merged, expected_sessions=len(selected_sessions))
             merged["fp_feature_contract_version"] = FP_FEATURE_CONTRACT_VERSION
             merged["fp_feature_source"] = "fastf1"
             merged["session_cutoff_resolved"] = getattr(

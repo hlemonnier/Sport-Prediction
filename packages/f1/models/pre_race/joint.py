@@ -67,7 +67,7 @@ def expected_classified_lap_deficit(
     fallback = pace_implied if allow_pace_implied else np.zeros(len(features), dtype=float)
     estimate = np.where(np.isfinite(estimate), estimate, fallback)
     estimate = np.where(np.isfinite(estimate), estimate, 0.0)
-    maximum_classified_deficit = np.maximum(0.0, np.floor(laps * 0.10))
+    maximum_classified_deficit = np.maximum(0.0, laps - np.floor(laps * 0.90))
     return np.clip(estimate, 0.0, maximum_classified_deficit)
 
 
@@ -88,8 +88,8 @@ def sample_fia_classification_order(
     finisher's distance is instead derived from pre-Race pace evidence.  When a
     non-zero lap-deficit prior exists, the same Plackett-Luce shock that improves
     running order can reduce the deficit; no independent Beta draw can demote a
-    normal finisher.  Continuous distance lets a late retiree remain ahead of a
-    genuinely lapped classified finisher.
+    normal finisher. Only completed laps count towards classification.
+    Exclusions are applied after running order regardless of distance covered.
     """
 
     n = len(statuses)
@@ -104,15 +104,27 @@ def sample_fia_classification_order(
     )
     if any(len(values) != n for values in arrays):
         raise ValueError("sampled classification inputs must have equal length")
+    lap_counts = np.asarray(scheduled_laps, dtype=float)
+    if (
+        not np.isfinite(lap_counts).all() or np.any(lap_counts <= 0)
+        or not np.equal(lap_counts, np.floor(lap_counts)).all()
+        or (n and not np.equal(lap_counts, lap_counts[0]).all())
+    ):
+        raise ValueError("scheduled_laps must be one positive integer race distance shared by the field")
     sampled_utility = np.asarray(conditional_scores, dtype=float) + np.asarray(
         order_shocks, dtype=float
     )
     distance = np.zeros(n, dtype=float)
     starter_rows: list[int] = []
     dns_rows: list[int] = []
+    excluded_rows: list[int] = []
     for row, status in enumerate(statuses):
         if status is TerminalStatus.DNS_WITHDRAWAL:
             dns_rows.append(row)
+            continue
+        if status is TerminalStatus.DISQUALIFIED:
+            excluded_rows.append(row)
+            distance[row] = np.floor(np.clip(terminal_retirement_fraction[row], 0.0, 1.0) * scheduled_laps[row] + 1e-9)
             continue
         starter_rows.append(row)
         if status is TerminalStatus.CLASSIFIED_FINISH:
@@ -129,15 +141,15 @@ def sample_fia_classification_order(
                     np.clip(
                         sampled_deficit,
                         0.0,
-                        np.floor(float(scheduled_laps[row]) * 0.10),
+                        float(scheduled_laps[row]) - np.floor(float(scheduled_laps[row]) * 0.90),
                     )
                 )
             distance[row] = float(scheduled_laps[row]) - sampled_deficit
         else:
-            distance[row] = float(
+            distance[row] = float(np.floor(
                 np.clip(terminal_retirement_fraction[row], 0.0, 1.0)
-                * scheduled_laps[row]
-            )
+                * scheduled_laps[row] + 1e-9
+            ))
     starter_rows.sort(
         key=lambda row: (
             -distance[row],
@@ -152,7 +164,10 @@ def sample_fia_classification_order(
             str(driver_ids[row]),
         )
     )
-    return np.asarray([*starter_rows, *dns_rows], dtype=int), distance
+    # A full-roster product appends exclusions; their mutual order does not
+    # assert an official race classification.
+    excluded_rows.sort(key=lambda row: str(driver_ids[row]))
+    return np.asarray([*starter_rows, *dns_rows, *excluded_rows], dtype=int), distance
 
 
 def _hungarian_minimize(cost: np.ndarray) -> np.ndarray:
@@ -622,7 +637,8 @@ class SurvivalAwareRaceModel:
         modal_statuses = [TERMINAL_STATUSES[index] for index in modal_indices]
         status_groups = np.asarray(
             [
-                1 if status is TerminalStatus.DNS_WITHDRAWAL else 0
+                2 if status is TerminalStatus.DISQUALIFIED
+                else 1 if status is TerminalStatus.DNS_WITHDRAWAL else 0
                 for status in modal_statuses
             ],
             dtype=int,

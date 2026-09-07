@@ -1,0 +1,28 @@
+{
+  "schema_version": "pre_event_performance_spec_v1",
+  "frozen_before_first_experiment_target_read": true,
+  "design_date": "2026-09-07",
+  "seed": 20260907,
+  "candidate_limit": 4,
+  "selection": "None. All four fixed mechanisms are reported; no hyperparameter search or winner switching.",
+  "population": "2022-2026 local event snapshots; GP qualifying only; latest completed pre-Q FP3 or Sprint Qualifying owns roster; pre-2024 sprint formats without either are explicitly unsupported.",
+  "feature_time": "Pre-Q session order; target files opened only after all event forecasts serialized and hashed. Historical snapshots are retrospective, not certified first-seen archives.",
+  "training": "Expanding strictly earlier complete events, with frozen per-event features. 2022-2023 warmup; 2024 and 2025 separate chronological evaluations; 2026 R1-R9 exposed diagnostic only. Same-season history for scalar lap baselines.",
+  "baselines": {
+    "qualifying": "Existing latest valid clean rehearsal rank; fallback quality-aware anchor; full legal permutation.",
+    "best_lap": "Existing analytic rehearsal-shift point equation: valid clean rehearsal seconds plus lower event-median of same-season, same-source robust Huber event shifts; zero shift before first same-source event. No interval calibration. This is a causal expanding baseline, not the old frozen 2026 fitted object."
+  },
+  "candidates": {
+    "Q1_fixed_rank_blend": "FP3: 0.65 latest normalized rank + 0.20 latest earlier-practice normalized rank + 0.15 prior qualifying normalized rank. SQ: 0.85 latest + 0.15 prior. Missing earlier rank uses latest; prior uses exponentially weighted last six driver qualifying ranks (half-life three observed events), then current-team prior, then 0.5. No fitted weights.",
+    "Q2_ridge_rank_residual": "Event-weighted standardized ridge alpha=10 fits normalized final-position minus latest normalized rank on strictly prior events. Minimum 12 prior complete events, otherwise baseline. Fixed features: latest rank; earlier/prior rank differences; valid-clean count log1p; normalized best-two spread; anchor imputation; source; latest-rank times inverse evidence-count. Clip residual to +/-0.35 and sort into legal permutation.",
+    "L1_fractional_source_shift": "Same robust source-shift baseline, but each historical event shift divided by its causal median rehearsal duration and multiplied by the current median duration. Same-season history, no new hyperparameters.",
+    "L2_huber_context_residual": "Expanding all-prior-event, event-weighted Huber epsilon=1.35 alpha=1 max_iter=1000 fits percentage target-minus-raw-rehearsal residual. Minimum 12 prior complete events. Fixed standardized features: latest rank; earlier/prior rank differences; log1p clean count; normalized spread; source; field-relative anchor; latest-minus-earlier field-median fractional evolution; wet-rehearsal fraction; causal field IQR divided by median. Missing features filled with training weighted means, scale from training only. Target and predicted fractional residual clipped +/-25 percentage points. Failure uses baseline and is recorded."
+  },
+  "evaluation": {
+    "qualifying": "Same complete roster for both candidates and baseline; no target-driven roster inference. Report event-balanced MAE, Kendall, top-three overlap.",
+    "best_lap": "All forecast rows retained; score the common finite valid-clean rehearsal and observed valid Q1/Q2/Q3-minimum target population for all lap methods; report exact missing counts and conditional coverage. This is not an unconditional no-valid-lap forecast.",
+    "uncertainty": "20000 paired event bootstrap draws, seed 20260907; event mean delta, percentile CI, descriptive resampling fraction improving, complete leave-one-event-out range; also circular three-event block bootstrap to expose serial dependence. These are historical development diagnostics, not promotion evidence.",
+    "probability_outputs": "None; point-only experiment, so no probability or calibrated interval claims.",
+    "promotion": "No production or maturity changes. All historical data potentially exposed; no confirmatory promotion is attempted."
+  }
+}

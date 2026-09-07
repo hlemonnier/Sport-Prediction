@@ -1,0 +1,14 @@
+{
+  "all_event_MAEs_recomputed": 552,
+  "all_fitted_models_strictly_prior": true,
+  "convergence_warnings": 0,
+  "experiment_tests": "five mathematical/chronology/path-adapter tests passed",
+  "final_fit_failures": 0,
+  "forecast_hashes_recomputed": 92,
+  "full_roster_rank_permutations_checked": 276,
+  "implementation_files_checked": 84,
+  "input_files_checked": 545,
+  "result_sha256": "b3477a1e90f167dd42693e9045a5526700c1e5e726f9aaf01baf86c6af27adba",
+  "status": "pass",
+  "verifier_sha256": "15984f920a9dbeedea4fd9603f12c62b4ba739f4620049d0f08446d17ff6ca49"
+}

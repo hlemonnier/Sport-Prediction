@@ -1,0 +1,34 @@
+{
+  "research_files": {
+    "research/experiments/performance_20260907/football/README.md": "59bbd4601bd838467972697b6a851b00a65c728b1d6258a3c9d29977ffdc635a",
+    "research/experiments/performance_20260907/football/acquire.py": "74dfd35a6c20bca9af98dac426ce941959675d1f4efb4924a6a82b9b31c65f42",
+    "research/experiments/performance_20260907/football/benchmark.py": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+    "research/experiments/performance_20260907/football/replay.py": "354fde96b87e075c2f1415e3c463e4eee7fc77b89ff75f4c452f160646bec5c1",
+    "research/experiments/performance_20260907/football/spec.json": "c95057dbce099ecdaae40573ec3f389dc77ef5dc05b23073d60d6136d912a13d",
+    "research/experiments/performance_20260907/football/test_benchmark.py": "98519b114b2e14aa9ebe50a2e881ec5921148a323723b036996711bf1ef0d70d",
+    "research/experiments/performance_20260907/football/validate_evidence.py": "63fb1a092d4470d3ae9f3156b299aa0b607c046cc6a147d677f16a67eff7dd13"
+  },
+  "artifacts": {
+    "artifacts/research/performance_20260907/football/design_lock.json": "3a976119b0faeee26ad4d6e73fce8d08a50bebf6317f742472f8640c8164cc07",
+    "artifacts/research/performance_20260907/football/evidence.json": "4f94a461886df7f8d167356f0d6735f1339f5a8869d618669c6d3de93b6c1418",
+    "artifacts/research/performance_20260907/football/replay_stdout.txt": "31d33abe5ddc42c952dd84247cd209bd2eb349eb7f4e3895a50f6b565dbabbe5",
+    "artifacts/research/performance_20260907/football/replays/reproducibility_check/design_lock.json": "3a976119b0faeee26ad4d6e73fce8d08a50bebf6317f742472f8640c8164cc07",
+    "artifacts/research/performance_20260907/football/replays/reproducibility_check/evidence.json": "1d0dbb7ce3e246ecc3ef18e3e127594ef2855b1c4b6654d25e9950dd0936e91c",
+    "artifacts/research/performance_20260907/football/replays/reproducibility_check/selection_lock.json": "0af5fd9a71c00359e0689e72caabfab20ad4871af5a424789c978c0adadf2da3",
+    "artifacts/research/performance_20260907/football/replays/reproducibility_check/test.json": "a3ce1ba433bece2ad320fcb05de0425763dc6c04495e6e7bee54b4a19457704d",
+    "artifacts/research/performance_20260907/football/replays/reproducibility_check/validation.json": "439661f373fff71ac48211f07657cda79a5ee9cd0f83f18c865683da9e403f2d",
+    "artifacts/research/performance_20260907/football/report_stdout.json": "e4d4fe1e8afc933910f4772080393a921523dc9bb0423b8c54e2df90d900d1ae",
+    "artifacts/research/performance_20260907/football/reproducibility.json": "de8c1e6c7cf3a035fa6e6a60e97af26db6238b4a718a98e02cbf40874aa6eb08",
+    "artifacts/research/performance_20260907/football/selection_lock.json": "332766697bf79f763a53ef59779936ffc4ddb2aa03a94ad6a92cde601d0efa0b",
+    "artifacts/research/performance_20260907/football/test.json": "d6d1e9689ea374d14d50d7544b4a535e1412523a44f570193ce76c7ef59e4ac2",
+    "artifacts/research/performance_20260907/football/validation.json": "3be870cd30c263e1164de0d4b0d3ee32be65702c4624829d6e012867fc5ac98b",
+    "artifacts/research/performance_20260907/football/verification.json": "119810c5c5f78c17a685d54837c00cb66dcb5bda6cd108acf338bc08e5754657"
+  },
+  "source_manifest": {
+    "path": "data/football/performance_20260907/source_manifest.json",
+    "sha256": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b"
+  },
+  "production_modules_modified_in_this_performance_cycle": false,
+  "promotion": false,
+  "suggested_commit": "research: benchmark causal football models on frozen EPL seasons"
+}

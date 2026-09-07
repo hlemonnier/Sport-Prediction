@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "complete primary schedules",
+    "disjoint validation/test IDs",
+    "selection lock before test completion",
+    "all fit result availability before cutoff",
+    "no target in its fit IDs",
+    "normalized day-start UTC cutoff",
+    "Dixon-Coles reconstruction",
+    "Elo multinomial softmax reconstruction",
+    "fixed mixture reconstruction",
+    "smoothed league prior reconstruction",
+    "all metrics recomputed"
+  ],
+  "maximum_probability_reconstruction_error": 1.1102230246251565e-16,
+  "prediction_rows": 1520,
+  "source_script_sha256": "63fb1a092d4470d3ae9f3156b299aa0b607c046cc6a147d677f16a67eff7dd13",
+  "status": "passed"
+}

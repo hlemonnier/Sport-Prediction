@@ -1,0 +1,13 @@
+{
+  "validation": {
+    "identical_predictions": true,
+    "identical_metrics": true,
+    "rows": 760
+  },
+  "test": {
+    "identical_predictions": true,
+    "identical_metrics": true,
+    "rows": 760
+  },
+  "same_selected_model": "dc365_elo50"
+}

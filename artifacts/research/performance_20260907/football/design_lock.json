@@ -1,0 +1,129 @@
+{
+  "frozen_at_utc": "2026-09-07T12:17:18.238619+00:00",
+  "spec_sha256": "c95057dbce099ecdaae40573ec3f389dc77ef5dc05b23073d60d6136d912a13d",
+  "spec": {
+    "experiment_id": "football_epl_first_cycle_20260907",
+    "status": "historical_retrospective_research_only_no_promotion",
+    "frozen_before_any_model_metrics": true,
+    "league": "E0",
+    "input_season_start_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "warmup_seasons": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021
+    ],
+    "validation_seasons": [
+      2022,
+      2023
+    ],
+    "test_seasons": [
+      2024,
+      2025
+    ],
+    "expected_matches_per_season": 380,
+    "forecast_cutoff": "00:00 Europe/London on fixture date; all same-date forecasts precede all same-date Elo updates",
+    "result_availability": "next Europe/London calendar day 00:00; historical publication latency and revisions are not archived",
+    "parameter_refit": "first forecast day of each calendar two-month bucket: Jan-Feb, Mar-Apr, May-Jun, Jul-Aug, Sep-Oct, Nov-Dec",
+    "rolling_fit_calendar_days": 1095,
+    "prequential_test": "Hyperparameters and validation winner frozen before test; earlier test outcomes may update future predictions under the identical predetermined schedule",
+    "baseline": "dc_equal",
+    "selectable_models_in_tie_order": [
+      "dc_equal",
+      "dc_365",
+      "dc_180",
+      "dc365_elo50"
+    ],
+    "performance_mechanisms": [
+      {
+        "id": "dc_365",
+        "change": "exponential likelihood weights with 365-day half-life"
+      },
+      {
+        "id": "dc_180",
+        "change": "exponential likelihood weights with 180-day half-life"
+      },
+      {
+        "id": "dc365_elo50",
+        "change": "fixed arithmetic 50/50 mixture of dc_365 and causal Elo multinomial probabilities"
+      }
+    ],
+    "dixon_coles": "Use corrected production constrained joint likelihood, unchanged constants and constraints; equal/365/180 fit identical prior-match IDs",
+    "elo": {
+      "initial_rating": 1500.0,
+      "k_factor": 20.0,
+      "home_advantage_rating_points": 60.0,
+      "logistic_scale": 400.0,
+      "win_draw_loss_score": [
+        1.0,
+        0.5,
+        0.0
+      ],
+      "season_reset": false,
+      "inactive_team_policy": "retain last rating; unseen teams start neutral; no lower-league information",
+      "features": [
+        "pre-match rating difference / 400",
+        "absolute pre-match rating difference / 400"
+      ],
+      "probability_mapping": "multinomial LogisticRegression C=1, solver=lbfgs, max_iter=1000, tol=1e-8; same rolling fit IDs as Dixon-Coles; no posthoc calibration"
+    },
+    "descriptive_benchmarks": {
+      "league_frequency": "Dirichlet(1,1,1) smoothed outcomes on identical rolling fit population",
+      "elo_component": "Reported to expose component behavior, excluded from validation selection",
+      "closing_market": "Normalize reciprocals of AvgCH, AvgCD, AvgCA. Later-information benchmark only, excluded from model inputs and selection. Report available subset and all models on exactly that subset; no odds imputation"
+    },
+    "selection_rule": "minimum pooled validation per-match natural-log loss among the four selectable models; fixed tie order; serialize selection lock before loading test labels",
+    "primary_metric": "natural-log multiclass 1X2 log loss (H,D,A)",
+    "secondary_metrics": [
+      "sum-over-three-classes Brier score",
+      "top1 accuracy",
+      "10 equal-width top-label ECE",
+      "class probability means minus class frequencies"
+    ],
+    "uncertainty": {
+      "resamples": 4000,
+      "seed": 20260907,
+      "interval": "percentile 95%; paired candidate-minus-dc_equal losses",
+      "blocks": [
+        "fixture calendar day",
+        "nonoverlapping 28-calendar-day blocks anchored to each season's first fixture date"
+      ],
+      "stratification": "resample blocks independently within each season; preserve season match-count weights",
+      "interpretation": "conditional uncertainty within these two historical seasons; not independent-season generalization, prospective evidence, or multiple-comparison-adjusted discovery"
+    },
+    "failure_policy": "Fail on incomplete season, invalid score/result, duplicate fixture, nonfinite probability or failed optimizer. Preserve diagnostics; do not silently omit matches or replace models.",
+    "resources": {
+      "parallel_fits": 1,
+      "blas_threads": 1,
+      "maximum_selectable_mechanisms": 3
+    },
+    "prohibited_inputs": [
+      "same-match statistics",
+      "same-day result updates",
+      "future team strength",
+      "closing odds features",
+      "validation/test driven hyperparameter expansion"
+    ],
+    "limitations": [
+      "one league",
+      "two test seasons",
+      "historical files downloaded after outcomes",
+      "no point-in-time vendor revision archive",
+      "neutral treatment of previously unseen promoted clubs",
+      "no lineup/injury/player features",
+      "no prospective or production promotion"
+    ]
+  },
+  "metrics_inspected": false
+}

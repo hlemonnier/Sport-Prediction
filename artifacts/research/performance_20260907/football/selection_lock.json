@@ -1,0 +1,33 @@
+{
+  "all_tried_models": [
+    "dc_equal",
+    "dc_365",
+    "dc_180",
+    "elo_component",
+    "dc365_elo50",
+    "league_frequency",
+    "closing_market"
+  ],
+  "input_manifest_sha256": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b",
+  "selectable_models": [
+    "dc_equal",
+    "dc_365",
+    "dc_180",
+    "dc365_elo50"
+  ],
+  "selected_at_utc": "2026-09-07T12:23:50.436408+00:00",
+  "selected_model": "dc365_elo50",
+  "selection_metric": "pooled_validation_log_loss",
+  "source_code_sha256": "6929ca61b4bc56cd54ac933303206255d53ff945ea57cf51c8457d43600c4574",
+  "spec_sha256": "c95057dbce099ecdaae40573ec3f389dc77ef5dc05b23073d60d6136d912a13d",
+  "test_labels_loaded": false,
+  "validation_artifact_sha256": "3be870cd30c263e1164de0d4b0d3ee32be65702c4624829d6e012867fc5ac98b",
+  "validation_scores": {
+    "dc365_elo50": 0.9595989049822483,
+    "dc_180": 0.9722014035920524,
+    "dc_365": 0.9693977442861574,
+    "dc_equal": 0.9734169401459646,
+    "elo_component": 0.9599421378036782,
+    "league_frequency": 1.0559442625338318
+  }
+}

@@ -180,7 +180,8 @@ def test_pit_action_applies_pit_loss_and_resets_tyre_and_degradation_prior() -> 
 
     assert transition.is_action_legal()
     assert transition.state_t1.compound == "HARD"
-    assert transition.state_t1.tyre_age == 0
+    # PIT_NOW has already driven the simulated next lap on the new tyres.
+    assert transition.state_t1.tyre_age == 1
     assert "HARD" in transition.state_t1.used_compounds
     assert transition.state_t1.deg_rate_mean == compound_deg_prior("HARD")
     assert transition.reward_t.components["pit_loss"] > 0.0

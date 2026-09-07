@@ -346,12 +346,55 @@ def _process_cov(q_pace: float, q_deg: float) -> np.ndarray:
     return np.asarray([[float(q_pace) ** 2, 0.0], [0.0, float(q_deg) ** 2]], dtype=float)
 
 
-def predict_state(state: FilterState, cfg: FilterConfig) -> tuple[np.ndarray, np.ndarray]:
+def predict_state(state: FilterState, cfg: FilterConfig, *, steps: int = 1) -> tuple[np.ndarray, np.ndarray]:
+    """Propagate every elapsed lap, including laps with no timing observation.
+
+    At h laps the covariance is A^h P (A^h)' + sum_j A^j Q (A^j)'.
+    A missing row does not stop the latent process or eliminate its noise.
+    """
+    if isinstance(steps, bool) or not isinstance(steps, (int, np.integer)) or steps < 0:
+        raise ValueError("prediction steps must be a non-negative integer")
     A = _transition_matrix(cfg.phi)
     Q = _process_cov(cfg.q_pace, cfg.q_deg)
-    mean_pred = A @ state.mean
-    cov_pred = (A @ state.cov @ A.T) + Q
+    mean_pred, cov_pred = state.mean.copy(), state.cov.copy()
+    for _ in range(int(steps)):
+        mean_pred = A @ mean_pred
+        cov_pred = (A @ cov_pred @ A.T) + Q
     return mean_pred, cov_pred
+
+
+def sample_filter_state(
+    state: FilterState,
+    rng: np.random.Generator,
+    *,
+    size: Optional[int] = None,
+) -> np.ndarray:
+    """Draw the filtering posterior once at the start of each trajectory.
+
+    ``size`` permits vectorized draws for independent trajectories. The final
+    axis is always (pace, degradation); posterior covariance is not transition
+    noise and must not be injected again after this draw.
+    """
+
+    covariance = 0.5 * (state.cov + state.cov.T)
+    return rng.multivariate_normal(state.mean, covariance, size=size, check_valid="raise")
+
+
+def advance_sampled_state(
+    sampled_state: np.ndarray,
+    cfg: FilterConfig,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """Advance sampled latent states with new process noise only (Q)."""
+
+    sampled = np.asarray(sampled_state, dtype=float)
+    if sampled.shape[-1:] != (2,):
+        raise ValueError("sampled filter states must have a final axis of length two")
+    return sampled @ _transition_matrix(cfg.phi).T + rng.normal(
+        loc=0.0,
+        scale=np.asarray([cfg.q_pace, cfg.q_deg], dtype=float),
+        size=sampled.shape,
+    )
 
 
 def update_state(
@@ -419,8 +462,10 @@ def lap_one_step_prediction(
     baseline_current: float,
     cfg: FilterConfig,
     r_effective: Optional[float] = None,
+    *,
+    steps: int = 1,
 ) -> tuple[np.ndarray, np.ndarray, float, float]:
-    mean_pred, cov_pred = predict_state(state, cfg)
+    mean_pred, cov_pred = predict_state(state, cfg, steps=steps)
     H = np.asarray([1.0, 0.0], dtype=float)
     obs_var = float(H @ cov_pred @ H.T) + float(r_effective if r_effective is not None else cfg.r_obs)
     obs_var = max(obs_var, 1e-6)

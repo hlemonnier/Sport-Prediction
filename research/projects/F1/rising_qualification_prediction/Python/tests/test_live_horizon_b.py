@@ -287,14 +287,16 @@ def test_horizon_distribution_emits_rollout_strategy_summary() -> None:
     assert summary["mc_prior_calibration"]["calibration_mode"] == "hand_prior"
 
 
-def test_position_ranking_uses_lap_count_before_total_time() -> None:
+def test_real_lap_deficit_incurs_extra_time_at_shared_target() -> None:
     cfg = FilterConfig()
     baseline = BaselineModel(by_lap={1: 90.0}, intercept=90.0, slope=0.0)
     snapshot = pd.DataFrame(
         {
             "driver_id": ["lead", "lapped"],
             "lap_last": [50, 49],
-            "race_time_seconds": [5000.0, 4900.0],
+            # Crossings at nearly the same clock time but different distances
+            # represent a real lap deficit, unlike an older last observation.
+            "race_time_seconds": [5000.0, 5002.0],
             "next_lap_mean": [90.0, 90.0],
         }
     )
@@ -310,6 +312,8 @@ def test_position_ranking_uses_lap_count_before_total_time() -> None:
     )
 
     assert bool(summary["position_dist_enabled"]) is True
+    assert out["forecast_target_lap"].tolist() == [55, 55]
+    assert out["forecast_laps_from_last_observation"].tolist() == [5, 6]
     win_map = out.set_index("driver_id")["p_win_H"].to_dict()
     assert float(win_map["lead"]) == 1.0
     assert float(win_map["lapped"]) == 0.0

@@ -265,6 +265,13 @@ def _pit_track_position_penalty(state: StrategyState, cfg: DeterministicTransiti
 
 
 def _base_clean_lap_seconds(state: StrategyState, cfg: DeterministicTransitionConfig) -> float:
+    anchor = _finite(state.metadata.get("deterministic_clean_baseline_seconds"), float("nan"))
+    if np.isfinite(anchor):
+        return anchor
+    for key in ("event_lap_baseline_seconds", "baseline_lap_seconds"):
+        baseline = _finite(state.metadata.get(key), float("nan"))
+        if np.isfinite(baseline):
+            return baseline + _finite(state.pace_penalty_mean, 0.0)
     if state.next_lap_mean is not None and np.isfinite(float(state.next_lap_mean)):
         return float(state.next_lap_mean)
     return float(cfg.default_base_lap_seconds + _finite(state.pace_penalty_mean, 0.0))
@@ -283,7 +290,8 @@ def estimate_clean_lap_seconds(
     compound = normalize_compound(compound)
     tyre_age = 0 if action.action_type == ACTION_PIT_NOW else int(state.tyre_age)
     life = compound_service_life(compound, cfg)
-    deg_rate = max(0.0, _finite(state.deg_rate_mean, compound_deg_prior(compound)))
+    deg_rate = (compound_deg_prior(compound) if action.action_type == ACTION_PIT_NOW
+                else max(0.0, _finite(state.deg_rate_mean, compound_deg_prior(compound))))
     deg_rate *= _circuit_tyre_multiplier(state) * _mode_deg_multiplier(action, cfg)
     age_penalty = deg_rate * float(max(0, tyre_age))
     cliff_start = 0.72 * max(1.0, life)
@@ -350,19 +358,24 @@ class DeterministicStrategyTransitionModel:
                 },
             )
 
-        elapsed = estimate_clean_lap_seconds(state, action, config=self.config)
+        clean_lap = estimate_clean_lap_seconds(state, action, config=self.config)
+        elapsed = clean_lap
         metadata = dict(state.metadata)
+        metadata.setdefault("deterministic_clean_baseline_seconds", _base_clean_lap_seconds(state, self.config))
         next_compound = state.compound
         next_tyre_age = int(state.tyre_age) + 1
         next_stint = int(state.stint_id)
         used_compounds = tuple(state.used_compounds)
         position_proxy = state.position
+        next_deg_rate = state.deg_rate_mean
 
         if action.action_type == ACTION_PIT_NOW:
             next_compound = normalize_compound(action.compound)
             elapsed += _pit_loss_seconds(state, self.config)
             elapsed += _pit_track_position_penalty(state, self.config)
-            next_tyre_age = 0
+            # The action prices one full lap on the newly mounted compound.
+            next_tyre_age = 1
+            next_deg_rate = compound_deg_prior(next_compound)
             next_stint += 1
             if next_compound not in used_compounds:
                 used_compounds = (*used_compounds, next_compound)
@@ -391,10 +404,11 @@ class DeterministicStrategyTransitionModel:
             stint_id=next_stint,
             compound=next_compound,
             tyre_age=next_tyre_age,
+            deg_rate_mean=next_deg_rate,
             used_compounds=used_compounds,
             race_time_seconds=race_time,
             position=position_proxy,
-            next_lap_mean=float(elapsed),
+            next_lap_mean=float(clean_lap),
             metadata={
                 **metadata,
                 "available_through_lap": next_lap,
@@ -403,7 +417,8 @@ class DeterministicStrategyTransitionModel:
         )
 
         components = {
-            "estimated_lap_seconds": float(elapsed),
+            "estimated_lap_seconds": float(clean_lap),
+            "race_time_delta_seconds": float(elapsed),
             "pit_loss_seconds": float(_pit_loss_seconds(state, self.config)) if action.action_type == ACTION_PIT_NOW else 0.0,
             "pit_track_position_penalty_seconds": float(_pit_track_position_penalty(state, self.config))
             if action.action_type == ACTION_PIT_NOW

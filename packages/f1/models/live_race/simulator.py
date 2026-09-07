@@ -263,7 +263,8 @@ class LiveRaceSimulator:
         return LiveRaceSimulator(config=self.config, scenario=scenario, action_space=self.action_space)
 
     def step(self, state: StrategyState, action: StrategyAction) -> StrategyTransition:
-        state = self._normalize_state_metadata(state)
+        if state.remaining_laps is None or int(state.remaining_laps) > 0:
+            state = self._normalize_state_metadata(state)
         action = action if isinstance(action, StrategyAction) else StrategyAction.from_key(action)
         legal_mask = build_legal_action_mask(state, action_space=self.action_space, config=self.config.action_mask)
         if state.remaining_laps is not None and int(state.remaining_laps) <= 0:
@@ -549,6 +550,36 @@ class LiveRaceSimulator:
         )
         if self.scenario.wet_track:
             metadata["weather_is_wet"] = True
+        if "event_lap_baseline_by_lap" in metadata:
+            raise ValueError(
+                "event_lap_baseline_by_lap is prohibited in causal policy simulation; "
+                "supply event_lap_baseline_seconds known at the state cutoff"
+            )
+        # Establish a scenario-independent anchor once. A simulated elapsed
+        # transition includes pit loss, fuel, tyres, traffic and noise; none of
+        # those outcomes may become the next step's event baseline. Preserve
+        # the anchor through all child states and mapping round trips.
+        anchor = _finite(metadata.get("simulator_baseline_anchor_seconds"), float("nan"))
+        if np.isfinite(anchor):
+            anchor_lap = _finite(metadata.get("simulator_baseline_anchor_lap"), float("nan"))
+            if not np.isfinite(anchor_lap) or anchor_lap < 0 or anchor_lap != int(anchor_lap):
+                raise ValueError("a persisted simulator baseline requires its integer reference lap")
+        if not np.isfinite(anchor):
+            anchor = _finite(metadata.get("event_lap_baseline_seconds"), float("nan"))
+            source = "explicit_causal_event_baseline"
+            if not np.isfinite(anchor):
+                anchor = _finite(metadata.get("baseline_lap_seconds"), float("nan"))
+            if not np.isfinite(anchor) and state.next_lap_mean is not None:
+                anchor = float(state.next_lap_mean) - _finite(state.pace_penalty_mean, 0.0)
+                source = "next_lap_minus_pace_proxy_not_identified_component_fit"
+            if not np.isfinite(anchor):
+                anchor = float(self.config.default_base_lap_seconds) + (
+                    float(self.config.event_lap_slope_seconds) * float(state.lap_number + 1)
+                )
+                source = "configured_baseline_prior"
+            metadata["simulator_baseline_anchor_seconds"] = max(1.0, float(anchor))
+            metadata["simulator_baseline_anchor_lap"] = int(state.lap_number) + 1
+            metadata["simulator_baseline_source"] = source
         return replace(state, metadata=metadata)
 
     def _event_lap_baseline(self, state: StrategyState, *, next_lap: int) -> float:
@@ -564,13 +595,13 @@ class LiveRaceSimulator:
                 "supply event_lap_baseline_seconds known at the state cutoff"
             )
 
-        explicit = _finite(metadata.get("event_lap_baseline_seconds"), float("nan"))
+        explicit = _finite(metadata.get("simulator_baseline_anchor_seconds"), float("nan"))
         if not np.isfinite(explicit):
-            explicit = _finite(metadata.get("baseline_lap_seconds"), float("nan"))
-        if not np.isfinite(explicit) and state.next_lap_mean is not None:
-            explicit = max(1.0, float(state.next_lap_mean) - _finite(state.pace_penalty_mean, 0.0))
-        if not np.isfinite(explicit):
-            explicit = float(self.config.default_base_lap_seconds) + (float(self.config.event_lap_slope_seconds) * float(next_lap))
+            normalized = self._normalize_state_metadata(state)
+            metadata = normalized.metadata
+            explicit = float(metadata["simulator_baseline_anchor_seconds"])
+        anchor_lap = int(metadata["simulator_baseline_anchor_lap"])
+        explicit += float(self.config.event_lap_slope_seconds) * float(next_lap - anchor_lap)
         return float(explicit + self.scenario.baseline_offset_seconds + _mapping_float(self.scenario.lap_baseline_offsets, int(next_lap), 0.0))
 
     def _tyre_degradation_state(self, state: StrategyState, action: StrategyAction, *, compound: str, tyre_age: int, deg_rate: float) -> float:
@@ -685,7 +716,9 @@ class LiveRaceSimulator:
 
         if action.action_type == ACTION_PIT_NOW:
             next_compound = compound_for_lap
-            next_tyre_age = 0
+            # PIT_NOW uses the new compound for the full simulated next lap.
+            # This end-of-lap state has therefore completed one lap on it.
+            next_tyre_age = 1
             next_stint += 1
             deg_rate_mean = compound_deg_prior(next_compound)
             if next_compound not in used_compounds:
@@ -713,6 +746,8 @@ class LiveRaceSimulator:
                 "transition_model": self.model_id,
                 "simulator_scenario_id": self.scenario.scenario_id,
                 "last_simulator_breakdown": breakdown.to_payload(),
+                "last_simulated_elapsed_seconds": float(elapsed),
+                "last_simulated_clean_lap_seconds": float(elapsed - breakdown.pit_loss),
             }
         )
         if self.scenario.metadata:
@@ -729,7 +764,7 @@ class LiveRaceSimulator:
             race_time_seconds=float(race_time),
             position=position_proxy,
             deg_rate_mean=float(deg_rate_mean),
-            next_lap_mean=float(elapsed),
+            next_lap_mean=float(elapsed - breakdown.pit_loss),
             metadata=metadata,
         )
 

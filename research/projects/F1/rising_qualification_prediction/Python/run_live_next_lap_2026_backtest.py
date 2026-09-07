@@ -7,6 +7,10 @@ driver's chronologically next eligible completed representative lap.  The
 target row and observations arriving after issuance are never used to rebuild
 the scored forecast.  For each target event, the convex weight is selected
 using the mean event-level MAE of strictly earlier events only.
+
+This historical replay is diagnostic evidence. Its expanding selection policy
+and its final weight refitted on all evaluated events are different predictors;
+neither is promoted without an independent, frozen confirmatory evaluation.
 """
 
 from __future__ import annotations
@@ -585,6 +589,8 @@ def _paired_bootstrap(
         "mean_delta_seconds": float(delta.mean()),
         "ci95_seconds": [float(value) for value in np.quantile(draws, [0.025, 0.975])],
         "bootstrap_probability_of_improvement": float(np.mean(draws < 0.0)),
+        "bootstrap_fraction_improving": float(np.mean(draws < 0.0)),
+        "bootstrap_interpretation": "empirical event-resampling frequency; not a posterior probability or independent confirmatory evidence",
         "samples": int(samples),
         "seed": int(seed),
         "unit": "event",
@@ -805,8 +811,10 @@ def run_backtest(
         weight_grid=grid,
         cold_start_weight=float(cold_start_weight),
     )
-    point_forecast_retained = bool(blend_vs_naive["ci95_seconds"][1] < 0.0)
-    deployment_ssm_weight = float(deployment_weight) if point_forecast_retained else 0.0
+    # Causal per-event issuance does not make historical development outcomes
+    # untouched audit data. The next-event refit has also never been scored.
+    # Keep both score comparisons descriptive, regardless of their effect size.
+    deployment_ssm_weight = 0.0
     if set(input_paths) != set(planned_input_paths):
         raise RuntimeError("Live next-lap evaluation accessed an unexpected input-file set")
     _assert_manifest_unchanged(
@@ -849,6 +857,11 @@ def run_backtest(
                 "bootstrap_seed": int(bootstrap_seed),
             },
             "protocol": {
+                "evidence_role": "diagnostic_only",
+                "confirmatory_evaluation_eligible": False,
+                "development_exposure_status": "historical_development_replay",
+                "scored_candidate": "expanding_strictly_prior_event_weight_selection_policy",
+                "final_refitted_weight_independently_evaluated": False,
                 "same_season_only": True,
                 "year": int(year),
                 "round_order": "strictly_ascending_sequential",
@@ -920,29 +933,30 @@ def run_backtest(
                 "research_selected_naive_weight": float(1.0 - deployment_weight),
                 "research_runtime_default_ssm_weight": deployment_ssm_weight,
                 "research_runtime_default_naive_weight": float(1.0 - deployment_ssm_weight),
-                "research_runtime_gate": (
-                    "paired_event_mae_passed"
-                    if point_forecast_retained
-                    else "blend_rejected_fallback_to_naive"
-                ),
+                "research_runtime_gate": "diagnostic_only_fallback_to_naive",
+                "research_selected_weight_status": "unvalidated_refit_on_all_evaluated_events",
                 "training_rounds": list(prior_rounds),
                 "candidate_event_mean_mae_seconds": {
                     f"{weight:.2f}": deployment_scores[float(weight)] for weight in grid
                 },
             },
             "decision": {
-                "point_forecast_retained": point_forecast_retained,
-                "pure_ssm_retained": bool(ssm_vs_naive["ci95_seconds"][1] < 0.0),
+                "evidence_role": "diagnostic_only",
+                "point_forecast_retained": False,
+                "pure_ssm_retained": False,
+                "descriptive_blend_ci_upper_below_zero": bool(blend_vs_naive["ci95_seconds"][1] < 0.0),
+                "descriptive_ssm_ci_upper_below_zero": bool(ssm_vs_naive["ci95_seconds"][1] < 0.0),
                 "probabilistic_intervals_promoted": False,
                 "rl_policy_promoted": False,
                 "reason": (
-                    "frozen emitted causal point blend clears paired event-level MAE gate"
-                    if point_forecast_retained
-                    else "frozen emitted blend does not clear the paired event-level MAE gate; naive fallback retained"
+                    "historical expanding-weight replay is diagnostic only; the final refitted "
+                    "weight lacks independent frozen audit evidence; naive fallback retained"
                 ),
                 "blockers": [
                     "hand_tuned_ssm_priors",
-                    "only_nine_completed_same_season_events",
+                    "historical_development_outcomes_are_not_untouched_audit_evidence",
+                    "frozen_candidate_and_exposure_review_not_established",
+                    "final_all_evaluated_event_weight_differs_from_scored_policy",
                     "interval_calibration_not_evaluated_by_point_mae",
                     "rl_requires_locked_simulator_ope_and_shadow_evidence",
                 ],

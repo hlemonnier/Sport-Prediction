@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 
 from packages.sports_core.paths import find_repo_root
@@ -240,7 +241,7 @@ def _compute_tyre_age(work: pd.DataFrame) -> pd.Series:
 
     FastF1 ``TyreLife`` includes prior use when a driver starts a stint on a
     scrubbed set, so it is the preferred causal state.  When it is absent, the
-    fallback counts every completed row in the current driver/stint, including
+    fallback counts completed lap distance in the current driver/stint, including
     box, Safety Car, and timing-inaccurate laps.  Those laps still age the tyre.
     """
 
@@ -250,7 +251,13 @@ def _compute_tyre_age(work: pd.DataFrame) -> pd.Series:
             ["lap_number", "timestamp"],
             kind="mergesort",
         )
-        fallback.loc[subset.index] = range(1, len(subset) + 1)
+        lap_numbers = pd.to_numeric(subset["lap_number"], errors="coerce")
+        first_lap = float(lap_numbers.iloc[0])
+        if "stint_start_lap" in subset:
+            explicit_start = pd.to_numeric(subset["stint_start_lap"], errors="coerce").iloc[0]
+            if np.isfinite(explicit_start) and 1 <= explicit_start <= first_lap:
+                first_lap = float(explicit_start)
+        fallback.loc[subset.index] = (lap_numbers - first_lap + 1).astype(int)
 
     tyre_life_col = first_available(work, ["TyreLife", "tyre_life_raw", "tyre_life"])
     if tyre_life_col is None:
@@ -379,6 +386,9 @@ def _standardize_laps(
     work["is_box_lap"] = (pit_in | pit_out).astype(bool)
 
     work["stint_id"] = _build_stint_id(work)
+    stint_start_column = first_available(work, ["stint_start_lap", "StintStartLap"])
+    if stint_start_column is not None:
+        work["stint_start_lap"] = pd.to_numeric(work[stint_start_column], errors="coerce")
 
     time_col = first_available(work, ["Time", "time", "LapStartTime", "lap_start_time"])
     if time_col:
@@ -406,6 +416,8 @@ def _standardize_laps(
     out["driver_name"] = work["driver_name"].fillna(work["driver_id"]).astype(str)
     out["lap_number"] = pd.to_numeric(work["lap_number"], errors="coerce").astype(int)
     out["stint_id"] = pd.to_numeric(work["stint_id"], errors="coerce").fillna(1).astype(int)
+    if "stint_start_lap" in work:
+        out["stint_start_lap"] = work["stint_start_lap"]
     out["compound"] = work["compound"].astype(str)
     out["tyre_age"] = pd.to_numeric(work["tyre_age"], errors="coerce").fillna(0).astype(int)
     out["used_compounds"] = work["used_compounds"]
@@ -422,6 +434,16 @@ def _standardize_laps(
     out["timestamp_source"] = work["timestamp_source"].astype(str)
     out["race_time_seconds"] = pd.to_numeric(work["race_time_seconds"], errors="coerce")
     out["gap_to_leader_seconds"] = pd.to_numeric(work["gap_to_leader_seconds"], errors="coerce")
+    # Preserve only a schedule explicitly present in the causal source row.
+    # The maximum observed lap in a retrospective file is an outcome, not
+    # evidence of the race distance scheduled at the current live cutoff.
+    for target, aliases in {
+        "total_laps": ["total_laps", "race_total_laps", "scheduled_laps"],
+        "remaining_laps": ["remaining_laps", "laps_remaining"],
+    }.items():
+        source_column = first_available(work, aliases)
+        if source_column is not None:
+            out[target] = pd.to_numeric(work[source_column], errors="coerce")
     # Running position at the end of the completed lap is part of the causal
     # live state.  Dropping it silently disabled both the position feature and
     # the position-gain component of the replay reward even when FastF1 had

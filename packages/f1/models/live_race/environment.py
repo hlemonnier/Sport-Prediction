@@ -380,6 +380,30 @@ class StrategyState:
             and (True if red_claim is None else _safe_bool(red_claim, False))
         )
         meta = dict(metadata or {})
+        # Whitelist scalar causal baseline state used by simulator/MPC callers.
+        # Do not copy arbitrary row metadata or future per-lap outcome maps.
+        # A supplied map is retained solely so the simulator explicitly rejects
+        # it rather than silently accepting a caller's incompatible contract.
+        row_metadata = payload.get("metadata")
+        baseline_sources = [payload]
+        if isinstance(row_metadata, Mapping):
+            baseline_sources.append(row_metadata)
+        for key, aliases in {
+            "event_lap_baseline_seconds": ("event_lap_baseline_seconds",),
+            "baseline_lap_seconds": ("baseline_lap_seconds", "baseline_lap"),
+            "simulator_baseline_anchor_seconds": ("simulator_baseline_anchor_seconds",),
+            "simulator_baseline_anchor_lap": ("simulator_baseline_anchor_lap",),
+            "simulator_baseline_source": ("simulator_baseline_source",),
+            "deterministic_clean_baseline_seconds": ("deterministic_clean_baseline_seconds",),
+            "event_lap_baseline_by_lap": ("event_lap_baseline_by_lap",),
+        }.items():
+            if key in meta:
+                continue
+            for source in baseline_sources:
+                value = _first(source, aliases, None)
+                if value is not None:
+                    meta[key] = value
+                    break
         meta.update(
             {
                 "source_row_index": payload.get("_source_row_index"),
@@ -629,6 +653,18 @@ class StrategyState:
             "deg_rate_std": self.deg_rate_std,
             "next_lap_mean": self.next_lap_mean,
             "next_lap_std": self.next_lap_std,
+            **{
+                key: self.metadata[key]
+                for key in (
+                    "event_lap_baseline_seconds",
+                    "baseline_lap_seconds",
+                    "simulator_baseline_anchor_seconds",
+                    "simulator_baseline_anchor_lap",
+                    "simulator_baseline_source",
+                    "deterministic_clean_baseline_seconds",
+                )
+                if key in self.metadata
+            },
             "pit_loss_estimate_seconds": self.pit_loss_estimate_seconds,
             "circuit_overtaking_difficulty": self.circuit_overtaking_difficulty,
             "circuit_tyre_degradation": self.circuit_tyre_degradation,

@@ -32,6 +32,7 @@ from packages.f1.models.live_race.state import (
     FilterConfig,
     FilterState,
     apply_track_gating,
+    advance_sampled_state,
     as_float,
     build_event_lap_baseline,
     initialize_filter_state,
@@ -39,6 +40,7 @@ from packages.f1.models.live_race.state import (
     next_lap_distribution,
     parse_track_status,
     reset_filter_state,
+    sample_filter_state,
     update_state,
 )
 
@@ -598,10 +600,45 @@ def _mc_position_distribution(
             summary.update(observability_stub)
         return out, summary
 
-    work = len(driver_ids) * int(horizon_laps) * requested
+    lap_last = pd.to_numeric(
+        out.get("lap_last", pd.Series(0, index=out.index)), errors="coerce"
+    )
+    if lap_last.isna().any() or (lap_last < 0).any() or (lap_last != np.floor(lap_last)).any():
+        raise ValueError("Monte Carlo requires non-negative integer completed-lap counts")
+    base_laps = lap_last.to_numpy(dtype=int)
+    leader_lap = int(base_laps.max())
+    # Each latest row is an independently observed timing-line crossing. Add
+    # the extra distance for a car whose most recent crossing is behind, rather
+    # than permanently preserving that offset in the forecast classification.
+    # This is a common-distance arrival forecast, conditional on continued
+    # running; it is not a simulation of distance at a shared elapsed time.
+    requested_target_lap = leader_lap + max(0, int(horizon_laps))
+    scheduled_totals: set[int] = set()
+    for column in ("total_laps", "race_total_laps", "scheduled_laps"):
+        if column in out:
+            raw = pd.to_numeric(out[column], errors="coerce").dropna()
+            if (raw < 0).any() or (raw != np.floor(raw)).any():
+                raise ValueError("scheduled race laps must be non-negative integers")
+            scheduled_totals.update(int(value) for value in raw)
+    if not scheduled_totals and "remaining_laps" in out:
+        remaining = pd.to_numeric(out["remaining_laps"], errors="coerce")
+        known = remaining.notna()
+        if (remaining[known] < 0).any() or (remaining[known] != np.floor(remaining[known])).any():
+            raise ValueError("remaining race laps must be non-negative integers")
+        scheduled_totals.update(int(value) for value in (lap_last + remaining)[known])
+    if len(scheduled_totals) > 1:
+        raise ValueError("inconsistent scheduled race distance across the live field")
+    scheduled_total = next(iter(scheduled_totals), None)
+    if scheduled_total is not None and scheduled_total < leader_lap:
+        raise ValueError("scheduled race distance precedes an observed completed lap")
+    target_lap = min(requested_target_lap, scheduled_total) if scheduled_total is not None else requested_target_lap
+    laps_to_simulate = target_lap - base_laps
+    horizon = int(laps_to_simulate.max())
+    work_per_sample = int(laps_to_simulate.sum())
+    work = work_per_sample * requested
     reduction_reason: Optional[str] = None
-    if work > max_work_limit and len(driver_ids) > 0 and horizon_laps > 0:
-        effective_samples = max(50, int(max_work_limit // (len(driver_ids) * int(horizon_laps))))
+    if work > max_work_limit and work_per_sample > 0:
+        effective_samples = max(1, int(max_work_limit // work_per_sample))
         reduction_reason = (
             f"work={work} exceeded max_mc_work={max_work_limit}; "
             f"mc_samples reduced from {requested} to {effective_samples}"
@@ -611,11 +648,6 @@ def _mc_position_distribution(
 
     rng = np.random.default_rng(int(seed))
     positions = np.zeros((effective_samples, len(driver_ids)), dtype=float)
-    if "lap_last" in out.columns:
-        lap_last = pd.to_numeric(out["lap_last"], errors="coerce")
-    else:
-        lap_last = pd.Series(index=out.index, data=0.0, dtype=float)
-    base_laps = lap_last.fillna(0).astype(int).to_numpy(dtype=int)
     if "tyre_age" in out.columns:
         tyre_age_series = pd.to_numeric(out["tyre_age"], errors="coerce").fillna(0.0)
     else:
@@ -630,10 +662,6 @@ def _mc_position_distribution(
     else:
         compound_start = ["UNKNOWN"] * len(driver_ids)
     regime_start = _infer_rollout_regime(out)
-    horizon = int(horizon_laps)
-
-    A = np.asarray([[1.0, 1.0], [0.0, float(cfg.phi)]], dtype=float)
-    Q = np.asarray([[float(cfg.q_pace) ** 2, 0.0], [0.0, float(cfg.q_deg) ** 2]], dtype=float)
     pit_events_total = 0
     regime_sc_vsc_steps = 0
     regime_yellow_steps = 0
@@ -641,10 +669,8 @@ def _mc_position_distribution(
     strategy_assignments_total = 0
 
     for sample_idx in range(effective_samples):
-        final_laps = base_laps + horizon
         final_times = race_time_start.astype(float, copy=True)
         means: list[Optional[np.ndarray]] = []
-        covs: list[Optional[np.ndarray]] = []
         compounds = list(compound_start)
         tyre_age = tyre_age_start.astype(int, copy=True)
         strategy_templates: list[Optional[StrategyTemplate]] = []
@@ -656,29 +682,26 @@ def _mc_position_distribution(
             state = states.get(driver_id)
             if state is None:
                 means.append(None)
-                covs.append(None)
                 strategy_templates.append(None)
                 planned_pit_steps.append(None)
                 planned_pit_index.append(None)
                 final_times[driver_idx] = np.inf
                 continue
-            mean_init = state.mean.astype(float).copy()
-            cov_init = state.cov.astype(float).copy()
+            mean_init = sample_filter_state(state, rng)
             means.append(mean_init)
-            covs.append(cov_init)
 
             strategy = _sample_strategy_template(
                 compound=compounds[driver_idx],
                 tyre_age=int(tyre_age[driver_idx]),
-                deg_rate=float(mean_init[1]) if mean_init.size > 1 else 0.0,
-                horizon=horizon,
+                deg_rate=float(state.mean[1]),
+                horizon=int(laps_to_simulate[driver_idx]),
                 rng=rng,
             )
             strategy_templates.append(strategy)
             planned_steps = _sample_planned_pit_steps(
                 template=strategy,
                 tyre_age=int(tyre_age[driver_idx]),
-                horizon=horizon,
+                horizon=int(laps_to_simulate[driver_idx]),
                 rng=rng,
             )
             planned_pit_steps.append(planned_steps)
@@ -696,8 +719,7 @@ def _mc_position_distribution(
 
             for driver_idx, driver_id in enumerate(driver_ids):
                 mean = means[driver_idx]
-                cov = covs[driver_idx]
-                if mean is None or cov is None:
+                if mean is None or step > int(laps_to_simulate[driver_idx]):
                     continue
 
                 pit_now = False
@@ -717,21 +739,12 @@ def _mc_position_distribution(
                     final_times[driver_idx] += _sample_pit_loss_seconds(regime, rng, rollout_priors)
                     compounds[driver_idx] = _sample_next_compound(compounds[driver_idx], rng)
                     pit_prior = initialize_filter_state(compounds[driver_idx], cfg)
-                    mean = pit_prior.mean.astype(float).copy()
-                    cov = pit_prior.cov.astype(float).copy()
+                    mean = sample_filter_state(pit_prior, rng)
                     tyre_age[driver_idx] = 0
                     if pointer is not None:
                         planned_pit_index[driver_idx] = int(pointer) + 1
 
-                mean_pred = A @ mean
-                cov_pred = (A @ cov @ A.T) + Q
-                cov_pred = 0.5 * (cov_pred + cov_pred.T)
-                cov_pred += np.eye(2, dtype=float) * 1e-9
-
-                try:
-                    sampled_state = rng.multivariate_normal(mean=mean_pred, cov=cov_pred)
-                except Exception:
-                    sampled_state = mean_pred
+                sampled_state = advance_sampled_state(mean, cfg, rng)
 
                 lap_number = int(base_laps[driver_idx]) + step
                 lap_baseline = baseline.value_at(lap_number)
@@ -746,11 +759,12 @@ def _mc_position_distribution(
                 final_times[driver_idx] += max(0.1, lap_time)
 
                 means[driver_idx] = sampled_state
-                covs[driver_idx] = cov_pred
                 tyre_age[driver_idx] = int(tyre_age[driver_idx]) + 1
 
-        # Race order is lap-count first, then cumulative time within the same lap.
-        order = np.lexsort((final_times, -final_laps))
+        # All cars now have the same target distance. An actual lap deficit
+        # costs extra simulated laps; an asynchronous last observation does not
+        # permanently force the driver behind independently of future pace.
+        order = np.argsort(final_times, kind="mergesort")
         sampled_positions = np.empty(len(driver_ids), dtype=float)
         sampled_positions[order] = np.arange(1, len(driver_ids) + 1, dtype=float)
         positions[sample_idx, :] = sampled_positions
@@ -771,6 +785,8 @@ def _mc_position_distribution(
     out["pos_p50_H"] = pos_p50
     out["pos_p90_H"] = pos_p90
     out["position_dist_enabled"] = True
+    out["forecast_target_lap"] = int(target_lap)
+    out["forecast_laps_from_last_observation"] = laps_to_simulate
 
     sum_p_win = float(np.sum(out["p_win_H"].to_numpy(dtype=float)))
     strategy_mix = {
@@ -783,6 +799,14 @@ def _mc_position_distribution(
     summary: dict[str, Any] = {
         "position_dist_enabled": True,
         "position_dist_disabled_reason": None,
+        "position_distribution_semantics": "arrival_order_at_common_race_distance_conditional_on_continued_running",
+        "forecast_target_lap": int(target_lap),
+        "forecast_leader_lap": int(leader_lap),
+        "forecast_horizon_laps_effective": int(target_lap - leader_lap),
+        "scheduled_total_laps": scheduled_total,
+        "scheduled_horizon_known": scheduled_total is not None,
+        "latent_trajectory_semantics": "posterior_sample_once_then_independent_process_noise",
+        "work_per_sample": work_per_sample,
         "mc_samples_requested": int(requested),
         "mc_samples_effective": int(effective_samples),
         "mc_samples_reduction_reason": reduction_reason,
@@ -829,6 +853,10 @@ def _build_snapshot(trace: pd.DataFrame) -> pd.DataFrame:
         "driver_name",
         "lap_number",
         "stint_id",
+        "stint_start_lap",
+        "reset_boundary",
+        "completed_laps_since_previous_observation",
+        "prediction_transition_laps",
         "compound",
         "tyre_age",
         "race_status",
@@ -837,6 +865,8 @@ def _build_snapshot(trace: pd.DataFrame) -> pd.DataFrame:
         "is_sc_vsc",
         "is_yellow",
         "race_time_seconds",
+        "total_laps",
+        "remaining_laps",
         "gap_to_leader_seconds",
         "pace_penalty_mean",
         "pace_penalty_std",
@@ -1099,9 +1129,13 @@ def run_live_race_prediction(
         first_compound = driver_frame.iloc[0].get("compound")
         state = initialize_filter_state(first_compound, filter_cfg)
         last_clean_lap_time = float("nan")
+        previous_lap_number: Optional[int] = None
+        previous_known_timestamp: Optional[float] = None
 
         for _, row in driver_frame.iterrows():
             lap_number = int(as_float(row.get("lap_number"), 0.0))
+            if lap_number <= 0 or (previous_lap_number is not None and lap_number <= previous_lap_number):
+                raise ValueError("live driver lap numbers must be positive and unique in chronological order")
             stint_id = int(as_float(row.get("stint_id"), 1.0))
             compound = str(row.get("compound") or "UNKNOWN")
             is_box_lap = bool(row.get("is_box_lap", False))
@@ -1113,9 +1147,32 @@ def run_live_race_prediction(
 
             reset_applied = False
             stint_transition = (state.last_stint_id is None) or (state.last_stint_id != stint_id)
-            if stint_transition and (not is_box_lap):
+            elapsed_laps = lap_number - previous_lap_number if previous_lap_number is not None else None
+            prediction_steps = elapsed_laps if elapsed_laps is not None else 1
+            reset_boundary = "not_applicable"
+            if stint_transition:
+                # The outlap is normally the first row of a new stint. Reset
+                # the latent tyre state now even though its lap-time update is
+                # skipped, so recording the new stint cannot consume the reset.
                 state = reset_filter_state(state, compound=compound, cfg=filter_cfg)
                 reset_applied = True
+                start_lap = as_float(row.get("stint_start_lap"))
+                if np.isfinite(start_lap):
+                    if start_lap != int(start_lap) or not 1 <= start_lap <= lap_number or (previous_lap_number is not None and start_lap <= previous_lap_number):
+                        raise ValueError("explicit stint_start_lap contradicts observed stint chronology")
+                    prediction_steps = lap_number - int(start_lap) + 1
+                    reset_boundary = "explicit_stint_start_lap"
+                else:
+                    # Tyre age can include prior use of a scrubbed set. It
+                    # cannot identify when an unobserved pit stop occurred.
+                    # Anchor an unidentified reset at the first observed lap
+                    # of the stint; never apply the old stint's gap after it.
+                    prediction_steps = 1
+                    reset_boundary = (
+                        "race_start" if lap_number == 1 else
+                        "observed_pit_out_lap" if bool(row.get("is_pit_out_lap", False)) else
+                        "first_observed_stint_lap_start_unknown"
+                    )
 
             row_timestamp = as_float(row.get("timestamp"))
             raw_timestamp_known = row.get("timestamp_known", np.isfinite(row_timestamp))
@@ -1123,6 +1180,10 @@ def run_live_race_prediction(
                 row_timestamp_known = bool(raw_timestamp_known) and np.isfinite(row_timestamp)
             except (TypeError, ValueError):
                 row_timestamp_known = False
+            if row_timestamp_known:
+                if previous_known_timestamp is not None and row_timestamp <= previous_known_timestamp:
+                    raise ValueError("live driver timestamps contradict completed-lap chronology")
+                previous_known_timestamp = row_timestamp
             (
                 lap_baseline_model,
                 baseline_information_order,
@@ -1138,6 +1199,7 @@ def run_live_race_prediction(
                 state=state,
                 baseline_current=baseline_current,
                 cfg=filter_cfg,
+                steps=prediction_steps,
             )
             one_step_naive_mean = last_clean_lap_time
             one_step_pred_mean = _blend_next_lap_point_forecast(
@@ -1177,12 +1239,18 @@ def run_live_race_prediction(
             state.mean = mean_post
             state.cov = cov_post
             state.last_stint_id = stint_id
+            observed_tyre_age = as_float(row.get("tyre_age", row.get("tyre_life_raw")))
+            if np.isfinite(observed_tyre_age) and observed_tyre_age >= 0.0:
+                # Scrubbed tyres and SC/box laps have genuine tyre age even
+                # when their timing observation must not update the filter.
+                state.tyre_age = int(round(observed_tyre_age))
+            elif reset_applied:
+                state.tyre_age = prediction_steps
+            else:
+                state.tyre_age += max(1, lap_number - int(previous_lap_number or lap_number))
+            previous_lap_number = lap_number
 
             if can_assimilate and (not gate.skip_update):
-                if not reset_applied:
-                    state.tyre_age += 1
-                else:
-                    state.tyre_age = 0
                 state.assimilated_laps += 1
                 last_clean_lap_time = float(lap_time)
 
@@ -1220,6 +1288,10 @@ def run_live_race_prediction(
                 "gate_note": gate.note,
                 "r_effective": float(gate.r_effective),
                 "reset_applied": bool(reset_applied),
+                "reset_boundary": reset_boundary,
+                "completed_laps_since_previous_observation": elapsed_laps,
+                "prediction_transition_laps": int(prediction_steps),
+                "stint_start_lap": as_float(row.get("stint_start_lap")),
                 "baseline_lap": float(baseline_current),
                 "baseline_information_order": baseline_information_order,
                 "baseline_evidence_max_timestamp": baseline_evidence_max_timestamp,
@@ -1247,6 +1319,8 @@ def run_live_race_prediction(
                 "next_lap_pi90_low": float(next_lap_mean - (1.645 * next_lap_std)),
                 "next_lap_pi90_high": float(next_lap_mean + (1.645 * next_lap_std)),
                 "race_time_seconds": race_time_seconds,
+                "total_laps": as_float(row.get("total_laps", row.get("race_total_laps", row.get("scheduled_laps")))),
+                "remaining_laps": as_float(row.get("remaining_laps", row.get("laps_remaining"))),
                 "gap_to_leader_seconds": as_float(row.get("gap_to_leader_seconds")),
                 "timestamp": row_timestamp,
                 "timestamp_known": row_timestamp_known,
@@ -1320,6 +1394,9 @@ def run_live_race_prediction(
         "filter_calibration": filter_cfg.diagnostics(),
         "mc_prior_calibration": mc_priors.diagnostics(),
         "prior_calibration_ready": bool(filter_cfg.promotion_ready and mc_priors.promotion_ready),
+        "filter_transition_unit": "completed_lap_distance_including_unobserved_laps",
+        "unobserved_lap_transition_count": int((trace["prediction_transition_laps"] - 1).clip(lower=0).sum()),
+        "unknown_stint_reset_boundary_count": int(trace["reset_boundary"].eq("first_observed_stint_lap_start_unknown").sum()),
         "promotion_ready": False,
         "promotion_blockers": [
             "locked_model_replay_and_comparator_evidence_required",
@@ -1365,6 +1442,12 @@ def run_live_race_prediction(
         else 0,
         "position_dist_enabled": bool(dist_summary.get("position_dist_enabled", False)),
         "position_dist_disabled_reason": dist_summary.get("position_dist_disabled_reason"),
+        "position_distribution_semantics": dist_summary.get("position_distribution_semantics"),
+        "forecast_target_lap": dist_summary.get("forecast_target_lap"),
+        "forecast_horizon_laps_effective": dist_summary.get("forecast_horizon_laps_effective"),
+        "scheduled_total_laps": dist_summary.get("scheduled_total_laps"),
+        "scheduled_horizon_known": dist_summary.get("scheduled_horizon_known", False),
+        "latent_trajectory_semantics": dist_summary.get("latent_trajectory_semantics"),
         "mc_samples_requested": int(dist_summary.get("mc_samples_requested", 1000)),
         "mc_samples_effective": int(dist_summary.get("mc_samples_effective", 0)),
         "mc_samples_reduction_reason": dist_summary.get("mc_samples_reduction_reason"),

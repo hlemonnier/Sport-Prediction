@@ -255,3 +255,55 @@ def test_artifact_write_fails_closed_if_manifest_drifts_during_write(
     with pytest.raises(RuntimeError, match="changed during evaluation"):
         _write_artifact_fail_closed(payload, output=output, root=tmp_path)
     assert not output.exists()
+
+
+@pytest.mark.parametrize("cold_start_weight", [0.0, 1.0])
+def test_historical_replay_never_promotes_even_with_uniform_large_gains(
+    tmp_path, monkeypatch, cold_start_weight,
+) -> None:
+    """Exercise aggregation/selection with both CIs strictly supporting a gain.
+
+    Even perfect forecasts and nine winning events cannot validate a different
+    final refitted weight or erase development exposure of historical outcomes.
+    """
+    weekends = tmp_path / "weekends"
+    for round_number in range(1, 10):
+        directory = weekends / "2026" / f"round_{round_number:02}_test"
+        directory.mkdir(parents=True)
+        (directory / "test_race_laps.csv").write_text("lap,time\n1,100\n")
+    monkeypatch.setattr(live_backtest, "_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(live_backtest, "_implementation_paths", lambda root: [])
+
+    def event_rows(**kwargs):
+        rows = pd.DataFrame({
+            "driver_id": ["1", "2"],
+            "issued_after_lap_number": [3, 3],
+            "issued_at_timestamp": [300.0, 301.0],
+            "target_lap_number": [4, 4],
+            "target_timestamp": [400.0, 401.0],
+            "lap_time_seconds": [100.0, 100.0],
+            "forecast_ssm_seconds": [100.0, 100.0],
+            "forecast_naive_seconds": [110.0, 110.0],
+        })
+        return rows, {"eligible_issuance_rows": 2, "issuances_without_next_eligible_target": 0}
+
+    monkeypatch.setattr(live_backtest, "_run_event", event_rows)
+    payload = live_backtest.run_backtest(
+        weekends_dir=weekends, year=2026, rounds=list(range(1, 10)),
+        weight_grid=(0.0, 1.0), cold_start_weight=cold_start_weight,
+        warmup_laps=3, live_seed=42, bootstrap_samples=2000, bootstrap_seed=7,
+        generated_at="2026-09-07T00:00:00Z",
+    )
+    assert payload["aggregate"]["paired_blend_vs_naive"]["ci95_seconds"][1] < 0
+    assert payload["aggregate"]["paired_ssm_vs_naive"]["ci95_seconds"][1] < 0
+    assert payload["decision"]["descriptive_blend_ci_upper_below_zero"] is True
+    assert payload["decision"]["descriptive_ssm_ci_upper_below_zero"] is True
+    assert payload["decision"]["point_forecast_retained"] is False
+    assert payload["decision"]["pure_ssm_retained"] is False
+    assert payload["protocol"]["evidence_role"] == "diagnostic_only"
+    configuration = payload["next_event_configuration"]
+    assert configuration["research_selected_ssm_weight"] == 1.0
+    assert configuration["research_runtime_default_ssm_weight"] == 0.0
+    assert configuration["research_runtime_default_naive_weight"] == 1.0
+    assert configuration["research_runtime_gate"] == "diagnostic_only_fallback_to_naive"
+    assert "final_all_evaluated_event_weight_differs_from_scored_policy" in payload["decision"]["blockers"]

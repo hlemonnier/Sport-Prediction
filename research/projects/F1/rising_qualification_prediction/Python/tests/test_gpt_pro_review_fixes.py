@@ -1251,7 +1251,7 @@ def test_betting_uses_fair_edge_only_for_plausible_complete_market() -> None:
     predictions = pd.DataFrame(
         [
             {"driver_name": "Driver A", "driver_id": "a", "rank": 1, "proba_win": 0.49},
-            {"driver_name": "Driver B", "driver_id": "b", "rank": 2, "proba_win": 0.18},
+            {"driver_name": "Driver B", "driver_id": "b", "rank": 2, "proba_win": 0.51},
         ]
     )
     odds = pd.DataFrame(
@@ -1261,19 +1261,16 @@ def test_betting_uses_fair_edge_only_for_plausible_complete_market() -> None:
         ]
     )
 
-    recommendations = build_betting_recommendations(
-        predictions,
-        odds,
-        BettingConfig(
-            min_edge=0.03,
-            min_expected_roi=0.02,
-            max_bet_fraction=0.01,
-            require_probability_gate=False,
-            require_oof_probability_audit=False,
-            require_odds_timestamp=False,
-            fair_market_min_selection_count=2,
-        ),
+    config = BettingConfig(
+        min_edge=0.03,
+        min_expected_roi=0.02,
+        max_bet_fraction=0.01,
+        require_probability_gate=True,
+        require_oof_probability_audit=False,
+        require_odds_timestamp=False,
+        fair_market_min_selection_count=2,
     )
+    recommendations = build_betting_recommendations(predictions, odds, config)
     driver_a = recommendations[recommendations["driver_name"] == "Driver A"].iloc[0]
 
     assert driver_a["edge_source"] == "fair_market"
@@ -1281,6 +1278,15 @@ def test_betting_uses_fair_edge_only_for_plausible_complete_market() -> None:
     assert float(driver_a["probability_edge"]) < 0.03
     assert float(driver_a["edge_used"]) >= 0.03
     assert driver_a["status"] == "bet"
+
+    # Valid full-field model probabilities do not make a partial quote book
+    # complete: removing the other selection must disable de-vigging.
+    partial = build_betting_recommendations(predictions, odds.iloc[:1], config).iloc[0]
+    assert bool(partial["probability_gate_passed"]) is True
+    assert partial["edge_source"] == "raw_odds"
+    assert bool(partial["fair_edge_available"]) is False
+    assert partial["status"] == "skip"
+    assert partial["reject_reason"] == "edge_below_min"
 
 
 def test_betting_default_gate_blocks_incomplete_probability_sums() -> None:

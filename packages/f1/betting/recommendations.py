@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from packages.f1.data.schemas.driver import driver_identity_signature, resolve_driver_matches
+from packages.f1.data.schemas.driver import driver_identity_signature, resolve_driver_matches, row_identity_aliases
 
 
 MARKET_ALIASES = {
@@ -35,6 +35,8 @@ MARKET_PROBABILITY_COLUMNS = {
     "podium": ["proba_top3", "p_top3"],
     "top10": ["proba_top10", "p_top10"],
 }
+MARKET_POSITION_COUNTS = {"winner": 1, "podium": 3, "top10": 10}
+ALLOCATION_METHOD = "capped_independent_binary_fractional_kelly_heuristic"
 
 PROBABILITY_AUDIT_SCHEMA_VERSION = "pl_gumbel_probability_audit_v4_disjoint_calibration"
 REQUIRED_PROBABILITY_AUDIT_FIELDS = {
@@ -68,6 +70,20 @@ class BettingConfig:
     fair_market_overround_min: float = 0.90
     fair_market_overround_max: float = 1.35
 
+    def __post_init__(self) -> None:
+        for key in ("bankroll", "min_edge", "min_expected_roi", "min_stake", "probability_sum_tolerance",
+                    "fair_market_overround_min", "fair_market_overround_max"):
+            if not math.isfinite(float(getattr(self, key))):
+                raise ValueError(f"{key} must be finite")
+        for key in ("fractional_kelly", "min_probability", "max_bet_fraction", "max_market_fraction", "max_total_fraction"):
+            value = float(getattr(self, key))
+            if not math.isfinite(value) or not 0.0 <= value <= 1.0:
+                raise ValueError(f"{key} must be a finite fraction between zero and one")
+        if self.bankroll < 0 or self.min_stake < 0 or self.probability_sum_tolerance < 0:
+            raise ValueError("bankroll, minimum stake and probability tolerance must be non-negative")
+        if not 0.0 < self.fair_market_overround_min <= self.fair_market_overround_max:
+            raise ValueError("overround bounds must be positive and ordered")
+
 
 def _to_float(value: object, default: float = float("nan")) -> float:
     try:
@@ -90,6 +106,15 @@ def normalize_participant(value: object) -> str:
     if not text:
         return ""
     return " ".join(text.split())
+
+
+def _event_identity_token(value: object) -> str:
+    numeric = _to_float(value)
+    if math.isfinite(numeric) and numeric.is_integer():
+        return str(int(numeric))
+    if value is None or pd.isna(value):
+        return ""
+    return str(value).strip()
 
 
 def _records_from_json_payload(payload: object) -> list[dict[str, Any]]:
@@ -183,14 +208,13 @@ def _driver_key_frame(frame: pd.DataFrame) -> pd.Series:
 
 
 def _ranked_prediction_frame(predictions: pd.DataFrame) -> pd.DataFrame:
-    pred = predictions.copy()
+    pred = predictions.reset_index(drop=True).copy()
     if "pred_rank" not in pred.columns:
         if "rank" in pred.columns:
             pred["pred_rank"] = pd.to_numeric(pred["rank"], errors="coerce")
         else:
             pred["pred_rank"] = pd.Series(range(1, len(pred) + 1), index=pred.index, dtype=float)
     pred["pred_rank"] = pd.to_numeric(pred["pred_rank"], errors="coerce")
-    pred = pred[pred["pred_rank"].notna()].copy()
     pred["_identity_signature"] = pred.apply(driver_identity_signature, axis=1)
     return pred
 
@@ -293,43 +317,62 @@ def _standardize_odds_frame(odds: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def _probability_gate(predictions: pd.DataFrame, config: BettingConfig) -> tuple[bool, str]:
+def _prediction_integrity(predictions: pd.DataFrame) -> tuple[bool, str, dict[str, pd.Series]]:
+    """Validate identities and every supplied probability alias before sums.
+
+    Disabling an empirical probability gate never permits invalid probability
+    domains, conflicting aliases, missing values or ambiguous driver rows.
+    """
+
     if predictions.empty:
-        return False, "predictions_empty"
-    key = _driver_key_frame(predictions)
-    frame = predictions[key != ""].copy()
-    if frame.empty:
-        return False, "prediction_driver_keys_missing"
-    frame["_driver_key"] = key.loc[frame.index]
-    frame = frame.drop_duplicates(subset=["_driver_key"], keep="first")
-    n = int(len(frame))
-    if n <= 0:
-        return False, "prediction_field_empty"
+        return False, "predictions_empty", {}
+    if not predictions.columns.is_unique:
+        return False, "prediction_duplicate_columns", {}
+    if not predictions.index.is_unique:
+        return False, "prediction_duplicate_row_index", {}
+    seen_aliases: set[tuple[int, str]] = set()
+    for _, row in predictions.iterrows():
+        aliases = {alias for alias in row_identity_aliases(row) if alias[0] <= 4}
+        if not aliases:
+            return False, "prediction_driver_keys_missing", {}
+        if len({alias for priority, alias in aliases if priority == 0}) > 1:
+            return False, "prediction_driver_identity_conflict", {}
+        if seen_aliases.intersection(aliases):
+            return False, "prediction_duplicate_driver_identity", {}
+        seen_aliases.update(aliases)
+    for column in ("event_id", "event_key", "year", "round_number"):
+        if column in predictions and predictions[column].dropna().map(_event_identity_token).nunique() > 1:
+            return False, "prediction_multiple_events_unsupported", {}
+    probabilities: dict[str, pd.Series] = {}
+    for market, aliases in MARKET_PROBABILITY_COLUMNS.items():
+        present = [column for column in aliases if column in predictions]
+        for column in present:
+            values = pd.to_numeric(predictions[column], errors="coerce")
+            if values.isna().any() or (~values.between(0.0, 1.0)).any():
+                return False, f"{column}_invalid_or_missing_probability", {}
+            if market in probabilities and not values.sub(probabilities[market]).abs().le(1e-12).all():
+                return False, f"{market}_probability_alias_conflict", {}
+            probabilities[market] = values
+    if not probabilities:
+        return False, "prediction_probabilities_missing", {}
+    return True, "passed", probabilities
+
+
+def _probability_gate(predictions: pd.DataFrame, config: BettingConfig) -> tuple[bool, str]:
+    valid, reason, probabilities = _prediction_integrity(predictions)
+    if not valid:
+        return False, reason
+    n = int(len(predictions))
     tolerance = float(max(config.probability_sum_tolerance, 0.0))
-    checks = [
-        ("proba_win", min(1.0, float(n))),
-        ("proba_top3", min(3.0, float(n))),
-        ("proba_top10", min(10.0, float(n))),
-    ]
-    for column, expected in checks:
-        if column not in frame.columns:
-            continue
-        values = pd.to_numeric(frame[column], errors="coerce")
-        if values.notna().sum() == 0:
-            continue
-        total = float(values.fillna(0.0).sum())
+    for market, values in probabilities.items():
+        expected = float(min(MARKET_POSITION_COUNTS[market], n))
+        total = float(values.sum())
         if abs(total - expected) > tolerance:
-            return False, f"{column}_sum_{total:.3f}_expected_{expected:.3f}"
-    if {"proba_win", "proba_top3"}.issubset(frame.columns):
-        win = pd.to_numeric(frame["proba_win"], errors="coerce")
-        top3 = pd.to_numeric(frame["proba_top3"], errors="coerce")
-        if ((win > top3 + 1e-9) & win.notna() & top3.notna()).any():
-            return False, "win_gt_top3"
-    if {"proba_top3", "proba_top10"}.issubset(frame.columns):
-        top3 = pd.to_numeric(frame["proba_top3"], errors="coerce")
-        top10 = pd.to_numeric(frame["proba_top10"], errors="coerce")
-        if ((top3 > top10 + 1e-9) & top3.notna() & top10.notna()).any():
-            return False, "top3_gt_top10"
+            return False, f"{MARKET_PROBABILITY_COLUMNS[market][0]}_sum_{total:.3f}_expected_{expected:.3f}"
+    for lower, higher in (("winner", "podium"), ("podium", "top10"), ("winner", "top10")):
+        if lower in probabilities and higher in probabilities:
+            if (probabilities[lower] > probabilities[higher] + 1e-12).any():
+                return False, f"{lower}_gt_{higher}"
     return True, "passed"
 
 
@@ -372,17 +415,27 @@ def _probability_audit_gate(predictions: pd.DataFrame, config: BettingConfig) ->
 
 
 def _probability_for_market(row: pd.Series, market: str) -> float:
+    values: list[float] = []
     for column in MARKET_PROBABILITY_COLUMNS.get(market, []):
         if column in row.index:
             value = _to_float(row.get(column))
-            if math.isfinite(value):
-                return max(0.0, min(1.0, value))
-    return float("nan")
+            if not math.isfinite(value) or not 0.0 <= value <= 1.0:
+                return float("nan")
+            values.append(value)
+    if not values or max(values) - min(values) > 1e-12:
+        return float("nan")
+    return values[0]
 
 
 def _reject_reason(row: pd.Series, config: BettingConfig) -> str:
+    if not bool(row.get("prediction_integrity_passed", False)):
+        return "prediction_integrity_failed"
     if not bool(row.get("matched_prediction", False)):
         return "no_prediction_match"
+    if bool(row.get("duplicate_odds_selection", False)):
+        return "duplicate_odds_selection"
+    if not bool(row.get("prediction_event_match", True)):
+        return "prediction_event_mismatch"
     if str(row.get("market", "")) not in MARKET_PROBABILITY_COLUMNS:
         return "unsupported_market"
     if not math.isfinite(_to_float(row.get("decimal_odds"))) or _to_float(row.get("decimal_odds")) <= 1.0:
@@ -411,6 +464,72 @@ def _reject_reason(row: pd.Series, config: BettingConfig) -> str:
     return ""
 
 
+def _attach_fair_market_probabilities(
+    merged: pd.DataFrame,
+    *,
+    prediction_count: int,
+    probability_gate_passed: bool,
+    config: BettingConfig,
+) -> pd.DataFrame:
+    """Remove proportional margin only from complete, unique event markets.
+
+    A top-K book contains K winning selections, so its fair marginals sum to
+    min(K, field size). Sum(implied)/K is the comparable overround ratio. This
+    proportional marginal correction does not infer a joint ranking law.
+    """
+
+    out = merged.copy()
+    out["fair_market_probability"] = float("nan")
+    out["fair_edge_available"] = False
+    out["fair_edge_unavailable_reason"] = "incomplete_market"
+    out["duplicate_odds_selection"] = False
+    out["market_overround"] = float("nan")
+    out["market_implied_probability_sum"] = float("nan")
+    out["market_selection_count"] = 0
+    out["market_probability_mass"] = float("nan")
+    groups = [column for column in ("event_id", "event_key", "year", "round_number", "market", "bookmaker") if column in out]
+    for _, indices in out.groupby(groups, dropna=False, sort=False).groups.items():
+        group = out.loc[indices]
+        market = str(group["market"].iloc[0])
+        mass = float(min(MARKET_POSITION_COUNTS.get(market, 0), prediction_count))
+        indices_matched = group.loc[group["matched_prediction"], "_prediction_index"]
+        repeated = indices_matched.duplicated(keep=False)
+        out.loc[indices_matched.index[repeated], "duplicate_odds_selection"] = True
+        implied = pd.to_numeric(group["implied_probability_raw"], errors="coerce")
+        implied_sum = float(implied.sum())
+        ratio = implied_sum / mass if mass > 0.0 else float("nan")
+        out.loc[indices, "market_implied_probability_sum"] = implied_sum
+        out.loc[indices, "market_selection_count"] = len(group)
+        out.loc[indices, "market_probability_mass"] = mass
+        out.loc[indices, "market_overround"] = ratio
+        reason = ""
+        if market not in MARKET_POSITION_COUNTS:
+            reason = "unsupported_market"
+        elif not probability_gate_passed:
+            reason = "prediction_field_not_probability_certified"
+        elif repeated.any():
+            reason = "duplicate_market_selection"
+        elif not group["matched_prediction"].all() or len(group) != prediction_count or indices_matched.nunique() != prediction_count:
+            reason = "incomplete_or_unmatched_market_field"
+        elif not group["prediction_event_match"].all():
+            reason = "prediction_event_mismatch"
+        elif len(group) < max(2, int(config.fair_market_min_selection_count)):
+            reason = "market_below_minimum_selection_count"
+        elif implied.isna().any() or (~implied.between(0.0, 1.0, inclusive="neither")).any():
+            reason = "invalid_market_odds"
+        elif not float(config.fair_market_overround_min) <= ratio <= float(config.fair_market_overround_max):
+            reason = "overround_ratio_outside_configured_bounds"
+        else:
+            fair = implied / ratio
+            if not fair.between(0.0, 1.0).all():
+                reason = "proportional_fair_marginals_outside_probability_domain"
+            else:
+                out.loc[indices, "fair_market_probability"] = fair
+                out.loc[indices, "fair_edge_available"] = True
+        out.loc[indices, "fair_edge_unavailable_reason"] = reason
+    return out
+
+
 def build_betting_recommendations(
     predictions: pd.DataFrame,
     odds: pd.DataFrame,
@@ -421,18 +540,36 @@ def build_betting_recommendations(
         return pd.DataFrame()
 
     probability_gate_passed, probability_gate_reason = _probability_gate(predictions, cfg)
+    prediction_integrity_passed, prediction_integrity_reason, _ = _prediction_integrity(predictions)
     probability_audit_passed, probability_audit_reason = _probability_audit_gate(predictions, cfg)
 
     prices = _standardize_odds_frame(odds)
+    # Model probabilities must originate in the prediction frame. A quote
+    # input carrying a similarly named column cannot override those values.
+    probability_columns = {column for aliases in MARKET_PROBABILITY_COLUMNS.values() for column in aliases}
+    prices = prices.rename(columns={column: f"odds_input_{column}" for column in probability_columns if column in prices})
     prices["market"] = prices["market"].map(normalize_market)
     prices["driver_key"] = _driver_key_frame(prices)
     if "decimal_odds" in prices.columns:
         prices["decimal_odds"] = pd.to_numeric(prices["decimal_odds"], errors="coerce")
     else:
         prices["decimal_odds"] = pd.Series(float("nan"), index=prices.index, dtype=float)
-    prices = prices[prices.apply(driver_identity_signature, axis=1) != ""].copy()
+    prices = prices.reset_index(drop=True)
+    # Invalid prediction frames still produce explicit skipped quote rows;
+    # don't pass duplicate columns into identity matching or pandas indexing.
+    match_predictions = predictions if predictions.columns.is_unique else predictions.iloc[:, ~predictions.columns.duplicated()]
 
-    merged, identity_diagnostics = _attach_prediction_matches(prices, predictions)
+    merged, identity_diagnostics = _attach_prediction_matches(prices, match_predictions)
+    merged["prediction_integrity_passed"] = bool(prediction_integrity_passed)
+    merged["prediction_integrity_reason"] = prediction_integrity_reason
+    merged["prediction_event_match"] = True
+    for column in ("event_id", "event_key", "year", "round_number"):
+        if column in prices:
+            prediction_column = f"{column}_prediction"
+            if prediction_column in merged:
+                merged["prediction_event_match"] &= merged[column].map(_event_identity_token).eq(merged[prediction_column].map(_event_identity_token))
+            elif prices[column].dropna().map(_event_identity_token).nunique() > 1:
+                merged["prediction_event_match"] = False
     merged["identity_match_diagnostics"] = json.dumps(identity_diagnostics, sort_keys=True)
     if "driver_name_prediction" in merged.columns:
         merged["driver_name"] = merged["driver_name"].where(
@@ -449,21 +586,10 @@ def build_betting_recommendations(
     merged["probability_audit_passed"] = bool(probability_audit_passed)
     merged["probability_audit_reason"] = str(probability_audit_reason)
     merged["implied_probability_raw"] = 1.0 / merged["decimal_odds"]
-    group_cols = ["market"]
-    if "bookmaker" in merged.columns:
-        group_cols.append("bookmaker")
-    merged["market_overround"] = merged.groupby(group_cols)["implied_probability_raw"].transform("sum")
-    merged["market_selection_count"] = merged.groupby(group_cols)["implied_probability_raw"].transform("count")
-    merged["fair_market_probability"] = merged["implied_probability_raw"] / merged["market_overround"].where(
-        merged["market_overround"] > 0.0,
-    )
+    merged = _attach_fair_market_probabilities(merged, prediction_count=len(predictions),
+        probability_gate_passed=probability_gate_passed, config=cfg)
     merged["probability_edge"] = merged["model_probability"] - merged["implied_probability_raw"]
     merged["fair_probability_edge"] = merged["model_probability"] - merged["fair_market_probability"]
-    merged["fair_edge_available"] = (
-        (merged["market_selection_count"] >= int(max(cfg.fair_market_min_selection_count, 2)))
-        & (merged["market_overround"] >= float(max(cfg.fair_market_overround_min, 0.0)))
-        & (merged["market_overround"] <= float(max(cfg.fair_market_overround_max, cfg.fair_market_overround_min)))
-    )
     merged["edge_used"] = merged["probability_edge"]
     merged.loc[merged["fair_edge_available"], "edge_used"] = merged.loc[
         merged["fair_edge_available"],
@@ -481,11 +607,16 @@ def build_betting_recommendations(
     merged["status"] = merged["reject_reason"].map(lambda reason: "candidate" if not reason else "skip")
     merged["stake"] = 0.0
     merged["stake_fraction"] = 0.0
+    merged["allocation_method"] = ALLOCATION_METHOD
+    merged["joint_outcome_dependence_modeled"] = False
+    merged["portfolio_log_growth_optimal"] = False
 
     total_cap = float(max(cfg.bankroll, 0.0)) * float(max(cfg.max_total_fraction, 0.0))
     market_cap = float(max(cfg.bankroll, 0.0)) * float(max(cfg.max_market_fraction, 0.0))
     total_allocated = 0.0
     market_allocated: dict[str, float] = {}
+    selection_allocated: dict[tuple[str, object], float] = {}
+    selection_cap = float(max(cfg.bankroll, 0.0)) * float(max(cfg.max_bet_fraction, 0.0))
 
     candidate_order = merged[merged["status"] == "candidate"].sort_values(
         ["expected_roi", "edge_used", "probability_edge", "model_probability"],
@@ -496,8 +627,10 @@ def build_betting_recommendations(
         market = str(row.get("market", "unknown"))
         remaining_total = max(0.0, total_cap - total_allocated)
         remaining_market = max(0.0, market_cap - market_allocated.get(market, 0.0))
-        stake = min(float(row["target_stake"]), remaining_total, remaining_market)
-        if stake < float(max(cfg.min_stake, 0.0)):
+        selection = (market, row["_prediction_index"])
+        remaining_selection = max(0.0, selection_cap - selection_allocated.get(selection, 0.0))
+        stake = min(float(row["target_stake"]), remaining_total, remaining_market, remaining_selection)
+        if stake <= 0.0 or stake < float(max(cfg.min_stake, 0.0)):
             merged.loc[idx, "status"] = "skip"
             merged.loc[idx, "reject_reason"] = "exposure_or_min_stake"
             continue
@@ -507,6 +640,7 @@ def build_betting_recommendations(
         merged.loc[idx, "stake_fraction"] = stake / float(cfg.bankroll) if cfg.bankroll > 0.0 else 0.0
         total_allocated += stake
         market_allocated[market] = market_allocated.get(market, 0.0) + stake
+        selection_allocated[selection] = selection_allocated.get(selection, 0.0) + stake
 
     output_cols = [
         "status",
@@ -559,6 +693,14 @@ def build_betting_report(recommendations: pd.DataFrame, config: BettingConfig) -
         "readiness_status": readiness_status,
         "readiness_reason": "model probabilities require market-calibrated proof and settled forward evidence before live betting",
         "stake_label": "paper_candidate",
+        "allocation_method": ALLOCATION_METHOD,
+        "joint_outcome_dependence_modeled": False,
+        "portfolio_log_growth_optimal": False,
+        "allocation_limitations": [
+            "winner_podium_top10_payoffs_share_the_same_race_outcome",
+            "exposure_caps_do_not_make_independent_binary_kelly_a_joint_portfolio_optimizer",
+            "joint_scenario_rank_samples_and_matched_probability_marginals_required_for_joint_optimization",
+        ],
         "config": asdict(config),
         "summary": {
             "bets": int(len(bets)),

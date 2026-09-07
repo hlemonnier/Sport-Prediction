@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "maturity": "research_only",
+  "predictive_edge_established": false,
+  "real_data_benchmark_status": "not_established",
+  "implemented_models": ["joint_dixon_coles", "frequency_baseline", "gradient_boosting", "held_out_calibration", "selected_probability_mixture"],
+  "implemented_forecasts": ["pre_match_1x2", "coherent_joint_score_distribution"],
+  "implemented_provider": "local_csv_or_parquet",
+  "unimplemented_forecasts": ["live_match", "player_props"],
+  "unimplemented_providers": ["football_data_org", "fbref", "statsbomb"],
+  "unimplemented_features": ["lineup", "injuries", "rest_travel", "market"],
+  "weather": "metadata_only_not_a_predictor",
+  "validation": "disjoint chronological fit, calibration, selection, outer test; whole UTC matchdays; result availability at boundaries",
+  "production_parameters": "same frozen fit population used for held-out evaluation; form features update only from available completed results",
+  "performance_claims": "No accuracy, calibration superiority, market edge, or profitability established by implementation or synthetic regression tests."
+}

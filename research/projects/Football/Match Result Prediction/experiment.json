@@ -4,9 +4,30 @@
   "name": "Match Result Prediction",
   "kind": "football_match",
   "python_entrypoint": "run_experiment.py",
-  "context_keys": ["league", "season", "round"],
+  "context_keys": [
+    "league",
+    "season",
+    "round"
+  ],
   "dataset_snapshot_root": "data/football",
-  "model_families": ["baseline", "ml", "dl"],
-  "outputs": ["rankings", "probabilities"],
-  "diagnostics": ["calibration", "rank_metrics"]
+  "model_families": [
+    "baseline",
+    "statistical",
+    "ml"
+  ],
+  "outputs": [
+    "rankings",
+    "probabilities",
+    "joint_score_distribution",
+    "expected_goals"
+  ],
+  "diagnostics": [
+    "chronological_populations",
+    "content_fingerprints",
+    "outer_calibration",
+    "outer_rank_metrics",
+    "joint_solver_convergence"
+  ],
+  "maturity": "research_only",
+  "support_manifest": "packages/football/maturity.json"
 }

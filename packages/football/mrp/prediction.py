@@ -31,9 +31,11 @@ from .training import (
     outcome_probabilities,
     rank_outcome_classes,
     select_hybrid_weight,
-    train_gradient_boosting_benchmark,
+    train_gradient_boosting_model,
 )
-from .utils import datetime_to_iso, dedupe_preserve_order, format_decimal, format_probability
+from .utils import datetime_to_iso, dedupe_preserve_order, format_decimal, format_probability, outcome_class
+from .protocol import chronological_populations
+from .score_distribution import build_score_distribution
 from .weather import fetch_fixture_weather_summary
 
 
@@ -149,318 +151,188 @@ def _is_hybrid_eligible(
 
 def run_prediction(config: PredictionConfig) -> PredictionResult:
     notes: list[str] = []
-    rows: list[dict[str, str]] = []
     model_policy = _normalize_football_model(config.football_model)
     calibration_policy = _normalize_calibration_policy(config.football_calibration)
-
     dataset, data_notes = load_local_football_data(config)
     notes.extend(data_notes)
-
     fixtures, fixture_notes = select_target_fixtures(dataset, config)
     notes.extend(fixture_notes)
-
     if not fixtures:
-        notes.append(
-            "Aucune prediction generee: aucun fixture local correspondant aux filtres."
-        )
-        return PredictionResult(
-            version=MODEL_VERSION,
-            rows=[],
-            notes=dedupe_preserve_order(notes),
-            diagnostics={
-                "training_sample_size": 0,
-                "models": {},
-            },
-        )
-
-    weather_summaries: dict[str, dict[str, object]] = {}
-    if config.weather_enabled:
-        for fixture in fixtures:
-            summary, weather_notes = fetch_fixture_weather_summary(
-                fixture=fixture,
-                cache_root=config.weather_cache_dir or config.cache_dir,
-                provider_name=config.weather_provider,
-                fallback_latitude=config.weather_latitude,
-                fallback_longitude=config.weather_longitude,
-                fallback_timezone=config.weather_timezone,
-                hours_before=config.weather_hours_before,
-                hours_after=config.weather_hours_after,
-            )
-            notes.extend(weather_notes)
-            weather_summaries[fixture.match_id] = summary
-
-    training_matches, training_notes = select_training_matches(dataset, config, fixtures)
+        return PredictionResult(MODEL_VERSION, [], dedupe_preserve_order(notes), {
+            "training_sample_size": 0, "models": {}, "status": "unavailable",
+            "reason": "No dated target fixtures match the requested population.",
+            "maturity": "research_only", "predictive_edge_established": False,
+        })
+    history_matches, training_notes = select_training_matches(dataset, config, fixtures)
     notes.extend(training_notes)
+    populations = chronological_populations(history_matches)
+    fit_matches = populations.fit
+    baseline = fit_frequency_baseline(fit_matches, notes)
+    dixon = fit_dixon_coles(fit_matches, notes,
+        half_life_days=config.goal_strength_half_life_days,
+        reference_time=min(f.date for f in (populations.calibration or fixtures)))
+    gbdt = train_gradient_boosting_model(fit_matches, notes)
+    raw_cache: dict[str, tuple[tuple[float, float, float], tuple[float, float, float] | None]] = {}
 
-    baseline_model = fit_frequency_baseline(training_matches, notes)
-    dixon_coles_model = fit_dixon_coles(training_matches, notes)
-    benchmark_model = train_gradient_boosting_benchmark(training_matches, notes)
-    history = build_history_from_matches(training_matches)
+    def raw_components(record: Any) -> tuple[tuple[float, float, float], tuple[float, float, float] | None]:
+        if record.match_id not in raw_cache:
+            raw_dc = outcome_probabilities(*dixon.expected_goals(record.home_team_id, record.away_team_id), dixon.rho)
+            raw_gbdt = None
+            if gbdt is not None:
+                history = build_history_from_matches(history_matches, as_of=record.date)
+                raw_gbdt = gbdt.predict(fixture_feature_vector(record, history))
+            raw_cache[record.match_id] = raw_dc, raw_gbdt
+        return raw_cache[record.match_id]
 
-    if model_policy == "dixon" and calibration_policy == "auto":
-        dixon_calibrator = fit_probability_calibrator(training_matches, dixon_coles_model, notes)
+    labels_calibration = [outcome_class(m.home_goals, m.away_goals) for m in populations.calibration]
+    if populations.calibration:
+        dixon_calibrator = fit_probability_calibrator_with_policy(populations.calibration, dixon, notes, policy=calibration_policy)
     else:
-        dixon_calibrator = fit_probability_calibrator_with_policy(
-            training_matches,
-            dixon_coles_model,
-            notes,
-            policy=calibration_policy,
-        )
-
-    def _predict_dixon_coles_calibrated(match_record: Any) -> tuple[float, float, float]:
-        lambda_home_eval, lambda_away_eval = dixon_coles_model.expected_goals(
-            match_record.home_team_id, match_record.away_team_id
-        )
-        raw_eval = outcome_probabilities(
-            lambda_home=lambda_home_eval,
-            lambda_away=lambda_away_eval,
-            rho=dixon_coles_model.rho,
-        )
-        return dixon_calibrator.apply(raw_eval)
-
+        dixon_calibrator = fit_probability_calibrator_from_rows([], [], notes, policy="off", context="dixon_no_heldout_calibration")
     gbdt_calibrator = fit_probability_calibrator_from_rows(
-        probabilities=list(getattr(benchmark_model, "validation_probabilities", []))
-        if benchmark_model is not None
-        else [],
-        labels=list(getattr(benchmark_model, "validation_labels", []))
-        if benchmark_model is not None
-        else [],
-        notes=notes,
-        policy=calibration_policy,
-        context="gbdt",
-    )
+        [raw_components(m)[1] for m in populations.calibration] if gbdt is not None else [],
+        labels_calibration if gbdt is not None else [], notes,
+        policy=calibration_policy, context="gbdt_heldout_calibration")
 
-    validation_labels = (
-        list(benchmark_model.validation_labels) if benchmark_model is not None else []
-    )
-    validation_pairs = (
-        list(benchmark_model.validation_pairs) if benchmark_model is not None else []
-    )
-    validation_gbdt = (
-        [
-            gbdt_calibrator.apply((row[0], row[1], row[2]))
-            for row in benchmark_model.validation_probabilities
-        ]
-        if benchmark_model is not None
-        else []
-    )
-    validation_dixon = []
-    for home_team_id, away_team_id in validation_pairs:
-        lambda_home_eval, lambda_away_eval = dixon_coles_model.expected_goals(
-            home_team_id, away_team_id
-        )
-        raw_eval = outcome_probabilities(
-            lambda_home=lambda_home_eval,
-            lambda_away=lambda_away_eval,
-            rho=dixon_coles_model.rho,
-        )
-        validation_dixon.append(dixon_calibrator.apply(raw_eval))
+    def calibrated_components(record: Any) -> tuple[tuple[float, float, float], tuple[float, float, float] | None]:
+        dc, gb = raw_components(record)
+        return dixon_calibrator.apply(dc), gbdt_calibrator.apply(gb) if gb is not None else None
 
-    gbdt_enabled = benchmark_model is not None
     hybrid_weight = 0.0
     model_used = model_policy
-    calibration_effective = f"dixon:{dixon_calibrator.method}"
-
     if model_policy == "hybrid":
-        eligible = _is_hybrid_eligible(
-            training_matches=training_matches,
-            fixtures=fixtures,
-            validation_size=len(validation_labels),
-            benchmark_available=benchmark_model is not None,
-            notes=notes,
-        )
+        eligible = _is_hybrid_eligible(training_matches=fit_matches, fixtures=fixtures,
+            validation_size=len(populations.selection), benchmark_available=gbdt is not None, notes=notes)
         if eligible:
+            selection_components = [calibrated_components(m) for m in populations.selection]
             hybrid_weight = select_hybrid_weight(
-                labels=validation_labels,
-                dc_probabilities=validation_dixon,
-                gbdt_probabilities=validation_gbdt,
-                notes=notes,
-            )
-            gbdt_enabled = True
-            model_used = "hybrid"
-            calibration_effective = f"dixon:{dixon_calibrator.method};gbdt:{gbdt_calibrator.method}"
+                [outcome_class(m.home_goals, m.away_goals) for m in populations.selection],
+                [p[0] for p in selection_components], [p[1] for p in selection_components], notes)
         else:
-            hybrid_weight = 0.0
-            gbdt_enabled = False
             model_used = "dixon"
-            notes.append("Hybrid ineligible: fallback Dixon-Coles.")
-    elif model_policy == "gbdt":
-        if benchmark_model is None:
-            model_used = "dixon"
-            gbdt_enabled = False
-            notes.append("GBDT indisponible: fallback Dixon-Coles.")
-        else:
-            model_used = "gbdt"
-            gbdt_enabled = True
-            calibration_effective = f"gbdt:{gbdt_calibrator.method}"
-    else:
+            notes.append("Hybrid unavailable without an independent selection population; using Dixon-Coles.")
+    elif model_policy == "gbdt" and gbdt is None:
         model_used = "dixon"
-        gbdt_enabled = False
+    gbdt_enabled = model_used in {"gbdt", "hybrid"} and gbdt is not None
+    calibration_effective = (f"gbdt:{gbdt_calibrator.method}" if model_used == "gbdt" else
+        f"dixon:{dixon_calibrator.method};gbdt:{gbdt_calibrator.method}" if model_used == "hybrid" else
+        f"dixon:{dixon_calibrator.method}")
+
+    def selected_probabilities(record: Any) -> tuple[float, float, float]:
+        dc, gb = calibrated_components(record)
+        if model_used == "gbdt" and gb is not None:
+            return gb
+        if model_used == "hybrid" and gb is not None:
+            return normalize_probabilities(tuple((1-hybrid_weight)*d + hybrid_weight*g for d,g in zip(dc,gb)))
+        return dc
 
     diagnostics: dict[str, Any] = {
-        "training_sample_size": len(training_matches),
-        "model_used": model_used,
-        "gbdt_enabled": bool(gbdt_enabled),
-        "hybrid_weight_w": float(hybrid_weight),
-        "calibration_method_effective": calibration_effective,
-        "weather": {
-            "enabled": bool(config.weather_enabled),
-            "provider": config.weather_provider,
-            "fixture_count": len(weather_summaries),
-            "available_count": sum(
-                1 for summary in weather_summaries.values() if bool(summary.get("weather_available"))
-            ),
-        },
-        "models": {},
+        "schema_version": "football_forecast_diagnostics_v2",
+        "model_version": MODEL_VERSION,
+        "status": "fitted" if fit_matches else "prior_only",
+        "maturity": "research_only", "predictive_edge_established": False,
+        "training_sample_size": len(fit_matches), "available_history_sample_size": len(history_matches),
+        "model_used": model_used, "gbdt_enabled": gbdt_enabled,
+        "hybrid_weight_w": hybrid_weight, "calibration_method_effective": calibration_effective,
+        "protocol": populations.metadata(), "goal_model_fit": dixon.diagnostics,
+        "models": {}, "fixture_distributions": {},
+        "expected_goals_semantics": "Mean of the selected joint score distribution; lambda_* output fields are compatibility aliases.",
+        "model_comparison_scope": "All reported metrics use the identical untouched outer test population.",
+        "historical_xg_policy": "xG is used only with xg_available_at <= forecast cutoff; otherwise final goals are the explicit proxy.",
+        "calibration_note": "Classwise calibration followed by normalization is assessed on the final joint forecast; exact multiclass calibration is not assumed.",
+        "weather": {"enabled": bool(config.weather_enabled), "provider":config.weather_provider,
+                    "fixture_count":0, "available_count":0, "used_by_model":False},
     }
-    if config.shadow_eval:
-        diagnostics["models"] = {
-            "baseline_frequency": evaluate_match_probabilities(training_matches, baseline_model.predict),
-            "dixon_coles_calibrated": evaluate_match_probabilities(training_matches, _predict_dixon_coles_calibrated),
-        }
-        if benchmark_model is not None:
-            diagnostics["models"]["gbdt_validation"] = {
-                "sample_size": len(validation_labels),
-                "log_loss": benchmark_model.log_loss_value,
-                "brier": benchmark_model.brier_value,
-                "calibration_method": gbdt_calibrator.method,
-            }
-            if validation_labels and validation_dixon and validation_gbdt:
-                blended_probs = [
-                    normalize_probabilities(
-                        (
-                            (hybrid_weight * gbdt[HOME_WIN_CLASS]) + ((1.0 - hybrid_weight) * dc[HOME_WIN_CLASS]),
-                            (hybrid_weight * gbdt[DRAW_CLASS]) + ((1.0 - hybrid_weight) * dc[DRAW_CLASS]),
-                            (hybrid_weight * gbdt[AWAY_WIN_CLASS]) + ((1.0 - hybrid_weight) * dc[AWAY_WIN_CLASS]),
-                        )
-                    )
-                    for dc, gbdt in zip(validation_dixon, validation_gbdt)
-                ]
-                if blended_probs:
-                    eps = 1e-12
-                    log_loss_sum = 0.0
-                    for label, probs in zip(validation_labels, blended_probs):
-                        log_loss_sum += -math.log(max(eps, min(1.0, probs[label])))
-                    diagnostics["models"]["hybrid_validation"] = {
-                        "sample_size": len(validation_labels),
-                        "log_loss": log_loss_sum / float(len(validation_labels)),
-                        "weight": hybrid_weight,
-                    }
-
-    for fixture in fixtures:
-        lambda_home, lambda_away = dixon_coles_model.expected_goals(
-            fixture.home_team_id, fixture.away_team_id
-        )
-        raw_home, raw_draw, raw_away = outcome_probabilities(
-            lambda_home=lambda_home,
-            lambda_away=lambda_away,
-            rho=dixon_coles_model.rho,
-        )
-        calibrated_home, calibrated_draw, calibrated_away = dixon_calibrator.apply(
-            (raw_home, raw_draw, raw_away)
-        )
-        gbdt_home = calibrated_home
-        gbdt_draw = calibrated_draw
-        gbdt_away = calibrated_away
-        if benchmark_model is not None:
-            gbdt_raw = benchmark_model.predict(fixture_feature_vector(fixture, history))
-            gbdt_home, gbdt_draw, gbdt_away = gbdt_calibrator.apply(gbdt_raw)
-
-        if model_used == "gbdt" and gbdt_enabled:
-            selected = normalize_probabilities((gbdt_home, gbdt_draw, gbdt_away))
-        elif model_used == "hybrid" and gbdt_enabled:
-            selected = normalize_probabilities(
-                (
-                    (hybrid_weight * gbdt_home) + ((1.0 - hybrid_weight) * calibrated_home),
-                    (hybrid_weight * gbdt_draw) + ((1.0 - hybrid_weight) * calibrated_draw),
-                    (hybrid_weight * gbdt_away) + ((1.0 - hybrid_weight) * calibrated_away),
-                )
-            )
-        else:
-            selected = normalize_probabilities((calibrated_home, calibrated_draw, calibrated_away))
-
-        baseline_home, baseline_draw, baseline_away = baseline_model.predict(fixture)
-        primary_rank = _ranked_outcome_labels(selected)
-        baseline_rank = _ranked_outcome_labels((baseline_home, baseline_draw, baseline_away))
-        score_home, score_away, scoreline_probability = most_likely_scoreline(
-            lambda_home=lambda_home,
-            lambda_away=lambda_away,
-            rho=dixon_coles_model.rho,
-        )
-
-        row: dict[str, str] = {
-            "mode": config.mode,
-            "match_id": fixture.match_id,
-            "date": datetime_to_iso(fixture.date),
-            "league": fixture.league or config.league,
-            "season": str(fixture.season if fixture.season is not None else config.season),
-            "round": str(
-                fixture.round_number if fixture.round_number is not None else config.round_number
-            ),
-            "home_team_id": fixture.home_team_id,
-            "away_team_id": fixture.away_team_id,
-            "home_team_name": dataset.resolve_team_name(fixture.home_team_id),
-            "away_team_name": dataset.resolve_team_name(fixture.away_team_id),
-            "lambda_home_goals": format_decimal(lambda_home, 3),
-            "lambda_away_goals": format_decimal(lambda_away, 3),
-            "home_win_prob": format_probability(selected[HOME_WIN_CLASS]),
-            "draw_prob": format_probability(selected[DRAW_CLASS]),
-            "away_win_prob": format_probability(selected[AWAY_WIN_CLASS]),
-            "predicted_outcome": primary_rank[0],
-            "prediction_confidence": format_probability(
-                max(selected[HOME_WIN_CLASS], selected[DRAW_CLASS], selected[AWAY_WIN_CLASS])
-            ),
-            "outcome_rank_1": primary_rank[0],
-            "outcome_rank_2": primary_rank[1],
-            "outcome_rank_3": primary_rank[2],
-            "raw_home_win_prob": format_probability(raw_home),
-            "raw_draw_prob": format_probability(raw_draw),
-            "raw_away_win_prob": format_probability(raw_away),
-            "baseline_home_win_prob": format_probability(baseline_home),
-            "baseline_draw_prob": format_probability(baseline_draw),
-            "baseline_away_win_prob": format_probability(baseline_away),
-            "baseline_predicted_outcome": baseline_rank[0],
-            "baseline_confidence": format_probability(
-                max(baseline_home, baseline_draw, baseline_away)
-            ),
-            "baseline_outcome_rank_1": baseline_rank[0],
-            "baseline_outcome_rank_2": baseline_rank[1],
-            "baseline_outcome_rank_3": baseline_rank[2],
-            "predicted_scoreline": f"{score_home}-{score_away}",
-            "scoreline_prob": format_probability(scoreline_probability),
-            "calibration_method": dixon_calibrator.method,
-            "calibration_method_effective": calibration_effective,
-            "primary_model": model_used,
-            "model_used": model_used,
-            "gbdt_enabled": "true" if gbdt_enabled else "false",
-            "hybrid_weight_w": format_decimal(hybrid_weight, 1),
-            "baseline_model": "frequency_by_season_and_team",
-        }
-        row.update(_weather_row_fields(weather_summaries.get(fixture.match_id)))
-
-        if benchmark_model is not None and config.shadow_eval:
-            row["p_dc_home_win_prob"] = format_probability(calibrated_home)
-            row["p_dc_draw_prob"] = format_probability(calibrated_draw)
-            row["p_dc_away_win_prob"] = format_probability(calibrated_away)
-            row["p_gbdt_home_win_prob"] = format_probability(gbdt_home)
-            row["p_gbdt_draw_prob"] = format_probability(gbdt_draw)
-            row["p_gbdt_away_win_prob"] = format_probability(gbdt_away)
-            row["gbm_home_win_prob"] = format_probability(gbdt_home)
-            row["gbm_draw_prob"] = format_probability(gbdt_draw)
-            row["gbm_away_win_prob"] = format_probability(gbdt_away)
-            row["gbm_log_loss"] = format_decimal(benchmark_model.log_loss_value, 4)
-            row["gbm_brier"] = format_decimal(benchmark_model.brier_value, 4)
-
-        rows.append(row)
-
-    if config.mode == "scoreline":
-        notes.append("Mode scoreline: score probable (0..6) fourni avec proba 1X2.")
+    if config.shadow_eval and populations.test:
+        predictors = {"baseline_frequency": baseline.predict,
+                      "dixon_coles_raw": lambda m: raw_components(m)[0],
+                      "dixon_coles_calibrated": lambda m: calibrated_components(m)[0],
+                      "selected_model": selected_probabilities}
+        if gbdt is not None:
+            predictors["gbdt_raw"] = lambda m: raw_components(m)[1]
+            predictors["gbdt_calibrated"] = lambda m: calibrated_components(m)[1]
+        for name, predictor in predictors.items():
+            metric = evaluate_match_probabilities(populations.test, predictor)
+            metric["population_sha256"] = diagnostics["protocol"]["test"]["population_sha256"]
+            metric["evaluation_kind"] = "untouched_chronological_test"
+            diagnostics["models"][name] = metric
+        score_losses = []
+        evaluation_rows = []
+        for match in populations.test:
+            selected = selected_probabilities(match)
+            joint = build_score_distribution(*dixon.expected_goals(match.home_team_id, match.away_team_id),dixon.rho,
+                min_max_goals=max(match.home_goals,match.away_goals)).reconcile(selected)
+            score_p = joint.matrix[match.home_goals][match.away_goals]
+            score_losses.append(-math.log(max(1e-12, score_p)))
+            evaluation_rows.append({"match_id":match.match_id,"kickoff":match.date.isoformat(),
+                "outcome":outcome_class(match.home_goals,match.away_goals),
+                "score":[match.home_goals,match.away_goals],
+                "selected_probabilities":list(selected),"baseline_probabilities":list(baseline.predict(match)),
+                "score_probability":score_p})
+        diagnostics["models"]["selected_model"]["scoreline_log_loss"] = sum(score_losses)/len(score_losses)
+        diagnostics["evaluation_rows"] = evaluation_rows
+        diagnostics["protocol"]["metrics_status"] = "computed"
     else:
-        notes.append("Mode match_result: proba 1X2 et scoreline le plus probable fournis.")
+        diagnostics["protocol"]["metrics_status"] = "disabled" if not config.shadow_eval else "insufficient_history"
+        notes.append("No out-of-sample metrics reported: evaluation disabled or insufficient disjoint history.")
 
-    return PredictionResult(
-        version=MODEL_VERSION,
-        rows=rows,
-        notes=dedupe_preserve_order(notes),
-        diagnostics=diagnostics,
-    )
+    rows: list[dict[str, str]] = []
+    for fixture in fixtures:
+        lambda_home, lambda_away = dixon.expected_goals(fixture.home_team_id, fixture.away_team_id)
+        raw = build_score_distribution(lambda_home,lambda_away,dixon.rho)
+        selected = selected_probabilities(fixture)
+        joint = raw.reconcile(selected)
+        selected = joint.outcome_probabilities
+        expected_home,expected_away = joint.expected_goals
+        score_home,score_away,scoreline_probability = joint.most_likely_scoreline
+        baseline_probs = baseline.predict(fixture)
+        ranked = _ranked_outcome_labels(selected)
+        baseline_ranked = _ranked_outcome_labels(baseline_probs)
+        row = {
+            "mode":config.mode, "match_id":fixture.match_id,
+            "date":fixture.date.isoformat(), "league":fixture.league or config.league,
+            "season":str(fixture.season if fixture.season is not None else config.season),
+            "round":str(fixture.round_number if fixture.round_number is not None else config.round_number),
+            "home_team_id":fixture.home_team_id, "away_team_id":fixture.away_team_id,
+            "home_team_name":dataset.resolve_team_name(fixture.home_team_id),
+            "away_team_name":dataset.resolve_team_name(fixture.away_team_id),
+            "lambda_home_goals":format_decimal(expected_home,6),"lambda_away_goals":format_decimal(expected_away,6),
+            "expected_home_goals":format_decimal(expected_home,6),"expected_away_goals":format_decimal(expected_away,6),
+            "dixon_base_lambda_home_goals":format_decimal(lambda_home,6),"dixon_base_lambda_away_goals":format_decimal(lambda_away,6),
+            "home_win_prob":format_decimal(selected[0],12),"draw_prob":format_decimal(selected[1],12),"away_win_prob":format_decimal(selected[2],12),
+            "predicted_outcome":ranked[0], "prediction_confidence":format_decimal(max(selected),12),
+            "outcome_rank_1":ranked[0],"outcome_rank_2":ranked[1],"outcome_rank_3":ranked[2],
+            "raw_home_win_prob":format_decimal(raw.outcome_probabilities[0],12),
+            "raw_draw_prob":format_decimal(raw.outcome_probabilities[1],12),
+            "raw_away_win_prob":format_decimal(raw.outcome_probabilities[2],12),
+            "baseline_home_win_prob":format_decimal(baseline_probs[0],12),
+            "baseline_draw_prob":format_decimal(baseline_probs[1],12),
+            "baseline_away_win_prob":format_decimal(baseline_probs[2],12),
+            "baseline_predicted_outcome":baseline_ranked[0],"baseline_confidence":format_decimal(max(baseline_probs),12),
+            "baseline_outcome_rank_1":baseline_ranked[0],"baseline_outcome_rank_2":baseline_ranked[1],"baseline_outcome_rank_3":baseline_ranked[2],
+            "predicted_scoreline":f"{score_home}-{score_away}","scoreline_prob":format_decimal(scoreline_probability,12),
+            "score_distribution_omitted_mass":str(joint.omitted_probability_mass),
+            "score_distribution_tail_error_bound":str(joint.tail_probability_bound),
+            "calibration_method":calibration_effective,"calibration_method_effective":calibration_effective,
+            "primary_model":model_used,"model_used":model_used,"gbdt_enabled":str(gbdt_enabled).lower(),
+            "hybrid_weight_w":format_decimal(hybrid_weight,1),"baseline_model":"frequency_by_season_and_team",
+            "forecast_status":diagnostics["status"],"maturity":"research_only",
+        }
+        diagnostics["fixture_distributions"][fixture.match_id] = {
+            "score_probability_matrix":[list(r) for r in joint.matrix],
+            "outcome_probabilities":list(selected),"expected_goals":[expected_home,expected_away],
+            "base_omitted_probability_mass":joint.omitted_probability_mass,
+            "reconciled_tail_error_bound":joint.tail_probability_bound,
+            "reconciliation":"Preserve conditional score probabilities within each selected 1X2 region.",
+        }
+        if config.weather_enabled:
+            summary,weather_notes = fetch_fixture_weather_summary(fixture=fixture,
+                cache_root=config.weather_cache_dir or config.cache_dir,provider_name=config.weather_provider,
+                fallback_latitude=config.weather_latitude,fallback_longitude=config.weather_longitude,
+                fallback_timezone=config.weather_timezone,hours_before=config.weather_hours_before,hours_after=config.weather_hours_after)
+            notes.extend(weather_notes);row.update(_weather_row_fields(summary))
+            diagnostics["weather"]["fixture_count"] += 1
+            diagnostics["weather"]["available_count"] += int(bool(summary.get("weather_available")))
+        rows.append(row)
+    notes.append("Research forecasts: executable models and held-out metrics do not establish a deployable betting edge.")
+    return PredictionResult(MODEL_VERSION,rows,dedupe_preserve_order(notes),diagnostics)

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import csv
+import math
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -41,6 +42,14 @@ from .utils import (
 )
 
 
+def _normalize_timestamp(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if not isinstance(value, datetime):
+        raise TypeError("Record timestamps must be datetime objects or None.")
+    return value.astimezone(timezone.utc).replace(tzinfo=None) if value.tzinfo is not None else value
+
+
 @dataclass(frozen=True)
 class TeamRecord:
     team_id: str
@@ -65,6 +74,27 @@ class MatchRecord:
     venue_latitude: float | None = None
     venue_longitude: float | None = None
     timezone: str | None = None
+    result_available_at: datetime | None = None
+    xg_available_at: datetime | None = None
+
+    def __post_init__(self) -> None:
+        for name in ("date", "result_available_at", "xg_available_at"):
+            object.__setattr__(self, name, _normalize_timestamp(getattr(self, name)))
+
+
+def match_available_at(match: MatchRecord) -> datetime | None:
+    """Use explicit result publication time, otherwise the following UTC day.
+
+    A kickoff timestamp is not a result-availability timestamp. The conservative
+    date fallback also supports historical sources with date-only matches.
+    """
+    if match.date is None:
+        return None
+    if match.result_available_at is not None:
+        if match.result_available_at <= match.date:
+            raise ValueError("Result availability must follow kickoff.")
+        return match.result_available_at
+    return match.date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
 
 @dataclass(frozen=True)
@@ -80,6 +110,9 @@ class FixtureRecord:
     venue_latitude: float | None = None
     venue_longitude: float | None = None
     timezone: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "date", _normalize_timestamp(self.date))
 
 
 @dataclass
@@ -164,6 +197,18 @@ def _parse_team_row(row: dict[str, Any]) -> TeamRecord | None:
     return TeamRecord(team_id=team_id, team_name=team_name, league=league)
 
 
+def _parse_score(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Final scores must be nonnegative integers or missing.") from exc
+    if isinstance(value, bool) or not math.isfinite(numeric) or numeric < 0 or not numeric.is_integer():
+        raise ValueError("Final scores must be nonnegative integers or missing.")
+    return int(numeric)
+
+
 def _parse_match_row(row: dict[str, Any], default_match_id_prefix: str, index: int) -> MatchRecord | None:
     home_team_raw = first_non_empty(row, HOME_TEAM_COLUMNS)
     away_team_raw = first_non_empty(row, AWAY_TEAM_COLUMNS)
@@ -172,7 +217,7 @@ def _parse_match_row(row: dict[str, Any], default_match_id_prefix: str, index: i
 
     home_team_id = canonical_team_id(home_team_raw)
     away_team_id = canonical_team_id(away_team_raw)
-    if not home_team_id or not away_team_id:
+    if not home_team_id or not away_team_id or home_team_id == away_team_id:
         return None
 
     match_id_raw = first_non_empty(row, MATCH_ID_COLUMNS)
@@ -186,8 +231,10 @@ def _parse_match_row(row: dict[str, Any], default_match_id_prefix: str, index: i
     league_raw = first_non_empty(row, LEAGUE_COLUMNS)
     league = str(league_raw).strip() if league_raw is not None else None
     round_number = parse_int(first_non_empty(row, ROUND_COLUMNS))
-    home_goals = parse_int(first_non_empty(row, HOME_GOALS_COLUMNS))
-    away_goals = parse_int(first_non_empty(row, AWAY_GOALS_COLUMNS))
+    home_goals = _parse_score(first_non_empty(row, HOME_GOALS_COLUMNS))
+    away_goals = _parse_score(first_non_empty(row, AWAY_GOALS_COLUMNS))
+    if any(goal is not None and goal < 0 for goal in (home_goals, away_goals)):
+        return None
     home_xg = parse_float(first_non_empty(row, HOME_XG_COLUMNS))
     away_xg = parse_float(first_non_empty(row, AWAY_XG_COLUMNS))
     venue_raw = first_non_empty(row, VENUE_COLUMNS)
@@ -197,6 +244,10 @@ def _parse_match_row(row: dict[str, Any], default_match_id_prefix: str, index: i
     timezone_raw = first_non_empty(row, TIMEZONE_COLUMNS)
     timezone = str(timezone_raw).strip() if timezone_raw is not None and str(timezone_raw).strip() else None
 
+    available_raw = first_non_empty(row, ("result_available_at", "final_whistle_at", "score_available_at"))
+    available = parse_datetime(available_raw)
+    if available_raw is not None and available is None:
+        raise ValueError("Explicit result availability timestamp cannot be parsed.")
     return MatchRecord(
         match_id=match_id,
         date=date,
@@ -213,6 +264,8 @@ def _parse_match_row(row: dict[str, Any], default_match_id_prefix: str, index: i
         venue_latitude=venue_latitude,
         venue_longitude=venue_longitude,
         timezone=timezone,
+        result_available_at=available,
+        xg_available_at=parse_datetime(first_non_empty(row, ("xg_available_at",))),
     )
 
 
@@ -298,12 +351,28 @@ def load_local_football_data(config: PredictionConfig) -> tuple[LocalFootballDat
         seen_fixture_keys.add(key)
         deduped_fixtures.append(fixture)
 
+    fixture_ids: dict[str, FixtureRecord] = {}
+    for fixture in deduped_fixtures:
+        if fixture.match_id in fixture_ids and fixture_ids[fixture.match_id] != fixture:
+            raise ValueError(f"Conflicting target rows for match_id={fixture.match_id}.")
+        fixture_ids[fixture.match_id] = fixture
     for record in [*parsed_matches, *deduped_fixtures]:
         for team_id in (record.home_team_id, record.away_team_id):
             if team_id in teams:
                 continue
             teams[team_id] = TeamRecord(team_id=team_id, team_name=team_id)
 
+    unique_matches: dict[str, MatchRecord] = {}
+    for match in parsed_matches:
+        existing = unique_matches.get(match.match_id)
+        if existing is not None and existing != match:
+            raise ValueError(f"Conflicting historical rows for match_id={match.match_id}.")
+        unique_matches[match.match_id] = match
+    if len(unique_matches) != len(parsed_matches):
+        notes.append(f"Removed {len(parsed_matches)-len(unique_matches)} identical historical duplicate rows.")
+    parsed_matches = list(unique_matches.values())
+    if any(fixture.match_id in unique_matches for fixture in deduped_fixtures):
+        raise ValueError("A target fixture identity also appears among completed matches.")
     parsed_matches.sort(key=record_sort_key)
     deduped_fixtures.sort(key=record_sort_key)
     notes.append(f"Matches historiques utilisables: {len(parsed_matches)}.")
@@ -338,7 +407,9 @@ def select_target_fixtures(
     dataset: LocalFootballData, config: PredictionConfig
 ) -> tuple[list[FixtureRecord], list[str]]:
     notes: list[str] = []
-    fixtures = list(dataset.fixtures)
+    fixtures = [fixture for fixture in dataset.fixtures if fixture.date is not None]
+    if len(fixtures) != len(dataset.fixtures):
+        notes.append("Excluded undated fixtures: a causal prediction requires a kickoff cutoff.")
     if not fixtures:
         notes.append("Aucun fixture disponible localement.")
         return [], notes
@@ -369,9 +440,8 @@ def select_target_fixtures(
             notes.append(f"Fixtures apres filtre round={config.round_number}: {len(round_filtered)}.")
             season_filtered = round_filtered
         else:
-            notes.append(
-                f"Aucun fixture pour round={config.round_number}; fallback sur fixtures de la saison."
-            )
+            notes.append(f"No fixture for requested round={config.round_number}; no fallback to a different round.")
+            return [], notes
     else:
         notes.append("Fixtures sans colonne round exploitable, aucun filtre round applique.")
 
@@ -426,13 +496,17 @@ def select_training_matches(
         )
     matches = round_aware
 
-    dated_fixtures = [fixture for fixture in fixtures if fixture.date is not None]
-    if dated_fixtures:
-        cutoff = min(fixture.date for fixture in dated_fixtures if fixture.date is not None)
-        pre_fixture = [match for match in matches if match.date is None or match.date < cutoff]
-        if pre_fixture:
-            matches = pre_fixture
-            notes.append(f"Training matches limites aux matchs avant {cutoff.date().isoformat()}: {len(matches)}.")
-
+    if not fixtures or any(fixture.date is None for fixture in fixtures):
+        notes.append("No fully dated target population; causal training is unavailable.")
+        return [], notes
+    cutoff = min(fixture.date for fixture in fixtures if fixture.date is not None)
+    pre_fixture = []
+    for match in matches:
+        available_at = match_available_at(match)
+        if available_at is not None and available_at <= cutoff and match.date < cutoff:
+            pre_fixture.append(match)
+    excluded = len(matches) - len(pre_fixture)
+    matches = pre_fixture
+    notes.append(f"Causal training: {len(matches)} results available by {cutoff.isoformat()}; excluded={excluded}.")
     matches.sort(key=record_sort_key)
     return matches, notes

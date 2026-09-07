@@ -66,7 +66,9 @@ def _build_payload(config: PredictionConfig) -> tuple[dict[str, object], list[di
         "rows": result.rows,
         "notes": result.notes,
         "model_name": model_name,
-        "model_family": "ml",
+        "model_family": "statistical" if model_name in {"dixon", "dixon_coles"} else "ml",
+        "maturity": "research_only",
+        "predictive_edge_established": False,
         "device_used": None,
         "dl_available": False,
         "candidate_leaderboard": [],
@@ -87,6 +89,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cache-dir", default=None)
     parser.add_argument("--football_model", choices=["dixon", "gbdt", "hybrid"], default="dixon")
     parser.add_argument("--football_calibration", choices=["off", "auto", "platt", "isotonic"], default="auto")
+    parser.add_argument("--goal-strength-half-life-days", type=float, default=None,
+                        help="Optional historical goal-likelihood half-life; no decay by default. Choose outside the outer test.")
     parser.add_argument("--shadow_eval", choices=["on", "off"], default="on")
     parser.add_argument("--weather", choices=["on", "off"], default="off")
     parser.add_argument("--weather-provider", choices=["open_meteo"], default="open_meteo")
@@ -121,6 +125,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         football_model=args.football_model,
         football_calibration=args.football_calibration,
         shadow_eval=(str(args.shadow_eval).strip().lower() == "on"),
+        goal_strength_half_life_days=args.goal_strength_half_life_days,
         weather_enabled=(str(args.weather).strip().lower() == "on"),
         weather_provider=args.weather_provider,
         weather_latitude=args.weather_latitude,
@@ -136,9 +141,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     if args.output_format == "json":
         if args.output_path:
             with open(args.output_path, "w", encoding="utf-8") as f:
-                json.dump(payload, f, ensure_ascii=False, indent=2)
+                json.dump(payload, f, ensure_ascii=False, indent=2, allow_nan=False)
         if not args.quiet:
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            print(json.dumps(payload, ensure_ascii=False, indent=2, allow_nan=False))
         return
 
     if args.quiet:

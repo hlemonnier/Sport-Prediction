@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
+from dataclasses import replace
+import pytest
 import subprocess
 import sys
 from pathlib import Path
@@ -180,20 +182,16 @@ def test_hybrid_weight_selected_once_from_grid_and_probabilities_normalized() ->
     assert abs(sum(blended) - 1.0) < 1e-9
 
 
-def test_dixon_auto_calibration_policy_matches_legacy_path() -> None:
+def test_dixon_calibration_requires_disjoint_chronological_rows() -> None:
     matches = _many_matches(size=45)
-    model_notes: list[str] = []
-    model = fit_dixon_coles(matches, model_notes)
-    notes_direct: list[str] = []
-    notes_policy: list[str] = []
-    direct = fit_probability_calibrator(matches, model, notes_direct)
-    with_policy = fit_probability_calibrator_with_policy(
-        matches,
-        model,
-        notes_policy,
-        policy="auto",
-    )
-    assert with_policy.method == direct.method
+    model = fit_dixon_coles(matches, [])
+    with pytest.raises(ValueError, match="disjoint"):
+        fit_probability_calibrator(matches, model, [])
+    heldout = [replace(match, match_id=f"heldout_{index}", date=datetime(2027,1,1), season=2027)
+               for index,match in enumerate(matches)]
+    direct = fit_probability_calibrator(heldout, model, [])
+    with_policy = fit_probability_calibrator_with_policy(heldout, model, [], policy="auto")
+    assert direct.method == with_policy.method
 
 
 def test_cli_help_exposes_horizon_a_flags() -> None:

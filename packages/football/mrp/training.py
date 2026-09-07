@@ -16,28 +16,17 @@ from .constants import (
     BENCHMARK_VALIDATION_FRACTION,
     CALIBRATION_MIN_CLASS_SAMPLES,
     CALIBRATION_MIN_SAMPLES,
-    DEFAULT_AWAY_GOALS_PRIOR,
-    DEFAULT_HOME_GOALS_PRIOR,
-    DIXON_COLES_LEARNING_RATE,
-    DIXON_COLES_MAX_ITER,
-    DIXON_COLES_RATE_CLAMP_MAX,
-    DIXON_COLES_RATE_CLAMP_MIN,
-    DIXON_COLES_REGULARIZATION,
-    DIXON_COLES_RHO_MAX,
-    DIXON_COLES_RHO_MIN,
-    DIXON_COLES_RHO_STEP,
-    DIXON_COLES_TOLERANCE,
     DIAGNOSTIC_ECE_BINS,
     DRAW_CLASS,
     HOME_WIN_CLASS,
     OUTCOME_CLASSES,
-    OUTCOME_GOAL_GRID_MAX,
     HYBRID_WEIGHT_GRID,
     RECENT_FORM_WINDOW,
-    SCORELINE_GOAL_GRID_MAX,
 )
-from .data import FixtureRecord, MatchRecord
-from .utils import clamp, outcome_class, record_sort_key, safe_mean
+from .data import FixtureRecord, MatchRecord, match_available_at
+from .joint import DixonColesModel, fit_dixon_coles, default_dixon_coles_model as _default_dixon_coles_model, dixon_coles_tau as _dixon_coles_tau
+from .score_distribution import build_score_distribution
+from .utils import outcome_class, record_sort_key, parse_datetime
 
 try:
     import numpy as np  # type: ignore
@@ -47,7 +36,7 @@ try:
     from sklearn.metrics import log_loss  # type: ignore
 
     SKLEARN_AVAILABLE = True
-except Exception:  # pragma: no cover - optional dependency
+except ImportError:  # pragma: no cover - optional dependency
     np = None  # type: ignore
     GradientBoostingClassifier = None  # type: ignore
     IsotonicRegression = None  # type: ignore
@@ -57,52 +46,30 @@ except Exception:  # pragma: no cover - optional dependency
 
 
 @dataclass
-class DixonColesModel:
-    attack: dict[str, float]
-    defense: dict[str, float]
-    home_intercept: float
-    away_intercept: float
-    rho: float
-
-    def expected_goals(self, home_team_id: str, away_team_id: str) -> tuple[float, float]:
-        attack_home = self.attack.get(home_team_id, 0.0)
-        attack_away = self.attack.get(away_team_id, 0.0)
-        defense_home = self.defense.get(home_team_id, 0.0)
-        defense_away = self.defense.get(away_team_id, 0.0)
-        lambda_home = math.exp(self.home_intercept + attack_home + defense_away)
-        lambda_away = math.exp(self.away_intercept + attack_away + defense_home)
-        return (
-            clamp(lambda_home, DIXON_COLES_RATE_CLAMP_MIN, DIXON_COLES_RATE_CLAMP_MAX),
-            clamp(lambda_away, DIXON_COLES_RATE_CLAMP_MIN, DIXON_COLES_RATE_CLAMP_MAX),
-        )
-
-
-@dataclass
 class ProbabilityCalibrator:
     method: str
     per_class_functions: list[Callable[[float], float]]
 
     def apply(self, probabilities: tuple[float, float, float]) -> tuple[float, float, float]:
-        calibrated = [
-            max(0.0, fn(probability))
-            for fn, probability in zip(self.per_class_functions, probabilities)
-        ]
-        total = sum(calibrated)
-        if total <= 0:
-            return (1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)
-        return (
-            calibrated[HOME_WIN_CLASS] / total,
-            calibrated[DRAW_CLASS] / total,
-            calibrated[AWAY_WIN_CLASS] / total,
-        )
+        probabilities = normalize_probabilities(probabilities)
+        if len(self.per_class_functions) != 3:
+            raise ValueError("Calibration requires exactly three class functions.")
+        calibrated = [float(fn(p)) for fn, p in zip(self.per_class_functions, probabilities)]
+        if any(not math.isfinite(p) or p < 0 for p in calibrated):
+            raise ValueError("Calibrator returned invalid probabilities.")
+        # Avoid learned exact impossibilities from finite calibration samples.
+        if self.method != "identity":
+            calibrated = [max(1e-12, p) for p in calibrated]
+        return normalize_probabilities(tuple(calibrated))
+
 
 
 @dataclass
 class BenchmarkModel:
     model: Any
     classes: list[int]
-    log_loss_value: float
-    brier_value: float
+    log_loss_value: float | None
+    brier_value: float | None
     feature_names: list[str]
     validation_labels: list[int] = field(default_factory=list)
     validation_probabilities: list[tuple[float, float, float]] = field(default_factory=list)
@@ -224,15 +191,26 @@ def fit_frequency_baseline(matches: list[MatchRecord], notes: list[str]) -> Freq
 
 
 def normalize_probabilities(probabilities: tuple[float, float, float]) -> tuple[float, float, float]:
-    clipped = [max(0.0, float(value)) for value in probabilities]
-    total = sum(clipped)
+    if len(probabilities) != 3:
+        raise ValueError("Expected exactly three outcome probabilities.")
+    values = [float(value) for value in probabilities]
+    if any(not math.isfinite(value) or value < 0 for value in values):
+        raise ValueError("Outcome probabilities must be finite and nonnegative.")
+    total = math.fsum(values)
     if total <= 0:
-        return (1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)
-    return (
-        clipped[HOME_WIN_CLASS] / total,
-        clipped[DRAW_CLASS] / total,
-        clipped[AWAY_WIN_CLASS] / total,
-    )
+        raise ValueError("Outcome probabilities must contain positive total mass.")
+    return tuple(value / total for value in values)
+
+
+def _validate_scoring_rows(labels: list[int], probabilities: list[list[float]]) -> None:
+    if len(labels) != len(probabilities):
+        raise ValueError("Labels and probabilities must have equal lengths.")
+    if any(label not in OUTCOME_CLASSES for label in labels):
+        raise ValueError("Invalid outcome label.")
+    for row in probabilities:
+        normalized = normalize_probabilities(tuple(row))
+        if abs(math.fsum(row) - 1.0) > 1e-8:
+            raise ValueError("Scoring probabilities must sum to one.")
 
 
 def rank_outcome_classes(probabilities: tuple[float, float, float]) -> list[int]:
@@ -241,6 +219,7 @@ def rank_outcome_classes(probabilities: tuple[float, float, float]) -> list[int]
 
 
 def _multiclass_log_loss(y_true: list[int], probabilities: list[list[float]]) -> float:
+    _validate_scoring_rows(y_true, probabilities)
     if not y_true:
         return float("nan")
     eps = 1e-12
@@ -280,6 +259,7 @@ def _ranking_metrics(y_true: list[int], probabilities: list[list[float]]) -> tup
 def _expected_calibration_error(
     y_true: list[int], probabilities: list[list[float]], bins: int
 ) -> tuple[float, list[dict[str, float | int | None]]]:
+    _validate_scoring_rows(y_true, probabilities)
     if not y_true:
         return float("nan"), []
 
@@ -392,320 +372,21 @@ def _identity(value: float) -> float:
     return float(value)
 
 
-def _default_dixon_coles_model() -> DixonColesModel:
-    return DixonColesModel(
-        attack={},
-        defense={},
-        home_intercept=math.log(DEFAULT_HOME_GOALS_PRIOR),
-        away_intercept=math.log(DEFAULT_AWAY_GOALS_PRIOR),
-        rho=0.0,
-    )
-
-
-def fit_dixon_coles(matches: list[MatchRecord], notes: list[str]) -> DixonColesModel:
-    if not matches:
-        notes.append(
-            "Dixon-Coles: aucun historique entrainable, fallback sur prior neutre (intensites moyennes)."
-        )
-        return _default_dixon_coles_model()
-
-    teams = sorted(
-        {
-            match.home_team_id
-            for match in matches
-            if match.home_goals is not None and match.away_goals is not None
-        }
-        | {
-            match.away_team_id
-            for match in matches
-            if match.home_goals is not None and match.away_goals is not None
-        }
-    )
-    if not teams:
-        notes.append(
-            "Dixon-Coles: historique sans equipes exploitables, fallback sur prior neutre."
-        )
-        return _default_dixon_coles_model()
-
-    team_to_idx = {team: idx for idx, team in enumerate(teams)}
-    goals_home = [float(match.home_goals or 0) for match in matches]
-    goals_away = [float(match.away_goals or 0) for match in matches]
-    n_teams = len(teams)
-
-    attack = [0.0] * n_teams
-    defense = [0.0] * n_teams
-    home_intercept = math.log(max(safe_mean(goals_home, DEFAULT_HOME_GOALS_PRIOR), 0.2))
-    away_intercept = math.log(max(safe_mean(goals_away, DEFAULT_AWAY_GOALS_PRIOR), 0.2))
-
-    learning_rate = DIXON_COLES_LEARNING_RATE
-    previous_log_likelihood = -float("inf")
-
-    for _ in range(DIXON_COLES_MAX_ITER):
-        grad_attack = [0.0] * n_teams
-        grad_defense = [0.0] * n_teams
-        grad_home_intercept = 0.0
-        grad_away_intercept = 0.0
-        log_likelihood = 0.0
-
-        for match in matches:
-            if match.home_goals is None or match.away_goals is None:
-                continue
-            idx_home = team_to_idx[match.home_team_id]
-            idx_away = team_to_idx[match.away_team_id]
-            goals_home_i = float(match.home_goals)
-            goals_away_i = float(match.away_goals)
-
-            eta_home = home_intercept + attack[idx_home] + defense[idx_away]
-            eta_away = away_intercept + attack[idx_away] + defense[idx_home]
-            lambda_home = math.exp(eta_home)
-            lambda_away = math.exp(eta_away)
-
-            error_home = goals_home_i - lambda_home
-            error_away = goals_away_i - lambda_away
-
-            grad_home_intercept += error_home
-            grad_away_intercept += error_away
-            grad_attack[idx_home] += error_home
-            grad_defense[idx_away] += error_home
-            grad_attack[idx_away] += error_away
-            grad_defense[idx_home] += error_away
-
-            log_likelihood += (
-                goals_home_i * eta_home
-                - lambda_home
-                - math.lgamma(goals_home_i + 1.0)
-                + goals_away_i * eta_away
-                - lambda_away
-                - math.lgamma(goals_away_i + 1.0)
-            )
-
-        reg = DIXON_COLES_REGULARIZATION
-        for idx in range(n_teams):
-            grad_attack[idx] -= reg * attack[idx]
-            grad_defense[idx] -= reg * defense[idx]
-            log_likelihood -= 0.5 * reg * (attack[idx] ** 2 + defense[idx] ** 2)
-        grad_home_intercept -= reg * home_intercept
-        grad_away_intercept -= reg * away_intercept
-
-        scale = 1.0 / max(len(matches), 1)
-        for idx in range(n_teams):
-            attack[idx] += learning_rate * grad_attack[idx] * scale
-            defense[idx] += learning_rate * grad_defense[idx] * scale
-            attack[idx] = clamp(attack[idx], -3.0, 3.0)
-            defense[idx] = clamp(defense[idx], -3.0, 3.0)
-        home_intercept += learning_rate * grad_home_intercept * scale
-        away_intercept += learning_rate * grad_away_intercept * scale
-        home_intercept = clamp(home_intercept, -1.5, 2.0)
-        away_intercept = clamp(away_intercept, -1.5, 2.0)
-
-        mean_attack = sum(attack) / n_teams
-        mean_defense = sum(defense) / n_teams
-        attack = [value - mean_attack for value in attack]
-        defense = [value - mean_defense for value in defense]
-
-        if log_likelihood < previous_log_likelihood:
-            learning_rate = max(learning_rate * 0.5, 0.003)
-        if abs(log_likelihood - previous_log_likelihood) < DIXON_COLES_TOLERANCE:
-            break
-        previous_log_likelihood = log_likelihood
-
-    attack_map = {team: attack[team_to_idx[team]] for team in teams}
-    defense_map = {team: defense[team_to_idx[team]] for team in teams}
-    model = DixonColesModel(
-        attack=attack_map,
-        defense=defense_map,
-        home_intercept=home_intercept,
-        away_intercept=away_intercept,
-        rho=0.0,
-    )
-    model.rho = _estimate_rho(model, matches)
-    notes.append(
-        "Dixon-Coles entraine "
-        f"({len(matches)} matchs, {len(teams)} equipes, rho={model.rho:.3f})."
-    )
-    return model
-
-
-def _dixon_coles_tau(home_goals: int, away_goals: int, lambda_home: float, lambda_away: float, rho: float) -> float:
-    if home_goals == 0 and away_goals == 0:
-        return 1.0 - (lambda_home * lambda_away * rho)
-    if home_goals == 0 and away_goals == 1:
-        return 1.0 + (lambda_home * rho)
-    if home_goals == 1 and away_goals == 0:
-        return 1.0 + (lambda_away * rho)
-    if home_goals == 1 and away_goals == 1:
-        return 1.0 - rho
-    return 1.0
-
-
-def _estimate_rho(model: DixonColesModel, matches: list[MatchRecord]) -> float:
-    if not matches:
-        return 0.0
-    best_rho = 0.0
-    best_log_likelihood = -float("inf")
-    step_count = int(round((DIXON_COLES_RHO_MAX - DIXON_COLES_RHO_MIN) / DIXON_COLES_RHO_STEP))
-
-    for step in range(step_count + 1):
-        rho = DIXON_COLES_RHO_MIN + (step * DIXON_COLES_RHO_STEP)
-        valid = True
-        ll = 0.0
-        for match in matches:
-            if match.home_goals is None or match.away_goals is None:
-                continue
-            lambda_home, lambda_away = model.expected_goals(match.home_team_id, match.away_team_id)
-            tau = _dixon_coles_tau(match.home_goals, match.away_goals, lambda_home, lambda_away, rho)
-            if tau <= 0:
-                valid = False
-                break
-            if match.home_goals <= 1 and match.away_goals <= 1:
-                ll += math.log(tau)
-        if valid and ll > best_log_likelihood:
-            best_log_likelihood = ll
-            best_rho = rho
-    return best_rho
-
-
-def _poisson_vector(rate: float, max_goals: int) -> list[float]:
-    probabilities = [0.0] * (max_goals + 1)
-    probabilities[0] = math.exp(-rate)
-    for goals in range(1, max_goals + 1):
-        probabilities[goals] = probabilities[goals - 1] * rate / goals
-    return probabilities
-
-
-def score_probability_matrix(
-    lambda_home: float, lambda_away: float, rho: float, max_goals: int
-) -> list[list[float]]:
-    home_probs = _poisson_vector(lambda_home, max_goals)
-    away_probs = _poisson_vector(lambda_away, max_goals)
-    matrix = [
-        [home_probs[home] * away_probs[away] for away in range(max_goals + 1)]
-        for home in range(max_goals + 1)
-    ]
-
-    for home_goals in (0, 1):
-        for away_goals in (0, 1):
-            tau = _dixon_coles_tau(home_goals, away_goals, lambda_home, lambda_away, rho)
-            matrix[home_goals][away_goals] = max(matrix[home_goals][away_goals] * tau, 0.0)
-
-    total = sum(sum(row) for row in matrix)
-    if total <= 0:
-        uniform = 1.0 / ((max_goals + 1) ** 2)
-        return [[uniform for _ in range(max_goals + 1)] for _ in range(max_goals + 1)]
-    return [[value / total for value in row] for row in matrix]
+def score_probability_matrix(lambda_home: float, lambda_away: float, rho: float, max_goals: int = 1) -> list[list[float]]:
+    """Compatibility API: max_goals is a minimum support, never a truncation cap."""
+    return [list(row) for row in build_score_distribution(lambda_home, lambda_away, rho, min_max_goals=max_goals).matrix]
 
 
 def outcome_probabilities(lambda_home: float, lambda_away: float, rho: float) -> tuple[float, float, float]:
-    matrix = score_probability_matrix(lambda_home, lambda_away, rho, OUTCOME_GOAL_GRID_MAX)
-    home_win = 0.0
-    draw = 0.0
-    away_win = 0.0
-    for home_goals, row in enumerate(matrix):
-        for away_goals, probability in enumerate(row):
-            if home_goals > away_goals:
-                home_win += probability
-            elif home_goals < away_goals:
-                away_win += probability
-            else:
-                draw += probability
-    total = home_win + draw + away_win
-    if total <= 0:
-        return (1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)
-    return (home_win / total, draw / total, away_win / total)
+    return build_score_distribution(lambda_home, lambda_away, rho).outcome_probabilities
 
 
-def most_likely_scoreline(
-    lambda_home: float, lambda_away: float, rho: float
-) -> tuple[int, int, float]:
-    matrix = score_probability_matrix(lambda_home, lambda_away, rho, SCORELINE_GOAL_GRID_MAX)
-    best_home = 0
-    best_away = 0
-    best_probability = -1.0
-    for home_goals, row in enumerate(matrix):
-        for away_goals, probability in enumerate(row):
-            if probability > best_probability:
-                best_home = home_goals
-                best_away = away_goals
-                best_probability = probability
-    return best_home, best_away, max(best_probability, 0.0)
+def most_likely_scoreline(lambda_home: float, lambda_away: float, rho: float) -> tuple[int, int, float]:
+    return build_score_distribution(lambda_home, lambda_away, rho).most_likely_scoreline
 
 
-def fit_probability_calibrator(
-    matches: list[MatchRecord], model: DixonColesModel, notes: list[str]
-) -> ProbabilityCalibrator:
-    if not SKLEARN_AVAILABLE:
-        notes.append("Calibration: scikit-learn indisponible, fallback identity.")
-        return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
-
-    training_rows: list[tuple[tuple[float, float, float], int]] = []
-    for match in matches:
-        if match.home_goals is None or match.away_goals is None:
-            continue
-        label = outcome_class(match.home_goals, match.away_goals)
-        lambda_home, lambda_away = model.expected_goals(match.home_team_id, match.away_team_id)
-        probabilities = outcome_probabilities(lambda_home, lambda_away, model.rho)
-        training_rows.append((probabilities, label))
-
-    if len(training_rows) < CALIBRATION_MIN_SAMPLES:
-        notes.append(
-            f"Calibration: echantillon insuffisant ({len(training_rows)}<{CALIBRATION_MIN_SAMPLES}), identity."
-        )
-        return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
-
-    y = np.asarray([label for _, label in training_rows], dtype=int)
-    p = np.asarray([probs for probs, _ in training_rows], dtype=float)
-
-    isotonic_functions: list[Callable[[float], float]] = []
-    isotonic_count = 0
-    for cls in OUTCOME_CLASSES:
-        x_cls = p[:, cls]
-        y_cls = (y == cls).astype(int)
-        positives = int(y_cls.sum())
-        negatives = int(len(y_cls) - positives)
-        if positives < CALIBRATION_MIN_CLASS_SAMPLES or negatives < CALIBRATION_MIN_CLASS_SAMPLES:
-            isotonic_functions.append(_identity)
-            continue
-        if len(np.unique(x_cls)) < 4:
-            isotonic_functions.append(_identity)
-            continue
-        model_iso = IsotonicRegression(out_of_bounds="clip")
-        model_iso.fit(x_cls, y_cls)
-
-        def _iso_fn(value: float, transformer: IsotonicRegression = model_iso) -> float:
-            return float(transformer.predict([value])[0])
-
-        isotonic_functions.append(_iso_fn)
-        isotonic_count += 1
-
-    if isotonic_count >= 1:
-        notes.append(f"Calibration: isotonic active sur {isotonic_count}/3 classes.")
-        return ProbabilityCalibrator(method="isotonic", per_class_functions=isotonic_functions)
-
-    platt_functions: list[Callable[[float], float]] = []
-    platt_count = 0
-    for cls in OUTCOME_CLASSES:
-        x_cls = p[:, cls].reshape(-1, 1)
-        y_cls = (y == cls).astype(int)
-        positives = int(y_cls.sum())
-        negatives = int(len(y_cls) - positives)
-        if positives < CALIBRATION_MIN_CLASS_SAMPLES or negatives < CALIBRATION_MIN_CLASS_SAMPLES:
-            platt_functions.append(_identity)
-            continue
-        model_lr = LogisticRegression(max_iter=400)
-        model_lr.fit(x_cls, y_cls)
-
-        def _platt_fn(value: float, transformer: LogisticRegression = model_lr) -> float:
-            return float(transformer.predict_proba([[value]])[0][1])
-
-        platt_functions.append(_platt_fn)
-        platt_count += 1
-
-    if platt_count >= 1:
-        notes.append(f"Calibration: Platt active sur {platt_count}/3 classes.")
-        return ProbabilityCalibrator(method="platt", per_class_functions=platt_functions)
-
-    notes.append("Calibration: classes insuffisantes, fallback identity.")
-    return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
+def fit_probability_calibrator(matches: list[MatchRecord], model: DixonColesModel, notes: list[str]) -> ProbabilityCalibrator:
+    return fit_probability_calibrator_with_policy(matches, model, notes, policy="auto")
 
 
 def fit_probability_calibrator_from_rows(
@@ -717,6 +398,9 @@ def fit_probability_calibrator_from_rows(
     context: str = "model",
 ) -> ProbabilityCalibrator:
     policy_name = str(policy or "auto").strip().lower()
+    if policy_name not in {"off", "auto", "platt", "isotonic"}:
+        raise ValueError("Unknown calibration policy.")
+    _validate_scoring_rows(labels, [list(row) for row in probabilities])
     if policy_name == "off":
         notes.append(f"Calibration {context}: forcee off, identity.")
         return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
@@ -768,7 +452,8 @@ def fit_probability_calibrator_from_rows(
         platt_functions: list[Callable[[float], float]] = []
         platt_count = 0
         for cls in OUTCOME_CLASSES:
-            x_cls = p[:, cls].reshape(-1, 1)
+            bounded = np.clip(p[:, cls], 1e-12, 1.0 - 1e-12)
+            x_cls = np.log(bounded / (1.0 - bounded)).reshape(-1, 1)
             y_cls = (y == cls).astype(int)
             positives = int(y_cls.sum())
             negatives = int(len(y_cls) - positives)
@@ -779,7 +464,8 @@ def fit_probability_calibrator_from_rows(
             model_lr.fit(x_cls, y_cls)
 
             def _platt_fn(value: float, transformer: LogisticRegression = model_lr) -> float:
-                return float(transformer.predict_proba([[value]])[0][1])
+                bounded = min(1.0 - 1e-12, max(1e-12, value))
+                return float(transformer.predict_proba([[math.log(bounded / (1.0 - bounded))]])[0][1])
 
             platt_functions.append(_platt_fn)
             platt_count += 1
@@ -787,7 +473,7 @@ def fit_probability_calibrator_from_rows(
             return None, 0
         return ProbabilityCalibrator(method="platt", per_class_functions=platt_functions), platt_count
 
-    if policy_name in {"auto", "isotonic"}:
+    if policy_name == "isotonic" or (policy_name == "auto" and len(labels) >= 200):
         calibrator, count = _fit_isotonic()
         if calibrator is not None:
             notes.append(f"Calibration {context}: isotonic active sur {count}/3 classes.")
@@ -817,11 +503,14 @@ def fit_probability_calibrator_with_policy(
     policy: str = "auto",
 ) -> ProbabilityCalibrator:
     policy_name = str(policy or "auto").strip().lower()
-    if policy_name == "auto":
-        return fit_probability_calibrator(matches, model, notes)
     if policy_name == "off":
         return ProbabilityCalibrator(method="identity", per_class_functions=[_identity, _identity, _identity])
-
+    fit_ids = set(model.diagnostics.get("fit_match_ids", []))
+    if not fit_ids or any(match.match_id in fit_ids for match in matches):
+        raise ValueError("Calibration requires documented, disjoint held-out match identities.")
+    fit_available = parse_datetime(model.diagnostics.get("latest_fit_result_available_at"))
+    if fit_available is None or any(match.date is None or match.date < fit_available for match in matches):
+        raise ValueError("Calibration matches must follow availability of every fit result.")
     probabilities: list[tuple[float, float, float]] = []
     labels: list[int] = []
     for match in matches:
@@ -941,13 +630,18 @@ def _build_feature_vector(
     ]
 
 
-def build_history_from_matches(matches: list[MatchRecord]) -> dict[str, list[dict[str, float]]]:
+def build_history_from_matches(matches: list[MatchRecord], *, as_of: Any = None) -> dict[str, list[dict[str, float]]]:
     history: dict[str, list[dict[str, float]]] = {}
     for match in sorted(matches, key=record_sort_key):
         if match.home_goals is None or match.away_goals is None:
             continue
-        home_xg = match.home_xg if match.home_xg is not None else float(match.home_goals)
-        away_xg = match.away_xg if match.away_xg is not None else float(match.away_goals)
+        if as_of is not None:
+            available = match_available_at(match)
+            if available is None or available > as_of or match.date >= as_of:
+                continue
+        xg_known = match.xg_available_at is not None and (as_of is None or match.xg_available_at <= as_of)
+        home_xg = match.home_xg if xg_known and match.home_xg is not None else float(match.home_goals)
+        away_xg = match.away_xg if xg_known and match.away_xg is not None else float(match.away_goals)
         xg_delta = home_xg - away_xg
         _append_history(
             history=history,
@@ -993,6 +687,7 @@ def _align_class_probabilities(raw: Any, classes: list[int]) -> list[list[float]
 
 
 def _multiclass_brier_score(y_true: list[int], probabilities: list[list[float]]) -> float:
+    _validate_scoring_rows(y_true, probabilities)
     if not y_true:
         return float("nan")
     total = 0.0
@@ -1003,110 +698,50 @@ def _multiclass_brier_score(y_true: list[int], probabilities: list[list[float]])
     return total / len(y_true)
 
 
-def train_gradient_boosting_benchmark(
-    matches: list[MatchRecord], notes: list[str]
-) -> BenchmarkModel | None:
+FEATURE_NAMES = ["home_form_points", "away_form_points", "form_points_diff",
+                 "home_goal_diff", "away_goal_diff", "goal_diff_delta",
+                 "home_xg_diff", "away_xg_diff", "xg_diff_delta",
+                 "home_recent_games", "away_recent_games"]
+
+
+def train_gradient_boosting_model(matches: list[MatchRecord], notes: list[str]) -> BenchmarkModel | None:
+    """Fit on exactly the supplied population; no hidden validation split."""
     if not SKLEARN_AVAILABLE:
-        notes.append("Benchmark GBM: scikit-learn indisponible.")
+        notes.append("GBDT unavailable: optional scikit-learn dependency is missing.")
         return None
-
-    history: dict[str, list[dict[str, float]]] = {}
-    features: list[list[float]] = []
-    labels: list[int] = []
-    feature_matches: list[MatchRecord] = []
-    for match in sorted(matches, key=record_sort_key):
-        if match.home_goals is None or match.away_goals is None:
-            continue
-        feature_vector = _build_feature_vector(
-            history=history,
-            home_team_id=match.home_team_id,
-            away_team_id=match.away_team_id,
-            window=RECENT_FORM_WINDOW,
-        )
-        features.append(feature_vector)
-        labels.append(outcome_class(match.home_goals, match.away_goals))
-        feature_matches.append(match)
-
-        home_xg = match.home_xg if match.home_xg is not None else float(match.home_goals)
-        away_xg = match.away_xg if match.away_xg is not None else float(match.away_goals)
-        xg_delta = home_xg - away_xg
-        _append_history(
-            history=history,
-            team_id=match.home_team_id,
-            points=_points_for_result(match.home_goals, match.away_goals),
-            goal_diff=match.home_goals - match.away_goals,
-            xg_diff=xg_delta,
-        )
-        _append_history(
-            history=history,
-            team_id=match.away_team_id,
-            points=_points_for_result(match.away_goals, match.home_goals),
-            goal_diff=match.away_goals - match.home_goals,
-            xg_diff=-xg_delta,
-        )
-
-    if len(features) < BENCHMARK_MIN_SAMPLES:
-        notes.append(
-            f"Benchmark GBM: echantillon insuffisant ({len(features)}<{BENCHMARK_MIN_SAMPLES})."
-        )
+    valid = [m for m in sorted(matches, key=record_sort_key)
+             if m.home_goals is not None and m.away_goals is not None and m.date is not None]
+    if len(valid) < BENCHMARK_MIN_SAMPLES:
+        notes.append(f"GBDT fit unavailable: {len(valid)} < {BENCHMARK_MIN_SAMPLES} dated rows.")
         return None
-
-    split_index = int(round(len(features) * (1.0 - BENCHMARK_VALIDATION_FRACTION)))
-    split_index = max(split_index, len(features) - BENCHMARK_MIN_VALIDATION)
-    split_index = min(split_index, len(features) - 1)
-    if split_index <= 0 or (len(features) - split_index) < BENCHMARK_MIN_VALIDATION:
-        notes.append("Benchmark GBM: validation set insuffisant.")
+    labels = [outcome_class(m.home_goals, m.away_goals) for m in valid]
+    if len(set(labels)) < 3:
+        notes.append("GBDT unavailable: all three outcome classes are required to avoid assigning an unseen class zero probability.")
         return None
-
-    x_train = np.asarray(features[:split_index], dtype=float)
-    y_train = np.asarray(labels[:split_index], dtype=int)
-    x_valid = np.asarray(features[split_index:], dtype=float)
-    y_valid = np.asarray(labels[split_index:], dtype=int)
-    valid_matches = feature_matches[split_index:]
-
-    if len(set(y_train.tolist())) < 2:
-        notes.append("Benchmark GBM: classes insuffisantes dans le train split.")
-        return None
-
+    features = [fixture_feature_vector(m, build_history_from_matches(valid, as_of=m.date)) for m in valid]
     model = GradientBoostingClassifier(random_state=42)
-    model.fit(x_train, y_train)
+    model.fit(np.asarray(features, dtype=float), np.asarray(labels, dtype=int))
+    notes.append(f"GBDT fitted on {len(valid)} causal rows; evaluation is external to fitting.")
+    return BenchmarkModel(model=model, classes=model.classes_.tolist(), log_loss_value=None,
+                          brier_value=None, feature_names=list(FEATURE_NAMES))
 
-    raw_probabilities = model.predict_proba(x_valid)
-    aligned_probabilities = _align_class_probabilities(raw_probabilities, model.classes_.tolist())
-    y_valid_list = y_valid.tolist()
-    brier_value = _multiclass_brier_score(y_valid_list, aligned_probabilities)
-    log_loss_value = float(log_loss(y_valid, np.asarray(aligned_probabilities), labels=list(OUTCOME_CLASSES)))
-    notes.append(
-        "Benchmark GBM entrainable "
-        f"(log-loss={log_loss_value:.4f}, brier={brier_value:.4f}, n_valid={len(y_valid_list)})."
-    )
 
-    return BenchmarkModel(
-        model=model,
-        classes=model.classes_.tolist(),
-        log_loss_value=log_loss_value,
-        brier_value=brier_value,
-        feature_names=[
-            "home_form_points",
-            "away_form_points",
-            "form_points_diff",
-            "home_goal_diff",
-            "away_goal_diff",
-            "goal_diff_delta",
-            "home_xg_diff",
-            "away_xg_diff",
-            "xg_diff_delta",
-            "home_recent_games",
-            "away_recent_games",
-        ],
-        validation_labels=y_valid_list,
-        validation_probabilities=[
-            (
-                float(row[HOME_WIN_CLASS]),
-                float(row[DRAW_CLASS]),
-                float(row[AWAY_WIN_CLASS]),
-            )
-            for row in aligned_probabilities
-        ],
-        validation_pairs=[(match.home_team_id, match.away_team_id) for match in valid_matches],
-    )
+def train_gradient_boosting_benchmark(matches: list[MatchRecord], notes: list[str]) -> BenchmarkModel | None:
+    """Compatibility benchmark with a whole-day chronological holdout >=30."""
+    from .protocol import split_chronological_tail
+    train, valid = split_chronological_tail(matches,
+        max(BENCHMARK_MIN_VALIDATION, math.ceil(len(matches)*BENCHMARK_VALIDATION_FRACTION)))
+    if len(train) < BENCHMARK_MIN_SAMPLES or len(valid) < BENCHMARK_MIN_VALIDATION:
+        notes.append("GBDT benchmark requires at least 45 fit and 30 held-out dated rows.")
+        return None
+    model = train_gradient_boosting_model(train, notes)
+    if model is None:
+        return None
+    probabilities = [model.predict(fixture_feature_vector(m, build_history_from_matches(matches, as_of=m.date))) for m in valid]
+    labels = [outcome_class(m.home_goals, m.away_goals) for m in valid]
+    model.log_loss_value = _multiclass_log_loss(labels, [list(row) for row in probabilities])
+    model.brier_value = _multiclass_brier_score(labels, [list(row) for row in probabilities])
+    model.validation_labels = labels
+    model.validation_probabilities = probabilities
+    model.validation_pairs = [(m.home_team_id, m.away_team_id) for m in valid]
+    return model

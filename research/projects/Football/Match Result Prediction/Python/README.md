@@ -1,27 +1,44 @@
-# Match Result Prediction (Python)
+# Football research runner
 
-This folder contains the football experiment runner compatibility layer.
-Authoritative football package code now lives in `../../../../../packages/football`.
-It currently ships deterministic and ML-backed local prediction paths for football match outcomes.
+The canonical implementation is in `packages/football`; this directory preserves
+legacy `mrp` imports and command entrypoints. The models are research-only. Read
+`packages/football/README.md` for the exact likelihood, timing, validation and
+support limitations. `packages/football/maturity.json` is the machine-readable
+support manifest.
 
-The canonical experiment contract is declared in `../experiment.json` (context, snapshot root, model families, entrypoint).
-
-## Quick start
+From the repository root, with the football runtime dependencies installed:
 
 ```bash
-cd "Match Result Prediction/Python"
-python run_experiment.py --mode match_result --league epl --season 2025 --round 1
+python "research/projects/Football/Match Result Prediction/Python/run_experiment.py" \
+  --mode match_result --league epl --season 2025 --round 1 \
+  --data-source /absolute/path/to/local/football-data \
+  --football_model hybrid --football_calibration auto --output-format json
 ```
 
-Compatibility wrapper:
-- `run_prediction.py` forwards to `run_experiment.py`.
-- `mrp` imports are bridged to `packages/football/mrp`.
+The data directory contains `matches.csv`/parquet, `fixtures.csv`/parquet and
+optionally `teams.csv`/parquet. Matches require distinct teams, nonnegative integer
+scores, unique identities and dated kickoffs. Use explicit `result_available_at`
+for causal intraday history; otherwise the following UTC day is the conservative
+availability fallback. `xg_available_at` is required before historical xG can be
+used instead of the documented goal proxy. Fixture kickoffs are mandatory.
 
-## Modes
-- `match_result`: predicts 1X2 outcomes (home/draw/away).
-- `scoreline`: predicts a likely scoreline when lineups/odds are available.
+Both `match_result` and `scoreline` return 1X2, scoreline and expected goals from a
+common coherent joint distribution. They do not require or consume lineups/odds;
+those feeds are unimplemented. `--weather on` attaches metadata only.
+`--goal-strength-half-life-days` is an optional goal-likelihood weighting policy,
+with no implied performance improvement. `--shadow_eval off` suppresses outer
+metrics; it does not convert fitting diagnostics into validation.
 
-## Notes
-- `--data-source` supports local folder discovery and can be extended for multiple providers (APIs, exports, or internal data).
-- Current baseline is deterministic and returns 1X2 probabilities, ranked outcomes, scoreline estimate, and training diagnostics.
-- `--weather on` attaches Open-Meteo fixture weather when fixture venue coordinates or fallback coordinates are available.
+The compatibility `run_prediction.py` forwards to `run_experiment.py`.
+Run regression checks with the legacy import path on `PYTHONPATH`:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 \
+PYTHONPATH=".:research/projects/Football/Match Result Prediction/Python" \
+python -m pytest -p no:cacheprovider \
+  "research/projects/Football/Match Result Prediction/Python/tests" -q
+```
+
+Synthetic regressions exercise timing, negative score support, tail probabilities,
+optimizer stationarity, calibration separation, growing holdouts, and outer-label
+invariance. They do not measure real football predictive quality.

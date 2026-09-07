@@ -1,0 +1,91 @@
+{
+  "experiment_id": "football_fixed_out_of_league_transfer_20260907",
+  "status": "historical_retrospective_no_selection_no_promotion",
+  "parent_epl_spec_sha256": "c95057dbce099ecdaae40573ec3f389dc77ef5dc05b23073d60d6136d912a13d",
+  "parent_epl_evidence_sha256": "4f94a461886df7f8d167356f0d6735f1339f5a8869d618669c6d3de93b6c1418",
+  "frozen_selected_model": "dc365_elo50",
+  "baseline": "dc_equal",
+  "leagues": {
+    "SP1": {
+      "name": "Spain La Liga",
+      "timezone": "Europe/Madrid"
+    },
+    "I1": {
+      "name": "Italy Serie A",
+      "timezone": "Europe/Rome"
+    }
+  },
+  "input_season_start_years": [
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "history_seasons": [
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "test_seasons": [
+    2024,
+    2025
+  ],
+  "expected_matches_per_season": 380,
+  "parameter_inheritance": "Unchanged EPL DC365/Elo50 hyperparameters, likelihood and support math, 1095-calendar-day fit window, bimonthly cadence, causal Elo updates, fixed0.5 mixture. Equal DC uses identical fit IDs. No dc_180 fitting or new candidate selection.",
+  "local_time_policy": "Same day-start forecast and next-local-midnight result availability policy, with each league local timezone replacing Europe/London; no original vendor publication/revision archive.",
+  "inherited_elo": {
+    "initial_rating": 1500.0,
+    "k_factor": 20.0,
+    "home_advantage_rating_points": 60.0,
+    "logistic_scale": 400.0,
+    "win_draw_loss_score": [
+      1.0,
+      0.5,
+      0.0
+    ],
+    "season_reset": false,
+    "inactive_team_policy": "retain last rating; unseen teams start neutral; no lower-league information",
+    "features": [
+      "pre-match rating difference / 400",
+      "absolute pre-match rating difference / 400"
+    ],
+    "probability_mapping": "multinomial LogisticRegression C=1, solver=lbfgs, max_iter=1000, tol=1e-8; same rolling fit IDs as Dixon-Coles; no posthoc calibration"
+  },
+  "inherited_refit": "first forecast day of each calendar two-month bucket: Jan-Feb, Mar-Apr, May-Jun, Jul-Aug, Sep-Oct, Nov-Dec",
+  "rolling_fit_calendar_days": 1095,
+  "inherited_uncertainty": {
+    "resamples": 4000,
+    "seed": 20260907,
+    "interval": "percentile 95%; paired candidate-minus-dc_equal losses",
+    "blocks": [
+      "fixture calendar day",
+      "nonoverlapping 28-calendar-day blocks anchored to each season's first fixture date"
+    ],
+    "stratification": "resample blocks independently within each season; preserve season match-count weights",
+    "interpretation": "conditional uncertainty within these two historical seasons; not independent-season generalization, prospective evidence, or multiple-comparison-adjusted discovery"
+  },
+  "reporting": "Fixed selected mixture vs equal DC only, per league and season; paired 28-day block95%interval, stratified by season. Pooled estimate stratified by league-season. No transfer-label-driven tuning.",
+  "known_exposure": "These league files have not been used in this research cycle; historical public data are not claimed universally unseen or prospective. EPL results motivated this fixed transfer test.",
+  "failure_policy": "Fail on incomplete season, invalid score/result, duplicate fixture, nonfinite probability or failed optimizer. Preserve diagnostics; do not silently omit matches or replace models.",
+  "resource_limit": {
+    "parallel_fits": 1,
+    "blas_threads": 1
+  },
+  "limitations": [
+    "two leagues and two target seasons each",
+    "historical source revisions not point-in-time archived",
+    "lower-league and player information absent",
+    "club names as provided without retrospective alias mapping",
+    "conditional fixed-block uncertainty does not establish independent future-season transfer",
+    "no production promotion"
+  ]
+}

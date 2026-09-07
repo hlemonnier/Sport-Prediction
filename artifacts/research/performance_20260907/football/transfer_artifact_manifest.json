@@ -1,0 +1,45 @@
+{
+  "new_research_files": {
+    "research/experiments/performance_20260907/football/transfer_README.md": "27af176ca654412d15709a5ff4a4fc119c9473d0648aa4a29895cfa433d72b07",
+    "research/experiments/performance_20260907/football/transfer_acquire.py": "df7f0c65dba39fee0ceb385f065a4534e0149bc476ea179cab87a0db88df9eae",
+    "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6",
+    "research/experiments/performance_20260907/football/transfer_spec.json": "9e2dd99685014ad4d8bbeed500b14c39177a6c80d4e47c5102af61d48f47e2b5",
+    "research/experiments/performance_20260907/football/transfer_test.py": "3afef36db46c68e5224dd51991ca50976665b855cc95ed8c432216659479dc59",
+    "research/experiments/performance_20260907/football/transfer_timing_notes.json": "0c1611ea4a88e39fd42c03de50cfbe533ac25391c874105fe52fe92514fa3e4c"
+  },
+  "new_artifacts": {
+    "artifacts/research/performance_20260907/football/transfer_I1.json": "91954ab77d0e577204f7990bee152e4fced274721f050a9c1279d0ecb043070b",
+    "artifacts/research/performance_20260907/football/transfer_SP1.json": "24b81de69dadf622a84b387165f46fc228c7deeb584e32f4884dca88118d21d2",
+    "artifacts/research/performance_20260907/football/transfer_design_lock.json": "fd355047a340491d7f2f179219e8ba700b82c88f116dd4b4fce3094283d10569",
+    "artifacts/research/performance_20260907/football/transfer_evidence.json": "47c735c84aa1ecf7d606f75f4ba51ab4af9f9d17d9329c2679d6b77bdc0475c7",
+    "artifacts/research/performance_20260907/football/transfer_preservation_check.json": "759778ebc7f430b5fdcf015aeab7b9f8fa109052c5a828f0b1cfc82b9d1a43b7",
+    "artifacts/research/performance_20260907/football/transfer_run_lock.json": "cd80e1eb443d3e61747fcd69383fca9d0f07c004d8dc8378ddbc7e7a2b1e19e4",
+    "artifacts/research/performance_20260907/football/transfer_stdout.txt": "907715d591b1e5e98400479c90e8a4471ded0e0283635a41169dcd286a45be05"
+  },
+  "new_inputs": {
+    "data/football/performance_20260907/transfer_I1_2017_2018.csv": "664a8874d3a33923036120c4162e72f13887e0897b51effe27f89969c79c335d",
+    "data/football/performance_20260907/transfer_I1_2018_2019.csv": "2baea8a1fb31096960b5f5797d31dbb6b454eb41b00845e6b0b79feb82a0e3d0",
+    "data/football/performance_20260907/transfer_I1_2019_2020.csv": "f33233e0c428ebe4f7cb854c4a504e0b59c4e009ee8b679269486e26afdc575b",
+    "data/football/performance_20260907/transfer_I1_2020_2021.csv": "c09196fa18877547442807d375317299947abdd6d51a5e0df044cc6026e13f36",
+    "data/football/performance_20260907/transfer_I1_2021_2022.csv": "6a9555d5a90e652a883fd2862a52545c06e264016cd770347c067a6d7c993170",
+    "data/football/performance_20260907/transfer_I1_2022_2023.csv": "9960837f37a97ae700f876c87b85a8b7a2f5a5d05a53077830c21b9db8880c45",
+    "data/football/performance_20260907/transfer_I1_2023_2024.csv": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723",
+    "data/football/performance_20260907/transfer_I1_2024_2025.csv": "79d87a5b18771e066ac7419b7876bfd9771a68ca117a9712375d6bc9685abee3",
+    "data/football/performance_20260907/transfer_I1_2025_2026.csv": "709ae279617d16af226312bcceac941e71241745ddaf950bdac2b83afad4fcbb",
+    "data/football/performance_20260907/transfer_SP1_2017_2018.csv": "5786719e06d1a5387cb90fac71597c890f496df19e8e1aa868bbc852f7e730fd",
+    "data/football/performance_20260907/transfer_SP1_2018_2019.csv": "9b8cece2c85e90e382b30dc4fc5046534f12c6d2b0efa74cd7d1d52e90a0c201",
+    "data/football/performance_20260907/transfer_SP1_2019_2020.csv": "a05d5d60eee0b1414c56d6d6817f860cdc620e206234069a1886c98a8cb318da",
+    "data/football/performance_20260907/transfer_SP1_2020_2021.csv": "b4137db923101f464e8403c4973acbfaf7d71724ce93b4336fad580e894d9591",
+    "data/football/performance_20260907/transfer_SP1_2021_2022.csv": "2d9e619700712823d15716c07715133f8c3b1a09046930dcfc785a38633dee2e",
+    "data/football/performance_20260907/transfer_SP1_2022_2023.csv": "53348112526b5165539df240be350083989bb258f30c0ff7cacbc0165ca7e4b3",
+    "data/football/performance_20260907/transfer_SP1_2023_2024.csv": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9",
+    "data/football/performance_20260907/transfer_SP1_2024_2025.csv": "c086e96d6a53f6e6c0fce4e35db0d1728c773b4362323da0161a34769e315a36",
+    "data/football/performance_20260907/transfer_SP1_2025_2026.csv": "4ca2e285f3ee0702f6bc55fcaa4f5a15cb3aef6220735a1d15398131e21d63f5",
+    "data/football/performance_20260907/transfer_italy_source.html": "3f0f237ec6b171bcdc6c0eb5aeadfcbc9c7f26a54d9765e3986b692e8a84b9d6",
+    "data/football/performance_20260907/transfer_source_manifest.json": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6",
+    "data/football/performance_20260907/transfer_spain_source.html": "ef961c1baa719a18cd57cdd24bb96c8171d87e9eef9217a971b715f9cba43931"
+  },
+  "production_changes": false,
+  "promotion": false,
+  "suggested_commit": "research: test frozen football blend across Spain and Italy"
+}

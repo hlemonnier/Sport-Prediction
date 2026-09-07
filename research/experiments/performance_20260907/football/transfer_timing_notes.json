@@ -1,0 +1,11 @@
+{
+  "recorded_before_transfer_model_metrics": true,
+  "scope": "Targeted known-resumption checks, not an exhaustive historical event audit",
+  "findings": [
+    {"match_id": "I1:2024:Fiorentina:Inter", "source_date": "2025-02-06", "meaning": "resumption/completion date, starting in minute17 after earlier0-0 interruption", "source": "https://www.inter.it/en/news/rescheduled-continuation-fiorentina-inter-6-february-2025", "test_row": true},
+    {"match_id": "I1:2023:Udinese:Roma", "source_date": "2024-04-25", "meaning": "resumption/completion date, starting in minute72 after earlier1-1 interruption", "source": "https://www.asroma.com/en/news/71046/team-news-starting-xi-for-rearranged-udinese-match", "test_row": false}
+  ],
+  "primary_population": "Keep all380matches per target season; use source completion-day timestamps and next-local-midnight result availability",
+  "horizon_limit": "These rows cannot be described as forecasts before the original kickoff. The models do not condition on known partial scores, but final results are only added after completion.",
+  "pre_metric_diagnostic": "Additionally report Italy fixed-model metrics excluding I1:2024:Fiorentina:Inter (759rows), without any refit or selection change. Retain the complete760match population as primary."
+}

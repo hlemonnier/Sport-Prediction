@@ -1,0 +1,1487 @@
+{
+  "artifacts": {
+    "transfer_I1.json": "91954ab77d0e577204f7990bee152e4fced274721f050a9c1279d0ecb043070b",
+    "transfer_SP1.json": "24b81de69dadf622a84b387165f46fc228c7deeb584e32f4884dca88118d21d2",
+    "transfer_run_lock.json": "cd80e1eb443d3e61747fcd69383fca9d0f07c004d8dc8378ddbc7e7a2b1e19e4"
+  },
+  "completed_at_utc": "2026-09-07T12:39:08.850796+00:00",
+  "experiment_id": "football_fixed_out_of_league_transfer_20260907",
+  "leagues": {
+    "I1": {
+      "by_season": {
+        "2024": {
+          "models": {
+            "dc365_elo50": {
+              "accuracy": 0.5263157894736842,
+              "brier_sum_classes": 0.5803142781596605,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.34210526315789475,
+                  "lower": 0.3,
+                  "mean_confidence": 0.37216136077462325,
+                  "n": 76,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.44954128440366975,
+                  "lower": 0.4,
+                  "mean_confidence": 0.4462917639626231,
+                  "n": 109,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.6078431372549019,
+                  "lower": 0.5,
+                  "mean_confidence": 0.5530890300278187,
+                  "n": 102,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.6333333333333333,
+                  "lower": 0.6,
+                  "mean_confidence": 0.641584860274712,
+                  "n": 60,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.7142857142857143,
+                  "lower": 0.7,
+                  "mean_confidence": 0.7368761542556111,
+                  "n": 28,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 1.0,
+                  "lower": 0.8,
+                  "mean_confidence": 0.812867929953329,
+                  "n": 5,
+                  "upper": 0.9
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                0.014556516142579967,
+                -0.01636579538614641,
+                0.0018092792435664973
+              ],
+              "log_loss": 0.9706899144567208,
+              "n": 380,
+              "top_label_ece_10_bins": 0.027070169394687163
+            },
+            "dc_equal": {
+              "accuracy": 0.5157894736842106,
+              "brier_sum_classes": 0.5833878158102567,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.35294117647058826,
+                  "lower": 0.3,
+                  "mean_confidence": 0.3763893107537162,
+                  "n": 68,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.375,
+                  "lower": 0.4,
+                  "mean_confidence": 0.4499461315882807,
+                  "n": 120,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.6458333333333334,
+                  "lower": 0.5,
+                  "mean_confidence": 0.5487445726304723,
+                  "n": 96,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.6451612903225806,
+                  "lower": 0.6,
+                  "mean_confidence": 0.645300194161623,
+                  "n": 62,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.7142857142857143,
+                  "lower": 0.7,
+                  "mean_confidence": 0.7383073079272765,
+                  "n": 28,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 0.8333333333333334,
+                  "lower": 0.8,
+                  "mean_confidence": 0.8508890133489011,
+                  "n": 6,
+                  "upper": 0.9
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                0.0159543309376321,
+                -0.025742753319215272,
+                0.009788422381583228
+              ],
+              "log_loss": 0.9765573321404273,
+              "n": 380,
+              "top_label_ece_10_bins": 0.05446073865631267
+            }
+          },
+          "n": 380,
+          "paired_28_day_interval": {
+            "block_calendar_days": 28,
+            "blocks_by_season": {
+              "2024": 11
+            },
+            "bootstrap_fraction_difference_below_zero": 0.82,
+            "difference_candidate_minus_dc_equal": -0.0058674176837065425,
+            "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+            "percentile_95_interval": [
+              -0.0176312658444717,
+              0.005868371599127426
+            ],
+            "resamples": 4000
+          },
+          "population_sha256": "9741cd376fae5257e39712473f781632848173757cc0d32e23f45792969b5812"
+        },
+        "2025": {
+          "models": {
+            "dc365_elo50": {
+              "accuracy": 0.5105263157894737,
+              "brier_sum_classes": 0.5942661504310097,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.3950617283950617,
+                  "lower": 0.3,
+                  "mean_confidence": 0.37304731852874184,
+                  "n": 81,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.41818181818181815,
+                  "lower": 0.4,
+                  "mean_confidence": 0.45045722568574087,
+                  "n": 110,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.4895833333333333,
+                  "lower": 0.5,
+                  "mean_confidence": 0.546800975576223,
+                  "n": 96,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.7428571428571429,
+                  "lower": 0.6,
+                  "mean_confidence": 0.6441213948959272,
+                  "n": 70,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.7619047619047619,
+                  "lower": 0.7,
+                  "mean_confidence": 0.7368325849809942,
+                  "n": 21,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 0.5,
+                  "lower": 0.8,
+                  "mean_confidence": 0.8317926553306297,
+                  "n": 2,
+                  "upper": 0.9
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                0.015235965059983703,
+                0.014422424856817828,
+                -0.029658389916801364
+              ],
+              "log_loss": 0.996589678619012,
+              "n": 380,
+              "top_label_ece_10_bins": 0.049810418587542864
+            },
+            "dc_equal": {
+              "accuracy": 0.5184210526315789,
+              "brier_sum_classes": 0.5945976310728572,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.3787878787878788,
+                  "lower": 0.3,
+                  "mean_confidence": 0.3734757495249169,
+                  "n": 66,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.4409448818897638,
+                  "lower": 0.4,
+                  "mean_confidence": 0.44953660968099673,
+                  "n": 127,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.5714285714285714,
+                  "lower": 0.5,
+                  "mean_confidence": 0.5518747573260506,
+                  "n": 91,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.6428571428571429,
+                  "lower": 0.6,
+                  "mean_confidence": 0.6432636090674096,
+                  "n": 70,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.7,
+                  "lower": 0.7,
+                  "mean_confidence": 0.7295994491372365,
+                  "n": 20,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 0.8333333333333334,
+                  "lower": 0.8,
+                  "mean_confidence": 0.8335576062791864,
+                  "n": 6,
+                  "upper": 0.9
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                0.018982537100312447,
+                0.001320260545302765,
+                -0.020302797645614823
+              ],
+              "log_loss": 0.995501952213051,
+              "n": 380,
+              "top_label_ece_10_bins": 0.010112984998184162
+            }
+          },
+          "n": 380,
+          "paired_28_day_interval": {
+            "block_calendar_days": 28,
+            "blocks_by_season": {
+              "2025": 10
+            },
+            "bootstrap_fraction_difference_below_zero": 0.37475,
+            "difference_candidate_minus_dc_equal": 0.0010877264059609626,
+            "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+            "percentile_95_interval": [
+              -0.005427375587422222,
+              0.007854891082550818
+            ],
+            "resamples": 4000
+          },
+          "population_sha256": "6110f5433b8096fb7a5e010fdf3d159c7f0509df4e328453c2d3867acd758728"
+        }
+      },
+      "convergence": {
+        "joint_fits": 24,
+        "maximum_kkt_residual": 4.46761952002344e-06,
+        "refit_blocks": 12
+      },
+      "league": {
+        "name": "Italy Serie A",
+        "timezone": "Europe/Rome"
+      },
+      "overall": {
+        "models": {
+          "dc365_elo50": {
+            "accuracy": 0.5184210526315789,
+            "brier_sum_classes": 0.5872902142953351,
+            "calibration_bins": [
+              {
+                "accuracy": 0.36942675159235666,
+                "lower": 0.3,
+                "mean_confidence": 0.37261844725923227,
+                "n": 157,
+                "upper": 0.4
+              },
+              {
+                "accuracy": 0.4337899543378995,
+                "lower": 0.4,
+                "mean_confidence": 0.4483840050107644,
+                "n": 219,
+                "upper": 0.5
+              },
+              {
+                "accuracy": 0.5505050505050505,
+                "lower": 0.5,
+                "mean_confidence": 0.5500402763543177,
+                "n": 198,
+                "upper": 0.6
+              },
+              {
+                "accuracy": 0.6923076923076923,
+                "lower": 0.6,
+                "mean_confidence": 0.6429506866092125,
+                "n": 130,
+                "upper": 0.7
+              },
+              {
+                "accuracy": 0.7346938775510204,
+                "lower": 0.7,
+                "mean_confidence": 0.7368574817093468,
+                "n": 49,
+                "upper": 0.8
+              },
+              {
+                "accuracy": 0.8571428571428571,
+                "lower": 0.8,
+                "mean_confidence": 0.8182749943468435,
+                "n": 7,
+                "upper": 0.9
+              }
+            ],
+            "class_mean_probability_minus_frequency": [
+              0.014896240601282085,
+              -0.0009716852646647345,
+              -0.013924555336617739
+            ],
+            "log_loss": 0.9836397965378664,
+            "n": 760,
+            "top_label_ece_10_bins": 0.01392594866188741
+          },
+          "dc_equal": {
+            "accuracy": 0.5171052631578947,
+            "brier_sum_classes": 0.588992723441557,
+            "calibration_bins": [
+              {
+                "accuracy": 0.3656716417910448,
+                "lower": 0.3,
+                "mean_confidence": 0.37495427313356133,
+                "n": 134,
+                "upper": 0.4
+              },
+              {
+                "accuracy": 0.4089068825910931,
+                "lower": 0.4,
+                "mean_confidence": 0.4497355676926327,
+                "n": 247,
+                "upper": 0.5
+              },
+              {
+                "accuracy": 0.6096256684491979,
+                "lower": 0.5,
+                "mean_confidence": 0.5502678175892831,
+                "n": 187,
+                "upper": 0.6
+              },
+              {
+                "accuracy": 0.6439393939393939,
+                "lower": 0.6,
+                "mean_confidence": 0.6442201869146917,
+                "n": 132,
+                "upper": 0.7
+              },
+              {
+                "accuracy": 0.7083333333333334,
+                "lower": 0.7,
+                "mean_confidence": 0.7346790334314265,
+                "n": 48,
+                "upper": 0.8
+              },
+              {
+                "accuracy": 0.8333333333333334,
+                "lower": 0.8,
+                "mean_confidence": 0.8422233098140438,
+                "n": 12,
+                "upper": 0.9
+              }
+            ],
+            "class_mean_probability_minus_frequency": [
+              0.017468434018972134,
+              -0.012211246386955865,
+              -0.0052571876320156585
+            ],
+            "log_loss": 0.986029642176739,
+            "n": 760,
+            "top_label_ece_10_bins": 0.031364228849997185
+          }
+        },
+        "n": 760,
+        "paired_28_day_interval": {
+          "block_calendar_days": 28,
+          "blocks_by_season": {
+            "2024": 11,
+            "2025": 10
+          },
+          "bootstrap_fraction_difference_below_zero": 0.7405,
+          "difference_candidate_minus_dc_equal": -0.002389845638872789,
+          "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+          "percentile_95_interval": [
+            -0.008876079268430821,
+            0.004284108534508343
+          ],
+          "resamples": 4000
+        },
+        "population_sha256": "93d69c89c8de74847f842b5689935eced316c07ecbb33900412a157540ba5452"
+      },
+      "pre_metric_known_resumption_exclusion_sensitivity": {
+        "models": {
+          "dc365_elo50": {
+            "accuracy": 0.5191040843214756,
+            "brier_sum_classes": 0.5867880648662882,
+            "calibration_bins": [
+              {
+                "accuracy": 0.36942675159235666,
+                "lower": 0.3,
+                "mean_confidence": 0.37261844725923227,
+                "n": 157,
+                "upper": 0.4
+              },
+              {
+                "accuracy": 0.4337899543378995,
+                "lower": 0.4,
+                "mean_confidence": 0.4483840050107644,
+                "n": 219,
+                "upper": 0.5
+              },
+              {
+                "accuracy": 0.5532994923857868,
+                "lower": 0.5,
+                "mean_confidence": 0.5501147014538191,
+                "n": 197,
+                "upper": 0.6
+              },
+              {
+                "accuracy": 0.6923076923076923,
+                "lower": 0.6,
+                "mean_confidence": 0.6429506866092125,
+                "n": 130,
+                "upper": 0.7
+              },
+              {
+                "accuracy": 0.7346938775510204,
+                "lower": 0.7,
+                "mean_confidence": 0.7368574817093468,
+                "n": 49,
+                "upper": 0.8
+              },
+              {
+                "accuracy": 0.8571428571428571,
+                "lower": 0.8,
+                "mean_confidence": 0.8182749943468435,
+                "n": 7,
+                "upper": 0.9
+              }
+            ],
+            "class_mean_probability_minus_frequency": [
+              0.01595219208393517,
+              -0.001303917264986798,
+              -0.014648274818948648
+            ],
+            "log_loss": 0.9829009151782198,
+            "n": 759,
+            "top_label_ece_10_bins": 0.014649669979956486
+          },
+          "dc_equal": {
+            "accuracy": 0.5177865612648221,
+            "brier_sum_classes": 0.5885536329520512,
+            "calibration_bins": [
+              {
+                "accuracy": 0.3656716417910448,
+                "lower": 0.3,
+                "mean_confidence": 0.37495427313356133,
+                "n": 134,
+                "upper": 0.4
+              },
+              {
+                "accuracy": 0.4089068825910931,
+                "lower": 0.4,
+                "mean_confidence": 0.4497355676926327,
+                "n": 247,
+                "upper": 0.5
+              },
+              {
+                "accuracy": 0.6129032258064516,
+                "lower": 0.5,
+                "mean_confidence": 0.5504466360447748,
+                "n": 186,
+                "upper": 0.6
+              },
+              {
+                "accuracy": 0.6439393939393939,
+                "lower": 0.6,
+                "mean_confidence": 0.6442201869146917,
+                "n": 132,
+                "upper": 0.7
+              },
+              {
+                "accuracy": 0.7083333333333334,
+                "lower": 0.7,
+                "mean_confidence": 0.7346790334314265,
+                "n": 48,
+                "upper": 0.8
+              },
+              {
+                "accuracy": 0.8333333333333334,
+                "lower": 0.8,
+                "mean_confidence": 0.8422233098140438,
+                "n": 12,
+                "upper": 0.9
+              }
+            ],
+            "class_mean_probability_minus_frequency": [
+              0.018504691661636763,
+              -0.012559408150173978,
+              -0.005945283511462007
+            ],
+            "log_loss": 0.9853978513526799,
+            "n": 759,
+            "top_label_ece_10_bins": 0.03208672135818931
+          }
+        },
+        "n": 759,
+        "paired_28_day_interval": {
+          "block_calendar_days": 28,
+          "blocks_by_season": {
+            "2024": 11,
+            "2025": 10
+          },
+          "bootstrap_fraction_difference_below_zero": 0.751,
+          "difference_candidate_minus_dc_equal": -0.0024969361744601706,
+          "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+          "percentile_95_interval": [
+            -0.008999130903336053,
+            0.004180852035684562
+          ],
+          "resamples": 4000
+        },
+        "population_sha256": "db067e77381d43a4835aaadb9b4e108afd963e6142d741fc9cfcea0de59042d2"
+      },
+      "verification": {
+        "checks": [
+          "same fit population",
+          "prior-result availability",
+          "target absent from fit",
+          "league local day-start cutoff",
+          "causal Elo features",
+          "DC probabilities and fixed mixture reconstructed from stored parameters"
+        ],
+        "maximum_probability_reconstruction_error": 1.1102230246251565e-16,
+        "passed": true,
+        "prediction_rows": 760
+      }
+    },
+    "SP1": {
+      "by_season": {
+        "2024": {
+          "models": {
+            "dc365_elo50": {
+              "accuracy": 0.5394736842105263,
+              "brier_sum_classes": 0.5749903104659625,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.36486486486486486,
+                  "lower": 0.3,
+                  "mean_confidence": 0.3770133042056666,
+                  "n": 74,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.5354330708661418,
+                  "lower": 0.4,
+                  "mean_confidence": 0.4464717133694161,
+                  "n": 127,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.45569620253164556,
+                  "lower": 0.5,
+                  "mean_confidence": 0.5472894204446168,
+                  "n": 79,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.6363636363636364,
+                  "lower": 0.6,
+                  "mean_confidence": 0.6407182578252367,
+                  "n": 55,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.8857142857142857,
+                  "lower": 0.7,
+                  "mean_confidence": 0.7500746954139268,
+                  "n": 35,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 0.8,
+                  "lower": 0.8,
+                  "mean_confidence": 0.8364967975069147,
+                  "n": 10,
+                  "upper": 0.9
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                0.005229582027007573,
+                0.0021367186330810695,
+                -0.007366300660088643
+              ],
+              "log_loss": 0.970052498404408,
+              "n": 380,
+              "top_label_ece_10_bins": 0.0652231551168367
+            },
+            "dc_equal": {
+              "accuracy": 0.531578947368421,
+              "brier_sum_classes": 0.577366684551316,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.3582089552238806,
+                  "lower": 0.3,
+                  "mean_confidence": 0.3822679284190317,
+                  "n": 67,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.4883720930232558,
+                  "lower": 0.4,
+                  "mean_confidence": 0.4454495609821417,
+                  "n": 129,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.4642857142857143,
+                  "lower": 0.5,
+                  "mean_confidence": 0.5459640425198475,
+                  "n": 84,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.7142857142857143,
+                  "lower": 0.6,
+                  "mean_confidence": 0.6408924979187174,
+                  "n": 63,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.7857142857142857,
+                  "lower": 0.7,
+                  "mean_confidence": 0.7500721852529344,
+                  "n": 28,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 1.0,
+                  "lower": 0.8,
+                  "mean_confidence": 0.8332300752079909,
+                  "n": 9,
+                  "upper": 0.9
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                0.0013379460951645772,
+                -0.001935365277615786,
+                0.0005974191824513753
+              ],
+              "log_loss": 0.9735987915411257,
+              "n": 380,
+              "top_label_ece_10_bins": 0.05561215309529671
+            }
+          },
+          "n": 380,
+          "paired_28_day_interval": {
+            "block_calendar_days": 28,
+            "blocks_by_season": {
+              "2024": 11
+            },
+            "bootstrap_fraction_difference_below_zero": 0.83625,
+            "difference_candidate_minus_dc_equal": -0.00354629313671771,
+            "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+            "percentile_95_interval": [
+              -0.010908806529508808,
+              0.0034016030980710396
+            ],
+            "resamples": 4000
+          },
+          "population_sha256": "515e1e154835fff29e6aeb7eb843a13d8da3a5cf1703c34b11c9341008e8b485"
+        },
+        "2025": {
+          "models": {
+            "dc365_elo50": {
+              "accuracy": 0.5289473684210526,
+              "brier_sum_classes": 0.5778231536944959,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.3875,
+                  "lower": 0.3,
+                  "mean_confidence": 0.37463589826936267,
+                  "n": 80,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.45038167938931295,
+                  "lower": 0.4,
+                  "mean_confidence": 0.4416378557239297,
+                  "n": 131,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.5428571428571428,
+                  "lower": 0.5,
+                  "mean_confidence": 0.542461603847092,
+                  "n": 70,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.6181818181818182,
+                  "lower": 0.6,
+                  "mean_confidence": 0.6358443339240675,
+                  "n": 55,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.9166666666666666,
+                  "lower": 0.7,
+                  "mean_confidence": 0.751258802437658,
+                  "n": 24,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 0.8333333333333334,
+                  "lower": 0.8,
+                  "mean_confidence": 0.8263862966798864,
+                  "n": 18,
+                  "upper": 0.9
+                },
+                {
+                  "accuracy": 1.0,
+                  "lower": 0.9,
+                  "mean_confidence": 0.9061843520750741,
+                  "n": 2,
+                  "upper": 1.0
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                -0.039990492389766985,
+                0.011390648183990798,
+                0.028599844205776326
+              ],
+              "log_loss": 0.9741907042300822,
+              "n": 380,
+              "top_label_ece_10_bins": 0.019621478505925178
+            },
+            "dc_equal": {
+              "accuracy": 0.531578947368421,
+              "brier_sum_classes": 0.5852360341647203,
+              "calibration_bins": [
+                {
+                  "accuracy": 0.421875,
+                  "lower": 0.3,
+                  "mean_confidence": 0.37885634525053097,
+                  "n": 64,
+                  "upper": 0.4
+                },
+                {
+                  "accuracy": 0.4621212121212121,
+                  "lower": 0.4,
+                  "mean_confidence": 0.4416512616485744,
+                  "n": 132,
+                  "upper": 0.5
+                },
+                {
+                  "accuracy": 0.4948453608247423,
+                  "lower": 0.5,
+                  "mean_confidence": 0.5493070020224133,
+                  "n": 97,
+                  "upper": 0.6
+                },
+                {
+                  "accuracy": 0.6875,
+                  "lower": 0.6,
+                  "mean_confidence": 0.6422302791004086,
+                  "n": 48,
+                  "upper": 0.7
+                },
+                {
+                  "accuracy": 0.8333333333333334,
+                  "lower": 0.7,
+                  "mean_confidence": 0.7491752725986303,
+                  "n": 30,
+                  "upper": 0.8
+                },
+                {
+                  "accuracy": 0.875,
+                  "lower": 0.8,
+                  "mean_confidence": 0.8372181460967849,
+                  "n": 8,
+                  "upper": 0.9
+                },
+                {
+                  "accuracy": 1.0,
+                  "lower": 0.9,
+                  "mean_confidence": 0.9013952031223172,
+                  "n": 1,
+                  "upper": 1.0
+                }
+              ],
+              "class_mean_probability_minus_frequency": [
+                -0.04159484114103745,
+                0.00455797119904558,
+                0.03703686994199168
+              ],
+              "log_loss": 0.9839974944956124,
+              "n": 380,
+              "top_label_ece_10_bins": 0.041675143725929405
+            }
+          },
+          "n": 380,
+          "paired_28_day_interval": {
+            "block_calendar_days": 28,
+            "blocks_by_season": {
+              "2025": 11
+            },
+            "bootstrap_fraction_difference_below_zero": 0.89825,
+            "difference_candidate_minus_dc_equal": -0.009806790265530227,
+            "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+            "percentile_95_interval": [
+              -0.024606202141315037,
+              0.005507667767117557
+            ],
+            "resamples": 4000
+          },
+          "population_sha256": "08e7d26e33bd94008bf8dc275a2b7944e41ffd136a556f369acb46b14025e7ff"
+        }
+      },
+      "convergence": {
+        "joint_fits": 24,
+        "maximum_kkt_residual": 4.9406287910439675e-06,
+        "refit_blocks": 12
+      },
+      "league": {
+        "name": "Spain La Liga",
+        "timezone": "Europe/Madrid"
+      },
+      "overall": {
+        "models": {
+          "dc365_elo50": {
+            "accuracy": 0.5342105263157895,
+            "brier_sum_classes": 0.5764067320802292,
+            "calibration_bins": [
+              {
+                "accuracy": 0.37662337662337664,
+                "lower": 0.3,
+                "mean_confidence": 0.37577828813485936,
+                "n": 154,
+                "upper": 0.4
+              },
+              {
+                "accuracy": 0.49224806201550386,
+                "lower": 0.4,
+                "mean_confidence": 0.4440173127819792,
+                "n": 258,
+                "upper": 0.5
+              },
+              {
+                "accuracy": 0.4966442953020134,
+                "lower": 0.5,
+                "mean_confidence": 0.5450213186873906,
+                "n": 149,
+                "upper": 0.6
+              },
+              {
+                "accuracy": 0.6272727272727273,
+                "lower": 0.6,
+                "mean_confidence": 0.6382812958746521,
+                "n": 110,
+                "upper": 0.7
+              },
+              {
+                "accuracy": 0.8983050847457628,
+                "lower": 0.7,
+                "mean_confidence": 0.7505563660676481,
+                "n": 59,
+                "upper": 0.8
+              },
+              {
+                "accuracy": 0.8214285714285714,
+                "lower": 0.8,
+                "mean_confidence": 0.8299971898323965,
+                "n": 28,
+                "upper": 0.9
+              },
+              {
+                "accuracy": 1.0,
+                "lower": 0.9,
+                "mean_confidence": 0.9061843520750741,
+                "n": 2,
+                "upper": 1.0
+              }
+            ],
+            "class_mean_probability_minus_frequency": [
+              -0.01738045518138026,
+              0.006763683408536336,
+              0.01061677177284348
+            ],
+            "log_loss": 0.9721216013172451,
+            "n": 760,
+            "top_label_ece_10_bins": 0.039654635491157456
+          },
+          "dc_equal": {
+            "accuracy": 0.531578947368421,
+            "brier_sum_classes": 0.5813013593580181,
+            "calibration_bins": [
+              {
+                "accuracy": 0.3893129770992366,
+                "lower": 0.3,
+                "mean_confidence": 0.3806012007641916,
+                "n": 131,
+                "upper": 0.4
+              },
+              {
+                "accuracy": 0.47509578544061304,
+                "lower": 0.4,
+                "mean_confidence": 0.44352858200884326,
+                "n": 261,
+                "upper": 0.5
+              },
+              {
+                "accuracy": 0.48066298342541436,
+                "lower": 0.5,
+                "mean_confidence": 0.5477555733029905,
+                "n": 181,
+                "upper": 0.6
+              },
+              {
+                "accuracy": 0.7027027027027027,
+                "lower": 0.6,
+                "mean_confidence": 0.6414709978891782,
+                "n": 111,
+                "upper": 0.7
+              },
+              {
+                "accuracy": 0.8103448275862069,
+                "lower": 0.7,
+                "mean_confidence": 0.7496082649145012,
+                "n": 58,
+                "upper": 0.8
+              },
+              {
+                "accuracy": 0.9411764705882353,
+                "lower": 0.8,
+                "mean_confidence": 0.8351068144497764,
+                "n": 17,
+                "upper": 0.9
+              },
+              {
+                "accuracy": 1.0,
+                "lower": 0.9,
+                "mean_confidence": 0.9013952031223172,
+                "n": 1,
+                "upper": 1.0
+              }
+            ],
+            "class_mean_probability_minus_frequency": [
+              -0.02012844752293641,
+              0.0013113029607148552,
+              0.01881714456222139
+            ],
+            "log_loss": 0.978798143018369,
+            "n": 760,
+            "top_label_ece_10_bins": 0.04440167155778386
+          }
+        },
+        "n": 760,
+        "paired_28_day_interval": {
+          "block_calendar_days": 28,
+          "blocks_by_season": {
+            "2024": 11,
+            "2025": 11
+          },
+          "bootstrap_fraction_difference_below_zero": 0.938,
+          "difference_candidate_minus_dc_equal": -0.006676541701123969,
+          "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+          "percentile_95_interval": [
+            -0.014653742938614833,
+            0.0018559847972046428
+          ],
+          "resamples": 4000
+        },
+        "population_sha256": "71c21d2502b62badca930212cfc10111534f9a33559a43785f3beb524c3695b9"
+      },
+      "verification": {
+        "checks": [
+          "same fit population",
+          "prior-result availability",
+          "target absent from fit",
+          "league local day-start cutoff",
+          "causal Elo features",
+          "DC probabilities and fixed mixture reconstructed from stored parameters"
+        ],
+        "maximum_probability_reconstruction_error": 1.1102230246251565e-16,
+        "passed": true,
+        "prediction_rows": 760
+      }
+    }
+  },
+  "pooled_1520_match_transfer": {
+    "models": {
+      "dc365_elo50": {
+        "accuracy": 0.5263157894736842,
+        "brier_sum_classes": 0.5818484731877821,
+        "calibration_bins": [
+          {
+            "accuracy": 0.3729903536977492,
+            "lower": 0.3,
+            "mean_confidence": 0.3741831273069704,
+            "n": 311,
+            "upper": 0.4
+          },
+          {
+            "accuracy": 0.46540880503144655,
+            "lower": 0.4,
+            "mean_confidence": 0.44602214632098125,
+            "n": 477,
+            "upper": 0.5
+          },
+          {
+            "accuracy": 0.5273775216138329,
+            "lower": 0.5,
+            "mean_confidence": 0.547885161967078,
+            "n": 347,
+            "upper": 0.6
+          },
+          {
+            "accuracy": 0.6625,
+            "lower": 0.6,
+            "mean_confidence": 0.6408105491892057,
+            "n": 240,
+            "upper": 0.7
+          },
+          {
+            "accuracy": 0.8240740740740741,
+            "lower": 0.7,
+            "mean_confidence": 0.7443411314976779,
+            "n": 108,
+            "upper": 0.8
+          },
+          {
+            "accuracy": 0.8285714285714286,
+            "lower": 0.8,
+            "mean_confidence": 0.8276527507352858,
+            "n": 35,
+            "upper": 0.9
+          },
+          {
+            "accuracy": 1.0,
+            "lower": 0.9,
+            "mean_confidence": 0.9061843520750741,
+            "n": 2,
+            "upper": 1.0
+          }
+        ],
+        "class_mean_probability_minus_frequency": [
+          -0.0012421072900486996,
+          0.0028959990719363837,
+          -0.0016538917818871846
+        ],
+        "log_loss": 0.9778806989275558,
+        "n": 1520,
+        "top_label_ece_10_bins": 0.02024404671900795
+      },
+      "dc_equal": {
+        "accuracy": 0.5243421052631579,
+        "brier_sum_classes": 0.5851470413997875,
+        "calibration_bins": [
+          {
+            "accuracy": 0.37735849056603776,
+            "lower": 0.3,
+            "mean_confidence": 0.377745773207571,
+            "n": 265,
+            "upper": 0.4
+          },
+          {
+            "accuracy": 0.44291338582677164,
+            "lower": 0.4,
+            "mean_confidence": 0.44654654552044953,
+            "n": 508,
+            "upper": 0.5
+          },
+          {
+            "accuracy": 0.5461956521739131,
+            "lower": 0.5,
+            "mean_confidence": 0.5490321756984706,
+            "n": 368,
+            "upper": 0.6
+          },
+          {
+            "accuracy": 0.6707818930041153,
+            "lower": 0.6,
+            "mean_confidence": 0.6429643845203215,
+            "n": 243,
+            "upper": 0.7
+          },
+          {
+            "accuracy": 0.7641509433962265,
+            "lower": 0.7,
+            "mean_confidence": 0.7428478582051844,
+            "n": 106,
+            "upper": 0.8
+          },
+          {
+            "accuracy": 0.896551724137931,
+            "lower": 0.8,
+            "mean_confidence": 0.8380515711522318,
+            "n": 29,
+            "upper": 0.9
+          },
+          {
+            "accuracy": 1.0,
+            "lower": 0.9,
+            "mean_confidence": 0.9013952031223172,
+            "n": 1,
+            "upper": 1.0
+          }
+        ],
+        "class_mean_probability_minus_frequency": [
+          -0.0013300067519826375,
+          -0.005449971713120727,
+          0.006779978465102365
+        ],
+        "log_loss": 0.9824138925975541,
+        "n": 1520,
+        "top_label_ece_10_bins": 0.00908224112283367
+      }
+    },
+    "n": 1520,
+    "paired_28_day_interval": {
+      "block_calendar_days": 28,
+      "blocks_by_season": {
+        "I1:2024": 11,
+        "I1:2025": 10,
+        "SP1:2024": 11,
+        "SP1:2025": 11
+      },
+      "bootstrap_fraction_difference_below_zero": 0.9495,
+      "difference_candidate_minus_dc_equal": -0.004533193669998379,
+      "note": "Paired, season-stratified fixed-block resampling; conditional historical uncertainty, not a posterior probability or season-transfer guarantee",
+      "percentile_95_interval": [
+        -0.009604590478967952,
+        0.0007715619586822314
+      ],
+      "resamples": 4000
+    },
+    "population_sha256": "db7987d1b9d9ecf69489afd7f816cebc4c9a8e1c59daa1bc8c20c5dacc8937fd"
+  },
+  "promotion": false,
+  "provenance": {
+    "blas_threads": 1,
+    "input_manifest": {
+      "files": [
+        {
+          "bytes": 96801,
+          "etag": "\"17a21-56ca9f5fde678\"",
+          "last_modified": "Sun, 20 May 2018 21:35:15 GMT",
+          "name": "transfer_SP1_2017_2018.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:28.438364+00:00",
+          "sha256": "5786719e06d1a5387cb90fac71597c890f496df19e8e1aa868bbc852f7e730fd",
+          "url": "https://football-data.co.uk/mmz4281/1718/SP1.csv"
+        },
+        {
+          "bytes": 92914,
+          "etag": "\"16af2-5a8a07f497734\"",
+          "last_modified": "Sun, 21 Jun 2020 23:29:27 GMT",
+          "name": "transfer_SP1_2018_2019.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:28.618313+00:00",
+          "sha256": "9b8cece2c85e90e382b30dc4fc5046534f12c6d2b0efa74cd7d1d52e90a0c201",
+          "url": "https://football-data.co.uk/mmz4281/1819/SP1.csv"
+        },
+        {
+          "bytes": 171484,
+          "etag": "\"29ddc-5aad35f5816f0\"",
+          "last_modified": "Sun, 19 Jul 2020 23:01:37 GMT",
+          "name": "transfer_SP1_2019_2020.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:28.861520+00:00",
+          "sha256": "a05d5d60eee0b1414c56d6d6817f860cdc620e206234069a1886c98a8cb318da",
+          "url": "https://football-data.co.uk/mmz4281/1920/SP1.csv"
+        },
+        {
+          "bytes": 171721,
+          "etag": "\"29ec9-5c508a4490282\"",
+          "last_modified": "Fri, 18 Jun 2021 11:29:50 GMT",
+          "name": "transfer_SP1_2020_2021.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:29.067087+00:00",
+          "sha256": "b4137db923101f464e8403c4973acbfaf7d71724ce93b4336fad580e894d9591",
+          "url": "https://football-data.co.uk/mmz4281/2021/SP1.csv"
+        },
+        {
+          "bytes": 172174,
+          "etag": "\"2a08e-5dfa191ff0766\"",
+          "last_modified": "Sun, 22 May 2022 22:51:55 GMT",
+          "name": "transfer_SP1_2021_2022.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:29.249930+00:00",
+          "sha256": "2d9e619700712823d15716c07715133f8c3b1a09046930dcfc785a38633dee2e",
+          "url": "https://football-data.co.uk/mmz4281/2122/SP1.csv"
+        },
+        {
+          "bytes": 172199,
+          "etag": "\"2a0a7-5fd55402cc0b5\"",
+          "last_modified": "Sun, 04 Jun 2023 22:24:34 GMT",
+          "name": "transfer_SP1_2022_2023.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:29.474586+00:00",
+          "sha256": "53348112526b5165539df240be350083989bb258f30c0ff7cacbc0165ca7e4b3",
+          "url": "https://football-data.co.uk/mmz4281/2223/SP1.csv"
+        },
+        {
+          "bytes": 168164,
+          "etag": "\"290e4-6196c2c00bb03\"",
+          "last_modified": "Mon, 27 May 2024 09:30:45 GMT",
+          "name": "transfer_SP1_2023_2024.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:29.887696+00:00",
+          "sha256": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9",
+          "url": "https://football-data.co.uk/mmz4281/2324/SP1.csv"
+        },
+        {
+          "bytes": 192863,
+          "etag": "\"2f15f-635fd86e4f663\"",
+          "last_modified": "Sun, 25 May 2025 22:41:06 GMT",
+          "name": "transfer_SP1_2024_2025.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:30.301247+00:00",
+          "sha256": "c086e96d6a53f6e6c0fce4e35db0d1728c773b4362323da0161a34769e315a36",
+          "url": "https://football-data.co.uk/mmz4281/2425/SP1.csv"
+        },
+        {
+          "bytes": 197653,
+          "etag": "\"30415-652a8fff88158\"",
+          "last_modified": "Mon, 25 May 2026 19:01:02 GMT",
+          "name": "transfer_SP1_2025_2026.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:30.619077+00:00",
+          "sha256": "4ca2e285f3ee0702f6bc55fcaa4f5a15cb3aef6220735a1d15398131e21d63f5",
+          "url": "https://football-data.co.uk/mmz4281/2526/SP1.csv"
+        },
+        {
+          "bytes": 95137,
+          "etag": "\"173a1-56ca9f621ba86\"",
+          "last_modified": "Sun, 20 May 2018 21:35:18 GMT",
+          "name": "transfer_I1_2017_2018.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:30.868014+00:00",
+          "sha256": "664a8874d3a33923036120c4162e72f13887e0897b51effe27f89969c79c335d",
+          "url": "https://football-data.co.uk/mmz4281/1718/I1.csv"
+        },
+        {
+          "bytes": 91392,
+          "etag": "\"16500-5a8a07f314b79\"",
+          "last_modified": "Sun, 21 Jun 2020 23:29:25 GMT",
+          "name": "transfer_I1_2018_2019.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:31.104808+00:00",
+          "sha256": "2baea8a1fb31096960b5f5797d31dbb6b454eb41b00845e6b0b79feb82a0e3d0",
+          "url": "https://football-data.co.uk/mmz4281/1819/I1.csv"
+        },
+        {
+          "bytes": 170130,
+          "etag": "\"29892-5abffdf70ebe4\"",
+          "last_modified": "Mon, 03 Aug 2020 21:32:17 GMT",
+          "name": "transfer_I1_2019_2020.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:31.418399+00:00",
+          "sha256": "f33233e0c428ebe4f7cb854c4a504e0b59c4e009ee8b679269486e26afdc575b",
+          "url": "https://football-data.co.uk/mmz4281/1920/I1.csv"
+        },
+        {
+          "bytes": 170667,
+          "etag": "\"29aab-5c307aef27a54\"",
+          "last_modified": "Sun, 23 May 2021 23:30:50 GMT",
+          "name": "transfer_I1_2020_2021.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:31.688449+00:00",
+          "sha256": "c09196fa18877547442807d375317299947abdd6d51a5e0df044cc6026e13f36",
+          "url": "https://football-data.co.uk/mmz4281/2021/I1.csv"
+        },
+        {
+          "bytes": 171204,
+          "etag": "\"29cc4-5dfa1920938d5\"",
+          "last_modified": "Sun, 22 May 2022 22:51:56 GMT",
+          "name": "transfer_I1_2021_2022.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:32.055555+00:00",
+          "sha256": "6a9555d5a90e652a883fd2862a52545c06e264016cd770347c067a6d7c993170",
+          "url": "https://football-data.co.uk/mmz4281/2122/I1.csv"
+        },
+        {
+          "bytes": 171573,
+          "etag": "\"29e35-5fd5540328d24\"",
+          "last_modified": "Sun, 04 Jun 2023 22:24:34 GMT",
+          "name": "transfer_I1_2022_2023.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:32.441943+00:00",
+          "sha256": "9960837f37a97ae700f876c87b85a8b7a2f5a5d05a53077830c21b9db8880c45",
+          "url": "https://football-data.co.uk/mmz4281/2223/I1.csv"
+        },
+        {
+          "bytes": 167015,
+          "etag": "\"28c67-619eebaaf51cf\"",
+          "last_modified": "Sun, 02 Jun 2024 21:16:25 GMT",
+          "name": "transfer_I1_2023_2024.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:32.669962+00:00",
+          "sha256": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723",
+          "url": "https://football-data.co.uk/mmz4281/2324/I1.csv"
+        },
+        {
+          "bytes": 191722,
+          "etag": "\"2ecea-635fd86ef183d\"",
+          "last_modified": "Sun, 25 May 2025 22:41:07 GMT",
+          "name": "transfer_I1_2024_2025.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:32.968261+00:00",
+          "sha256": "79d87a5b18771e066ac7419b7876bfd9771a68ca117a9712375d6bc9685abee3",
+          "url": "https://football-data.co.uk/mmz4281/2425/I1.csv"
+        },
+        {
+          "bytes": 196217,
+          "etag": "\"2fe79-652a8fffc59bd\"",
+          "last_modified": "Mon, 25 May 2026 19:01:02 GMT",
+          "name": "transfer_I1_2025_2026.csv",
+          "retrieved_at_utc": "2026-09-07T12:34:33.278045+00:00",
+          "sha256": "709ae279617d16af226312bcceac941e71241745ddaf950bdac2b83afad4fcbb",
+          "url": "https://football-data.co.uk/mmz4281/2526/I1.csv"
+        },
+        {
+          "bytes": 46924,
+          "etag": null,
+          "last_modified": null,
+          "name": "transfer_spain_source.html",
+          "retrieved_at_utc": "2026-09-07T12:34:33.687039+00:00",
+          "sha256": "ef961c1baa719a18cd57cdd24bb96c8171d87e9eef9217a971b715f9cba43931",
+          "url": "https://football-data.co.uk/spainm.php"
+        },
+        {
+          "bytes": 45931,
+          "etag": null,
+          "last_modified": null,
+          "name": "transfer_italy_source.html",
+          "retrieved_at_utc": "2026-09-07T12:34:33.926882+00:00",
+          "sha256": "3f0f237ec6b171bcdc6c0eb5aeadfcbc9c7f26a54d9765e3986b692e8a84b9d6",
+          "url": "https://football-data.co.uk/italym.php"
+        }
+      ],
+      "shared_schema_sha256": "6ecd41a98ad2751372817e7e6f1709bfeb433c53dd9aeda330fd926a5471452d",
+      "source": "Football-Data.co.uk",
+      "transfer_spec_sha256": "9e2dd99685014ad4d8bbeed500b14c39177a6c80d4e47c5102af61d48f47e2b5",
+      "usage": "Local league match prediction research; no open redistribution license assumed"
+    },
+    "numpy": "2.5.3",
+    "original_epl_source_code_sha256": "6929ca61b4bc56cd54ac933303206255d53ff945ea57cf51c8457d43600c4574",
+    "python": "3.12.14",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.0",
+    "source_files": {
+      "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6",
+      "research/experiments/performance_20260907/football/transfer_spec.json": "9e2dd99685014ad4d8bbeed500b14c39177a6c80d4e47c5102af61d48f47e2b5",
+      "research/experiments/performance_20260907/football/transfer_timing_notes.json": "0c1611ea4a88e39fd42c03de50cfbe533ac25391c874105fe52fe92514fa3e4c"
+    },
+    "transfer_input_manifest_sha256": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6"
+  },
+  "selection_on_transfer": false,
+  "spec_sha256": "9e2dd99685014ad4d8bbeed500b14c39177a6c80d4e47c5102af61d48f47e2b5",
+  "specification": {
+    "baseline": "dc_equal",
+    "expected_matches_per_season": 380,
+    "experiment_id": "football_fixed_out_of_league_transfer_20260907",
+    "failure_policy": "Fail on incomplete season, invalid score/result, duplicate fixture, nonfinite probability or failed optimizer. Preserve diagnostics; do not silently omit matches or replace models.",
+    "frozen_selected_model": "dc365_elo50",
+    "history_seasons": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "inherited_elo": {
+      "features": [
+        "pre-match rating difference / 400",
+        "absolute pre-match rating difference / 400"
+      ],
+      "home_advantage_rating_points": 60.0,
+      "inactive_team_policy": "retain last rating; unseen teams start neutral; no lower-league information",
+      "initial_rating": 1500.0,
+      "k_factor": 20.0,
+      "logistic_scale": 400.0,
+      "probability_mapping": "multinomial LogisticRegression C=1, solver=lbfgs, max_iter=1000, tol=1e-8; same rolling fit IDs as Dixon-Coles; no posthoc calibration",
+      "season_reset": false,
+      "win_draw_loss_score": [
+        1.0,
+        0.5,
+        0.0
+      ]
+    },
+    "inherited_refit": "first forecast day of each calendar two-month bucket: Jan-Feb, Mar-Apr, May-Jun, Jul-Aug, Sep-Oct, Nov-Dec",
+    "inherited_uncertainty": {
+      "blocks": [
+        "fixture calendar day",
+        "nonoverlapping 28-calendar-day blocks anchored to each season's first fixture date"
+      ],
+      "interpretation": "conditional uncertainty within these two historical seasons; not independent-season generalization, prospective evidence, or multiple-comparison-adjusted discovery",
+      "interval": "percentile 95%; paired candidate-minus-dc_equal losses",
+      "resamples": 4000,
+      "seed": 20260907,
+      "stratification": "resample blocks independently within each season; preserve season match-count weights"
+    },
+    "input_season_start_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "known_exposure": "These league files have not been used in this research cycle; historical public data are not claimed universally unseen or prospective. EPL results motivated this fixed transfer test.",
+    "leagues": {
+      "I1": {
+        "name": "Italy Serie A",
+        "timezone": "Europe/Rome"
+      },
+      "SP1": {
+        "name": "Spain La Liga",
+        "timezone": "Europe/Madrid"
+      }
+    },
+    "limitations": [
+      "two leagues and two target seasons each",
+      "historical source revisions not point-in-time archived",
+      "lower-league and player information absent",
+      "club names as provided without retrospective alias mapping",
+      "conditional fixed-block uncertainty does not establish independent future-season transfer",
+      "no production promotion"
+    ],
+    "local_time_policy": "Same day-start forecast and next-local-midnight result availability policy, with each league local timezone replacing Europe/London; no original vendor publication/revision archive.",
+    "parameter_inheritance": "Unchanged EPL DC365/Elo50 hyperparameters, likelihood and support math, 1095-calendar-day fit window, bimonthly cadence, causal Elo updates, fixed0.5 mixture. Equal DC uses identical fit IDs. No dc_180 fitting or new candidate selection.",
+    "parent_epl_evidence_sha256": "4f94a461886df7f8d167356f0d6735f1339f5a8869d618669c6d3de93b6c1418",
+    "parent_epl_spec_sha256": "c95057dbce099ecdaae40573ec3f389dc77ef5dc05b23073d60d6136d912a13d",
+    "reporting": "Fixed selected mixture vs equal DC only, per league and season; paired 28-day block95%interval, stratified by season. Pooled estimate stratified by league-season. No transfer-label-driven tuning.",
+    "resource_limit": {
+      "blas_threads": 1,
+      "parallel_fits": 1
+    },
+    "rolling_fit_calendar_days": 1095,
+    "status": "historical_retrospective_no_selection_no_promotion",
+    "test_seasons": [
+      2024,
+      2025
+    ]
+  },
+  "status": "historical_fixed_out_of_league_transfer",
+  "timing_notes": {
+    "findings": [
+      {
+        "match_id": "I1:2024:Fiorentina:Inter",
+        "meaning": "resumption/completion date, starting in minute17 after earlier0-0 interruption",
+        "source": "https://www.inter.it/en/news/rescheduled-continuation-fiorentina-inter-6-february-2025",
+        "source_date": "2025-02-06",
+        "test_row": true
+      },
+      {
+        "match_id": "I1:2023:Udinese:Roma",
+        "meaning": "resumption/completion date, starting in minute72 after earlier1-1 interruption",
+        "source": "https://www.asroma.com/en/news/71046/team-news-starting-xi-for-rearranged-udinese-match",
+        "source_date": "2024-04-25",
+        "test_row": false
+      }
+    ],
+    "horizon_limit": "These rows cannot be described as forecasts before the original kickoff. The models do not condition on known partial scores, but final results are only added after completion.",
+    "pre_metric_diagnostic": "Additionally report Italy fixed-model metrics excluding I1:2024:Fiorentina:Inter (759rows), without any refit or selection change. Retain the complete760match population as primary.",
+    "primary_population": "Keep all380matches per target season; use source completion-day timestamps and next-local-midnight result availability",
+    "recorded_before_transfer_model_metrics": true,
+    "scope": "Targeted known-resumption checks, not an exhaustive historical event audit"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "results_sha256": "c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097",
+  "source_sha256": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+  "verifier_sha256": "da3bdb826fa6e2f04a35b165c4a40ccf8db49ff91e8f4d85cfb6e4e8bf49fb63",
+  "input_hashes_verified": 105,
+  "prediction_reconstruction_max_errors": {
+    "hgb_l15_i150": 0.0,
+    "extra_trees_leaf32": 0.0,
+    "neural_residual": 0.0
+  },
+  "preferred_selection_refit_reproduced": true,
+  "real_prefix_poisoning_cases": [
+    {
+      "event_key": 202201,
+      "cutoff": 5508.71,
+      "issuances": 245
+    },
+    {
+      "event_key": 202201,
+      "cutoff": 7507.3526,
+      "issuances": 599
+    },
+    {
+      "event_key": 202506,
+      "cutoff": 4999.1844,
+      "issuances": 206
+    },
+    {
+      "event_key": 202506,
+      "cutoff": 6849.4588,
+      "issuances": 474
+    },
+    {
+      "event_key": 202612,
+      "cutoff": 6931.574299999999,
+      "issuances": 265
+    },
+    {
+      "event_key": 202612,
+      "cutoff": 8803.785200000002,
+      "issuances": 708
+    }
+  ],
+  "population_exactly_matches_published_baselines": true,
+  "transfer_rows": 55757,
+  "metric_and_interval_pairs_checked": 30,
+  "research_only_no_prospective_claim": true
+}

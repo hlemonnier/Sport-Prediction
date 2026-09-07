@@ -1,0 +1,10 @@
+{
+  "selection_sha256": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568",
+  "models_sha256": "68b53faf2319b79d8ca6fba34faaef9bc567daadc5f0a34ed5b7739e8f87c178",
+  "training_years": [
+    2022,
+    2023
+  ],
+  "source_sha256": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+  "spec_sha256": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740"
+}

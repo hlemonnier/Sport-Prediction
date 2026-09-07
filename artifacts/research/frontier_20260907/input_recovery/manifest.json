@@ -1,0 +1,170 @@
+{
+  "freeze": {
+    "before_recovery_utc": "2026-09-07T14:24:33.987086+00:00",
+    "mode": "offline_cache_only_no_new_network",
+    "model_sha256": "68b53faf2319b79d8ca6fba34faaef9bc567daadc5f0a34ed5b7739e8f87c178",
+    "selection_sha256": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568",
+    "original_transfer_sha256": "28741c5fef5349a888171988e25be4693af802928e43e9def4d82847531379f8",
+    "runner_sha256": "f36c835417fef2014a613af1e475fb169def59e5c6dfc6a38c4293fc5a8c3be7",
+    "reason": "Earlier nine-feature exports omit sector/speed/position/fresh-tyre fields required by the new model. Preserve original failed result; no model or selection changes.",
+    "cache_payloads": {
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-19_Belgian_Grand_Prix/2026-07-19_Race/_extended_timing_data.ff1pkl": "51921703486f83c397febe71b0c323264986c182efcf527a693c09d3a91201bf",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-19_Belgian_Grand_Prix/2026-07-19_Race/driver_info.ff1pkl": "0ded1c556ae7bf2c8791e34833eb7496ee14c9953cd8085735fb08f8e9e793d7",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-19_Belgian_Grand_Prix/2026-07-19_Race/lap_count.ff1pkl": "84f4dad23507dae2f6304ca8fa73869fe7bda03135b72f82d1ff73a69787bf98",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-19_Belgian_Grand_Prix/2026-07-19_Race/session_info.ff1pkl": "817183453683b934b58e043d768cc475a2a6edb8f154c484065a363462594f8a",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-19_Belgian_Grand_Prix/2026-07-19_Race/session_status_data.ff1pkl": "c6046e9f3b17c7d8e6eb01e58f29f5ed3a426fec805d4907bc94b12aad35b4ac",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-19_Belgian_Grand_Prix/2026-07-19_Race/timing_app_data.ff1pkl": "20d32a36e107e2c409013da7b1a5b821999061a896dffcd131be8a24828c2945",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-19_Belgian_Grand_Prix/2026-07-19_Race/track_status_data.ff1pkl": "3430bff9f1f1f34fb64989fdd21f21782223c9a9239e9876571e23ed555a4487",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-26_Hungarian_Grand_Prix/2026-07-26_Race/_extended_timing_data.ff1pkl": "35b4c41ed306f88ed0f805bf08b4c7080e153b1c0a46f3f0a7e07c66d5cee586",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-26_Hungarian_Grand_Prix/2026-07-26_Race/driver_info.ff1pkl": "eb0426174fe616a1e2af855f0a68ec110838e29b85c3e7420321d97c298166ad",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-26_Hungarian_Grand_Prix/2026-07-26_Race/lap_count.ff1pkl": "f7fa3a9dbc479fba5e4f333a984840019db60003adda575cd0c7e494ab8b4c7c",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-26_Hungarian_Grand_Prix/2026-07-26_Race/session_info.ff1pkl": "7453b121161665c2023f3ff1e3048421be2ef1cb00b52173346bd1b9a280fcac",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-26_Hungarian_Grand_Prix/2026-07-26_Race/session_status_data.ff1pkl": "34c697a03d9fb03dca2409bf6e43672b436752eafa6e102386533877224641d7",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-26_Hungarian_Grand_Prix/2026-07-26_Race/timing_app_data.ff1pkl": "1b8806e36b5c2fc9308cef4eb6d46bc3447a83acc0bd248ad11e4277514282ef",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-07-26_Hungarian_Grand_Prix/2026-07-26_Race/track_status_data.ff1pkl": "68c6c85bff5cb67d1cc8c0c8b3a5688a93df8406a64669e8405eb9618005b23f",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-08-23_Dutch_Grand_Prix/2026-08-23_Race/_extended_timing_data.ff1pkl": "38277c6f4cbd7e4a95f0e18ac9a333a47782bfe0a264449d229aaaba0c223336",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-08-23_Dutch_Grand_Prix/2026-08-23_Race/driver_info.ff1pkl": "a1b82f7db36e3d93b3e836b2d0331a8269cc9353cb18612e11a7fb90e401be70",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-08-23_Dutch_Grand_Prix/2026-08-23_Race/lap_count.ff1pkl": "a75313908c1e28051079fa4311c1f475fbdbda83451f073841f54974b18db617",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-08-23_Dutch_Grand_Prix/2026-08-23_Race/session_info.ff1pkl": "1eaad10020ff086c3ce8029e556886e25fc782ac0aed1ea92f2f878cf410abfc",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-08-23_Dutch_Grand_Prix/2026-08-23_Race/session_status_data.ff1pkl": "79d6088109b93c602eda5475dcf06d3893e2ca85b975a221a2db605d34124255",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-08-23_Dutch_Grand_Prix/2026-08-23_Race/timing_app_data.ff1pkl": "5cedf58130777e0de201c2d1929b0ceeb87354453c3ab0404f2eb2430e652154",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-08-23_Dutch_Grand_Prix/2026-08-23_Race/track_status_data.ff1pkl": "5d59f4be0e32b0b7d66ac99cf373cba5992eb6c2f8c129edb136259a6e24f3c3",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-09-06_Italian_Grand_Prix/2026-09-06_Race/_extended_timing_data.ff1pkl": "50d895e73abd2af4e1666d72b9c576c6ec3f705dbf0d1d2db4f43120d00b7f3e",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-09-06_Italian_Grand_Prix/2026-09-06_Race/driver_info.ff1pkl": "7e435ccd9bddc273e1d5e272cceeff2c9b286b7267e25f270b7b1610b15d412a",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-09-06_Italian_Grand_Prix/2026-09-06_Race/lap_count.ff1pkl": "55a0dcb5b421026414a19705a6bd5e573e36f5ac7b353829fc9c5a389f892559",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-09-06_Italian_Grand_Prix/2026-09-06_Race/session_info.ff1pkl": "1b3c995d9a90b1ee61e911d8e2ae474c61f819d9288fcb0b73f814fdd8c2325d",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-09-06_Italian_Grand_Prix/2026-09-06_Race/session_status_data.ff1pkl": "60df2363a3f60346166b59649d6c942291e4b91ce44b72e93a094f80928b66b4",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-09-06_Italian_Grand_Prix/2026-09-06_Race/timing_app_data.ff1pkl": "3e815c5ead8e12316ead12013fe51cbcfa46778765b2fcfd32a53ace74e40eb2",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/2026-09-06_Italian_Grand_Prix/2026-09-06_Race/track_status_data.ff1pkl": "3d645babff0dd7aa264837799b136a4ea23959b3779d76dbf8439ca53b53c611",
+      "data/f1/performance_20260907/live_recent_approved/isolated_fastf1_cache/2026/season_schedule.ff1pkl": "610b685123d9a02bbbdaa4937c168568e1974630c141d6e31910e13dda99278a"
+    }
+  },
+  "events": [
+    {
+      "event_key": 202610,
+      "source_path": "data/f1/performance_20260907/live_recent_final/2026_round_10_belgian_grand_prix_race_laps.csv",
+      "source_sha256": "1453f3eee20ebf4f458502faab0ffd5c46d9c0da86b2f2c76c8b20e905f51b59",
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_10_belgian_grand_prix_race_laps.csv",
+      "sha256": "fb63da074182a3f34827d7a064a2d17c6ca08f75f1f4a7f18f43d8001fadbf74",
+      "rows": 872,
+      "baseline_columns_identical": true,
+      "added_columns": [
+        "Sector1Time",
+        "Sector2Time",
+        "Sector3Time",
+        "SpeedI1",
+        "SpeedI2",
+        "SpeedFL",
+        "SpeedST",
+        "Position",
+        "FreshTyre"
+      ],
+      "nonmissing_counts": {
+        "Sector1Time": 848,
+        "Sector2Time": 868,
+        "Sector3Time": 871,
+        "SpeedI1": 870,
+        "SpeedI2": 870,
+        "SpeedFL": 841,
+        "SpeedST": 871,
+        "Position": 871,
+        "FreshTyre": 872
+      }
+    },
+    {
+      "event_key": 202611,
+      "source_path": "data/f1/performance_20260907/live_recent_final/2026_round_11_hungarian_grand_prix_race_laps.csv",
+      "source_sha256": "f654eff8690d05d0c2bb96a5a19e975280aeb93b946a9be7fb78415a1e1e0445",
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_11_hungarian_grand_prix_race_laps.csv",
+      "sha256": "152f3b8edf80c879d86ca4605bf2ad7e64ef68df3eed07d9648b918b02745321",
+      "rows": 1431,
+      "baseline_columns_identical": true,
+      "added_columns": [
+        "Sector1Time",
+        "Sector2Time",
+        "Sector3Time",
+        "SpeedI1",
+        "SpeedI2",
+        "SpeedFL",
+        "SpeedST",
+        "Position",
+        "FreshTyre"
+      ],
+      "nonmissing_counts": {
+        "Sector1Time": 1408,
+        "Sector2Time": 1430,
+        "Sector3Time": 1429,
+        "SpeedI1": 1430,
+        "SpeedI2": 1430,
+        "SpeedFL": 1383,
+        "SpeedST": 1429,
+        "Position": 1430,
+        "FreshTyre": 1431
+      }
+    },
+    {
+      "event_key": 202612,
+      "source_path": "data/f1/performance_20260907/live_recent_final/2026_round_12_dutch_grand_prix_race_laps.csv",
+      "source_sha256": "2569f43a071bc41c462485991ad4c24b1e95a4456ddcfbf5a4de87a877b39c2e",
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_12_dutch_grand_prix_race_laps.csv",
+      "sha256": "cc7de7926af981b9b59c3356b83b74592ad29b5784b2037a159322f8ec6fa2d4",
+      "rows": 1368,
+      "baseline_columns_identical": true,
+      "added_columns": [
+        "Sector1Time",
+        "Sector2Time",
+        "Sector3Time",
+        "SpeedI1",
+        "SpeedI2",
+        "SpeedFL",
+        "SpeedST",
+        "Position",
+        "FreshTyre"
+      ],
+      "nonmissing_counts": {
+        "Sector1Time": 1319,
+        "Sector2Time": 1365,
+        "Sector3Time": 1355,
+        "SpeedI1": 1366,
+        "SpeedI2": 1366,
+        "SpeedFL": 1298,
+        "SpeedST": 1365,
+        "Position": 1366,
+        "FreshTyre": 1368
+      }
+    },
+    {
+      "event_key": 202613,
+      "source_path": "data/f1/performance_20260907/live_recent_final/2026_round_13_italian_grand_prix_race_laps.csv",
+      "source_sha256": "fb557ab6ebff37f0096547f21fcac3d461014193a38f927db6df09c24a3dc75a",
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_13_italian_grand_prix_race_laps.csv",
+      "sha256": "e7f496dfbe072ffc63a9ab353379250fb6ca5d3268b7b645e8e1442480b7331e",
+      "rows": 1054,
+      "baseline_columns_identical": true,
+      "added_columns": [
+        "Sector1Time",
+        "Sector2Time",
+        "Sector3Time",
+        "SpeedI1",
+        "SpeedI2",
+        "SpeedFL",
+        "SpeedST",
+        "Position",
+        "FreshTyre"
+      ],
+      "nonmissing_counts": {
+        "Sector1Time": 984,
+        "Sector2Time": 1053,
+        "Sector3Time": 1052,
+        "SpeedI1": 1053,
+        "SpeedI2": 1053,
+        "SpeedFL": 1021,
+        "SpeedST": 1052,
+        "Position": 1053,
+        "FreshTyre": 1054
+      }
+    }
+  ],
+  "model_unchanged": true,
+  "cached_payloads_unchanged": true
+}

@@ -1,0 +1,12 @@
+{
+  "source": "artifacts/backtests/f1/live_strategy/live_strategy_math_remediation_v4_20260907.json",
+  "sha256": "53514c61baccd9aa91e9855371101e2f1cfc7b22580da67386cbbd53a412ff78",
+  "events": 9,
+  "transitions": 9506,
+  "offline_q_rows": 0,
+  "propensity_ope_rows": 0,
+  "exact_action_rows": 0,
+  "reason": "no_rows_have_exact_observed_pace_mode_plus_certified_current_and_nonterminal_next_state_legal_masks; logged behavior propensities are also absent",
+  "decision": "Predictive-model research proceeds. Do not claim a genuine strategy gain from fitting RL against this incomplete action record. Simulator-only RL would need a separately frozen external validation contract.",
+  "primary_reference": "https://arxiv.org/abs/2005.01643"
+}

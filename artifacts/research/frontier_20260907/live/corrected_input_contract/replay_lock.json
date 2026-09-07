@@ -1,0 +1,8 @@
+{
+  "runner_sha256": "3e37e84411fe379a5b95fc9c89459b15fabf367171735ea665f284fec0b8b4b6",
+  "selection_sha256": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568",
+  "model_sha256": "68b53faf2319b79d8ca6fba34faaef9bc567daadc5f0a34ed5b7739e8f87c178",
+  "recovery_manifest_sha256": "1874c835ee1ae717c22c8dcbdec16f6c3e3a244353e87ff5d585ee46f5568f3c",
+  "change": "Restore nine already cached observed fields omitted by prior minimal CSV export; no parameter, selection or feature-definition changes",
+  "refit_permitted": false
+}

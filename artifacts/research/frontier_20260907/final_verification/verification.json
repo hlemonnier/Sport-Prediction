@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "branch": "codex/performance-frontier-20260907",
+  "base_commit": "ca1da098641529c39e1c261319c235382230002e",
+  "research_gate_passed": true,
+  "focused_tests": 10,
+  "test_log_sha256": "4f2e72b336d974a3e9924eaf21d939a1eced7a18e3e03fd0f739b349b8b8c0ea",
+  "source_bound_scorecard_rows": 78,
+  "canonical_source_hashes_checked": 6,
+  "original_tracked_files_changed": false,
+  "production_promotion": false,
+  "committed": false,
+  "input_schema_amendment_documented": true,
+  "model_bundle_sha256": "8845658bc0e37c9cc2d4878d846b643d1449efb342469ff509c3c6ec41ab484c",
+  "files": {
+    "docs/research/assets/frontier_live_performance_20260907.pdf": "c055875914c887af78f0968cf263e30dd3d606f0d63e0df446b386f809a20c95",
+    "docs/research/assets/frontier_live_performance_20260907.png": "72efadcaa224d164308eaf23ab05ad40fe6fa994b776aafd56471fd0a4cb3be5",
+    "docs/research/evidence/frontier_live_performance_20260907_scorecard.csv": "3576c8b0870f829f819ffa148533e9d84d7c39f8adefaeccf61480fa45d52b54",
+    "docs/research/evidence/frontier_live_performance_20260907_summary.json": "b6948cdef9c9d7e6c22d69cb3b3cb18824f65fc80d99a7d63fd8baa083e28885",
+    "docs/research/frontier_live_performance_20260907.md": "eca466fdc6ab16c6e3253e737a81ff5c6e77b63172780ba84f8d70ef46c9ac27",
+    "research/experiments/frontier_20260907/README.md": "a0c02ad055c2b4438eaa8eea3601c266732f59087cec1db1da8b5167c7b64199",
+    "research/experiments/frontier_20260907/ablate_live_frontier.py": "3805cd664c016cc0cb56e34ba7290b60e0f4768d327d4f1844b0f604b6e80969",
+    "research/experiments/frontier_20260907/candidate.py": "26ef9e64a809a70a72d72fc2ad543c808948612cfe290778f7a032aa3daf9b52",
+    "research/experiments/frontier_20260907/corrected_transfer.py": "3e37e84411fe379a5b95fc9c89459b15fabf367171735ea665f284fec0b8b4b6",
+    "research/experiments/frontier_20260907/feature_encoder.py": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/frontier_20260907/recover_recent_inputs.py": "f36c835417fef2014a613af1e475fb169def59e5c6dfc6a38c4293fc5a8c3be7",
+    "research/experiments/frontier_20260907/specification.json": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740",
+    "research/experiments/frontier_20260907/summarize_frontier.py": "f34a845459fa78610db1d5319b019588cf43c8bd1c625465a99ed847860b809f",
+    "research/experiments/frontier_20260907/test_feature_encoder.py": "b026e3f65e5221196b711649400ac775ef7f1aa1a722d3be0d2271c3361a9525",
+    "research/experiments/frontier_20260907/test_live_frontier.py": "501eb234613146082cc28dc280aa8e520854a8ed9781aa3ddf0eb56a7f82c87e",
+    "research/experiments/frontier_20260907/test_recent_input_contract.py": "7bd0b582b5f279425f798feb093881cb478e41ddd03d99a397c683767b225c18",
+    "research/experiments/frontier_20260907/verify_live_frontier.py": "da3bdb826fa6e2f04a35b165c4a40ccf8db49ff91e8f4d85cfb6e4e8bf49fb63"
+  },
+  "forecast_verification": {
+    "path": "artifacts/research/frontier_20260907/live/corrected_input_contract/verification.json",
+    "sha256": "bed21c01017740f6d68104bf3f6bdb240b4c11320c27bb58da9272d094968e95"
+  },
+  "inference_verification": {
+    "path": "artifacts/research/frontier_20260907/live/candidate/verification.json",
+    "sha256": "038ab374d0d1856c3babcc1b0ae7ab2832ae3548d1561a94c51268dfb841d1d1"
+  },
+  "documented_cli_example": {
+    "rows": 400,
+    "cutoff_seconds": 7800,
+    "path": "artifacts/research/frontier_20260907/live/candidate/my_prefix_predictions_7800.csv",
+    "sha256": "2994158c11ce0576deed5c878b8db71e87d04a010f1904e1a82f6fbfdc942faf",
+    "no_future_target_columns": true
+  }
+}

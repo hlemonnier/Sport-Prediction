@@ -1,0 +1,46 @@
+{
+  "model_id": "frontier_live_hgb_l15_i150_20260907",
+  "preferred": "hgb_l15_i150",
+  "selection_candidates": 36,
+  "substantial_research_gate_passed": true,
+  "gate": {
+    "historical_gain_at_least_10pct": true,
+    "beat_previous_ridge_at_least_7pct": true,
+    "both_historical_years_improve": true,
+    "block_ci_upper_negative": true,
+    "loo_all_improve": true,
+    "current_year_point_improves": true
+  },
+  "candidate_model_sha256": "8845658bc0e37c9cc2d4878d846b643d1449efb342469ff509c3c6ec41ab484c",
+  "sources": {
+    "selection": {
+      "path": "artifacts/research/frontier_20260907/live/selection.json",
+      "sha256": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568"
+    },
+    "canonical_results": {
+      "path": "artifacts/research/frontier_20260907/live/corrected_input_contract/results.json",
+      "sha256": "c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097"
+    },
+    "verification": {
+      "path": "artifacts/research/frontier_20260907/live/corrected_input_contract/verification.json",
+      "sha256": "bed21c01017740f6d68104bf3f6bdb240b4c11320c27bb58da9272d094968e95"
+    },
+    "attribution": {
+      "path": "artifacts/research/frontier_20260907/live/attribution/results.json",
+      "sha256": "ccb613c0d02e749c271c7ba11ede28415f4e43cad1b6a5ec495d1f237451026d"
+    },
+    "input_recovery": {
+      "path": "artifacts/research/frontier_20260907/input_recovery/manifest.json",
+      "sha256": "1874c835ee1ae717c22c8dcbdec16f6c3e3a244353e87ff5d585ee46f5568f3c"
+    },
+    "candidate": {
+      "path": "artifacts/research/frontier_20260907/live/candidate/manifest.json",
+      "sha256": "0fbc50e12e4763e6784a0416231509edfb962a6913b75df4469fe4be851d2346"
+    }
+  },
+  "scorecard_sha256": "3576c8b0870f829f819ffa148533e9d84d7c39f8adefaeccf61480fa45d52b54",
+  "rows": 78,
+  "production_changed": false,
+  "promotion": false,
+  "limits": "Amended retrospective evaluation after recovery of observed input fields; historical dates previously exposed. No prospective or strategy-value claim."
+}

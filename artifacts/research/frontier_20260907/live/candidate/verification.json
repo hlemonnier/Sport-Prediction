@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "candidate_sha256": "8845658bc0e37c9cc2d4878d846b643d1449efb342469ff509c3c6ec41ab484c",
+  "checks": [
+    {
+      "event_key": 202401,
+      "matched_rows": 964,
+      "inference_rows": 984,
+      "maximum_prediction_error": 0.0,
+      "prefix_without_future_targets_passed": true
+    },
+    {
+      "event_key": 202506,
+      "matched_rows": 804,
+      "inference_rows": 823,
+      "maximum_prediction_error": 0.0,
+      "prefix_without_future_targets_passed": true
+    },
+    {
+      "event_key": 202613,
+      "matched_rows": 851,
+      "inference_rows": 872,
+      "maximum_prediction_error": 0.0,
+      "prefix_without_future_targets_passed": true
+    }
+  ],
+  "model_promotion": false
+}

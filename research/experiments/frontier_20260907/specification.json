@@ -1,0 +1,36 @@
+{
+  "experiment": "live_frontier_cycle_1_20260907",
+  "purpose": "Seek substantial predictive gains with nonlinear, neural and adaptive mechanisms; retain every result",
+  "base_commit": "ca1da098641529c39e1c261319c235382230002e",
+  "seed": 20260907,
+  "discovery_fit_years": [2022],
+  "selection_years": [2023],
+  "post_selection_fit_years": [2022, 2023],
+  "historical_transfer_years": [2024, 2025],
+  "exposed_current_diagnostic_years": [2026],
+  "evidence": "All historical periods have prior research exposure. Selection within this cycle uses 2023 only. No prospective claim or model promotion.",
+  "primary_population": "Exact same next-eligible-clean-lap issuance/target pairs as published baseline; every candidate emits on every matched row",
+  "feature_time": "Completed observation receipt; strictly earlier other-driver timestamp batches; no future target, next-stint, full-event denominator or outcome-based outlier masking",
+  "feature_families": ["published nine causal features", "last six same-stint eligible lap differences", "same-stint mean/median/trend/MAD over 2,3,5,8 observations", "observed sector history and speed traps", "causal peer changes and field-relative pace", "current observed compound/position/lap/stint"],
+  "candidate_families": {
+    "multiscale_filters": "Mean and median histories (2,3,5,8), clipped-trend projections and reset-on-large-innovation EWMA. Select one on 2023.",
+    "histogram_absolute_boosting": "Leaves 7,15,31; iterations 150 or 300; learning rate .06; min leaf 80; L2 10; fit clipped +/-5-second residual, disable random early stopping. Prediction correction clipped +/-3 seconds.",
+    "extra_trees": "128 trees, min leaf 32 or 128, max_features .8, single thread; squared error on clipped +/-3-second residual; correction clipped +/-3 seconds.",
+    "neural_residual": "Two 64-unit hidden layers with SiLU and residual skip, standardized clipped features, event-weighted L1 residual objective, AdamW learning rate .001 weight decay .01, 30 fixed epochs, batch 1024, seed fixed. Correction clipped +/-3 seconds.",
+    "online_expert_policy": "Full-information exponential weighting over naive and fixed multiscale filters, update only after target receipt; learning rates .1,.5,1 with decay .98. Causal expert allocation, not a claim of RL policy improvement.",
+    "fixed_blend": "Half of each learned model correction as shrinkage comparator; choose using selection period only."
+  },
+  "selection": "Select minimum event-balanced 2023 MAE within family and a preferred overall candidate. Freeze selection and refit learned models once on 2022-2023 before calculating any transfer metrics. Do not select on 2024-2026 results.",
+  "substantial_gain_gate": {
+    "event_MAE_reduction_vs_naive_at_least": 0.10,
+    "relative_reduction_vs_previous_ridge_at_least": 0.07,
+    "improve_each_2024_and_2025": true,
+    "historical_three_event_block_CI_delta_upper_below_zero": true,
+    "all_leave_one_event_out_means_improve": true,
+    "exposed_2026_point_improves": true,
+    "interpretation": "Research discovery gate, not prospective production authorization. No optional stopping or expansion of this cycle based on transfer scores."
+  },
+  "uncertainty": "20000 paired event and circular three-event block bootstrap draws with fixed seed; paired differences, all leave-one-event-out deltas; no posterior probability claim",
+  "resources": "One experiment process; one BLAS/OpenMP thread; CPU neural training; no paid compute or third-party data upload",
+  "suggested_commit": "research(f1-live): explore nonlinear and adaptive pace forecasting"
+}

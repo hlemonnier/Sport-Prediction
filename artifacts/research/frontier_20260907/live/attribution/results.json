@@ -1,0 +1,1209 @@
+{
+  "design": {
+    "purpose": "Post-discovery mechanism diagnosis only; not a new selection or independent test",
+    "selected_model": "hgb_l15_i150",
+    "configuration": {
+      "kind": "hgb",
+      "leaves": 15,
+      "iterations": 150
+    },
+    "source_sha256": "3805cd664c016cc0cb56e34ba7290b60e0f4768d327d4f1844b0f604b6e80969",
+    "variants": {
+      "published_nine_features_only": [
+        "level_gap",
+        "own_last_delta",
+        "own_robust_trend",
+        "common_increment",
+        "common_support",
+        "log_stint_clean_count",
+        "tyre_age",
+        "clean_lap_gap",
+        "wet_compound"
+      ],
+      "without_sector_or_speed_features": [
+        "level_gap",
+        "own_last_delta",
+        "own_robust_trend",
+        "common_increment",
+        "common_support",
+        "log_stint_clean_count",
+        "tyre_age",
+        "clean_lap_gap",
+        "wet_compound",
+        "x_observed_lap",
+        "x_position",
+        "x_lap_duration",
+        "x_fresh_tyre",
+        "x_history_count",
+        "x_lag_1_gap",
+        "x_lag_1_lap_distance",
+        "x_lag_2_gap",
+        "x_lag_2_lap_distance",
+        "x_lag_3_gap",
+        "x_lag_3_lap_distance",
+        "x_lag_4_gap",
+        "x_lag_4_lap_distance",
+        "x_lag_5_gap",
+        "x_lag_5_lap_distance",
+        "x_lag_6_gap",
+        "x_lag_6_lap_distance",
+        "x_mean_2_gap",
+        "x_median_2_gap",
+        "x_mad_2",
+        "x_trend_2",
+        "x_range_2",
+        "x_mean_3_gap",
+        "x_median_3_gap",
+        "x_mad_3",
+        "x_trend_3",
+        "x_range_3",
+        "x_mean_5_gap",
+        "x_median_5_gap",
+        "x_mad_5",
+        "x_trend_5",
+        "x_range_5",
+        "x_mean_8_gap",
+        "x_median_8_gap",
+        "x_mad_8",
+        "x_trend_8",
+        "x_range_8",
+        "x_reset_ewma_0.25_gap",
+        "x_reset_ewma_0.5_gap",
+        "x_reset_ewma_0.75_gap",
+        "x_compound_SOFT",
+        "x_compound_MEDIUM",
+        "x_compound_HARD",
+        "x_compound_INTERMEDIATE",
+        "x_compound_WET",
+        "x_peer_count",
+        "x_peer_delta_mean",
+        "x_peer_delta_median",
+        "x_peer_delta_mad",
+        "x_relative_field_pace"
+      ],
+      "without_rich_peer_features": [
+        "level_gap",
+        "own_last_delta",
+        "own_robust_trend",
+        "common_increment",
+        "common_support",
+        "log_stint_clean_count",
+        "tyre_age",
+        "clean_lap_gap",
+        "wet_compound",
+        "x_observed_lap",
+        "x_position",
+        "x_lap_duration",
+        "x_fresh_tyre",
+        "x_history_count",
+        "x_lag_1_gap",
+        "x_lag_1_lap_distance",
+        "x_lag_2_gap",
+        "x_lag_2_lap_distance",
+        "x_lag_3_gap",
+        "x_lag_3_lap_distance",
+        "x_lag_4_gap",
+        "x_lag_4_lap_distance",
+        "x_lag_5_gap",
+        "x_lag_5_lap_distance",
+        "x_lag_6_gap",
+        "x_lag_6_lap_distance",
+        "x_mean_2_gap",
+        "x_median_2_gap",
+        "x_mad_2",
+        "x_trend_2",
+        "x_range_2",
+        "x_mean_3_gap",
+        "x_median_3_gap",
+        "x_mad_3",
+        "x_trend_3",
+        "x_range_3",
+        "x_mean_5_gap",
+        "x_median_5_gap",
+        "x_mad_5",
+        "x_trend_5",
+        "x_range_5",
+        "x_mean_8_gap",
+        "x_median_8_gap",
+        "x_mad_8",
+        "x_trend_8",
+        "x_range_8",
+        "x_reset_ewma_0.25_gap",
+        "x_reset_ewma_0.5_gap",
+        "x_reset_ewma_0.75_gap",
+        "x_Sector1Time",
+        "x_Sector1Time_missing",
+        "x_Sector1Time_median_gap",
+        "x_Sector2Time",
+        "x_Sector2Time_missing",
+        "x_Sector2Time_median_gap",
+        "x_Sector3Time",
+        "x_Sector3Time_missing",
+        "x_Sector3Time_median_gap",
+        "x_SpeedI1",
+        "x_SpeedI1_missing",
+        "x_SpeedI1_median_gap",
+        "x_SpeedI2",
+        "x_SpeedI2_missing",
+        "x_SpeedI2_median_gap",
+        "x_SpeedFL",
+        "x_SpeedFL_missing",
+        "x_SpeedFL_median_gap",
+        "x_SpeedST",
+        "x_SpeedST_missing",
+        "x_SpeedST_median_gap",
+        "x_compound_SOFT",
+        "x_compound_MEDIUM",
+        "x_compound_HARD",
+        "x_compound_INTERMEDIATE",
+        "x_compound_WET"
+      ]
+    },
+    "canonical_results_sha256": "c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097"
+  },
+  "results": {
+    "published_nine_features_only": {
+      "2024_2025": {
+        "events": 48,
+        "rows": 43834,
+        "baseline_mae": 0.5104963136133681,
+        "candidate_mae": 0.46827336526936675,
+        "relative_reduction": 0.08270960478664602,
+        "delta": -0.042222948344001275,
+        "event_ci95": [
+          -0.05016360855691683,
+          -0.03513338295135464
+        ],
+        "block3_ci95": [
+          -0.0497655378395787,
+          -0.03517765949799818
+        ],
+        "events_improved": 48,
+        "loo_max_delta": -0.04005894120062566,
+        "per_event": [
+          {
+            "event_key": 202401,
+            "baseline_mae": 0.3772147302904563,
+            "candidate_mae": 0.34507441166011676
+          },
+          {
+            "event_key": 202402,
+            "baseline_mae": 0.4727351778656123,
+            "candidate_mae": 0.43334210068989687
+          },
+          {
+            "event_key": 202403,
+            "baseline_mae": 0.39208239700374514,
+            "candidate_mae": 0.3416187906906881
+          },
+          {
+            "event_key": 202404,
+            "baseline_mae": 0.5433269493844048,
+            "candidate_mae": 0.4997530455850966
+          },
+          {
+            "event_key": 202405,
+            "baseline_mae": 0.39058974358974363,
+            "candidate_mae": 0.3712908979161406
+          },
+          {
+            "event_key": 202406,
+            "baseline_mae": 0.3520491990846681,
+            "candidate_mae": 0.3210112476727378
+          },
+          {
+            "event_key": 202407,
+            "baseline_mae": 0.45107336956521754,
+            "candidate_mae": 0.3936618577820857
+          },
+          {
+            "event_key": 202408,
+            "baseline_mae": 0.6593898156277437,
+            "candidate_mae": 0.6464136886673192
+          },
+          {
+            "event_key": 202409,
+            "baseline_mae": 1.108591476091476,
+            "candidate_mae": 1.0159003545939627
+          },
+          {
+            "event_key": 202410,
+            "baseline_mae": 0.5028839441535777,
+            "candidate_mae": 0.4429145586313514
+          },
+          {
+            "event_key": 202411,
+            "baseline_mae": 0.38615550041356517,
+            "candidate_mae": 0.340898836470022
+          },
+          {
+            "event_key": 202412,
+            "baseline_mae": 1.4049407313997475,
+            "candidate_mae": 1.3657505383785193
+          },
+          {
+            "event_key": 202413,
+            "baseline_mae": 0.4704648241206028,
+            "candidate_mae": 0.4504174694944189
+          },
+          {
+            "event_key": 202414,
+            "baseline_mae": 0.3989320809248552,
+            "candidate_mae": 0.37034396572392864
+          },
+          {
+            "event_key": 202415,
+            "baseline_mae": 0.40894513137557975,
+            "candidate_mae": 0.3479938967635008
+          },
+          {
+            "event_key": 202416,
+            "baseline_mae": 0.42642329873125673,
+            "candidate_mae": 0.36893202416497034
+          },
+          {
+            "event_key": 202417,
+            "baseline_mae": 0.4474275274056031,
+            "candidate_mae": 0.4010373223696692
+          },
+          {
+            "event_key": 202418,
+            "baseline_mae": 0.48916873212583395,
+            "candidate_mae": 0.43838506933644594
+          },
+          {
+            "event_key": 202419,
+            "baseline_mae": 0.4617965909090905,
+            "candidate_mae": 0.404486975415415
+          },
+          {
+            "event_key": 202420,
+            "baseline_mae": 0.42436047666335674,
+            "candidate_mae": 0.3713736883308021
+          },
+          {
+            "event_key": 202421,
+            "baseline_mae": 1.226268841394825,
+            "candidate_mae": 1.1106496523910456
+          },
+          {
+            "event_key": 202422,
+            "baseline_mae": 0.5280339425587467,
+            "candidate_mae": 0.5238049207524507
+          },
+          {
+            "event_key": 202423,
+            "baseline_mae": 0.36528012048192765,
+            "candidate_mae": 0.32935381116197854
+          },
+          {
+            "event_key": 202424,
+            "baseline_mae": 0.33340624999999985,
+            "candidate_mae": 0.2968688854952655
+          },
+          {
+            "event_key": 202501,
+            "baseline_mae": 1.0693481624758223,
+            "candidate_mae": 0.9711399333788989
+          },
+          {
+            "event_key": 202502,
+            "baseline_mae": 0.3379155982905986,
+            "candidate_mae": 0.3294289785044134
+          },
+          {
+            "event_key": 202503,
+            "baseline_mae": 0.2794695837780148,
+            "candidate_mae": 0.2519557271491358
+          },
+          {
+            "event_key": 202504,
+            "baseline_mae": 0.4560515695067267,
+            "candidate_mae": 0.40678239671749616
+          },
+          {
+            "event_key": 202505,
+            "baseline_mae": 0.34794576719576725,
+            "candidate_mae": 0.3202590219623398
+          },
+          {
+            "event_key": 202506,
+            "baseline_mae": 0.356398009950249,
+            "candidate_mae": 0.3433897209891139
+          },
+          {
+            "event_key": 202507,
+            "baseline_mae": 0.41148660714285673,
+            "candidate_mae": 0.37229319049166537
+          },
+          {
+            "event_key": 202508,
+            "baseline_mae": 0.7812708505367463,
+            "candidate_mae": 0.7766014834469956
+          },
+          {
+            "event_key": 202509,
+            "baseline_mae": 0.5114008574490891,
+            "candidate_mae": 0.4766649651861141
+          },
+          {
+            "event_key": 202510,
+            "baseline_mae": 0.35092963940193467,
+            "candidate_mae": 0.3307087081474696
+          },
+          {
+            "event_key": 202511,
+            "baseline_mae": 0.38515328467153265,
+            "candidate_mae": 0.3359551704661319
+          },
+          {
+            "event_key": 202512,
+            "baseline_mae": 1.1744741573033708,
+            "candidate_mae": 1.0305428732207158
+          },
+          {
+            "event_key": 202513,
+            "baseline_mae": 0.826216885007278,
+            "candidate_mae": 0.7855223563746454
+          },
+          {
+            "event_key": 202514,
+            "baseline_mae": 0.4055508543531326,
+            "candidate_mae": 0.35977248502998727
+          },
+          {
+            "event_key": 202515,
+            "baseline_mae": 0.36488481141692153,
+            "candidate_mae": 0.3305239913448519
+          },
+          {
+            "event_key": 202516,
+            "baseline_mae": 0.31296740395809025,
+            "candidate_mae": 0.27475209065570705
+          },
+          {
+            "event_key": 202517,
+            "baseline_mae": 0.3560162907268166,
+            "candidate_mae": 0.31878388000182484
+          },
+          {
+            "event_key": 202518,
+            "baseline_mae": 0.5793399818676341,
+            "candidate_mae": 0.531923148901431
+          },
+          {
+            "event_key": 202519,
+            "baseline_mae": 0.45923145071982274,
+            "candidate_mae": 0.4254890097982168
+          },
+          {
+            "event_key": 202520,
+            "baseline_mae": 0.44022283105022836,
+            "candidate_mae": 0.3791959251062547
+          },
+          {
+            "event_key": 202521,
+            "baseline_mae": 0.3463688442211055,
+            "candidate_mae": 0.31712401821911634
+          },
+          {
+            "event_key": 202522,
+            "baseline_mae": 0.30284135977337107,
+            "candidate_mae": 0.2908847156050275
+          },
+          {
+            "event_key": 202523,
+            "baseline_mae": 0.28564965197215775,
+            "candidate_mae": 0.26879114649549063
+          },
+          {
+            "event_key": 202524,
+            "baseline_mae": 0.341147749510763,
+            "candidate_mae": 0.317358585598733
+          }
+        ]
+      },
+      "2026": {
+        "events": 13,
+        "rows": 11923,
+        "baseline_mae": 0.5318265948398261,
+        "candidate_mae": 0.4772230627006803,
+        "relative_reduction": 0.10267168409581151,
+        "delta": -0.0546035321391457,
+        "event_ci95": [
+          -0.06799309207859182,
+          -0.04433744659833513
+        ],
+        "block3_ci95": [
+          -0.06607454462813583,
+          -0.045783067000198144
+        ],
+        "events_improved": 13,
+        "loo_max_delta": -0.04921963016693834,
+        "per_event": [
+          {
+            "event_key": 202601,
+            "baseline_mae": 0.5556916129032258,
+            "candidate_mae": 0.52299604801072
+          },
+          {
+            "event_key": 202602,
+            "baseline_mae": 0.502507874015748,
+            "candidate_mae": 0.42925370547048347
+          },
+          {
+            "event_key": 202603,
+            "baseline_mae": 0.39491715285880974,
+            "candidate_mae": 0.34826307373716947
+          },
+          {
+            "event_key": 202604,
+            "baseline_mae": 0.49895334174022676,
+            "candidate_mae": 0.4360669308471749
+          },
+          {
+            "event_key": 202605,
+            "baseline_mae": 0.6860570264765785,
+            "candidate_mae": 0.5668466706709445
+          },
+          {
+            "event_key": 202606,
+            "baseline_mae": 0.8463653500897667,
+            "candidate_mae": 0.8053018197420456
+          },
+          {
+            "event_key": 202607,
+            "baseline_mae": 0.5510732714138288,
+            "candidate_mae": 0.5046722590813412
+          },
+          {
+            "event_key": 202608,
+            "baseline_mae": 0.43807441016333926,
+            "candidate_mae": 0.3789242771034942
+          },
+          {
+            "event_key": 202609,
+            "baseline_mae": 0.4690151898734177,
+            "candidate_mae": 0.4322141662498421
+          },
+          {
+            "event_key": 202610,
+            "baseline_mae": 0.46447187499999965,
+            "candidate_mae": 0.42766929725155645
+          },
+          {
+            "event_key": 202611,
+            "baseline_mae": 0.5630439381611062,
+            "candidate_mae": 0.4995046875982328
+          },
+          {
+            "event_key": 202612,
+            "baseline_mae": 0.5084372049102927,
+            "candidate_mae": 0.4560943018253028
+          },
+          {
+            "event_key": 202613,
+            "baseline_mae": 0.43513748531139823,
+            "candidate_mae": 0.3960925775205364
+          }
+        ]
+      }
+    },
+    "without_sector_or_speed_features": {
+      "2024_2025": {
+        "events": 48,
+        "rows": 43834,
+        "baseline_mae": 0.5104963136133681,
+        "candidate_mae": 0.4568398224017935,
+        "relative_reduction": 0.10510652042085489,
+        "delta": -0.05365649121157456,
+        "event_ci95": [
+          -0.06275105773216894,
+          -0.045838361648512925
+        ],
+        "block3_ci95": [
+          -0.06243952551925788,
+          -0.04558875894020287
+        ],
+        "events_improved": 48,
+        "loo_max_delta": -0.051323451178118526,
+        "per_event": [
+          {
+            "event_key": 202401,
+            "baseline_mae": 0.3772147302904563,
+            "candidate_mae": 0.33780304437944736
+          },
+          {
+            "event_key": 202402,
+            "baseline_mae": 0.4727351778656123,
+            "candidate_mae": 0.41443392377011
+          },
+          {
+            "event_key": 202403,
+            "baseline_mae": 0.39208239700374514,
+            "candidate_mae": 0.3308869786069631
+          },
+          {
+            "event_key": 202404,
+            "baseline_mae": 0.5433269493844048,
+            "candidate_mae": 0.48709303890746836
+          },
+          {
+            "event_key": 202405,
+            "baseline_mae": 0.39058974358974363,
+            "candidate_mae": 0.360626595562015
+          },
+          {
+            "event_key": 202406,
+            "baseline_mae": 0.3520491990846681,
+            "candidate_mae": 0.3051124465193963
+          },
+          {
+            "event_key": 202407,
+            "baseline_mae": 0.45107336956521754,
+            "candidate_mae": 0.39022778704735106
+          },
+          {
+            "event_key": 202408,
+            "baseline_mae": 0.6593898156277437,
+            "candidate_mae": 0.6073601894664954
+          },
+          {
+            "event_key": 202409,
+            "baseline_mae": 1.108591476091476,
+            "candidate_mae": 0.9874738120963849
+          },
+          {
+            "event_key": 202410,
+            "baseline_mae": 0.5028839441535777,
+            "candidate_mae": 0.42969980833105315
+          },
+          {
+            "event_key": 202411,
+            "baseline_mae": 0.38615550041356517,
+            "candidate_mae": 0.3343157499073365
+          },
+          {
+            "event_key": 202412,
+            "baseline_mae": 1.4049407313997475,
+            "candidate_mae": 1.3582920529832283
+          },
+          {
+            "event_key": 202413,
+            "baseline_mae": 0.4704648241206028,
+            "candidate_mae": 0.43640789936365304
+          },
+          {
+            "event_key": 202414,
+            "baseline_mae": 0.3989320809248552,
+            "candidate_mae": 0.3565836686286931
+          },
+          {
+            "event_key": 202415,
+            "baseline_mae": 0.40894513137557975,
+            "candidate_mae": 0.3375966655710694
+          },
+          {
+            "event_key": 202416,
+            "baseline_mae": 0.42642329873125673,
+            "candidate_mae": 0.3712131789852271
+          },
+          {
+            "event_key": 202417,
+            "baseline_mae": 0.4474275274056031,
+            "candidate_mae": 0.39546897363616096
+          },
+          {
+            "event_key": 202418,
+            "baseline_mae": 0.48916873212583395,
+            "candidate_mae": 0.41858983378824705
+          },
+          {
+            "event_key": 202419,
+            "baseline_mae": 0.4617965909090905,
+            "candidate_mae": 0.40417628905900627
+          },
+          {
+            "event_key": 202420,
+            "baseline_mae": 0.42436047666335674,
+            "candidate_mae": 0.35730275783920157
+          },
+          {
+            "event_key": 202421,
+            "baseline_mae": 1.226268841394825,
+            "candidate_mae": 1.0640474748434328
+          },
+          {
+            "event_key": 202422,
+            "baseline_mae": 0.5280339425587467,
+            "candidate_mae": 0.5105200049870714
+          },
+          {
+            "event_key": 202423,
+            "baseline_mae": 0.36528012048192765,
+            "candidate_mae": 0.33024456387500756
+          },
+          {
+            "event_key": 202424,
+            "baseline_mae": 0.33340624999999985,
+            "candidate_mae": 0.29094220944947036
+          },
+          {
+            "event_key": 202501,
+            "baseline_mae": 1.0693481624758223,
+            "candidate_mae": 0.9755255653004041
+          },
+          {
+            "event_key": 202502,
+            "baseline_mae": 0.3379155982905986,
+            "candidate_mae": 0.31847782012894876
+          },
+          {
+            "event_key": 202503,
+            "baseline_mae": 0.2794695837780148,
+            "candidate_mae": 0.24080134629927605
+          },
+          {
+            "event_key": 202504,
+            "baseline_mae": 0.4560515695067267,
+            "candidate_mae": 0.38662855037415933
+          },
+          {
+            "event_key": 202505,
+            "baseline_mae": 0.34794576719576725,
+            "candidate_mae": 0.31514158796827346
+          },
+          {
+            "event_key": 202506,
+            "baseline_mae": 0.356398009950249,
+            "candidate_mae": 0.3299225757667436
+          },
+          {
+            "event_key": 202507,
+            "baseline_mae": 0.41148660714285673,
+            "candidate_mae": 0.3563968303792242
+          },
+          {
+            "event_key": 202508,
+            "baseline_mae": 0.7812708505367463,
+            "candidate_mae": 0.7601840379565525
+          },
+          {
+            "event_key": 202509,
+            "baseline_mae": 0.5114008574490891,
+            "candidate_mae": 0.4588960437453356
+          },
+          {
+            "event_key": 202510,
+            "baseline_mae": 0.35092963940193467,
+            "candidate_mae": 0.3240124426829214
+          },
+          {
+            "event_key": 202511,
+            "baseline_mae": 0.38515328467153265,
+            "candidate_mae": 0.3169762966152857
+          },
+          {
+            "event_key": 202512,
+            "baseline_mae": 1.1744741573033708,
+            "candidate_mae": 1.0111647845193628
+          },
+          {
+            "event_key": 202513,
+            "baseline_mae": 0.826216885007278,
+            "candidate_mae": 0.7820580930281275
+          },
+          {
+            "event_key": 202514,
+            "baseline_mae": 0.4055508543531326,
+            "candidate_mae": 0.3520842409198907
+          },
+          {
+            "event_key": 202515,
+            "baseline_mae": 0.36488481141692153,
+            "candidate_mae": 0.31693186322620553
+          },
+          {
+            "event_key": 202516,
+            "baseline_mae": 0.31296740395809025,
+            "candidate_mae": 0.26976262179654553
+          },
+          {
+            "event_key": 202517,
+            "baseline_mae": 0.3560162907268166,
+            "candidate_mae": 0.30773677529994764
+          },
+          {
+            "event_key": 202518,
+            "baseline_mae": 0.5793399818676341,
+            "candidate_mae": 0.5261279237664928
+          },
+          {
+            "event_key": 202519,
+            "baseline_mae": 0.45923145071982274,
+            "candidate_mae": 0.41542681730616643
+          },
+          {
+            "event_key": 202520,
+            "baseline_mae": 0.44022283105022836,
+            "candidate_mae": 0.37920738730099884
+          },
+          {
+            "event_key": 202521,
+            "baseline_mae": 0.3463688442211055,
+            "candidate_mae": 0.30139861187386335
+          },
+          {
+            "event_key": 202522,
+            "baseline_mae": 0.30284135977337107,
+            "candidate_mae": 0.2838716427017281
+          },
+          {
+            "event_key": 202523,
+            "baseline_mae": 0.28564965197215775,
+            "candidate_mae": 0.27722037211612865
+          },
+          {
+            "event_key": 202524,
+            "baseline_mae": 0.341147749510763,
+            "candidate_mae": 0.305938296610015
+          }
+        ]
+      },
+      "2026": {
+        "events": 13,
+        "rows": 11923,
+        "baseline_mae": 0.5318265948398261,
+        "candidate_mae": 0.4772297180185244,
+        "relative_reduction": 0.10265917002090696,
+        "delta": -0.054596876821301654,
+        "event_ci95": [
+          -0.06706163158825536,
+          -0.04267196473985388
+        ],
+        "block3_ci95": [
+          -0.06536248455056193,
+          -0.0438365494599164
+        ],
+        "events_improved": 13,
+        "loo_max_delta": -0.0504648284262578,
+        "per_event": [
+          {
+            "event_key": 202601,
+            "baseline_mae": 0.5556916129032258,
+            "candidate_mae": 0.5242566637800469
+          },
+          {
+            "event_key": 202602,
+            "baseline_mae": 0.502507874015748,
+            "candidate_mae": 0.4266033447517403
+          },
+          {
+            "event_key": 202603,
+            "baseline_mae": 0.39491715285880974,
+            "candidate_mae": 0.35420810050550317
+          },
+          {
+            "event_key": 202604,
+            "baseline_mae": 0.49895334174022676,
+            "candidate_mae": 0.45255327436900045
+          },
+          {
+            "event_key": 202605,
+            "baseline_mae": 0.6860570264765785,
+            "candidate_mae": 0.5818755689147507
+          },
+          {
+            "event_key": 202606,
+            "baseline_mae": 0.8463653500897667,
+            "candidate_mae": 0.780055563295847
+          },
+          {
+            "event_key": 202607,
+            "baseline_mae": 0.5510732714138288,
+            "candidate_mae": 0.5019208501118584
+          },
+          {
+            "event_key": 202608,
+            "baseline_mae": 0.43807441016333926,
+            "candidate_mae": 0.37930553245521087
+          },
+          {
+            "event_key": 202609,
+            "baseline_mae": 0.4690151898734177,
+            "candidate_mae": 0.4416896046159337
+          },
+          {
+            "event_key": 202610,
+            "baseline_mae": 0.46447187499999965,
+            "candidate_mae": 0.4487497009485587
+          },
+          {
+            "event_key": 202611,
+            "baseline_mae": 0.5630439381611062,
+            "candidate_mae": 0.49356191714052566
+          },
+          {
+            "event_key": 202612,
+            "baseline_mae": 0.5084372049102927,
+            "candidate_mae": 0.4375518059350949
+          },
+          {
+            "event_key": 202613,
+            "baseline_mae": 0.43513748531139823,
+            "candidate_mae": 0.3816544074167458
+          }
+        ]
+      }
+    },
+    "without_rich_peer_features": {
+      "2024_2025": {
+        "events": 48,
+        "rows": 43834,
+        "baseline_mae": 0.5104963136133681,
+        "candidate_mae": 0.4664278621897265,
+        "relative_reduction": 0.08632472017617254,
+        "delta": -0.044068451423641596,
+        "event_ci95": [
+          -0.05345315074969538,
+          -0.03416957488256349
+        ],
+        "block3_ci95": [
+          -0.052861887729446805,
+          -0.03440632768436205
+        ],
+        "events_improved": 44,
+        "loo_max_delta": -0.04204854817794737,
+        "per_event": [
+          {
+            "event_key": 202401,
+            "baseline_mae": 0.3772147302904563,
+            "candidate_mae": 0.3330925952529367
+          },
+          {
+            "event_key": 202402,
+            "baseline_mae": 0.4727351778656123,
+            "candidate_mae": 0.41213455387896664
+          },
+          {
+            "event_key": 202403,
+            "baseline_mae": 0.39208239700374514,
+            "candidate_mae": 0.3381562951459774
+          },
+          {
+            "event_key": 202404,
+            "baseline_mae": 0.5433269493844048,
+            "candidate_mae": 0.48386222354609865
+          },
+          {
+            "event_key": 202405,
+            "baseline_mae": 0.39058974358974363,
+            "candidate_mae": 0.3715693122280523
+          },
+          {
+            "event_key": 202406,
+            "baseline_mae": 0.3520491990846681,
+            "candidate_mae": 0.3124029687342553
+          },
+          {
+            "event_key": 202407,
+            "baseline_mae": 0.45107336956521754,
+            "candidate_mae": 0.39027095015401764
+          },
+          {
+            "event_key": 202408,
+            "baseline_mae": 0.6593898156277437,
+            "candidate_mae": 0.6180045600724045
+          },
+          {
+            "event_key": 202409,
+            "baseline_mae": 1.108591476091476,
+            "candidate_mae": 1.0365306923447464
+          },
+          {
+            "event_key": 202410,
+            "baseline_mae": 0.5028839441535777,
+            "candidate_mae": 0.4307589639016278
+          },
+          {
+            "event_key": 202411,
+            "baseline_mae": 0.38615550041356517,
+            "candidate_mae": 0.3321121092551062
+          },
+          {
+            "event_key": 202412,
+            "baseline_mae": 1.4049407313997475,
+            "candidate_mae": 1.3621266096075526
+          },
+          {
+            "event_key": 202413,
+            "baseline_mae": 0.4704648241206028,
+            "candidate_mae": 0.4399829776975857
+          },
+          {
+            "event_key": 202414,
+            "baseline_mae": 0.3989320809248552,
+            "candidate_mae": 0.4258149137955009
+          },
+          {
+            "event_key": 202415,
+            "baseline_mae": 0.40894513137557975,
+            "candidate_mae": 0.3419490315015361
+          },
+          {
+            "event_key": 202416,
+            "baseline_mae": 0.42642329873125673,
+            "candidate_mae": 0.3681276343773239
+          },
+          {
+            "event_key": 202417,
+            "baseline_mae": 0.4474275274056031,
+            "candidate_mae": 0.3865448493506045
+          },
+          {
+            "event_key": 202418,
+            "baseline_mae": 0.48916873212583395,
+            "candidate_mae": 0.42451774295403744
+          },
+          {
+            "event_key": 202419,
+            "baseline_mae": 0.4617965909090905,
+            "candidate_mae": 0.39430183042741745
+          },
+          {
+            "event_key": 202420,
+            "baseline_mae": 0.42436047666335674,
+            "candidate_mae": 0.3614759326549228
+          },
+          {
+            "event_key": 202421,
+            "baseline_mae": 1.226268841394825,
+            "candidate_mae": 1.087264937423555
+          },
+          {
+            "event_key": 202422,
+            "baseline_mae": 0.5280339425587467,
+            "candidate_mae": 0.5153743849925175
+          },
+          {
+            "event_key": 202423,
+            "baseline_mae": 0.36528012048192765,
+            "candidate_mae": 0.3301154802677099
+          },
+          {
+            "event_key": 202424,
+            "baseline_mae": 0.33340624999999985,
+            "candidate_mae": 0.2904978545886496
+          },
+          {
+            "event_key": 202501,
+            "baseline_mae": 1.0693481624758223,
+            "candidate_mae": 0.9612617632138635
+          },
+          {
+            "event_key": 202502,
+            "baseline_mae": 0.3379155982905986,
+            "candidate_mae": 0.32292319458771945
+          },
+          {
+            "event_key": 202503,
+            "baseline_mae": 0.2794695837780148,
+            "candidate_mae": 0.28366241975807976
+          },
+          {
+            "event_key": 202504,
+            "baseline_mae": 0.4560515695067267,
+            "candidate_mae": 0.3910077801112467
+          },
+          {
+            "event_key": 202505,
+            "baseline_mae": 0.34794576719576725,
+            "candidate_mae": 0.31201055155395285
+          },
+          {
+            "event_key": 202506,
+            "baseline_mae": 0.356398009950249,
+            "candidate_mae": 0.33859419323796247
+          },
+          {
+            "event_key": 202507,
+            "baseline_mae": 0.41148660714285673,
+            "candidate_mae": 0.3672707653465245
+          },
+          {
+            "event_key": 202508,
+            "baseline_mae": 0.7812708505367463,
+            "candidate_mae": 0.7411030989689643
+          },
+          {
+            "event_key": 202509,
+            "baseline_mae": 0.5114008574490891,
+            "candidate_mae": 0.46312999177688696
+          },
+          {
+            "event_key": 202510,
+            "baseline_mae": 0.35092963940193467,
+            "candidate_mae": 0.32230872714151165
+          },
+          {
+            "event_key": 202511,
+            "baseline_mae": 0.38515328467153265,
+            "candidate_mae": 0.3249286227635835
+          },
+          {
+            "event_key": 202512,
+            "baseline_mae": 1.1744741573033708,
+            "candidate_mae": 1.0759070839534115
+          },
+          {
+            "event_key": 202513,
+            "baseline_mae": 0.826216885007278,
+            "candidate_mae": 0.8394684875672238
+          },
+          {
+            "event_key": 202514,
+            "baseline_mae": 0.4055508543531326,
+            "candidate_mae": 0.35647526547761027
+          },
+          {
+            "event_key": 202515,
+            "baseline_mae": 0.36488481141692153,
+            "candidate_mae": 0.32191529787726914
+          },
+          {
+            "event_key": 202516,
+            "baseline_mae": 0.31296740395809025,
+            "candidate_mae": 0.2904746838924834
+          },
+          {
+            "event_key": 202517,
+            "baseline_mae": 0.3560162907268166,
+            "candidate_mae": 0.30830578174458234
+          },
+          {
+            "event_key": 202518,
+            "baseline_mae": 0.5793399818676341,
+            "candidate_mae": 0.5248007073809937
+          },
+          {
+            "event_key": 202519,
+            "baseline_mae": 0.45923145071982274,
+            "candidate_mae": 0.41861843939027754
+          },
+          {
+            "event_key": 202520,
+            "baseline_mae": 0.44022283105022836,
+            "candidate_mae": 0.3700451679958282
+          },
+          {
+            "event_key": 202521,
+            "baseline_mae": 0.3463688442211055,
+            "candidate_mae": 0.304910645785535
+          },
+          {
+            "event_key": 202522,
+            "baseline_mae": 0.30284135977337107,
+            "candidate_mae": 0.3897566762210005
+          },
+          {
+            "event_key": 202523,
+            "baseline_mae": 0.28564965197215775,
+            "candidate_mae": 0.2628992720692591
+          },
+          {
+            "event_key": 202524,
+            "baseline_mae": 0.341147749510763,
+            "candidate_mae": 0.3097693631379967
+          }
+        ]
+      },
+      "2026": {
+        "events": 13,
+        "rows": 11923,
+        "baseline_mae": 0.5318265948398261,
+        "candidate_mae": 0.470388327241876,
+        "relative_reduction": 0.11552312011860533,
+        "delta": -0.06143826759794995,
+        "event_ci95": [
+          -0.07531862387049434,
+          -0.04921238524267833
+        ],
+        "block3_ci95": [
+          -0.07258842841652975,
+          -0.051717233136365066
+        ],
+        "events_improved": 13,
+        "loo_max_delta": -0.05624114654620566,
+        "per_event": [
+          {
+            "event_key": 202601,
+            "baseline_mae": 0.5556916129032258,
+            "candidate_mae": 0.5257385270836427
+          },
+          {
+            "event_key": 202602,
+            "baseline_mae": 0.502507874015748,
+            "candidate_mae": 0.4220395854401908
+          },
+          {
+            "event_key": 202603,
+            "baseline_mae": 0.39491715285880974,
+            "candidate_mae": 0.3535891222803922
+          },
+          {
+            "event_key": 202604,
+            "baseline_mae": 0.49895334174022676,
+            "candidate_mae": 0.43088147464524346
+          },
+          {
+            "event_key": 202605,
+            "baseline_mae": 0.6860570264765785,
+            "candidate_mae": 0.5622533062576971
+          },
+          {
+            "event_key": 202606,
+            "baseline_mae": 0.8463653500897667,
+            "candidate_mae": 0.7927697210971492
+          },
+          {
+            "event_key": 202607,
+            "baseline_mae": 0.5510732714138288,
+            "candidate_mae": 0.49914690110792914
+          },
+          {
+            "event_key": 202608,
+            "baseline_mae": 0.43807441016333926,
+            "candidate_mae": 0.37090785215180333
+          },
+          {
+            "event_key": 202609,
+            "baseline_mae": 0.4690151898734177,
+            "candidate_mae": 0.427176015235591
+          },
+          {
+            "event_key": 202610,
+            "baseline_mae": 0.46447187499999965,
+            "candidate_mae": 0.43483949954023193
+          },
+          {
+            "event_key": 202611,
+            "baseline_mae": 0.5630439381611062,
+            "candidate_mae": 0.48485452224610603
+          },
+          {
+            "event_key": 202612,
+            "baseline_mae": 0.5084372049102927,
+            "candidate_mae": 0.4374828597060552
+          },
+          {
+            "event_key": 202613,
+            "baseline_mae": 0.43513748531139823,
+            "candidate_mae": 0.37336886735235647
+          }
+        ]
+      }
+    }
+  },
+  "selection_changed": false,
+  "model_changed": false
+}

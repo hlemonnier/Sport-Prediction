@@ -1,0 +1,24 @@
+{
+  "specification_sha256": "cc4958cbe496aa985bf76ca24062d3925cb2124920c37166a90b8a55d56ac25f",
+  "selection_year": 2023,
+  "validation_mae": {
+    "baseline": 3.679999999999999,
+    "shrunken_movement_0.25": 3.679999999999999,
+    "shrunken_movement_0.5": 3.6699999999999995,
+    "shrunken_movement_1": 3.6400000000000006,
+    "ridge_movement_1": 3.2699999999999996,
+    "ridge_movement_10": 3.345,
+    "ridge_movement_100": 3.63,
+    "huber_movement_1": 3.2350000000000003,
+    "boosted_absolute_movement_1": 3.4699999999999998,
+    "boosted_absolute_movement_10": 3.5450000000000004
+  },
+  "selected_by_family": {
+    "shrunken_movement": "shrunken_movement_1",
+    "ridge_movement": "ridge_movement_1",
+    "huber_movement": "huber_movement_1",
+    "boosted_absolute_movement": "boosted_absolute_movement_1"
+  },
+  "preferred_mechanism": "huber_movement_1",
+  "held_forward_metrics_not_yet_computed": true
+}

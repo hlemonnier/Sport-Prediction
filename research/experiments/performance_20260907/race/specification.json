@@ -1,0 +1,101 @@
+{
+  "schema_version": "f1_race_performance_spec_v1",
+  "frozen_before_scoring": true,
+  "baseline_commit": "9fc781c5f607eb8bba2d5e951a6ff42552d7ebb8",
+  "target": "complete Grand Prix finishing order",
+  "information_horizon": "post_qualifying_provisional_grid",
+  "baseline": "stable qualifying order; no race-table grid or current race covariate",
+  "training_years": [
+    2022
+  ],
+  "selection_years": [
+    2023
+  ],
+  "held_forward_years": [
+    2024,
+    2025
+  ],
+  "development_exposed_diagnostic_years": [
+    2026
+  ],
+  "training_update": "expanding strictly previous events; hyperparameters and preferred mechanism selected only on 2023 then fixed",
+  "candidates": {
+    "shrunken_movement": {
+      "weights": [
+        0.25,
+        0.5,
+        1.0
+      ],
+      "driver_share": 0.4,
+      "team_share": 0.6
+    },
+    "ridge_movement": {
+      "alpha": [
+        1.0,
+        10.0,
+        100.0
+      ]
+    },
+    "huber_movement": {
+      "alpha": [
+        1.0
+      ],
+      "epsilon": 1.35
+    },
+    "boosted_absolute_movement": {
+      "l2_regularization": [
+        1.0,
+        10.0
+      ],
+      "max_iter": 100,
+      "max_leaf_nodes": 4,
+      "min_samples_leaf": 30,
+      "learning_rate": 0.05
+    }
+  },
+  "form_prior": {
+    "event_half_life": 8.0,
+    "shrinkage_rows": 5.0,
+    "constructor_history": "same season and TeamId; no hindsight renaming",
+    "driver_history": "same season and qualifying Abbreviation; avoids missing provider DriverId"
+  },
+  "features": [
+    "qualifying_percentile",
+    "team_qualifying_mean",
+    "within_team_qualifying_delta",
+    "driver_classified_movement",
+    "team_classified_movement",
+    "driver_finish_form",
+    "team_finish_form",
+    "driver_failure_rate",
+    "team_failure_rate",
+    "driver_history_support",
+    "team_history_support",
+    "past_circuit_movement"
+  ],
+  "primary_metric": "event-balanced mean absolute rank error in positions",
+  "secondary_metrics": [
+    "Kendall tau",
+    "winner hit rate",
+    "top3 overlap",
+    "per-year MAE",
+    "complete field coverage"
+  ],
+  "uncertainty": {
+    "paired_event_bootstrap_samples": 20000,
+    "seed": 20260907,
+    "confidence": 0.95,
+    "leave_one_event_out": true
+  },
+  "selection_rule": "lowest 2023 event mean MAE; deterministic candidate ID tie break including baseline; report all candidates and selected mechanism",
+  "historical_snapshot_limit": "session-causal retrospective replay; immutable historical first-publication states not established",
+  "promotion": false,
+  "production_changes": false,
+  "implementation_amendment": {
+    "reason": "v1 incorrectly matched Sprint Qualifying/Race filenames; exact Grand Prix session filenames and complete pre-race abbreviations restore intended coverage",
+    "changed_after_v1_scores": true,
+    "model_families_and_hyperparameters_changed": false,
+    "v1_artifact_preserved": true,
+    "v2_is_revised_retrospective_not_pristine": true
+  }
+}

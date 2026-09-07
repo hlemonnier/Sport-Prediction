@@ -1,0 +1,5678 @@
+{
+  "schema_version": "f1_race_performance_cycle_v1",
+  "specification": {
+    "schema_version": "f1_race_performance_spec_v1",
+    "frozen_before_scoring": true,
+    "baseline_commit": "9fc781c5f607eb8bba2d5e951a6ff42552d7ebb8",
+    "target": "complete Grand Prix finishing order",
+    "information_horizon": "post_qualifying_provisional_grid",
+    "baseline": "stable qualifying order; no race-table grid or current race covariate",
+    "training_years": [
+      2022
+    ],
+    "selection_years": [
+      2023
+    ],
+    "held_forward_years": [
+      2024,
+      2025
+    ],
+    "development_exposed_diagnostic_years": [
+      2026
+    ],
+    "training_update": "expanding strictly previous events; hyperparameters and preferred mechanism selected only on 2023 then fixed",
+    "candidates": {
+      "shrunken_movement": {
+        "weights": [
+          0.25,
+          0.5,
+          1.0
+        ],
+        "driver_share": 0.4,
+        "team_share": 0.6
+      },
+      "ridge_movement": {
+        "alpha": [
+          1.0,
+          10.0,
+          100.0
+        ]
+      },
+      "huber_movement": {
+        "alpha": [
+          1.0
+        ],
+        "epsilon": 1.35
+      },
+      "boosted_absolute_movement": {
+        "l2_regularization": [
+          1.0,
+          10.0
+        ],
+        "max_iter": 100,
+        "max_leaf_nodes": 4,
+        "min_samples_leaf": 30,
+        "learning_rate": 0.05
+      }
+    },
+    "form_prior": {
+      "event_half_life": 8.0,
+      "shrinkage_rows": 5.0,
+      "constructor_history": "same season and TeamId; no hindsight renaming",
+      "driver_history": "same season and qualifying Abbreviation; avoids missing provider DriverId"
+    },
+    "features": [
+      "qualifying_percentile",
+      "team_qualifying_mean",
+      "within_team_qualifying_delta",
+      "driver_classified_movement",
+      "team_classified_movement",
+      "driver_finish_form",
+      "team_finish_form",
+      "driver_failure_rate",
+      "team_failure_rate",
+      "driver_history_support",
+      "team_history_support",
+      "past_circuit_movement"
+    ],
+    "primary_metric": "event-balanced mean absolute rank error in positions",
+    "secondary_metrics": [
+      "Kendall tau",
+      "winner hit rate",
+      "top3 overlap",
+      "per-year MAE",
+      "complete field coverage"
+    ],
+    "uncertainty": {
+      "paired_event_bootstrap_samples": 20000,
+      "seed": 20260907,
+      "confidence": 0.95,
+      "leave_one_event_out": true
+    },
+    "selection_rule": "lowest 2023 event mean MAE; deterministic candidate ID tie break including baseline; report all candidates and selected mechanism",
+    "historical_snapshot_limit": "session-causal retrospective replay; immutable historical first-publication states not established",
+    "promotion": false,
+    "production_changes": false,
+    "implementation_amendment": {
+      "reason": "v1 incorrectly matched Sprint Qualifying/Race filenames; exact Grand Prix session filenames and complete pre-race abbreviations restore intended coverage",
+      "changed_after_v1_scores": true,
+      "model_families_and_hyperparameters_changed": false,
+      "v1_artifact_preserved": true,
+      "v2_is_revised_retrospective_not_pristine": true
+    }
+  },
+  "specification_sha256": "cc4958cbe496aa985bf76ca24062d3925cb2124920c37166a90b8a55d56ac25f",
+  "baseline_commit": "9fc781c5f607eb8bba2d5e951a6ff42552d7ebb8",
+  "runtime": {
+    "python": "3.12.14",
+    "numpy": "2.5.3"
+  },
+  "information_horizon": "post_qualifying_provisional_grid",
+  "empirical_role": "historical_retrospective_research",
+  "promotion_eligible": false,
+  "production_changed": false,
+  "inventory": {
+    "included_events": 92,
+    "included_by_year": {
+      "2022": 21,
+      "2023": 20,
+      "2024": 21,
+      "2025": 22,
+      "2026": 8
+    },
+    "excluded": [
+      {
+        "event": "2022:02",
+        "reason": "race classification is not a complete permutation"
+      },
+      {
+        "event": "2023:10",
+        "reason": "incomplete qualifying numeric positions"
+      },
+      {
+        "event": "2023:15",
+        "reason": "race classification is not a complete permutation"
+      },
+      {
+        "event": "2024:08",
+        "reason": "incomplete qualifying numeric positions"
+      },
+      {
+        "event": "2024:15",
+        "reason": "incomplete qualifying numeric positions"
+      },
+      {
+        "event": "2024:17",
+        "reason": "incomplete qualifying numeric positions"
+      },
+      {
+        "event": "2025:09",
+        "reason": "qualifying and race rosters differ"
+      },
+      {
+        "event": "2025:21",
+        "reason": "incomplete qualifying numeric positions"
+      },
+      {
+        "event": "2026:01",
+        "reason": "incomplete qualifying numeric positions"
+      }
+    ]
+  },
+  "all_candidate_configurations": {
+    "baseline": [
+      "baseline",
+      0.0
+    ],
+    "shrunken_movement_0.25": [
+      "shrunken_movement",
+      0.25
+    ],
+    "shrunken_movement_0.5": [
+      "shrunken_movement",
+      0.5
+    ],
+    "shrunken_movement_1": [
+      "shrunken_movement",
+      1.0
+    ],
+    "ridge_movement_1": [
+      "ridge_movement",
+      1.0
+    ],
+    "ridge_movement_10": [
+      "ridge_movement",
+      10.0
+    ],
+    "ridge_movement_100": [
+      "ridge_movement",
+      100.0
+    ],
+    "huber_movement_1": [
+      "huber_movement",
+      1.0
+    ],
+    "boosted_absolute_movement_1": [
+      "boosted_absolute_movement",
+      1.0
+    ],
+    "boosted_absolute_movement_10": [
+      "boosted_absolute_movement",
+      10.0
+    ]
+  },
+  "selected_by_family": {
+    "shrunken_movement": "shrunken_movement_1",
+    "ridge_movement": "ridge_movement_1",
+    "huber_movement": "huber_movement_1",
+    "boosted_absolute_movement": "boosted_absolute_movement_1"
+  },
+  "preferred_mechanism": "huber_movement_1",
+  "summary": {
+    "selection_2023": {
+      "baseline": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.679999999999999,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": 0.0,
+        "paired_event_ci95": [
+          0.0,
+          0.0
+        ],
+        "events_won": 0,
+        "events_tied": 20,
+        "events_lost": 0,
+        "loo_delta_min": 0.0,
+        "loo_delta_max": 0.0,
+        "kendall": 0.46578947368421053,
+        "winner_hit_rate": 0.65,
+        "top3_overlap": 0.6333333333333332
+      },
+      "shrunken_movement_0.25": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.679999999999999,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": 0.0,
+        "paired_event_ci95": [
+          0.0,
+          0.0
+        ],
+        "events_won": 0,
+        "events_tied": 20,
+        "events_lost": 0,
+        "loo_delta_min": 0.0,
+        "loo_delta_max": 0.0,
+        "kendall": 0.46578947368421053,
+        "winner_hit_rate": 0.65,
+        "top3_overlap": 0.6333333333333332
+      },
+      "shrunken_movement_0.5": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.6699999999999995,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.009999999999999986,
+        "paired_event_ci95": [
+          -0.02999999999999998,
+          0.010000000000000009
+        ],
+        "events_won": 3,
+        "events_tied": 16,
+        "events_lost": 1,
+        "loo_delta_min": -0.015789473684210516,
+        "loo_delta_max": -0.005263157894736824,
+        "kendall": 0.4673684210526317,
+        "winner_hit_rate": 0.65,
+        "top3_overlap": 0.6333333333333332
+      },
+      "shrunken_movement_1": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.6400000000000006,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.039999999999999945,
+        "paired_event_ci95": [
+          -0.11499999999999992,
+          0.025000000000000043
+        ],
+        "events_won": 9,
+        "events_tied": 4,
+        "events_lost": 7,
+        "loo_delta_min": -0.05263157894736835,
+        "loo_delta_max": -0.01578947368421047,
+        "kendall": 0.46947368421052627,
+        "winner_hit_rate": 0.7,
+        "top3_overlap": 0.6499999999999999
+      },
+      "ridge_movement_1": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.2699999999999996,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.41,
+        "paired_event_ci95": [
+          -0.6749999999999999,
+          -0.16499999999999998
+        ],
+        "events_won": 14,
+        "events_tied": 2,
+        "events_lost": 4,
+        "loo_delta_min": -0.45789473684210524,
+        "loo_delta_max": -0.3526315789473684,
+        "kendall": 0.5268421052631578,
+        "winner_hit_rate": 0.9,
+        "top3_overlap": 0.6333333333333332
+      },
+      "ridge_movement_10": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.345,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.3349999999999999,
+        "paired_event_ci95": [
+          -0.54,
+          -0.13499999999999993
+        ],
+        "events_won": 14,
+        "events_tied": 1,
+        "events_lost": 5,
+        "loo_delta_min": -0.3736842105263157,
+        "loo_delta_max": -0.27894736842105256,
+        "kendall": 0.5126315789473684,
+        "winner_hit_rate": 0.85,
+        "top3_overlap": 0.6666666666666665
+      },
+      "ridge_movement_100": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.63,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.049999999999999975,
+        "paired_event_ci95": [
+          -0.08999999999999997,
+          -0.01499999999999999
+        ],
+        "events_won": 8,
+        "events_tied": 11,
+        "events_lost": 1,
+        "loo_delta_min": -0.05789473684210524,
+        "loo_delta_max": -0.03684210526315788,
+        "kendall": 0.47210526315789486,
+        "winner_hit_rate": 0.7,
+        "top3_overlap": 0.6333333333333332
+      },
+      "huber_movement_1": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.2350000000000003,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.44499999999999995,
+        "paired_event_ci95": [
+          -0.735,
+          -0.17499999999999996
+        ],
+        "events_won": 14,
+        "events_tied": 3,
+        "events_lost": 3,
+        "loo_delta_min": -0.4999999999999999,
+        "loo_delta_max": -0.37368421052631573,
+        "kendall": 0.5273684210526317,
+        "winner_hit_rate": 0.9,
+        "top3_overlap": 0.6499999999999999
+      },
+      "boosted_absolute_movement_1": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.4699999999999998,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.21000000000000002,
+        "paired_event_ci95": [
+          -0.3949999999999999,
+          -0.03500000000000001
+        ],
+        "events_won": 13,
+        "events_tied": 3,
+        "events_lost": 4,
+        "loo_delta_min": -0.2473684210526316,
+        "loo_delta_max": -0.15789473684210525,
+        "kendall": 0.49631578947368415,
+        "winner_hit_rate": 0.85,
+        "top3_overlap": 0.6499999999999999
+      },
+      "boosted_absolute_movement_10": {
+        "events": 20,
+        "drivers": 400,
+        "mae": 3.5450000000000004,
+        "baseline_mae": 3.679999999999999,
+        "paired_delta": -0.13499999999999995,
+        "paired_event_ci95": [
+          -0.3049999999999999,
+          0.03500000000000001
+        ],
+        "events_won": 12,
+        "events_tied": 3,
+        "events_lost": 5,
+        "loo_delta_min": -0.17368421052631575,
+        "loo_delta_max": -0.09473684210526315,
+        "kendall": 0.47894736842105257,
+        "winner_hit_rate": 0.65,
+        "top3_overlap": 0.6499999999999999
+      }
+    },
+    "held_forward_2024_2025": {
+      "baseline": {
+        "events": 43,
+        "drivers": 859,
+        "mae": 3.1001223990208078,
+        "baseline_mae": 3.1001223990208078,
+        "paired_delta": 0.0,
+        "paired_event_ci95": [
+          0.0,
+          0.0
+        ],
+        "events_won": 0,
+        "events_tied": 43,
+        "events_lost": 0,
+        "loo_delta_min": 0.0,
+        "loo_delta_max": 0.0,
+        "kendall": 0.5583843329253366,
+        "winner_hit_rate": 0.5581395348837209,
+        "top3_overlap": 0.6821705426356588
+      },
+      "shrunken_movement_1": {
+        "events": 43,
+        "drivers": 859,
+        "mae": 3.141982864137087,
+        "baseline_mae": 3.1001223990208078,
+        "paired_delta": 0.04186046511627904,
+        "paired_event_ci95": [
+          0.004651162790697606,
+          0.07906976744186045
+        ],
+        "events_won": 6,
+        "events_tied": 19,
+        "events_lost": 18,
+        "loo_delta_min": 0.033333333333333305,
+        "loo_delta_max": 0.05238095238095236,
+        "kendall": 0.555201958384333,
+        "winner_hit_rate": 0.5116279069767442,
+        "top3_overlap": 0.6744186046511627
+      },
+      "ridge_movement_1": {
+        "events": 43,
+        "drivers": 859,
+        "mae": 3.067686658506732,
+        "baseline_mae": 3.1001223990208078,
+        "paired_delta": -0.032435740514075925,
+        "paired_event_ci95": [
+          -0.14871481028151778,
+          0.08164014687882491
+        ],
+        "events_won": 18,
+        "events_tied": 9,
+        "events_lost": 16,
+        "loo_delta_min": -0.049874686716792016,
+        "loo_delta_max": -0.01177944862155392,
+        "kendall": 0.5762273901808785,
+        "winner_hit_rate": 0.46511627906976744,
+        "top3_overlap": 0.6976744186046512
+      },
+      "huber_movement_1": {
+        "events": 43,
+        "drivers": 859,
+        "mae": 3.0840881272949816,
+        "baseline_mae": 3.1001223990208078,
+        "paired_delta": -0.01603427172582624,
+        "paired_event_ci95": [
+          -0.13023255813953494,
+          0.09767441860465115
+        ],
+        "events_won": 18,
+        "events_tied": 7,
+        "events_lost": 18,
+        "loo_delta_min": -0.033082706766917346,
+        "loo_delta_max": 0.005012531328320764,
+        "kendall": 0.5730450156398749,
+        "winner_hit_rate": 0.46511627906976744,
+        "top3_overlap": 0.6899224806201549
+      },
+      "boosted_absolute_movement_1": {
+        "events": 43,
+        "drivers": 859,
+        "mae": 3.0329253365973075,
+        "baseline_mae": 3.1001223990208078,
+        "paired_delta": -0.06719706242350068,
+        "paired_event_ci95": [
+          -0.14859241126071004,
+          0.01419828641370863
+        ],
+        "events_won": 24,
+        "events_tied": 5,
+        "events_lost": 14,
+        "loo_delta_min": -0.08308270676691737,
+        "loo_delta_max": -0.05451127819548879,
+        "kendall": 0.5718210254317965,
+        "winner_hit_rate": 0.5348837209302325,
+        "top3_overlap": 0.7054263565891473
+      }
+    },
+    "2024": {
+      "baseline": {
+        "events": 21,
+        "drivers": 419,
+        "mae": 2.847869674185464,
+        "baseline_mae": 2.847869674185464,
+        "paired_delta": 0.0,
+        "paired_event_ci95": [
+          0.0,
+          0.0
+        ],
+        "events_won": 0,
+        "events_tied": 21,
+        "events_lost": 0,
+        "loo_delta_min": 0.0,
+        "loo_delta_max": 0.0,
+        "kendall": 0.6040100250626568,
+        "winner_hit_rate": 0.47619047619047616,
+        "top3_overlap": 0.603174603174603
+      },
+      "shrunken_movement_1": {
+        "events": 21,
+        "drivers": 419,
+        "mae": 2.8907268170426064,
+        "baseline_mae": 2.847869674185464,
+        "paired_delta": 0.042857142857142864,
+        "paired_event_ci95": [
+          0.009523809523809532,
+          0.07619047619047621
+        ],
+        "events_won": 1,
+        "events_tied": 13,
+        "events_lost": 7,
+        "loo_delta_min": 0.034999999999999996,
+        "loo_delta_max": 0.05000000000000001,
+        "kendall": 0.6005012531328321,
+        "winner_hit_rate": 0.47619047619047616,
+        "top3_overlap": 0.603174603174603
+      },
+      "ridge_movement_1": {
+        "events": 21,
+        "drivers": 419,
+        "mae": 2.7243107769423562,
+        "baseline_mae": 2.847869674185464,
+        "paired_delta": -0.1235588972431078,
+        "paired_event_ci95": [
+          -0.3047619047619048,
+          0.057393483709273184
+        ],
+        "events_won": 11,
+        "events_tied": 4,
+        "events_lost": 6,
+        "loo_delta_min": -0.1647368421052632,
+        "loo_delta_max": -0.0847368421052632,
+        "kendall": 0.6355332776385408,
+        "winner_hit_rate": 0.5238095238095238,
+        "top3_overlap": 0.619047619047619
+      },
+      "huber_movement_1": {
+        "events": 21,
+        "drivers": 419,
+        "mae": 2.748370927318296,
+        "baseline_mae": 2.847869674185464,
+        "paired_delta": -0.09949874686716795,
+        "paired_event_ci95": [
+          -0.2857142857142857,
+          0.08145363408521307
+        ],
+        "events_won": 10,
+        "events_tied": 3,
+        "events_lost": 8,
+        "loo_delta_min": -0.13947368421052636,
+        "loo_delta_max": -0.059473684210526324,
+        "kendall": 0.6320245057087162,
+        "winner_hit_rate": 0.5238095238095238,
+        "top3_overlap": 0.619047619047619
+      },
+      "boosted_absolute_movement_1": {
+        "events": 21,
+        "drivers": 419,
+        "mae": 2.781704260651629,
+        "baseline_mae": 2.847869674185464,
+        "paired_delta": -0.06616541353383464,
+        "paired_event_ci95": [
+          -0.16190476190476194,
+          0.02431077694235589
+        ],
+        "events_won": 13,
+        "events_tied": 1,
+        "events_lost": 7,
+        "loo_delta_min": -0.08000000000000004,
+        "loo_delta_max": -0.03947368421052636,
+        "kendall": 0.6199944305207462,
+        "winner_hit_rate": 0.47619047619047616,
+        "top3_overlap": 0.603174603174603
+      }
+    },
+    "2025": {
+      "baseline": {
+        "events": 22,
+        "drivers": 440,
+        "mae": 3.340909090909091,
+        "baseline_mae": 3.340909090909091,
+        "paired_delta": 0.0,
+        "paired_event_ci95": [
+          0.0,
+          0.0
+        ],
+        "events_won": 0,
+        "events_tied": 22,
+        "events_lost": 0,
+        "loo_delta_min": 0.0,
+        "loo_delta_max": 0.0,
+        "kendall": 0.5148325358851674,
+        "winner_hit_rate": 0.6363636363636364,
+        "top3_overlap": 0.7575757575757575
+      },
+      "shrunken_movement_1": {
+        "events": 22,
+        "drivers": 440,
+        "mae": 3.3818181818181814,
+        "baseline_mae": 3.340909090909091,
+        "paired_delta": 0.040909090909090846,
+        "paired_event_ci95": [
+          -0.02727272727272738,
+          0.10454545454545455
+        ],
+        "events_won": 5,
+        "events_tied": 6,
+        "events_lost": 11,
+        "loo_delta_min": 0.023809523809523746,
+        "loo_delta_max": 0.06190476190476185,
+        "kendall": 0.5119617224880383,
+        "winner_hit_rate": 0.5454545454545454,
+        "top3_overlap": 0.7424242424242423
+      },
+      "ridge_movement_1": {
+        "events": 22,
+        "drivers": 440,
+        "mae": 3.395454545454545,
+        "baseline_mae": 3.340909090909091,
+        "paired_delta": 0.054545454545454494,
+        "paired_event_ci95": [
+          -0.07727272727272734,
+          0.18636363636363643
+        ],
+        "events_won": 7,
+        "events_tied": 5,
+        "events_lost": 10,
+        "loo_delta_min": 0.023809523809523767,
+        "loo_delta_max": 0.08571428571428566,
+        "kendall": 0.5196172248803829,
+        "winner_hit_rate": 0.4090909090909091,
+        "top3_overlap": 0.7727272727272727
+      },
+      "huber_movement_1": {
+        "events": 22,
+        "drivers": 440,
+        "mae": 3.4045454545454548,
+        "baseline_mae": 3.340909090909091,
+        "paired_delta": 0.06363636363636357,
+        "paired_event_ci95": [
+          -0.06363636363636371,
+          0.1954545454545454
+        ],
+        "events_won": 8,
+        "events_tied": 4,
+        "events_lost": 10,
+        "loo_delta_min": 0.03809523809523802,
+        "loo_delta_max": 0.08571428571428566,
+        "kendall": 0.5167464114832536,
+        "winner_hit_rate": 0.4090909090909091,
+        "top3_overlap": 0.7575757575757575
+      },
+      "boosted_absolute_movement_1": {
+        "events": 22,
+        "drivers": 440,
+        "mae": 3.272727272727272,
+        "baseline_mae": 3.340909090909091,
+        "paired_delta": -0.06818181818181827,
+        "paired_event_ci95": [
+          -0.20000000000000015,
+          0.06363636363636359
+        ],
+        "events_won": 11,
+        "events_tied": 4,
+        "events_lost": 7,
+        "loo_delta_min": -0.10000000000000012,
+        "loo_delta_max": -0.04285714285714295,
+        "kendall": 0.5258373205741628,
+        "winner_hit_rate": 0.5909090909090909,
+        "top3_overlap": 0.8030303030303029
+      }
+    },
+    "exposed_2026": {
+      "baseline": {
+        "events": 8,
+        "drivers": 176,
+        "mae": 3.6363636363636362,
+        "baseline_mae": 3.6363636363636362,
+        "paired_delta": 0.0,
+        "paired_event_ci95": [
+          0.0,
+          0.0
+        ],
+        "events_won": 0,
+        "events_tied": 8,
+        "events_lost": 0,
+        "loo_delta_min": 0.0,
+        "loo_delta_max": 0.0,
+        "kendall": 0.5454545454545454,
+        "winner_hit_rate": 0.625,
+        "top3_overlap": 0.5833333333333333
+      },
+      "shrunken_movement_1": {
+        "events": 8,
+        "drivers": 176,
+        "mae": 3.625,
+        "baseline_mae": 3.6363636363636362,
+        "paired_delta": -0.011363636363636326,
+        "paired_event_ci95": [
+          -0.045454545454545414,
+          0.02272727272727279
+        ],
+        "events_won": 2,
+        "events_tied": 5,
+        "events_lost": 1,
+        "loo_delta_min": -0.02597402597402595,
+        "loo_delta_max": 3.172065784643304e-17,
+        "kendall": 0.5465367965367965,
+        "winner_hit_rate": 0.625,
+        "top3_overlap": 0.5833333333333333
+      },
+      "ridge_movement_1": {
+        "events": 8,
+        "drivers": 176,
+        "mae": 3.772727272727273,
+        "baseline_mae": 3.6363636363636362,
+        "paired_delta": 0.13636363636363644,
+        "paired_event_ci95": [
+          0.022727272727272763,
+          0.23863636363636379
+        ],
+        "events_won": 1,
+        "events_tied": 1,
+        "events_lost": 6,
+        "loo_delta_min": 0.10389610389610396,
+        "loo_delta_max": 0.18181818181818188,
+        "kendall": 0.5335497835497836,
+        "winner_hit_rate": 0.75,
+        "top3_overlap": 0.625
+      },
+      "huber_movement_1": {
+        "events": 8,
+        "drivers": 176,
+        "mae": 3.7954545454545454,
+        "baseline_mae": 3.6363636363636362,
+        "paired_delta": 0.15909090909090914,
+        "paired_event_ci95": [
+          0.05681818181818188,
+          0.2500000000000001
+        ],
+        "events_won": 1,
+        "events_tied": 1,
+        "events_lost": 6,
+        "loo_delta_min": 0.1298701298701299,
+        "loo_delta_max": 0.19480519480519484,
+        "kendall": 0.5303030303030303,
+        "winner_hit_rate": 0.625,
+        "top3_overlap": 0.5833333333333333
+      },
+      "boosted_absolute_movement_1": {
+        "events": 8,
+        "drivers": 176,
+        "mae": 3.795454545454545,
+        "baseline_mae": 3.6363636363636362,
+        "paired_delta": 0.1590909090909091,
+        "paired_event_ci95": [
+          0.03409090909090909,
+          0.2840909090909091
+        ],
+        "events_won": 2,
+        "events_tied": 0,
+        "events_lost": 6,
+        "loo_delta_min": 0.11688311688311688,
+        "loo_delta_max": 0.1948051948051948,
+        "kendall": 0.5357142857142858,
+        "winner_hit_rate": 0.625,
+        "top3_overlap": 0.5833333333333333
+      }
+    }
+  },
+  "event_metrics": {
+    "baseline": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.5,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.11578947368421053,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.0736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.30526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:01",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:02",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:03",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 19,
+        "mae": 4.105263157894737,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:04",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:05",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:06",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:07",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7157894736842105,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:09",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:10",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.2,
+        "kendall": 0.8526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:11",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:12",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:13",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:14",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:16",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7157894736842105,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:18",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:19",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:20",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.5052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:21",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.0
+      },
+      {
+        "event": "2024:22",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:23",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:24",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.3368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:01",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:02",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.9,
+        "kendall": 0.3157894736842105,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:03",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.0,
+        "kendall": 0.8736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:04",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:05",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:06",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2025:07",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:08",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:10",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:11",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.4842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:12",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:13",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:14",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:15",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 6.0,
+        "kendall": 0.052631578947368425,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:16",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.5894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:17",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:18",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:19",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:20",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.5157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:22",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.6,
+        "kendall": 0.11578947368421053,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2025:23",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.4842105263157895,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:24",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:02",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.181818181818182,
+        "kendall": 0.45454545454545453,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:03",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 2.0,
+        "kendall": 0.7835497835497836,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:04",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 3.4545454545454546,
+        "kendall": 0.5411255411255411,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:05",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 5.2727272727272725,
+        "kendall": 0.36796536796536794,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:06",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 5.090909090909091,
+        "kendall": 0.316017316017316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:07",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 3.090909090909091,
+        "kendall": 0.6190476190476191,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:08",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 1.8181818181818181,
+        "kendall": 0.8008658008658008,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:09",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.181818181818182,
+        "kendall": 0.4805194805194805,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "shrunken_movement_0.25": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.5,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.11578947368421053,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.0736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.30526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "shrunken_movement_0.5": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.5,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.11578947368421053,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7578947368421053,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.4210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.0736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.30526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "shrunken_movement_1": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.4842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.1368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 1.9,
+        "kendall": 0.7578947368421053,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.4210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.4105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.4631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.8,
+        "kendall": 0.3263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.9,
+        "kendall": 0.7368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.37894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.4,
+        "kendall": 0.08421052631578947,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.2,
+        "kendall": 0.3157894736842105,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:01",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:02",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:03",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 19,
+        "mae": 4.105263157894737,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:04",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:05",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:06",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:07",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7157894736842105,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:09",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.4631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:10",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.4,
+        "kendall": 0.8421052631578948,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:11",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:12",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:13",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:14",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:16",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:18",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:19",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:20",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.5052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:21",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.0
+      },
+      {
+        "event": "2024:22",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:23",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:24",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.3368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:01",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:02",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:03",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.4,
+        "kendall": 0.8210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:04",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:05",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:06",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2025:07",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.45263157894736844,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:08",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:10",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:11",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:12",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:13",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:14",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:15",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 6.1,
+        "kendall": 0.031578947368421054,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:16",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:17",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:18",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:19",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:20",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.5368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:22",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.6,
+        "kendall": 0.10526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2025:23",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.4421052631578947,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:24",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:02",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.181818181818182,
+        "kendall": 0.45454545454545453,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:03",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 2.0,
+        "kendall": 0.7922077922077922,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:04",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 3.4545454545454546,
+        "kendall": 0.5324675324675324,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:05",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 5.181818181818182,
+        "kendall": 0.37662337662337664,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:06",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 5.090909090909091,
+        "kendall": 0.316017316017316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:07",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 3.0,
+        "kendall": 0.6277056277056278,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:08",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 1.9090909090909092,
+        "kendall": 0.7922077922077922,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:09",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.181818181818182,
+        "kendall": 0.4805194805194805,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "ridge_movement_1": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.1473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 1.7,
+        "kendall": 0.768421052631579,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.7,
+        "kendall": 0.768421052631579,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.4421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.37894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.6,
+        "kendall": 0.08421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.4210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.3,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.5052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.7,
+        "kendall": 0.7789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:01",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:02",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:03",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 19,
+        "mae": 4.2105263157894735,
+        "kendall": 0.3567251461988304,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:04",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.6,
+        "kendall": 0.8105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:05",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:06",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:07",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:09",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.4210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:10",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.1,
+        "kendall": 0.8842105263157894,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:11",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.6,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:12",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:13",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.7,
+        "kendall": 0.7999999999999999,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:14",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:16",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7263157894736842,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:18",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.8,
+        "kendall": 0.7368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:19",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:20",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:21",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.0
+      },
+      {
+        "event": "2024:22",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:23",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:24",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.5,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:01",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:02",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3368421052631579,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:03",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.5,
+        "kendall": 0.8105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:04",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:05",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:06",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:07",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:08",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:10",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.4105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:11",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:12",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.4,
+        "kendall": 0.3473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:13",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:14",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:15",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 6.1,
+        "kendall": 0.010526315789473684,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:16",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:17",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:18",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:19",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:20",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:22",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.1,
+        "kendall": 0.2105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2025:23",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:24",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:02",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.181818181818182,
+        "kendall": 0.45454545454545453,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:03",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 2.272727272727273,
+        "kendall": 0.7402597402597402,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:04",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 3.8181818181818183,
+        "kendall": 0.47186147186147187,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:05",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 5.090909090909091,
+        "kendall": 0.40259740259740256,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:06",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 5.2727272727272725,
+        "kendall": 0.2987012987012987,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:07",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 3.3636363636363638,
+        "kendall": 0.6277056277056278,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:08",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 1.9090909090909092,
+        "kendall": 0.7922077922077922,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:09",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.2727272727272725,
+        "kendall": 0.4805194805194805,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "ridge_movement_10": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.9,
+        "kendall": 0.12631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 1.8,
+        "kendall": 0.7578947368421053,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.4105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7157894736842105,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.37894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.6,
+        "kendall": 0.0736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.5,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.3,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.8,
+        "kendall": 0.768421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "ridge_movement_100": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.4842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.11578947368421053,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7578947368421053,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.4210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.6,
+        "kendall": 0.5052631578947369,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.3157894736842105,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.39999999999999997,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.0736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.30526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "huber_movement_1": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.5052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.1473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 1.5,
+        "kendall": 0.7894736842105264,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.5,
+        "kendall": 0.7894736842105264,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.39999999999999997,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.7,
+        "kendall": 0.052631578947368425,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.39999999999999997,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.3,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.5,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.6,
+        "kendall": 0.7999999999999999,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:01",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:02",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:03",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 19,
+        "mae": 4.315789473684211,
+        "kendall": 0.3567251461988304,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:04",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.8,
+        "kendall": 0.7999999999999999,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:05",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:06",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:07",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:09",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.4,
+        "kendall": 0.4210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:10",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.2,
+        "kendall": 0.8736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:11",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.6,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:12",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:13",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.7,
+        "kendall": 0.7894736842105264,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:14",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:16",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7263157894736842,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:18",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.9,
+        "kendall": 0.7263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:19",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:20",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:21",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.0
+      },
+      {
+        "event": "2024:22",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:23",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:24",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:01",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.6,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:02",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.6,
+        "kendall": 0.3473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:03",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.6,
+        "kendall": 0.7999999999999999,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:04",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:05",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:06",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:07",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:08",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:10",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.4421052631578947,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:11",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:12",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.6,
+        "kendall": 0.3263157894736842,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:13",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.631578947368421,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:14",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:15",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 6.2,
+        "kendall": -0.010526315789473684,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:16",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:17",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:18",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:19",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:20",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.5368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:22",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.3,
+        "kendall": 0.18947368421052632,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2025:23",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:24",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:02",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.181818181818182,
+        "kendall": 0.45454545454545453,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:03",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 2.272727272727273,
+        "kendall": 0.7402597402597402,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:04",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 3.8181818181818183,
+        "kendall": 0.47186147186147187,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:05",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 5.181818181818182,
+        "kendall": 0.3939393939393939,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:06",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 5.2727272727272725,
+        "kendall": 0.30735930735930733,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:07",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 3.272727272727273,
+        "kendall": 0.6277056277056278,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:08",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 2.090909090909091,
+        "kendall": 0.774891774891775,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:09",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.2727272727272725,
+        "kendall": 0.47186147186147187,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "boosted_absolute_movement_1": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.6,
+        "kendall": 0.4736842105263158,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 6.2,
+        "kendall": 0.06315789473684211,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.7578947368421053,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7157894736842105,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.4631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6000000000000001,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.37894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.9,
+        "kendall": 0.39999999999999997,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.8,
+        "kendall": 0.052631578947368425,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.3,
+        "kendall": 0.3684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.1,
+        "kendall": 0.4631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.9,
+        "kendall": 0.7473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:01",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.2,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:02",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.7052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:03",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 19,
+        "mae": 4.315789473684211,
+        "kendall": 0.3567251461988304,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:04",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.7368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:05",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:06",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:07",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.9,
+        "kendall": 0.7578947368421053,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:09",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.4842105263157895,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:10",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.1,
+        "kendall": 0.8842105263157894,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2024:11",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:12",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:13",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:14",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:16",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.7157894736842105,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:18",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.1,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:19",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:20",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:21",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.7,
+        "kendall": 0.2947368421052632,
+        "winner_hit": 0,
+        "top3_overlap": 0.0
+      },
+      {
+        "event": "2024:22",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.7,
+        "kendall": 0.5789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2024:23",
+        "year": 2024,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2024:24",
+        "year": 2024,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.4105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:01",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.6,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:02",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.6,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:03",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.3,
+        "kendall": 0.8315789473684211,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:04",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.5894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:05",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.8,
+        "kendall": 0.6210526315789474,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:06",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2025:07",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:08",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:10",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5368421052631579,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:11",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.43157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:12",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.3,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:13",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:14",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6421052631578947,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:15",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 6.1,
+        "kendall": 0.010526315789473684,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:16",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:17",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.5,
+        "kendall": 0.6526315789473685,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:18",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:19",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.3,
+        "kendall": 0.6631578947368422,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2025:20",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:22",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 5.5,
+        "kendall": 0.15789473684210525,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:23",
+        "year": 2025,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.8,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2025:24",
+        "year": 2025,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.631578947368421,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:02",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.090909090909091,
+        "kendall": 0.4632034632034632,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2026:03",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 2.090909090909091,
+        "kendall": 0.7662337662337663,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:04",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 3.909090909090909,
+        "kendall": 0.4805194805194805,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:05",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 5.181818181818182,
+        "kendall": 0.3852813852813853,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:06",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 5.454545454545454,
+        "kendall": 0.29004329004329005,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:07",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 3.3636363636363638,
+        "kendall": 0.6190476190476191,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2026:08",
+        "year": 2026,
+        "format": "standard",
+        "drivers": 22,
+        "mae": 2.0,
+        "kendall": 0.7922077922077922,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2026:09",
+        "year": 2026,
+        "format": "sprint",
+        "drivers": 22,
+        "mae": 4.2727272727272725,
+        "kendall": 0.48917748917748916,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      }
+    ],
+    "boosted_absolute_movement_10": [
+      {
+        "event": "2023:01",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.2,
+        "kendall": 0.37894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:02",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.49473684210526314,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:03",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 6.0,
+        "kendall": 0.08421052631578947,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:04",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.0,
+        "kendall": 0.6947368421052632,
+        "winner_hit": 0,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:05",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.4,
+        "kendall": 0.6842105263157895,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:06",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.5894736842105264,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:07",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.2,
+        "kendall": 0.5157894736842106,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:08",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.4,
+        "kendall": 0.5052631578947369,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:09",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 3.1,
+        "kendall": 0.5684210526315789,
+        "winner_hit": 1,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:11",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.3,
+        "kendall": 0.5473684210526316,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:12",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 2.9,
+        "kendall": 0.6105263157894737,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      },
+      {
+        "event": "2023:13",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.5,
+        "kendall": 0.3263157894736842,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:14",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 2.6,
+        "kendall": 0.6736842105263158,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:16",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.0,
+        "kendall": 0.5578947368421052,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:17",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.0,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:18",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 5.8,
+        "kendall": 0.042105263157894736,
+        "winner_hit": 0,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:19",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 3.7,
+        "kendall": 0.38947368421052636,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:20",
+        "year": 2023,
+        "format": "sprint",
+        "drivers": 20,
+        "mae": 4.3,
+        "kendall": 0.35789473684210527,
+        "winner_hit": 1,
+        "top3_overlap": 0.3333333333333333
+      },
+      {
+        "event": "2023:21",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 4.4,
+        "kendall": 0.4210526315789474,
+        "winner_hit": 0,
+        "top3_overlap": 0.6666666666666666
+      },
+      {
+        "event": "2023:22",
+        "year": 2023,
+        "format": "standard",
+        "drivers": 20,
+        "mae": 1.8,
+        "kendall": 0.7473684210526316,
+        "winner_hit": 1,
+        "top3_overlap": 1.0
+      }
+    ]
+  },
+  "fit_warnings": [],
+  "input_manifest": {
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/04_qualifying_results.csv": "d3cbb446ebc5cc07f7a0910ce5d4fa9402d1c22450473e9278b9d204d6f965d8",
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_results.csv": "5693e607c9589ea005e4810919f7d39759a49b796e888a974c5bcd51748d34b5",
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/weekend_metadata.json": "89642f389237ec9658d5d85358122cfee4d9844365b044dfb911a6dd1c87098e",
+    "data/f1/raw/weekends/2022/round_02_saudi_arabian_grand_prix/04_qualifying_results.csv": "73c834c9132885e7d009633ee79f84ef17e4f321fb094c02bbf29a5a0230fc4a",
+    "data/f1/raw/weekends/2022/round_02_saudi_arabian_grand_prix/05_race_results.csv": "1fe29e736aa7a1215edaed0213d7535e9b2ee6ed6bfd0bdedf7e0cf2005ce4f7",
+    "data/f1/raw/weekends/2022/round_02_saudi_arabian_grand_prix/weekend_metadata.json": "2aed3082ed34a3f30ec9a201d66db05c69f4fa2ef04f9187f136d41800bff175",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/04_qualifying_results.csv": "de0c8998fd8a93b7af45e2732151f3d6dee4918538f4543ed3209689be618dde",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/05_race_results.csv": "7fd9350dca9bfe303510cbb69ccd095b494c73adfdfe7c7a81bb073976eca578",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/weekend_metadata.json": "6369f033f00dbfb9ac45a46b0fa76a7a595036dc68278b60245d4bbd3c7bee9d",
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/02_qualifying_results.csv": "b2567e8e14bb12490508da8d208226e3a2e29f7cd346bc2cc9b2125ef3f8424d",
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/05_race_results.csv": "58de11cd2b4abba2908774e5efda40608dac8cba3facdbe26bd9195e8daed301",
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/weekend_metadata.json": "b20dcb94de3f371f9aa851308e3f5fb90e754a4834999dc262bad87873008105",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/04_qualifying_results.csv": "a71495d7fcc8e6bd5d1efda6a82c3c0326ed9538e678e3afa22db253de098b90",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/05_race_results.csv": "054e18d4f471a6a714015ed6c1590f106927b8003c0afe2e1ac7dab074d794f2",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/weekend_metadata.json": "03b848ffc887947d38089f6dcc8790e0b531282492c04fd7d84313b11103237f",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/04_qualifying_results.csv": "feb43a78cb6e04e2339c83f4af60a7022c97e4f01123a2060f8b5a51a24c35d8",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/05_race_results.csv": "13654984b84cc8cfe2795a98b176ef628946dba4feb3d1884f017bf8030dfaba",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/weekend_metadata.json": "61cd0bcbee9fdd53d1a77d5420d40f2eb0cb1f3c8f4ec8b6622779acf0879e8b",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/04_qualifying_results.csv": "4fffaf4e403f4328dc80a8cfaae79c940ac6cf972f6b9324f2cd414c05b21661",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/05_race_results.csv": "fcf60874faf477b5403fe05846ca682890724c01e8364dd7cd169edb17c4e284",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/weekend_metadata.json": "79f78ac01b5c28b1ecd174536f293a1626f8171c52f2aec6ebfed84bf264cb83",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/04_qualifying_results.csv": "1d6e2e698c7d4d16b8c5a75823e7565e726ae3b01343f15dd9f14b3d0a2f7632",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/05_race_results.csv": "8c3237f4cf9ac3b5c6c3cd479f2a2d3464e358b2e9488427b7f4506cb22ef9a9",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/weekend_metadata.json": "91d84d827e3e046a71613ad01983d5d2b48f046e3fc0b553848966af7f6b595b",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/04_qualifying_results.csv": "ce742d81e6d0aee72a140687519e1060ff25701a3f9f40871f0c86b92ef2d83c",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/05_race_results.csv": "e4162bc8c8ea7bf612f5cae9b841de1d4d879e0d922c0b0b752092fb85236d7e",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/weekend_metadata.json": "f1fbd2c9f5b5e4a990b84804319b32e536c7082e2ea51672279b1b295b38764d",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/04_qualifying_results.csv": "79f212f3543bedf371410d5617c183c944db7d9665035fba819331247af9a80e",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/05_race_results.csv": "4d3c449e1246060995a57be6816bd594f7c64b2bf945102959920ba08e24f091",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/weekend_metadata.json": "f6acc9545a33838a7c242cddf27fea2f520566059d7db6b013f50c0630246a42",
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/02_qualifying_results.csv": "f308edeea423e75b7c694d37b74b853862401033eec577f2492f3a0f6ccf84bb",
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/05_race_results.csv": "27362abc725c75c52af22b3e3e60670e78daed9f7c06bb5f580a19f95e69ab60",
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/weekend_metadata.json": "58ed302768ec3cc31d0b9a9ea7fa23897c189cc49bf5859f6c800e371ff14d36",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/04_qualifying_results.csv": "d403a85000a160f9dadeb46851ead22eef8723785cfc226d0870a78d468b9c2a",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/05_race_results.csv": "255823c39ed3b10b2a76f82f42bb30bf20317ce3202ac2bf5da0a34bd66bb215",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/weekend_metadata.json": "cc26f6f70bb0e657f17cb12900c37c4441534b52e2f8c3231c8d28ce304de0c9",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/04_qualifying_results.csv": "8bf51da25886948cef50e5b103c0aa00e5372347bd84de123c94b4e88ab3f5e5",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/05_race_results.csv": "215ccbd6c359a93e0ececf7b1983d89d88f333496d9937d76e38c8405f10065a",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/weekend_metadata.json": "947fb043a8cdbbc8947bbf77ed3e48ad31243c6d51f0504a1fb88c633898bcc4",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/04_qualifying_results.csv": "ae3078d9e8b4f1e8cf53c4a4d7e54dfdb2bd0ccfce8e8bf95bf7f291ad637437",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/05_race_results.csv": "b2d8600ef1d1966a788c9908af06f24f8e8f1115b3378160f116c763ca4bca20",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/weekend_metadata.json": "44c295cfd9546f8e56b655be127cd5320e72b124f68071f48fe9d17f9ea797b6",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/04_qualifying_results.csv": "d5881ee0dde707d7f289ac6b3a096c95454b8616337d8922ed00aea2fc91a7b2",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/05_race_results.csv": "e247f24c14a548931b5b49dbcee2e2af29845ec047dfd34aadabde9ae756fbad",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/weekend_metadata.json": "bf53281c1d95746b86aad67727d0f892c16f0b61f003034a76326e4ea63bd8f5",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/04_qualifying_results.csv": "ce07fe06d722edd7ccee5576c7b8ee751529d100e7c4110cae23ef3073db689c",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/05_race_results.csv": "557d98d18cec4e577b6a01d59522e876785f2fcd1d201e004b85e00a505aaf83",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/weekend_metadata.json": "3cddc14ad67f0ff9869bd3e738acb527be7bc6fb3d8066f90fbb0867e6ac407c",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/04_qualifying_results.csv": "69fefdd5a07bc9ceb004458765c79c73fc8fe14b4b19775d269774a2dfa9f10e",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/05_race_results.csv": "4d23ade9a46dd9e565b59006e222840bd42e7a5fcca485acec83d37fc7be2531",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/weekend_metadata.json": "4c4ccb798324f4b3a35941de9e8fa02c444bc0c85835cb189d7a1961ced600cb",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/04_qualifying_results.csv": "dd3f6c2dc42a7b5c855508ce877756c13d5ac8e4c1c397af5d54b7d9c88e3f3d",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/05_race_results.csv": "efc52d0f94b1cfaf32a058d19370a02c8c97f499ee6b38cf0e4159c489875498",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/weekend_metadata.json": "0bc559447ae20b2599e7f010b035a295aac7ce2d3bd7d4f88b67076ba3fb0cd3",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/04_qualifying_results.csv": "f7e003472641a8b853b312b921a54ca1d19626ea21d064b50d917a4b1ababcaa",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/05_race_results.csv": "7c319fe1de0227099dd0fafa70cd1152c57f46fa780b6c967c88db14dc4f1b46",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/weekend_metadata.json": "5b7e345b493a66bbe536073b41c00f8703066c25eb6a0d9d1bb1c4b780b4fb42",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/04_qualifying_results.csv": "78bce5214627a865812688b76c7c641e8b4a357fadb5e0c043222f71b39b23e5",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/05_race_results.csv": "5abc6c3a430fb62dd9ca53a180c551800cb2d5c7dc7ab8e2e969ae9da68c1ce8",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/weekend_metadata.json": "24c1ca459b66ba3b97851f9c00e87d222ca1bb3b8ffc25f47d38b4730f6d6e33",
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/02_qualifying_results.csv": "0e5b0c70235104a7ede0653994425a1f4d5e66502f273d1d72689ae2eb69bba4",
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/05_race_results.csv": "023ece8c38f8d06544a34273a4d267b90f282cb0cc2f3e7c14df9c3328027287",
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/weekend_metadata.json": "25c9a57a65b2cbd1e870de4a76064bfcc29269a1cb3c9e6f1726e0d483ec5996",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/04_qualifying_results.csv": "d17b58c6749e1f9d9e600be6427a140fc496bce71fea2ddcf43aebddfa6b9471",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/05_race_results.csv": "56a72be40049311a1dca027074abbc5fb04b42dce65d409e094dceed2dafcbf0",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/weekend_metadata.json": "c84363bdfa01b0ffadae6b8ba3661fc2bf6d43e2547a79b55ca6f6447596f5bc",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/04_qualifying_results.csv": "f7194ca459fce5311fb197852ec191392938accc851adc8f947bf83f454f4f3f",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_results.csv": "9245a09c537637b4536230f50d2b79816d7e2f114dc124f15925b33553b3801d",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/weekend_metadata.json": "6026fc2ab17fa493fe410190845e68e0e8a3497bb5050491730501ba791e330b",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/04_qualifying_results.csv": "4627ba1fe92e8da587eaf89e3bed0847b2156604bd935dd5f17757865602df60",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/05_race_results.csv": "99171ffd270cee17151c88cbc9c558af26d49e4b2a9590fb0c9e4ac2f6d59d43",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/weekend_metadata.json": "f58e1058a64bae93578ea950c5f8d0e3c63bb894788d6b83c25af6d8e46b2eca",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/04_qualifying_results.csv": "3a2f4f27c9bf68aa728c251ed07e1f907d4a311dfc0be2a2a1d3125b086b6fdd",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/05_race_results.csv": "725fc4615bfebc8f4b850911d746521789095385f6b7233894e0a37725e063d9",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/weekend_metadata.json": "d0b5a49a297e0668e775cf90718445602d942a22a29ef7738450654ed30a39f5",
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/02_qualifying_results.csv": "2ac133ec37756ff6e08206b8ff336bccb12e41a48742e58461a12c87e22ee679",
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/05_race_results.csv": "53ca49b8f2c4ba7ce16aadce7f4cf933c3c1f5378165304f7821835f6381b49a",
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/weekend_metadata.json": "655a8b828b5f110f812994567bff78c2ed73c24999668efbc742b996009c5b88",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/04_qualifying_results.csv": "4ef709f93fa94b4dbee48bc292bf48c7b97e38766bcedce42e4056e7250d8cfd",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/05_race_results.csv": "cba0557fb03f9eeee432f183c7839ecf4552c371bf62548135f4f34d1318b0e1",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/weekend_metadata.json": "4e3bbd6c46b963c6ddeeebf10dc12ed93f3a39aa920b6058c96e236518477b52",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/04_qualifying_results.csv": "0519d4595a547a9b764807861d47b0a297993eb4cb1067235dcd85683385ad45",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/05_race_results.csv": "bfc80bf1e4f367202ae56d97d6d30af7104d5ba85f6f3f92f86d45733fed09b8",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/weekend_metadata.json": "dd399b7af975d96cf462ba6b8aa253a1b9224d292b70e64f6f066562495d601f",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/04_qualifying_results.csv": "9830434fd0e53524b6ae016e68bdf106bfd74d338d2fdb270cb7220c191c81b4",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/05_race_results.csv": "e108558613e090909560d50252e2e97307f27878589d6ad97a4964572d5d5c73",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/weekend_metadata.json": "af0d9d1e509c4a4509e6375aa1926f34e7d04c5676e64ed1184b5c77440f88e8",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/04_qualifying_results.csv": "1fab039f5c75611660882a0f88c80752984a9fa51841fe67c63b070c85524005",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/05_race_results.csv": "a92846e863b4aa80f862a113808e7b6e5b08fd2a712555aac98840bd133cb941",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/weekend_metadata.json": "7bc4d601b31f5351b9fdae05880e026e285bf925b46a678014a35cf75e1264a7",
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/02_qualifying_results.csv": "2e32f49fb485be3a38ebf2b6cd1fcc8e96c786e3eea6be0f3195858ebbed9056",
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/05_race_results.csv": "b3dc27b6f039a3c71da74080f1d78146cd4056e1ede13f2699d6a8159b898516",
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/weekend_metadata.json": "1b35caa9aaf5ed1175435a1e41869972eb369ff59635e670d037707c2637969c",
+    "data/f1/raw/weekends/2023/round_10_british_grand_prix/04_qualifying_results.csv": "0c00842b55791f225e9b962031c89ed0deed77fb0eccedfff5626b98552f89e6",
+    "data/f1/raw/weekends/2023/round_10_british_grand_prix/05_race_results.csv": "6ff3f1d03184290cb65035f83b0d0e1d1f3c0985135aeff429b2dd4f6c45aba8",
+    "data/f1/raw/weekends/2023/round_10_british_grand_prix/weekend_metadata.json": "dc71ea1d7a277ec0e40fbde4b64b446ef2ba2ca8ada63db58a701f860b027299",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/04_qualifying_results.csv": "62736738b8a39e200071956c6fafec90f13d4da13b846338218b9a674b2b000a",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/05_race_results.csv": "c9e64ab5ee624483a0d578ebb47242397bceda4b6fdd7e7e0d4e1546dbbcb14c",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/weekend_metadata.json": "e2c14693a2d52b3f61ec7047c66bcb895a89cd37c849c0ca30dc2fc6e149ad6a",
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/02_qualifying_results.csv": "1312b7cfb61b1f31c5f90987c7306b5ebad15f37954fa997b764111a3f157cc4",
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/05_race_results.csv": "69f2df060c12ed9bc3ea01376e1a5957b9bbda4aa5fe51113fc08046f2f37402",
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/weekend_metadata.json": "d0c2adaddbadec2bf13516eb33ce2473620ab0c458e6fc45d44e189f557bb925",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/04_qualifying_results.csv": "1f43de5e7896e063d975d46d924ebf9a240c75a9819084ea72123c406c738fbe",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/05_race_results.csv": "2490efda79f469fffebccc20de2ac582fb1c6a0b5cc03de133a94760d2987647",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/weekend_metadata.json": "1d50cbaa6224b86017a1ea15935a7c5aa2ed2c16c4c9fadfe3628edfbadd44d2",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/04_qualifying_results.csv": "0372c58c96ce9ead90481ad3f3e8a30c35360aa7fa2f7c5d2fbb6daa0dd96a60",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/05_race_results.csv": "6be298e5a8b2784fa1fe9f6e37b5a9b0d528dd9cac86a7299ea5a048c571d64a",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/weekend_metadata.json": "21f297217e14a96ab2df9bfe56c63ed41ba6b4c663f7ef3b6b4a5d9f4a33dd92",
+    "data/f1/raw/weekends/2023/round_15_singapore_grand_prix/04_qualifying_results.csv": "0f45f1d4cd1b6ca70993c05f3f7f50a7caf5f8b4063fbe9e1a02460cd3036b56",
+    "data/f1/raw/weekends/2023/round_15_singapore_grand_prix/05_race_results.csv": "43441ae718f680cd267978dde936ea3d219bd0ff9d6c1ac1aa134b2c84f2a37e",
+    "data/f1/raw/weekends/2023/round_15_singapore_grand_prix/weekend_metadata.json": "2fd7b234a264be4669759772e1701901502487b4968fd09f683641a4dc3bd75e",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/04_qualifying_results.csv": "60409ab85a3dffc98b6dded49531ed55f6ee639a88c09af96692d2d50226655f",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/05_race_results.csv": "b613f17e078bad3a471c42bbfeb8ca5fcb1788a3c835e76fe8e1890b125a2ce5",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/weekend_metadata.json": "ea06cfe537e72bc8b850d603fe6fa686fc560e5a03cea0905c11e866d9ed9223",
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/02_qualifying_results.csv": "46a1c1c83bd78c21f39c90424b15ea1946036b1ef37113ac28ed67136b30ffa0",
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/05_race_results.csv": "0327dc515e181f84b35b1b5e24b3d8046ad5b49ab3845b34531372190eb90efa",
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/weekend_metadata.json": "706fc152673b8494ba020f30451be793758db62a0307c1282bf829a8f66f6d15",
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/02_qualifying_results.csv": "6b83846138a1ebb45d8eeaa131adc77388405deece46e2615965939ee261cbeb",
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/05_race_results.csv": "7970e459c27e1d6bc3039f5de9adf41893e924b077af5335ba315a567c4ba0f1",
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/weekend_metadata.json": "e633883276228604370a3f192e6bb1e61fc753a4c286104a1db64280fdbdc66c",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/04_qualifying_results.csv": "e5d752bb28da6646af2bca11fbc0bf9e4e33e975d3e80495622b727582498450",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/05_race_results.csv": "c683c36bfc37aa6faad1db5eb5124181ad42f2595f3740f9fcc97037761a9044",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/weekend_metadata.json": "f8158c65aaea67c96c7dc27cebd9af63b888de9d0822e54351601dcc2dcd40ab",
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/02_qualifying_results.csv": "5f7c1e05275dbad5e5c0d8e628efe86057bfe05c316ff30bf4801be16f83bad1",
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/05_race_results.csv": "b750e556419dc6b7e822e75e15fc512c81f32a2c07d2b9274c4e6b688735139b",
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/weekend_metadata.json": "78c8b1c3fb0b4158d2b0435ecb24e90d5802c040dc70715ef5538147ce1b1c0a",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/04_qualifying_results.csv": "949679dc377a82e197df53ca3ecbfaadd5bfb0f7f72ed751836582b3e6abefcf",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/05_race_results.csv": "73a3f7debb73c2c7985999ca520ba722d864ff3e40e64f84fe7230f0259b3b30",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/weekend_metadata.json": "9b8fdbc2cf4fd70abe27d3fd893aa57203e60fa52fa9ad25b924d3dd30101ec4",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/04_qualifying_results.csv": "c7ab6974d6a338ef5d4d2f5c84de93c51f68fb8cba50b6d6f553093ef1ebc0f6",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/05_race_results.csv": "d65f566734de357f72cf70c67e81993223668257feefbc0e0b3ef4eab29ed5ee",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/weekend_metadata.json": "83b9ab994e33dd2fe87c383d778d763d42d2f9208adaefb802335690494f05cb",
+    "data/f1/raw/weekends/2024/round_01_bahrain_grand_prix/04_qualifying_results.csv": "06074ded61eaa5129ace2f6043ecfdb5c203cefc439cfec601df63de6f5fa99f",
+    "data/f1/raw/weekends/2024/round_01_bahrain_grand_prix/05_race_results.csv": "c4ee42f1dc173a09b10ad479628743cd777c0f3441d9ea2334d68ee2cfb289eb",
+    "data/f1/raw/weekends/2024/round_01_bahrain_grand_prix/weekend_metadata.json": "64d8d5391e6672db38b69434f7243aa294862d76637eaf249e7ee5e4dd0f26f8",
+    "data/f1/raw/weekends/2024/round_02_saudi_arabian_grand_prix/04_qualifying_results.csv": "ebe9f9215591207b5ab636b841603c602f57ee13cb532d1cd83812416ff81146",
+    "data/f1/raw/weekends/2024/round_02_saudi_arabian_grand_prix/05_race_results.csv": "9783782060ab38b763d52802868f70f12d66e765009562a32d8f1d0f92c9de0d",
+    "data/f1/raw/weekends/2024/round_02_saudi_arabian_grand_prix/weekend_metadata.json": "1d884cacb40a5695c5b8a22c970fc040dd7c30e8583e683da2765f1da79cf7ad",
+    "data/f1/raw/weekends/2024/round_03_australian_grand_prix/04_qualifying_results.csv": "da1ac22805a21ab30a0f357c58530e3beda460c04b5bdd8998ed8a6ae428ae97",
+    "data/f1/raw/weekends/2024/round_03_australian_grand_prix/05_race_results.csv": "11cd4b7a3a86d416898176f58611dc15a715eda5fefec3f4829c84fecc24435c",
+    "data/f1/raw/weekends/2024/round_03_australian_grand_prix/weekend_metadata.json": "0dab886b3d8f14b15c88a1a8bba3f1f4b5e149d89c2806337fb10111970b018c",
+    "data/f1/raw/weekends/2024/round_04_japanese_grand_prix/04_qualifying_results.csv": "dacfa8243acb155a0850d77a93f777c917cb66ccfe130cfc947b79bdcbf7b13c",
+    "data/f1/raw/weekends/2024/round_04_japanese_grand_prix/05_race_results.csv": "cd84167f0902496b435e07e469d20e42bb102a8eba50b01e8adeef655240c82b",
+    "data/f1/raw/weekends/2024/round_04_japanese_grand_prix/weekend_metadata.json": "4738df4aef22147498374c430975a5c61bf03c416d727353c3118b836d7c12c0",
+    "data/f1/raw/weekends/2024/round_05_chinese_grand_prix/04_qualifying_results.csv": "33cd5c84fe09ce26f3f8f91a040b47f7dfa11a889a0f31499ad87c17958efb55",
+    "data/f1/raw/weekends/2024/round_05_chinese_grand_prix/05_race_results.csv": "b5e6bd63c6e6fa51b859358c133c4047bac61a9012d82b2c628c0a64845e86ee",
+    "data/f1/raw/weekends/2024/round_05_chinese_grand_prix/weekend_metadata.json": "90387872b588dac16c83cc9bd9b047cbc1dfa1a139d0501cae684692310f27a0",
+    "data/f1/raw/weekends/2024/round_06_miami_grand_prix/04_qualifying_results.csv": "78d7dd02eb31852b9928ebcc81a700d81446437fab250c60c4d902456c45a405",
+    "data/f1/raw/weekends/2024/round_06_miami_grand_prix/05_race_results.csv": "5dcfacd62853ef99f3b6825dd7695ddde2140e7b9215cf90e3a9ff13aa1f6616",
+    "data/f1/raw/weekends/2024/round_06_miami_grand_prix/weekend_metadata.json": "33a3cef835c9347389f055409f0d57d4b6302cef90ad12c2e6c3e613d395dcc1",
+    "data/f1/raw/weekends/2024/round_07_emilia_romagna_grand_prix/04_qualifying_results.csv": "cbe9eb6170022630947d386bf1fc7126d0e27e44a4ca6957c732fd14b2c9c9d1",
+    "data/f1/raw/weekends/2024/round_07_emilia_romagna_grand_prix/05_race_results.csv": "ec65fdf19dc8feb419803816961dbbd55d825efb95be315db594461103be5e09",
+    "data/f1/raw/weekends/2024/round_07_emilia_romagna_grand_prix/weekend_metadata.json": "a6c6c57a8a87871f7b7f25a518730e58ad1c99dca35ae91af03a5c82cc57cbbe",
+    "data/f1/raw/weekends/2024/round_08_monaco_grand_prix/04_qualifying_results.csv": "62c15dc57ac31c6dc9aa288a8ea1f643e42032ec5fcfed7f5614273e3273b818",
+    "data/f1/raw/weekends/2024/round_08_monaco_grand_prix/05_race_results.csv": "0d288171f9b2fd28b5daf8910d1fe591603469a1afbb9ce171e1ceed9a6dfd71",
+    "data/f1/raw/weekends/2024/round_08_monaco_grand_prix/weekend_metadata.json": "a0cf2c644660ce75707463385335470fc4b907c6aef22c3c2a9f94f30d166d05",
+    "data/f1/raw/weekends/2024/round_09_canadian_grand_prix/04_qualifying_results.csv": "55eb912f268518b2d49a789b49571a949c925237d448d01fc3ceaf04f15dd3b8",
+    "data/f1/raw/weekends/2024/round_09_canadian_grand_prix/05_race_results.csv": "87d92e5e5013040392cd23b307a6e2a8083fb00e4de9404848e69d7fb0974a71",
+    "data/f1/raw/weekends/2024/round_09_canadian_grand_prix/weekend_metadata.json": "bc55f404e805398bf332ccb856eb618700fbd57806156797127db248f8b54690",
+    "data/f1/raw/weekends/2024/round_10_spanish_grand_prix/04_qualifying_results.csv": "9089c258619ba3dde5eda2db2044147594501d5c48b83edd0a5ae2420632548a",
+    "data/f1/raw/weekends/2024/round_10_spanish_grand_prix/05_race_results.csv": "0680ac28d1fc6d9bc9b4036d036ef08eb85ef6e569b62b42c9f1fe97e2830693",
+    "data/f1/raw/weekends/2024/round_10_spanish_grand_prix/weekend_metadata.json": "5dadaa12f8863651b029a6baa958605ca478b915fff2e2954a0ed7c338c2d036",
+    "data/f1/raw/weekends/2024/round_11_austrian_grand_prix/04_qualifying_results.csv": "edfab924c8db555b750f43078a092bd880c1f89361dd0a84f7d1d993224bcc3c",
+    "data/f1/raw/weekends/2024/round_11_austrian_grand_prix/05_race_results.csv": "427ccc02b9bdf585298a187543b154286ff979dffb41f82cb4b6699c2c399a19",
+    "data/f1/raw/weekends/2024/round_11_austrian_grand_prix/weekend_metadata.json": "ea036997bde6eff0fb7861ad4b124eff58d97e76e5cc9f2c10ac04eaed7c292f",
+    "data/f1/raw/weekends/2024/round_12_british_grand_prix/04_qualifying_results.csv": "41037cd9a2dcc8e0d2ccfcd01823e53f4193e6af1f4ff3a134e921a923ef6b5f",
+    "data/f1/raw/weekends/2024/round_12_british_grand_prix/05_race_results.csv": "ed01c624c405627312e457e7655800277aacf0b3eadbb97cdd1e956a3bf07475",
+    "data/f1/raw/weekends/2024/round_12_british_grand_prix/weekend_metadata.json": "a2b15f090d374ef062b8262ca67f488a498ea5865fd9e0d82ed65671c12877fa",
+    "data/f1/raw/weekends/2024/round_13_hungarian_grand_prix/04_qualifying_results.csv": "84c275c36bdd02e94b69fff7f693ec3a53dfc0cd39be15afc81ed1b17539c607",
+    "data/f1/raw/weekends/2024/round_13_hungarian_grand_prix/05_race_results.csv": "e1c9b8df04505870cbbc38e74076edb7802a77c378a0b8c4fcbf4fabbcbd9763",
+    "data/f1/raw/weekends/2024/round_13_hungarian_grand_prix/weekend_metadata.json": "46a7bd7f3a8709035408c4ea92105bfa6dc1ce268fc294b82c16d24991380bed",
+    "data/f1/raw/weekends/2024/round_14_belgian_grand_prix/04_qualifying_results.csv": "d3dfbcce6fac2fbcdb9bf785c2ff8c6c6591ecb19f275af10a19524a44e4e27d",
+    "data/f1/raw/weekends/2024/round_14_belgian_grand_prix/05_race_results.csv": "9186fec7b83ea959485ede2f385a2ae0df7f10e2c1ee369e1981feefd87243af",
+    "data/f1/raw/weekends/2024/round_14_belgian_grand_prix/weekend_metadata.json": "3cef29d200c1c47b2b49d90960f614e42248d2075662e7b1314e2fd2455f7abe",
+    "data/f1/raw/weekends/2024/round_15_dutch_grand_prix/04_qualifying_results.csv": "6adf2ef68a9b543090020f6b77c1d4ffc2b8965bd97e3c20aed8bbd3edd7044d",
+    "data/f1/raw/weekends/2024/round_15_dutch_grand_prix/05_race_results.csv": "35d15ee3df91dc7a823caa6d757f47e0c3352585d50347f2f3b1b2e75daa4870",
+    "data/f1/raw/weekends/2024/round_15_dutch_grand_prix/weekend_metadata.json": "56ea15672d14db20753f6a1195cf5c9272b6e4b30b31259ea0a4c2cb37474a64",
+    "data/f1/raw/weekends/2024/round_16_italian_grand_prix/04_qualifying_results.csv": "d9249fd0c225e922c9a2800672506d92091be0a1a7ab6ae5504b140289a8868e",
+    "data/f1/raw/weekends/2024/round_16_italian_grand_prix/05_race_results.csv": "85c80f89039305af0123bb45f939958b052fe3a3cf803c2fa917d7a8f5f4127f",
+    "data/f1/raw/weekends/2024/round_16_italian_grand_prix/weekend_metadata.json": "05d0fb4865bd9410fe6443bd78fc53bdec2b0fd79f7fb0c81bb54d0d8445a601",
+    "data/f1/raw/weekends/2024/round_17_azerbaijan_grand_prix/04_qualifying_results.csv": "2f6f95269f4944d9827362a1743216c7bc61b1f770998d4802bdad61b41758c3",
+    "data/f1/raw/weekends/2024/round_17_azerbaijan_grand_prix/05_race_results.csv": "00ec807aa13a16cafc7d96ff523219a75dbd90a2e1c4cd155d696ae3ec86c706",
+    "data/f1/raw/weekends/2024/round_17_azerbaijan_grand_prix/weekend_metadata.json": "cb51d86b0276c929d7dc693a15040ef09460d3602b26bbdd3e6db97ab5d7a847",
+    "data/f1/raw/weekends/2024/round_18_singapore_grand_prix/04_qualifying_results.csv": "1550854889c23cc2a3f51128341580fe5aeec8ae66b11664c2b3e301db655ab5",
+    "data/f1/raw/weekends/2024/round_18_singapore_grand_prix/05_race_results.csv": "d5fcdd4702c9e39d8177ae187d70387de14898130ca5548d9a88ca2fc9c6a22a",
+    "data/f1/raw/weekends/2024/round_18_singapore_grand_prix/weekend_metadata.json": "99deb018f641b1e4e6ef44a26e590527ef4e69f3b01fe8c867012a39b087bbaa",
+    "data/f1/raw/weekends/2024/round_19_united_states_grand_prix/04_qualifying_results.csv": "67fb4edfe6fbc6744fbd7dbf324dafbea0bcbc3486166fb5c658b3837d3666a9",
+    "data/f1/raw/weekends/2024/round_19_united_states_grand_prix/05_race_results.csv": "ca9274d05f7c04630ac6e3b93fde122c2bb75bd989bfc79eb856c5a5f7937ddb",
+    "data/f1/raw/weekends/2024/round_19_united_states_grand_prix/weekend_metadata.json": "b6ce38d479bcaebae8a5ea3ea9e185d8ee9a0ae59170ed323d10e12778903148",
+    "data/f1/raw/weekends/2024/round_20_mexico_city_grand_prix/04_qualifying_results.csv": "e39eb215cb29529d6935620ac1ac4fd2bd172e8326f391faea850bff52c8668c",
+    "data/f1/raw/weekends/2024/round_20_mexico_city_grand_prix/05_race_results.csv": "e332df9234e8f7bbcf2e14f738cc72fd8e1b10ee4f1e6ebfa9cab510ee838b68",
+    "data/f1/raw/weekends/2024/round_20_mexico_city_grand_prix/weekend_metadata.json": "d2e15d9abc188dbc0693e6aa99f89d407dc662fafa9e624991f7eb6b5666baa4",
+    "data/f1/raw/weekends/2024/round_21_s_o_paulo_grand_prix/04_qualifying_results.csv": "96256dd6bd9efd7736ac30f1f202a9d61937c3f6b965c3dc276ae4d7ab4b9f1e",
+    "data/f1/raw/weekends/2024/round_21_s_o_paulo_grand_prix/05_race_results.csv": "c048bcb1b233688c8626b31834b8e6a074c09dd08d492fdd81317ad7b7ead21e",
+    "data/f1/raw/weekends/2024/round_21_s_o_paulo_grand_prix/weekend_metadata.json": "198cbeaa2761e65034cc3eaa5900c1f36f03f85ae5afdebbc8983eb18cfdd203",
+    "data/f1/raw/weekends/2024/round_22_las_vegas_grand_prix/04_qualifying_results.csv": "67a7691bbfe1d7fa69451d9641de25729db07e68544c1f7c22cb346cf8737c74",
+    "data/f1/raw/weekends/2024/round_22_las_vegas_grand_prix/05_race_results.csv": "69af64471fbceaacc8e9bd9543dbb2dc243752f5563b143ed1a85e2f7c9aa2df",
+    "data/f1/raw/weekends/2024/round_22_las_vegas_grand_prix/weekend_metadata.json": "2ceebb1a8710e7bf6f671daa9ceb68328ff48a910e670b0e2a575dee3f36d072",
+    "data/f1/raw/weekends/2024/round_23_qatar_grand_prix/04_qualifying_results.csv": "81d622d8448d85f0ebf792430b9850729349575d86fb9fddb489792c3c576323",
+    "data/f1/raw/weekends/2024/round_23_qatar_grand_prix/05_race_results.csv": "4eb7e6df6585cb28995eb7d51e08e975dab262bb22d9de5e717e0b861cab3532",
+    "data/f1/raw/weekends/2024/round_23_qatar_grand_prix/weekend_metadata.json": "5eeb99fbb30ff9ea388146f4751433e299f6730dce4a7b907d511a8b0a7180a7",
+    "data/f1/raw/weekends/2024/round_24_abu_dhabi_grand_prix/04_qualifying_results.csv": "9ef3e873d0714446500bee9d47aa6b02f971bc66c1414721a0ccf6a4df2aa837",
+    "data/f1/raw/weekends/2024/round_24_abu_dhabi_grand_prix/05_race_results.csv": "628321f7ca3f7100fbbaa717bc071e313c92337ce04bb4792a96b874f74d5faa",
+    "data/f1/raw/weekends/2024/round_24_abu_dhabi_grand_prix/weekend_metadata.json": "b0ab86f44f7d3a48a28772cb55ba912dfb6f5cc151c5152d249874941528c165",
+    "data/f1/raw/weekends/2025/round_01_australian_grand_prix/04_qualifying_results.csv": "0473d6fe43be2a9b47d4a81e433dce4331cb944689a45957373ff6e6ac1a744b",
+    "data/f1/raw/weekends/2025/round_01_australian_grand_prix/05_race_results.csv": "3572c0bb9dcd03852345195eff986f5e22c332431c6616ece7c28bea13428aec",
+    "data/f1/raw/weekends/2025/round_01_australian_grand_prix/weekend_metadata.json": "8841f2b1756a15a4d7227b05f026d9264cf80dd0864e1ebaa8104f81fb091922",
+    "data/f1/raw/weekends/2025/round_02_chinese_grand_prix/04_qualifying_results.csv": "d284450c4a6da8c7fc2b26879c73b72139ca84c6580a09e1eebf5708012d51d5",
+    "data/f1/raw/weekends/2025/round_02_chinese_grand_prix/05_race_results.csv": "d54a5caa1c64188541df4069bf5920724f85092f4b4df9230563623445794a90",
+    "data/f1/raw/weekends/2025/round_02_chinese_grand_prix/weekend_metadata.json": "f82da9acf2e07faa62f40b08b53c823f353d3e74dcae75484feabdd5285fef7f",
+    "data/f1/raw/weekends/2025/round_03_japanese_grand_prix/04_qualifying_results.csv": "5c0cf974d4dfbbe73280b0dbc23b82dcb3329e5ddd55334c4ba3254f5f72365f",
+    "data/f1/raw/weekends/2025/round_03_japanese_grand_prix/05_race_results.csv": "b9f2c5461520ee30649e6a6af6013ed89cd10055843efb5db3e66ac4f450818c",
+    "data/f1/raw/weekends/2025/round_03_japanese_grand_prix/weekend_metadata.json": "c252f26a4a016e1119488decd2fa857a08a2dd271788a711e2222449169241b5",
+    "data/f1/raw/weekends/2025/round_04_bahrain_grand_prix/04_qualifying_results.csv": "936d477c26577eb3d309c4551c1f95000fe1598bef748d6b8d2f5a10d7954101",
+    "data/f1/raw/weekends/2025/round_04_bahrain_grand_prix/05_race_results.csv": "a314ea736c1bd0a7f888fed5b318193f6f2161ffe0715cdcebe222ae4dc380f4",
+    "data/f1/raw/weekends/2025/round_04_bahrain_grand_prix/weekend_metadata.json": "5438380bedf544b072f100aae51b10773dc9f7448d86ad73b4df0c7d0aac0e90",
+    "data/f1/raw/weekends/2025/round_05_saudi_arabian_grand_prix/04_qualifying_results.csv": "f1daa87af8b35f16290f7175bc536adbcc322ec8692b125e48ce24f1cc35a63f",
+    "data/f1/raw/weekends/2025/round_05_saudi_arabian_grand_prix/05_race_results.csv": "ae8602ace6381da63d6014da0f20b3e1dd91653c70b35e839aba0d77dcb5b497",
+    "data/f1/raw/weekends/2025/round_05_saudi_arabian_grand_prix/weekend_metadata.json": "22ac8aa17158c3904615169c62745b8b8f71af6792c9a4fa590d785d81078240",
+    "data/f1/raw/weekends/2025/round_06_miami_grand_prix/04_qualifying_results.csv": "36e95b515be7571fc43565cba3a774f8e0a76fb6eae4808bc9467cfc07dfee7d",
+    "data/f1/raw/weekends/2025/round_06_miami_grand_prix/05_race_results.csv": "82e399b829d7686a3417f7ab6fdc31a61a9420852463af05f59ae9e6219bee0e",
+    "data/f1/raw/weekends/2025/round_06_miami_grand_prix/weekend_metadata.json": "fbbcc627b14d23994d181452dc7f2937f5128e71a5937d76c9e69e4920be571d",
+    "data/f1/raw/weekends/2025/round_07_emilia_romagna_grand_prix/04_qualifying_results.csv": "342d50b9d9d4848049c2eff7e30b17ee771a3e13b6c7ebd73bce608bbe351728",
+    "data/f1/raw/weekends/2025/round_07_emilia_romagna_grand_prix/05_race_results.csv": "1443358cef66ab86653617b29a61ad9046daac3f1ba910411aced72f84d3af26",
+    "data/f1/raw/weekends/2025/round_07_emilia_romagna_grand_prix/weekend_metadata.json": "f481680e5921d9a0410d7f15da158ccef84c6f04a6580aca356b12aec3c009fb",
+    "data/f1/raw/weekends/2025/round_08_monaco_grand_prix/04_qualifying_results.csv": "a83d24838df64732e4cc00f11b3d66bbf2edfb199873806fc2d47a2ef8b55625",
+    "data/f1/raw/weekends/2025/round_08_monaco_grand_prix/05_race_results.csv": "7b6a32258a5e29d96981c474cd9febd6469f439efb6021f4db0dd3f323eee5f5",
+    "data/f1/raw/weekends/2025/round_08_monaco_grand_prix/weekend_metadata.json": "b38bd4974ec98912ccfd04e9a997ed33f092574c7ed9986e3381a67bf8043f55",
+    "data/f1/raw/weekends/2025/round_09_spanish_grand_prix/04_qualifying_results.csv": "4465b9332bd56349d63bb44e672d180ef7503687ff54bfc7f1dce5caa8fe515a",
+    "data/f1/raw/weekends/2025/round_09_spanish_grand_prix/05_race_results.csv": "84844fa6c721a654a660771363c3f2b2a880d8f4c2b7255fcbe237ef9458db5a",
+    "data/f1/raw/weekends/2025/round_09_spanish_grand_prix/weekend_metadata.json": "cda67b6e5dd22db6180b9b9619275409d83bd077ef9597bf385f3e22c3e3931c",
+    "data/f1/raw/weekends/2025/round_10_canadian_grand_prix/04_qualifying_results.csv": "221afb8176d745c929769e22d1f9ac47eb9d0e65f778a8bce6a372d3bbd22215",
+    "data/f1/raw/weekends/2025/round_10_canadian_grand_prix/05_race_results.csv": "7e14bb127014c1cd43b9e324fd08d70833cca3d9cbef0ab9f94869a15d2bb378",
+    "data/f1/raw/weekends/2025/round_10_canadian_grand_prix/weekend_metadata.json": "588dade01142f9cc49a5c3eab007544414ffc6ebc34f19b2c08ee40b38ce96ca",
+    "data/f1/raw/weekends/2025/round_11_austrian_grand_prix/04_qualifying_results.csv": "237e735475d0b4c698c8e19e939bb16bd1cf302dfc53cbf81a80b7c223f148f0",
+    "data/f1/raw/weekends/2025/round_11_austrian_grand_prix/05_race_results.csv": "051bca2ee3bfe2014cc0591a64bce2520dc540940e8258d8868e37553902ef50",
+    "data/f1/raw/weekends/2025/round_11_austrian_grand_prix/weekend_metadata.json": "00e9a4d17a76a5ddffa08d128c294f4c9b0dff04c93c76d289ad7738c2e8a0f9",
+    "data/f1/raw/weekends/2025/round_12_british_grand_prix/04_qualifying_results.csv": "964ac1374123036270b05c753dc5b1581741f5da34a74f323809441f0384c890",
+    "data/f1/raw/weekends/2025/round_12_british_grand_prix/05_race_results.csv": "072f74e88f956ff238f3e469c69ba16b7d321f651f054145cdd78d6c87994a38",
+    "data/f1/raw/weekends/2025/round_12_british_grand_prix/weekend_metadata.json": "18983b6fb15d50bb9319e3f09d397d040473f94ef6110414bddb42d1194ac687",
+    "data/f1/raw/weekends/2025/round_13_belgian_grand_prix/04_qualifying_results.csv": "6d7a89fc79c0516b8ebd4fa13da945e4e3385cd4525ce6fc88fb77dd679e9399",
+    "data/f1/raw/weekends/2025/round_13_belgian_grand_prix/05_race_results.csv": "61cabb22cda8d61a6e8d64bdf48c993a36e7f8d277f468cfc8d75a56c78bd8f3",
+    "data/f1/raw/weekends/2025/round_13_belgian_grand_prix/weekend_metadata.json": "1500b10cc51adf8fc0ed9ea0e936fe03fb45009aa2a8177cf49d32bf4cab2569",
+    "data/f1/raw/weekends/2025/round_14_hungarian_grand_prix/04_qualifying_results.csv": "65ad9624227fb555f753d57445ad071d857f8b033938462cbc654445f2b766fd",
+    "data/f1/raw/weekends/2025/round_14_hungarian_grand_prix/05_race_results.csv": "ed6572508b8560eaeee56001e1a1269c9e548658f86afa5efe57d540f2bae4f1",
+    "data/f1/raw/weekends/2025/round_14_hungarian_grand_prix/weekend_metadata.json": "9383b2be7ed7a9014d56f8431314dd736ff0d469d2e3b2d9de300b8a942b4c24",
+    "data/f1/raw/weekends/2025/round_15_dutch_grand_prix/04_qualifying_results.csv": "fdff000337fed372b7cdd64847899b2887daff7ef63f171e984578a41bd433ad",
+    "data/f1/raw/weekends/2025/round_15_dutch_grand_prix/05_race_results.csv": "99fa86444cd8bcfcaae8797812539ebd716ee3f0db4e7061b76bb8bd52efc54d",
+    "data/f1/raw/weekends/2025/round_15_dutch_grand_prix/weekend_metadata.json": "6cfe59f3c5b1dbf685aa23942841b0ae41a7d117c5509abde88c182387dfde3f",
+    "data/f1/raw/weekends/2025/round_16_italian_grand_prix/04_qualifying_results.csv": "79a0057d65ecb00df0e001ddf85e7becfe314334c249dac5be255de976a772ae",
+    "data/f1/raw/weekends/2025/round_16_italian_grand_prix/05_race_results.csv": "8b402e6703c22fc5a6b5f3ab4cee87c899c1a88ee8611c44f141054c751f755c",
+    "data/f1/raw/weekends/2025/round_16_italian_grand_prix/weekend_metadata.json": "b0de9a080fa79b9e74394a248a3868454854cb4295e5314794ea4e9bba4a938b",
+    "data/f1/raw/weekends/2025/round_17_azerbaijan_grand_prix/04_qualifying_results.csv": "c1d4433b6c4e93c83a27a7ac90773ca1872b384a8134008b9a196a3af154ea16",
+    "data/f1/raw/weekends/2025/round_17_azerbaijan_grand_prix/05_race_results.csv": "a389e017f33e9c1c4455ae09f604dd6ca65cbc9b9ff41bd3faee6de7ad382984",
+    "data/f1/raw/weekends/2025/round_17_azerbaijan_grand_prix/weekend_metadata.json": "36bcbb200ea9cdfbbd4aac96e7148c393c534814592b32d88396a9a0414e06d2",
+    "data/f1/raw/weekends/2025/round_18_singapore_grand_prix/04_qualifying_results.csv": "8cb75dcaf88d765920265225fc19304cf5d6ea99dc57c1c124c41c4824189667",
+    "data/f1/raw/weekends/2025/round_18_singapore_grand_prix/05_race_results.csv": "4c22b28d20365e6ef13018890b3ddb5c7c4642058000bad264af0739e3576c79",
+    "data/f1/raw/weekends/2025/round_18_singapore_grand_prix/weekend_metadata.json": "61db61678da7e8588848dfd1db978c1823a1561ea3c38554c08557c9e13d0001",
+    "data/f1/raw/weekends/2025/round_19_united_states_grand_prix/04_qualifying_results.csv": "dc6de86c9f98ba7c325c1059a2611f25d9e4e18eb9a631c7d0929483ce62f647",
+    "data/f1/raw/weekends/2025/round_19_united_states_grand_prix/05_race_results.csv": "19f3e34f36e01f970bde10bc5f896096cd98b8fba64bb743e1a07cf3c55c3765",
+    "data/f1/raw/weekends/2025/round_19_united_states_grand_prix/weekend_metadata.json": "b475ee6b2653d6c541f2ff938ff2bf4dec506af275118238f4c7d1fb7989271e",
+    "data/f1/raw/weekends/2025/round_20_mexico_city_grand_prix/04_qualifying_results.csv": "324e874aeab3d7c5de9dd50254061cec5ea1a28b9c8704ba661aa37fa3d4781e",
+    "data/f1/raw/weekends/2025/round_20_mexico_city_grand_prix/05_race_results.csv": "fad425d492236d4090230edcd6bb0c940de1c3b2a3e0f3fafaa14084228d3a81",
+    "data/f1/raw/weekends/2025/round_20_mexico_city_grand_prix/weekend_metadata.json": "5541b4c7ceb1adb3a67850750288f78112f8ed3bfd82e5e591173ad7460313a5",
+    "data/f1/raw/weekends/2025/round_21_s_o_paulo_grand_prix/04_qualifying_results.csv": "ba83c41bf76efa7def26d838174450912a2db9fb455463f5f59ca2cdf5a4aa47",
+    "data/f1/raw/weekends/2025/round_21_s_o_paulo_grand_prix/05_race_results.csv": "5e988d947046934c79bb3d042b9a21f62ecc50ff3f2b642507661da2a0f688b6",
+    "data/f1/raw/weekends/2025/round_21_s_o_paulo_grand_prix/weekend_metadata.json": "9a01570ba16fc0755b0120b5a1d774b7f43901fc5fb61b3548d3c0f892abbc1f",
+    "data/f1/raw/weekends/2025/round_22_las_vegas_grand_prix/04_qualifying_results.csv": "3c8adc7650447713a6cb60b52a750ff54429c40a6237ec67bc9d6f3f7d5be7ad",
+    "data/f1/raw/weekends/2025/round_22_las_vegas_grand_prix/05_race_results.csv": "dfc520d9ea38c2408c8f2b6bb3c59c1d464b36943d05e03a25de9ae46eccca89",
+    "data/f1/raw/weekends/2025/round_22_las_vegas_grand_prix/weekend_metadata.json": "c19b44ea3ac93e63c3a9c4f3c5db45630b7a27f34bb3e08bcba7a1374d2fc383",
+    "data/f1/raw/weekends/2025/round_23_qatar_grand_prix/04_qualifying_results.csv": "6dbecb5c27f5ea2d5aa793fbc87a3d671daa5e3bd008fa88b183c2e3ae4990ab",
+    "data/f1/raw/weekends/2025/round_23_qatar_grand_prix/05_race_results.csv": "232c453ca7198cea42c569fe521bb595102f57716a82d814416546ea98a54230",
+    "data/f1/raw/weekends/2025/round_23_qatar_grand_prix/weekend_metadata.json": "71af0af2bdd829f31ce197b5300ec80368454c9e47db9230e200245d670efe8e",
+    "data/f1/raw/weekends/2025/round_24_abu_dhabi_grand_prix/04_qualifying_results.csv": "8ae7575a23e07f8b3130f5e6938262d36299f89712966e20e0985f3e6965bbdb",
+    "data/f1/raw/weekends/2025/round_24_abu_dhabi_grand_prix/05_race_results.csv": "5dcc1a55cb42e00ef06c9a70d1024989363dcc9c306069e7a3462dc19d33041f",
+    "data/f1/raw/weekends/2025/round_24_abu_dhabi_grand_prix/weekend_metadata.json": "48699b0afc2b6c3966e225e128ec238e494e65308e9a6dc792bfd3b080f18bf7",
+    "data/f1/raw/weekends/2026/round_01_australian_grand_prix/04_qualifying_results.csv": "719e73383398cb57a20c5d3058f8a6ff67d6dcda6c4c40361f9ffebba0c08fb4",
+    "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_results.csv": "2db5e56c0cc73cc14d5e617cae0d901bfa5c6d028cbb774b6167f899b2dffbac",
+    "data/f1/raw/weekends/2026/round_01_australian_grand_prix/weekend_metadata.json": "a9ec0ca0abb4ea89bd6fb045d3ed07e89061e97695ecb0d0bc930adc000f8c46",
+    "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/04_qualifying_results.csv": "ae37fe82a6ad10b90f671a62b2aebaf347168cc07d04e864c31fd0333bd879b8",
+    "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_results.csv": "be93073b549afe60dd885ed2895748166de64f2cb13f224c9e83c2bbbd6b2197",
+    "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/weekend_metadata.json": "2b320378d90557134e098b674e29a93d550107388092c0104e33916de88d7fa8",
+    "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/04_qualifying_results.csv": "c257a436704c0e2958c18571b0f8c697f56c4f7f2494eaddc173f39a4e866b05",
+    "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_results.csv": "dcba05fa798aa68ba2e7878127b88a4c95a43cc1cd03c364252e6e5872754862",
+    "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/weekend_metadata.json": "c8bfd6dfb5221b24f8a22baf72e7de8a5ab6803ebce72ebb5686ce63cf949ef2",
+    "data/f1/raw/weekends/2026/round_04_miami_grand_prix/04_qualifying_results.csv": "0ffa4b71acaa55612736515a914364e6e9029e1982cdc0332111041ea5258b75",
+    "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_results.csv": "e48b2df52c41a8f72863855de6a3407398389ec648541aa01ac36f0710259c31",
+    "data/f1/raw/weekends/2026/round_04_miami_grand_prix/weekend_metadata.json": "f9b73dd9e6b7694e2fe50c8aa207bbca1873baf543dc315472c889f8604fd817",
+    "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/04_qualifying_results.csv": "f75cec0f07f897df8ab08e9fb5d28e926944a23cca0774c748f96cde865d8f66",
+    "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_results.csv": "cce7c97dd1b7ae3bcc82a0d81d25064756a0a125f0bcf63d3e1ea3023b8fa1d3",
+    "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/weekend_metadata.json": "072bfe2a87b4891c7333aaa9fa7e45223cc317e9926132ddc062470d0b0c0502",
+    "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/04_qualifying_results.csv": "347ff10a96e5f580ef6f60ef5cc6c9f240b78b6c254f05ef7d0bb9544379ad74",
+    "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_results.csv": "c6c47c5bfe1ef38e5b84900275b695211121296a3274e56bfcbce6c5ca758f97",
+    "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/weekend_metadata.json": "967d709ba3a3496ced90b192d8e0ceb01cd301d66dbe4843cb2225da25c11feb",
+    "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/04_qualifying_results.csv": "25869c3651dbced07b972412f9fb79656352384cf62ffe545738f6438d27863b",
+    "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_results.csv": "c255ae504063e50c90106d401962ada983e6028c6a9a159b6d77ca5d4d58fc7e",
+    "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/weekend_metadata.json": "26c201c020fc062998e0c25f84e11fc67da5defb19adeab4c04bb2819a07fec3",
+    "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/04_qualifying_results.csv": "9626005bc9410e1fc9c0185058f6b74ff70f0f43139d1003896a67f5d89101da",
+    "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_results.csv": "c70593b00c1100d9833a03ba7c1f4af07df9554a7c739996d6722cae49526c5f",
+    "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/weekend_metadata.json": "8c0ceac2a755857e817f80bc04fb065d54b794f23b11b24a13f68a508458caa8",
+    "data/f1/raw/weekends/2026/round_09_british_grand_prix/04_qualifying_results.csv": "9ab36f897806d885ae8b27a5d9af53412def53b3990725613e8cd36c17e7622a",
+    "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_results.csv": "3932c74669d6bc6ad6454a3be0e00b4d781078a429862dcc428d74505a6f9b92",
+    "data/f1/raw/weekends/2026/round_09_british_grand_prix/weekend_metadata.json": "6407c9a10621ba1cc67cafa988f044bddd4b9126251527ed1e97f3f1dd18fee0"
+  },
+  "implementation_manifest": {
+    "research/experiments/performance_20260907/race/run.py": "09b09b7c583a37d4e23482c856c1ddac4170ad5aea825ac3ed01c808de23396c",
+    "research/experiments/performance_20260907/race/specification.json": "cc4958cbe496aa985bf76ca24062d3925cb2124920c37166a90b8a55d56ac25f"
+  },
+  "predictions_path": "artifacts/research/performance_20260907/race/v3/predictions.csv",
+  "predictions_sha256": "0238feeb41e147821e20eeba0d9cc431c45bf1071e3fe98e25cc168aebfdc53a",
+  "selection_lock_sha256": "4abaf45d2e328f7d6ee3a16382cc41a2f112e4de7091ffe5f026d509f0ecb912"
+}

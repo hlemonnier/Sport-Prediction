@@ -7,6 +7,10 @@ from typing import Mapping, Optional, Sequence
 
 import numpy as np
 
+from .evaluation_protocol import EvaluationProtocol
+from .non_live_validation import EventError, paired_event_diagnostics
+from .strategy_evidence import strategy_evidence_issues
+
 
 LOWER_IS_BETTER_METRICS: tuple[str, ...] = (
     "p50_mae",
@@ -63,6 +67,9 @@ class PromotionGateConfig:
     fail_closed_on_leakage_issues: bool = True
     require_simulator_validation: bool = False
     min_relative_improvement: float = 0.0
+    paired_error_metric: str = "p50_mae"
+    require_strategy_evidence: bool = False
+    require_interval_evidence: bool = False
 
 
 @dataclass(frozen=True)
@@ -102,12 +109,14 @@ def ultimate_lap_time_promotion_config() -> PromotionGateConfig:
             "p50_pinball",
             "p90_pinball",
             "interval_coverage",
+            "interval_width",
             "fastest_lap_winner_hit_rate",
             "top3_fastest_lap_accuracy",
         ),
         baseline_comparison_metrics=("p50_mae", "p50_rmse", "p50_pinball"),
         fail_closed_on_leakage_issues=True,
         min_relative_improvement=0.01,
+        require_interval_evidence=True,
     )
 
 
@@ -120,6 +129,8 @@ def live_strategy_promotion_config(*, require_simulator_validation: bool = True)
         ),
         baseline_comparison_metrics=("policy_value", "illegal_action_rate", "regret_vs_oracle"),
         require_simulator_validation=bool(require_simulator_validation),
+        paired_error_metric="regret_vs_oracle",
+        require_strategy_evidence=True,
     )
 
 
@@ -133,6 +144,9 @@ def evaluate_model_promotion(
     leakage_issues: Sequence[str] = (),
     simulator_validation_passed: Optional[bool] = None,
     deterministic_fallback_model_id: Optional[str] = None,
+    evaluation_protocol: EvaluationProtocol | None = None,
+    paired_events: Sequence[EventError] = (),
+    strategy_evidence: Mapping[str, object] | None = None,
 ) -> PromotionDecision:
     """Evaluate whether an F1 model can be promoted over its baseline.
 
@@ -141,6 +155,46 @@ def evaluate_model_promotion(
     """
 
     reasons: list[str] = []
+    paired_payload: dict[str, object] = {}
+    if evaluation_protocol is None:
+        reasons.append("evaluation_protocol_missing")
+    else:
+        reasons.extend(evaluation_protocol.issues([event.event_key for event in paired_events], strata=[event.stratum for event in paired_events]))
+    try:
+        paired = paired_event_diagnostics(paired_events)
+        paired_payload = paired.to_payload()
+        if paired.ci95_delta[1] >= 0 or not paired.leave_one_event_out_all_improve or paired.largest_positive_gain_share > 0.5:
+            reasons.append("paired_event_improvement_not_stable")
+        if not all(paired.stratum_mean_deltas.get(label, 0) < 0 for label in ("standard", "sprint")):
+            reasons.append("paired_event_weekend_stratum_does_not_improve")
+        for label, measured, metrics in (("candidate", paired.candidate_mean, candidate_metrics), ("baseline", paired.baseline_mean, baseline_metrics or {})):
+            supplied = _numeric_or_none(metrics.get(config.paired_error_metric))
+            if supplied is None or not np.isclose(measured, supplied, rtol=1e-8, atol=1e-10):
+                reasons.append(f"paired_event_{label}_metric_mismatch:{config.paired_error_metric}")
+    except ValueError:
+        reasons.append("paired_event_evidence_missing_or_invalid")
+    if config.require_strategy_evidence:
+        reasons.extend(strategy_evidence_issues(strategy_evidence, candidate_model_id=candidate_model_id, protocol=evaluation_protocol))
+    if config.require_interval_evidence:
+        coverage = _numeric_or_none(candidate_metrics.get("interval_coverage"))
+        width = _numeric_or_none(candidate_metrics.get("interval_width"))
+        baseline_width = _numeric_or_none((baseline_metrics or {}).get("interval_width"))
+        if coverage is None or abs(coverage - 0.85) > 0.05:
+            reasons.append("p05_p90_interval_coverage_outside_tolerance")
+        if width is None or baseline_width is None or not (0 < width <= 1.10 * baseline_width):
+            reasons.append("interval_width_missing_or_inflated")
+        for metric in ("p05_pinball", "p90_pinball"):
+            c, b = _numeric_or_none(candidate_metrics.get(metric)), _numeric_or_none((baseline_metrics or {}).get(metric))
+            if c is None or b is None or c > b:
+                reasons.append(f"candidate_tail_score_regression:{metric}")
+    for metric, value in candidate_metrics.items():
+        numeric = _numeric_or_none(value)
+        if numeric is None:
+            continue
+        bounded = metric.endswith(("_rate", "_accuracy")) or metric == "interval_coverage"
+        nonnegative = metric.endswith(("_mae", "_rmse", "_pinball")) or metric in {"regret_vs_oracle", "interval_width"}
+        if (bounded and not 0 <= numeric <= 1) or (nonnegative and numeric < 0):
+            reasons.append(f"candidate_metric_out_of_domain:{metric}")
     missing = _missing_required_metrics(candidate_metrics, config.required_metrics)
     if missing and config.fail_closed_on_missing_metrics:
         reasons.append("candidate_missing_required_metrics")
@@ -192,6 +246,9 @@ def evaluate_model_promotion(
             "require_simulator_validation": bool(config.require_simulator_validation),
             "simulator_validation_passed": simulator_validation_passed,
             "leakage_issues": list(leakage_issues),
+            "evaluation_protocol": evaluation_protocol.to_payload() if evaluation_protocol else None,
+            "paired_event_evidence": paired_payload,
+            "strategy_evidence_required": config.require_strategy_evidence,
         },
     )
 
@@ -222,7 +279,9 @@ def _compare_metric(
         return None
     delta = float(candidate - baseline)
     tolerance = abs(float(baseline)) * float(max(0.0, config.min_relative_improvement))
-    if direction == "lower":
+    if metric == "illegal_action_rate":
+        passed = bool(candidate == 0.0 and candidate <= baseline)
+    elif direction == "lower":
         passed = bool(candidate < baseline - tolerance)
     else:
         passed = bool(candidate > baseline + tolerance)

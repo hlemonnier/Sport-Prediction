@@ -53,6 +53,7 @@ from packages.f1.models.ultimate_lap_time.schemas import (
     TARGET_CONTRACT_SEMANTICS,
 )
 from packages.f1.orchestration.non_live_validation import validate_event_partitions
+from packages.f1.orchestration.evaluation_protocol import EvaluationProtocol, event_ordinal
 from packages.sports_core.paths import find_repo_root
 
 
@@ -148,6 +149,7 @@ def _implementation_paths(root: Path) -> list[Path]:
         {
             Path(__file__).resolve(),
             (root / "packages/sports_core/paths.py").resolve(),
+            (root / "packages/f1/orchestration/evaluation_protocol.py").resolve(),
             (root / "packages/f1/data/providers/telemetry_cache.py").resolve(),
             (root / "packages/f1/data/providers/telemetry_supervised.py").resolve(),
             (root / "packages/f1/features/qualifying_lap.py").resolve(),
@@ -2209,6 +2211,9 @@ def _best_lap_point_promotion_gates(
     observed_target_coverage: float,
     all_weekend_strata_improve: bool,
     stability: Mapping[str, Any],
+    evaluation_protocol: EvaluationProtocol | None = None,
+    audit_event_keys: Sequence[str] = (),
+    audit_strata: Sequence[str] = (),
 ) -> dict[str, bool]:
     """Promotion gates for the per-driver seconds target only.
 
@@ -2218,6 +2223,7 @@ def _best_lap_point_promotion_gates(
     """
 
     return {
+        "confirmatory_evaluation_protocol_eligible": evaluation_protocol is not None and not evaluation_protocol.issues(audit_event_keys, strata=audit_strata),
         "mae_improves_at_least_five_percent": bool(relative_mae_gain >= 0.05),
         "event_bootstrap_upper_bound_below_zero": bool(
             paired_retained["ci95_seconds"][1] < 0.0
@@ -2243,6 +2249,9 @@ def _best_lap_interval_promotion_gates(
     retained_interval_summary: Mapping[str, Any],
     retained_interval_calibration_event_count: int,
     interval_width_comparison: Mapping[str, Any],
+    evaluation_protocol: EvaluationProtocol | None = None,
+    audit_event_keys: Sequence[str] = (),
+    audit_strata: Sequence[str] = (),
 ) -> dict[str, bool]:
     """Apply fail-closed event-block, format, and sharpness interval gates."""
 
@@ -2278,6 +2287,7 @@ def _best_lap_interval_promotion_gates(
         interval_width_comparison.get("by_weekend_stratum_width_ratio", {})
     )
     return {
+        "confirmatory_evaluation_protocol_eligible": evaluation_protocol is not None and not evaluation_protocol.issues(audit_event_keys, strata=audit_strata),
         "independent_interval_calibration_events_at_least_four": bool(
             int(retained_interval_calibration_event_count)
             >= int(MINIMUM_INTERVAL_PROMOTION_EVENTS)
@@ -2423,6 +2433,7 @@ def run_backtest(
     bootstrap_seed: int,
     use_weak_transfer_priors: bool = False,
     tcn_evidence_path: Path | None = None,
+    evaluation_protocol: EvaluationProtocol | None = None,
 ) -> dict[str, Any]:
     if int(year) < MIN_SUPPORTED_WEEKEND_YEAR:
         raise ValueError(
@@ -2964,13 +2975,38 @@ def run_backtest(
             for name in ("standard", "sprint")
         )
     )
+    audit_payloads = [event for event in event_payloads if int(event["event_key"]) in set(partitions["audit"])]
+    protocol_inputs = {
+        "evaluation_protocol": evaluation_protocol,
+        "audit_event_keys": [str(event["event_key"]) for event in audit_payloads],
+        "audit_strata": [_weekend_stratum(event["rehearsal_source"]) for event in audit_payloads],
+    }
     point_promotion_gates = _best_lap_point_promotion_gates(
+        **protocol_inputs,
         relative_mae_gain=relative_mae_gain,
         paired_retained=paired_retained,
         observed_target_coverage=observed_target_coverage,
         all_weekend_strata_improve=all_weekend_strata_improve,
         stability=stability,
     )
+    fitted_event_keys = set().union(*(set(partitions[role]) for role in ("development", "selection", "calibration")))
+    fitted_directories = [str(path.relative_to(root)) + "/" for path in selected if int(year) * 100 + _round_number(path) in fitted_event_keys]
+    prior_input_names = {str(path.relative_to(root)) for path in prior_files}
+    parameter_input_manifest = {name: digest for name, digest in {**inference_input_manifest_before, **evaluation_target_manifest_after_forecast}.items()
+                                if name in prior_input_names or any(name.startswith(directory) for directory in fitted_directories)}
+    executed_candidate_sha256 = _canonical_sha256({
+        "parameter_input_manifest": parameter_input_manifest,
+        "implementation_manifest": implementation_manifest,
+        "partitions": partitions,
+        "year": int(year),
+        "use_weak_transfer_priors": bool(use_weak_transfer_priors),
+        "enable_selected_residual": bool(enable_selected_residual),
+    })
+    protocol_matches_execution = evaluation_protocol is not None and all(
+        [event_ordinal(key) for key in getattr(evaluation_protocol, role)] == list(keys)
+        for role, keys in partitions.items()
+    ) and evaluation_protocol.evaluated_candidate_sha256 == executed_candidate_sha256
+    point_promotion_gates["protocol_matches_executed_model_and_partitions"] = bool(protocol_matches_execution)
     point_retained = bool(all(point_promotion_gates.values()))
     # Interval evidence is a separate forecasting product.  If the challenger
     # point head loses, evaluate the calibrated interval around the retained
@@ -3023,12 +3059,14 @@ def run_backtest(
         retained_interval_summary["event_balanced_coverage"]
     )
     interval_promotion_gates = _best_lap_interval_promotion_gates(
+        **protocol_inputs,
         retained_interval_summary=retained_interval_summary,
         retained_interval_calibration_event_count=(
             retained_interval_calibration_event_count
         ),
         interval_width_comparison=interval_width_comparison,
     )
+    interval_promotion_gates["protocol_matches_executed_model_and_partitions"] = bool(protocol_matches_execution)
     promotion_gates = {**point_promotion_gates, **interval_promotion_gates}
     intervals_promoted = bool(all(interval_promotion_gates.values()))
     if set(input_files) != set(selected_input_files):
@@ -3277,6 +3315,10 @@ def run_backtest(
             },
             "promotion_gates": promotion_gates,
             "point_promotion_gates": point_promotion_gates,
+            "confirmatory_evaluation_protocol": evaluation_protocol.to_payload() if evaluation_protocol else None,
+            "executed_candidate_specification_sha256": executed_candidate_sha256,
+            "parameter_input_manifest": parameter_input_manifest,
+            "confirmatory_evidence_status": "eligible_for_metric_gates" if point_promotion_gates["confirmatory_evaluation_protocol_eligible"] and protocol_matches_execution else "diagnostic_only",
             "interval_promotion_gates": interval_promotion_gates,
             "deep_model_telemetry_readiness": telemetry_readiness,
             "decision": {

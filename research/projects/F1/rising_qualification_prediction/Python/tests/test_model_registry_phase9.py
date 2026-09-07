@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import json
+import hashlib
+from math_promotion_fixtures import protocol_fixture, paired_fixture, strategy_fixture
+from dataclasses import asdict
+from packages.f1.orchestration.model_registry import model_artifact_sha256
 from pathlib import Path
 
 import pytest
@@ -33,6 +37,7 @@ def _ultimate_metrics(**overrides: float) -> dict[str, float]:
         "p50_pinball": 0.10,
         "p90_pinball": 0.13,
         "interval_coverage": 0.82,
+        "interval_width": 1.0,
         "fastest_lap_winner_hit_rate": 0.50,
         "top3_fastest_lap_accuracy": 0.67,
     }
@@ -160,12 +165,25 @@ def _materialize_promotion_artifacts(
     assert evidence.baseline_comparison_report_path is not None
     comparison_path = root / evidence.baseline_comparison_report_path
     comparison_path.parent.mkdir(parents=True, exist_ok=True)
+    digest = model_artifact_sha256(root / candidate.artifact_path)
+    protocol = protocol_fixture(year=2027, digest=digest)
+    metric = "regret_vs_oracle" if candidate.model_family == "live_strategy" else "p50_mae"
+    strategy = strategy_fixture(candidate.model_id, year=2027, digest=digest)
+    for label in ("ope", "live_shadow"):
+        source = root / f"artifacts/reports/f1/{label}.json"
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text(json.dumps(strategy[label]))
+        strategy[label] = {**strategy[label], "source_path": source.relative_to(root).as_posix(), "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest()}
     comparison_path.write_text(
         json.dumps(
             {
                 "candidate_model_id": candidate.model_id,
                 "baseline_model_id": baseline.model_id,
                 "metric_comparisons": {"policy_value": 2.0},
+                "evaluation_protocol": protocol.to_payload(),
+                "baseline_artifact_sha256": model_artifact_sha256(root / baseline.artifact_path),
+                "paired_events": [asdict(event) for event in paired_fixture(baseline.metrics[metric], candidate.metrics[metric], year=2027)],
+                "strategy_evidence": strategy,
             }
         ),
         encoding="utf-8",
@@ -371,3 +389,27 @@ def test_live_strategy_rl_profile_uses_phase7_policy_id() -> None:
     assert phase7_profile["artifacts"]["replay_audit"] == replay_audit
     assert phase7_profile["rl"]["replay_dataset"]["current_replay_readiness"]["evidence"] == replay_audit
     assert metadata["replay_audit_artifact"] == replay_audit
+
+
+def test_caller_config_cannot_remove_family_promotion_requirements(tmp_path):
+    from packages.f1.orchestration.model_promotion import PromotionGateConfig
+    baseline,candidate=_live_baseline(),_live_candidate()
+    evidence=_live_evidence(simulator_validation_passed=None)
+    _materialize_promotion_artifacts(tmp_path,baseline,candidate,evidence)
+    path=tmp_path/evidence.baseline_comparison_report_path
+    report=json.loads(path.read_text());report.pop("strategy_evidence");path.write_text(json.dumps(report))
+    decision=ModelRegistry([baseline,candidate]).evaluate_promotion(candidate.model_id,evidence,artifact_root=tmp_path,
+        config=PromotionGateConfig(required_metrics=("regret_vs_oracle",),baseline_comparison_metrics=("regret_vs_oracle",),paired_error_metric="regret_vs_oracle")).decision
+    assert not decision.promotion_gate_passed
+    assert "strategy_ope_and_shadow_evidence_missing" in decision.reasons
+    assert "simulator_validation_missing_or_failed" in decision.reasons
+
+
+def test_registry_binds_baseline_model_bytes_as_well_as_candidate(tmp_path):
+    baseline,candidate=_live_baseline(),_live_candidate()
+    evidence=_live_evidence(simulator_validation_passed=True)
+    _materialize_promotion_artifacts(tmp_path,baseline,candidate,evidence)
+    (tmp_path/baseline.artifact_path/"manifest.json").write_text('{"model_id":"different"}')
+    decision=ModelRegistry([baseline,candidate]).evaluate_promotion(candidate.model_id,evidence,artifact_root=tmp_path).decision
+    assert not decision.promotion_gate_passed
+    assert "confirmatory_evidence_baseline_artifact_hash_mismatch" in decision.reasons

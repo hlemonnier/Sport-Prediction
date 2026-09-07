@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from .validation import binary_pairs
+
 
 def expected_calibration_error(
     probabilities: Iterable[float],
@@ -11,10 +13,10 @@ def expected_calibration_error(
     *,
     bins: int = 10,
 ) -> float:
-    pairs = [(float(p), float(y)) for p, y in zip(probabilities, outcomes)]
-    if not pairs:
-        return 0.0
-    bucket_count = max(1, int(bins))
+    pairs = binary_pairs(probabilities, outcomes)
+    if isinstance(bins, bool) or not isinstance(bins, int) or bins < 1:
+        raise ValueError("bins must be a positive integer")
+    bucket_count = bins
     total = len(pairs)
     error = 0.0
     for idx in range(bucket_count):

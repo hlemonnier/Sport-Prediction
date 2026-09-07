@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from math_promotion_fixtures import protocol_fixture, paired_fixture, strategy_fixture
+
 from packages.f1.orchestration.model_promotion import (
     evaluate_model_promotion,
     live_strategy_promotion_config,
@@ -21,6 +23,7 @@ def _ultimate_metrics(**overrides: float) -> dict[str, float]:
         "p50_pinball": 0.10,
         "p90_pinball": 0.13,
         "interval_coverage": 0.82,
+        "interval_width": 1.0,
         "fastest_lap_winner_hit_rate": 0.50,
         "top3_fastest_lap_accuracy": 0.67,
     }
@@ -35,6 +38,8 @@ def test_ultimate_lap_promotion_requires_candidate_to_beat_deterministic_baselin
         candidate_metrics=_ultimate_metrics(p50_mae=0.18, p50_rmse=0.22, p50_pinball=0.08),
         baseline_metrics=_ultimate_metrics(p05_pinball=0.12),
         config=ultimate_lap_time_promotion_config(),
+        evaluation_protocol=protocol_fixture(),
+        paired_events=paired_fixture(0.20, 0.18),
     )
 
     assert decision.promotion_gate_passed is True
@@ -54,6 +59,8 @@ def test_promotion_fails_closed_without_baseline_or_required_metrics() -> None:
         candidate_metrics=metrics,
         baseline_metrics=None,
         config=ultimate_lap_time_promotion_config(),
+        evaluation_protocol=protocol_fixture(),
+        paired_events=paired_fixture(0.20, 0.18),
     )
 
     assert decision.promotion_gate_passed is False
@@ -70,10 +77,12 @@ def test_promotion_fails_when_candidate_does_not_beat_baseline() -> None:
         candidate_metrics=_ultimate_metrics(p50_mae=0.22, p50_rmse=0.22, p50_pinball=0.08),
         baseline_metrics=_ultimate_metrics(p05_pinball=0.12),
         config=ultimate_lap_time_promotion_config(),
+        evaluation_protocol=protocol_fixture(),
+        paired_events=paired_fixture(0.20, 0.22),
     )
 
     assert decision.promotion_gate_passed is False
-    assert decision.reasons == ("candidate_does_not_beat_baseline:p50_mae",)
+    assert "candidate_does_not_beat_baseline:p50_mae" in decision.reasons
 
 
 def test_live_strategy_promotion_requires_locked_simulator_validation() -> None:
@@ -87,6 +96,9 @@ def test_live_strategy_promotion_requires_locked_simulator_validation() -> None:
         candidate_metrics=candidate,
         baseline_metrics=baseline,
         config=config,
+        evaluation_protocol=protocol_fixture(),
+        paired_events=paired_fixture(2.0, 1.0),
+        strategy_evidence=strategy_fixture(LIVE_STRATEGY_CANDIDATE_MODEL_ID),
     )
     validated = evaluate_model_promotion(
         candidate_model_id=LIVE_STRATEGY_CANDIDATE_MODEL_ID,
@@ -94,6 +106,9 @@ def test_live_strategy_promotion_requires_locked_simulator_validation() -> None:
         candidate_metrics=candidate,
         baseline_metrics=baseline,
         config=config,
+        evaluation_protocol=protocol_fixture(),
+        paired_events=paired_fixture(2.0, 1.0),
+        strategy_evidence=strategy_fixture(LIVE_STRATEGY_CANDIDATE_MODEL_ID),
         simulator_validation_passed=True,
     )
 

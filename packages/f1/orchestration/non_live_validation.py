@@ -14,6 +14,8 @@ from typing import Mapping, Sequence
 
 import numpy as np
 
+from .evaluation_protocol import EvaluationProtocol, validate_event_partitions
+
 
 @dataclass(frozen=True)
 class EventError:
@@ -49,6 +51,8 @@ class PairedEventDiagnostics:
             "relative_improvement": float(self.relative_improvement),
             "ci95_delta": [float(value) for value in self.ci95_delta],
             "probability_of_improvement": float(self.probability_of_improvement),
+            "bootstrap_fraction_improving": float(self.probability_of_improvement),
+            "bootstrap_interpretation": "empirical event-resampling frequency; not a posterior probability or transport guarantee",
             "leave_one_event_out_deltas": [float(value) for value in self.leave_one_event_out_deltas],
             "leave_one_event_out_all_improve": bool(self.leave_one_event_out_all_improve),
             "largest_positive_gain_share": float(self.largest_positive_gain_share),
@@ -74,49 +78,6 @@ class NonLivePromotionDecision:
             "metric_checks": dict(self.metric_checks),
             "diagnostics": self.diagnostics.to_payload(),
         }
-
-
-def validate_event_partitions(
-    *,
-    development: Sequence[str],
-    selection: Sequence[str],
-    calibration: Sequence[str],
-    audit: Sequence[str],
-) -> tuple[str, ...]:
-    """Return fail-closed issues for disjoint, chronological event partitions."""
-
-    named = {
-        "development": tuple(str(value) for value in development),
-        "selection": tuple(str(value) for value in selection),
-        "calibration": tuple(str(value) for value in calibration),
-        "audit": tuple(str(value) for value in audit),
-    }
-    issues: list[str] = []
-    for name, values in named.items():
-        if not values:
-            issues.append(f"{name}_events_missing")
-        if len(values) != len(set(values)):
-            issues.append(f"{name}_events_duplicated")
-
-    ordered_names = tuple(named)
-    for left_index, left_name in enumerate(ordered_names[:-1]):
-        left = set(named[left_name])
-        for right_name in ordered_names[left_index + 1 :]:
-            if left.intersection(named[right_name]):
-                issues.append(f"event_partition_overlap:{left_name}:{right_name}")
-
-    numeric = {name: [_event_ordinal(value) for value in values] for name, values in named.items()}
-    if all(all(value is not None for value in values) for values in numeric.values()):
-        prior_max: int | None = None
-        for name in ordered_names:
-            ordinals = [int(value) for value in numeric[name] if value is not None]
-            if ordinals != sorted(ordinals):
-                issues.append(f"{name}_events_not_chronological")
-            if prior_max is not None and ordinals and min(ordinals) <= prior_max:
-                issues.append(f"event_partition_order_invalid:{name}")
-            if ordinals:
-                prior_max = max(ordinals)
-    return tuple(dict.fromkeys(issues))
 
 
 def paired_event_diagnostics(
@@ -196,23 +157,28 @@ def evaluate_qualifying_promotion(
     top3_non_regression: bool,
     top10_non_regression: bool,
     tail_excluded_delta: float,
+    evaluation_protocol: EvaluationProtocol | None = None,
     bootstrap_samples: int = 20_000,
     seed: int = 20260713,
 ) -> NonLivePromotionDecision:
     diagnostics = paired_event_diagnostics(events, bootstrap_samples=bootstrap_samples, seed=seed)
     checks = {
+        "metric_inputs_valid": all(math.isfinite(float(v)) for v in (baseline_kendall, candidate_kendall, tail_excluded_delta)) and all(-1 <= float(v) <= 1 for v in (baseline_kendall, candidate_kendall)),
         "mae_absolute_improvement_at_least_0_15": diagnostics.mean_delta_candidate_minus_baseline <= -0.15,
         "kendall_improvement_at_least_0_02": float(candidate_kendall) - float(baseline_kendall) >= 0.02,
-        "pole_non_regression": bool(pole_non_regression),
-        "top3_non_regression": bool(top3_non_regression),
-        "top10_non_regression": bool(top10_non_regression),
+        "pole_non_regression": (pole_non_regression is True),
+        "top3_non_regression": (top3_non_regression is True),
+        "top10_non_regression": (top10_non_regression is True),
         "all_weekend_strata_improve": _standard_and_sprint_improve(diagnostics),
         "tail_excluded_population_improves": float(tail_excluded_delta) < 0.0,
         "bootstrap_upper_bound_below_zero": diagnostics.ci95_delta[1] < 0.0,
         "gain_not_concentrated": diagnostics.largest_positive_gain_share <= 0.50,
         "leave_one_event_out_stable": diagnostics.leave_one_event_out_all_improve,
     }
-    return _decision("qualifying", diagnostics, checks)
+    return _decision("qualifying", diagnostics, checks, protocol_issues=(
+        evaluation_protocol.issues([event.event_key for event in events], strata=[event.stratum for event in events])
+        if evaluation_protocol is not None else ("evaluation_protocol_missing",)
+    ))
 
 
 def evaluate_race_promotion(
@@ -226,24 +192,29 @@ def evaluate_race_promotion(
     candidate_status_log_loss: float,
     entrant_coverage: float,
     all_classifications_legal: bool,
+    evaluation_protocol: EvaluationProtocol | None = None,
     bootstrap_samples: int = 20_000,
     seed: int = 20260713,
 ) -> NonLivePromotionDecision:
     diagnostics = paired_event_diagnostics(events, bootstrap_samples=bootstrap_samples, seed=seed)
     checks = {
+        "metric_inputs_valid": all(math.isfinite(float(v)) for v in (baseline_kendall, candidate_kendall, baseline_status_brier, candidate_status_brier, baseline_status_log_loss, candidate_status_log_loss, entrant_coverage)) and all(-1 <= float(v) <= 1 for v in (baseline_kendall, candidate_kendall)) and all(0 <= float(v) <= 1 for v in (baseline_status_brier, candidate_status_brier, entrant_coverage)) and min(baseline_status_log_loss, candidate_status_log_loss) >= 0,
         "mae_relative_improvement_at_least_5pct": diagnostics.relative_improvement >= 0.05,
         "kendall_decline_at_most_0_02": float(candidate_kendall) >= float(baseline_kendall) - 0.02,
         "status_brier_improves": float(candidate_status_brier) < float(baseline_status_brier),
         "status_log_loss_improves": float(candidate_status_log_loss) < float(baseline_status_log_loss),
         "entrant_coverage_complete": math.isclose(float(entrant_coverage), 1.0, abs_tol=1e-12),
-        "all_classifications_legal": bool(all_classifications_legal),
+        "all_classifications_legal": (all_classifications_legal is True),
         "all_weekend_strata_improve": _standard_and_sprint_improve(diagnostics),
         "bootstrap_upper_bound_below_zero": diagnostics.ci95_delta[1] < 0.0,
         "probability_of_improvement_at_least_0_95": diagnostics.probability_of_improvement >= 0.95,
         "gain_not_concentrated": diagnostics.largest_positive_gain_share <= 0.50,
         "leave_one_event_out_stable": diagnostics.leave_one_event_out_all_improve,
     }
-    return _decision("race_final_position", diagnostics, checks)
+    return _decision("race_final_position", diagnostics, checks, protocol_issues=(
+        evaluation_protocol.issues([event.event_key for event in events], strata=[event.stratum for event in events])
+        if evaluation_protocol is not None else ("evaluation_protocol_missing",)
+    ))
 
 
 def evaluate_best_lap_promotion(
@@ -256,15 +227,17 @@ def evaluate_best_lap_promotion(
     nominal_interval_coverage: float,
     baseline_interval_width: float,
     candidate_interval_width: float,
+    evaluation_protocol: EvaluationProtocol | None = None,
     bootstrap_samples: int = 20_000,
     seed: int = 20260713,
 ) -> NonLivePromotionDecision:
     diagnostics = paired_event_diagnostics(events, bootstrap_samples=bootstrap_samples, seed=seed)
     checks = {
+        "metric_inputs_valid": all(math.isfinite(float(v)) for v in (entrant_output_coverage, interval_coverage, nominal_interval_coverage, baseline_interval_width, candidate_interval_width)) and all(0 <= float(v) <= 1 for v in (entrant_output_coverage, interval_coverage, nominal_interval_coverage)) and min(baseline_interval_width, candidate_interval_width) > 0,
         "mae_relative_improvement_at_least_5pct": diagnostics.relative_improvement >= 0.05,
         "entrant_output_coverage_complete": math.isclose(float(entrant_output_coverage), 1.0, abs_tol=1e-12),
-        "fastest_driver_non_regression": bool(fastest_driver_non_regression),
-        "top3_non_regression": bool(top3_non_regression),
+        "fastest_driver_non_regression": (fastest_driver_non_regression is True),
+        "top3_non_regression": (top3_non_regression is True),
         "all_weekend_strata_improve": _standard_and_sprint_improve(diagnostics),
         "interval_coverage_within_5pct_points": abs(
             float(interval_coverage) - float(nominal_interval_coverage)
@@ -275,7 +248,10 @@ def evaluate_best_lap_promotion(
         "gain_not_concentrated": diagnostics.largest_positive_gain_share <= 0.50,
         "leave_one_event_out_stable": diagnostics.leave_one_event_out_all_improve,
     }
-    return _decision("best_estimated_lap", diagnostics, checks)
+    return _decision("best_estimated_lap", diagnostics, checks, protocol_issues=(
+        evaluation_protocol.issues([event.event_key for event in events], strata=[event.stratum for event in events])
+        if evaluation_protocol is not None else ("evaluation_protocol_missing",)
+    ))
 
 
 def _standard_and_sprint_improve(diagnostics: PairedEventDiagnostics) -> bool:
@@ -292,8 +268,9 @@ def _decision(
     mode: str,
     diagnostics: PairedEventDiagnostics,
     checks: Mapping[str, bool],
+    protocol_issues: Sequence[str] = (),
 ) -> NonLivePromotionDecision:
-    reasons = tuple(f"gate_failed:{name}" for name, passed in checks.items() if not bool(passed))
+    reasons = tuple(protocol_issues) + tuple(f"gate_failed:{name}" for name, passed in checks.items() if not bool(passed))
     return NonLivePromotionDecision(
         mode=str(mode),
         promoted=not reasons,
@@ -301,16 +278,6 @@ def _decision(
         diagnostics=diagnostics,
         metric_checks=dict(checks),
     )
-
-
-def _event_ordinal(value: str) -> int | None:
-    digits = "".join(character for character in str(value) if character.isdigit())
-    if len(digits) < 5:
-        return None
-    try:
-        return int(digits)
-    except ValueError:
-        return None
 
 
 __all__ = [

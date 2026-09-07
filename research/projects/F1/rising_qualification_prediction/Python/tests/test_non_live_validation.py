@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from math_promotion_fixtures import protocol_fixture
+
 from packages.f1.orchestration.model_runtime import inspect_optional_model_runtime
 from packages.f1.orchestration.non_live_validation import (
     EventError,
@@ -57,6 +59,7 @@ def test_qualifying_gate_requires_both_weekend_strata_and_tail_stability() -> No
         top3_non_regression=True,
         top10_non_regression=True,
         tail_excluded_delta=-0.1,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
     rejected = evaluate_qualifying_promotion(
@@ -67,6 +70,7 @@ def test_qualifying_gate_requires_both_weekend_strata_and_tail_stability() -> No
         top3_non_regression=True,
         top10_non_regression=True,
         tail_excluded_delta=0.01,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
 
@@ -87,6 +91,7 @@ def test_race_gate_couples_status_order_coverage_and_legality() -> None:
         candidate_status_log_loss=0.54,
         entrant_coverage=1.0,
         all_classifications_legal=True,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
     rejected = evaluate_race_promotion(
@@ -99,6 +104,7 @@ def test_race_gate_couples_status_order_coverage_and_legality() -> None:
         candidate_status_log_loss=0.61,
         entrant_coverage=0.95,
         all_classifications_legal=False,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
 
@@ -131,6 +137,7 @@ def test_race_gate_rejects_gain_that_does_not_hold_on_sprint_weekends() -> None:
         candidate_status_log_loss=0.54,
         entrant_coverage=1.0,
         all_classifications_legal=True,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
 
@@ -148,6 +155,7 @@ def test_best_lap_gate_checks_interval_calibration_and_width() -> None:
         nominal_interval_coverage=0.85,
         baseline_interval_width=1.0,
         candidate_interval_width=1.05,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
     rejected = evaluate_best_lap_promotion(
@@ -159,6 +167,7 @@ def test_best_lap_gate_checks_interval_calibration_and_width() -> None:
         nominal_interval_coverage=0.85,
         baseline_interval_width=1.0,
         candidate_interval_width=1.2,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
 
@@ -183,6 +192,7 @@ def test_best_lap_gate_requires_both_weekend_formats() -> None:
         nominal_interval_coverage=0.85,
         baseline_interval_width=1.0,
         candidate_interval_width=1.0,
+        evaluation_protocol=protocol_fixture(),
         bootstrap_samples=2_000,
     )
 

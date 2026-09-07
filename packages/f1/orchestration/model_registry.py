@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
 from packages.sports_core.paths import find_repo_root
+
+from .evaluation_protocol import EvaluationProtocol, utc_time
+from .non_live_validation import EventError
 
 from .model_promotion import (
     PromotionDecision,
@@ -303,7 +307,13 @@ class ModelRegistry:
         if baseline_metrics is None and baseline is not None:
             baseline_metrics = baseline.metrics
 
-        gate_config = config or promotion_config_for_family(candidate.model_family)
+        evidence_root = Path(artifact_root).expanduser() if artifact_root is not None else find_repo_root(__file__)
+        protocol, paired_events, strategy, protocol_reasons = _load_confirmatory_evidence(
+            evidence_root, evidence.baseline_comparison_report_path, candidate, baseline
+        )
+        registry_reasons = (*registry_reasons, *protocol_reasons)
+        # Family evidence requirements are mandatory. Overrides may add gates only.
+        gate_config = promotion_config_for_family(candidate.model_family)
         base_decision = evaluate_model_promotion(
             candidate_model_id=candidate.model_id,
             baseline_model_id=evidence.baseline_model_id,
@@ -313,8 +323,21 @@ class ModelRegistry:
             leakage_issues=evidence.leakage_issues,
             simulator_validation_passed=evidence.simulator_validation_passed,
             deterministic_fallback_model_id=fallback_model_id,
+            evaluation_protocol=protocol,
+            paired_events=paired_events,
+            strategy_evidence=strategy,
         )
-        reasons = tuple(dict.fromkeys((*registry_reasons, *base_decision.reasons)))
+        override_reasons = ()
+        if config is not None and config != gate_config:
+            override = evaluate_model_promotion(
+                candidate_model_id=candidate.model_id, baseline_model_id=evidence.baseline_model_id,
+                candidate_metrics=candidate.metrics, baseline_metrics=baseline_metrics,
+                config=config, leakage_issues=evidence.leakage_issues,
+                simulator_validation_passed=evidence.simulator_validation_passed,
+                evaluation_protocol=protocol, paired_events=paired_events, strategy_evidence=strategy,
+            )
+            override_reasons = tuple("additional_gate:" + reason for reason in override.reasons)
+        reasons = tuple(dict.fromkeys((*registry_reasons, *base_decision.reasons, *override_reasons)))
         passed = bool(not reasons)
         decision = PromotionDecision(
             candidate_model_id=base_decision.candidate_model_id,
@@ -442,6 +465,12 @@ class ModelRegistry:
         artifact_root: Path,
     ) -> tuple[str, ...]:
         reasons: list[str] = []
+        if candidate.model_id == evidence.baseline_model_id:
+            reasons.append("candidate_and_baseline_must_differ")
+        if baseline is not None and baseline.model_family != candidate.model_family:
+            reasons.append("baseline_model_family_mismatch")
+        if fallback_model_id == candidate.model_id:
+            reasons.append("candidate_cannot_be_own_fallback")
         if not evidence.split_strategy:
             reasons.append("split_strategy_missing")
         elif _is_random_split(evidence.split_strategy):
@@ -509,6 +538,60 @@ class ModelRegistry:
             if live_calibration_reason is not None:
                 reasons.append(live_calibration_reason)
         return tuple(reasons)
+
+
+def model_artifact_sha256(path: Path) -> str:
+    """Bind model bytes and relative file names; directory order is deterministic."""
+    if path.is_file():
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    if not path.is_dir():
+        raise ValueError("model artifact missing")
+    items = sorted(item for item in path.rglob("*") if item.is_file())
+    if not items:
+        raise ValueError("model artifact empty")
+    digest = hashlib.sha256()
+    for item in items:
+        digest.update(item.relative_to(path).as_posix().encode() + b"\0")
+        digest.update(hashlib.sha256(item.read_bytes()).digest())
+    return digest.hexdigest()
+
+
+def _load_confirmatory_evidence(root: Path, relative_path: str | None, candidate: F1ModelRegistryEntry, baseline: F1ModelRegistryEntry | None):
+    """Read event evidence from the model-bound comparison report, not diagnostics flags."""
+    issues: list[str] = []
+    if relative_path is None:
+        return None, (), None, ("confirmatory_evidence_report_missing",)
+    try:
+        payload = json.loads((root / relative_path).read_text())
+        protocol = EvaluationProtocol.from_payload(payload["evaluation_protocol"])
+        events = tuple(EventError(**row) for row in payload["paired_events"])
+        cutoff_text = candidate.training_data_cutoff
+        cutoff = utc_time(cutoff_text if "T" in cutoff_text else cutoff_text + "T00:00:00Z")
+        freeze = utc_time(protocol.frozen_at_utc)
+        if cutoff is None or freeze is None or cutoff >= freeze:
+            issues.append("candidate_training_cutoff_not_before_freeze")
+        if model_artifact_sha256(root / candidate.artifact_path) != protocol.evaluated_candidate_sha256:
+            issues.append("confirmatory_evidence_model_artifact_hash_mismatch")
+        if baseline is None or model_artifact_sha256(root / baseline.artifact_path) != payload.get("baseline_artifact_sha256"):
+            issues.append("confirmatory_evidence_baseline_artifact_hash_mismatch")
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError):
+        return None, (), None, ("confirmatory_event_evidence_missing_or_invalid",)
+    strategy = payload.get("strategy_evidence")
+    if isinstance(strategy, Mapping):
+        # OPE and live-shadow reports must be actual content-addressed artifacts.
+        for label in ("ope", "live_shadow"):
+            item = strategy.get(label)
+            try:
+                source = root / _artifact_path(item["source_path"], "strategy source")
+                if hashlib.sha256(source.read_bytes()).hexdigest() != item["source_sha256"]:
+                    issues.append(f"strategy_{label}_source_hash_mismatch")
+                source_payload = json.loads(source.read_text())
+                fields = {key: value for key, value in item.items() if key not in {"source_path", "source_sha256"}}
+                if source_payload != fields:
+                    issues.append(f"strategy_{label}_source_payload_mismatch")
+            except (OSError, ValueError, KeyError, TypeError):
+                issues.append(f"strategy_{label}_source_missing_or_invalid")
+    return protocol, events, strategy, tuple(issues)
 
 
 def promotion_config_for_family(model_family: str) -> PromotionGateConfig:

@@ -1,0 +1,102 @@
+{
+  "added_target_sources": {
+    "research/experiments/boundary_20260908/rival_gap_pilot/README.md": "141d7963bd31475fb7de11342e6c72944a7931638682365df93ca7dd3dcba44f",
+    "research/experiments/boundary_20260908/rival_gap_pilot/pilot.py": "b45b9b745ac2ed9e5797ed20861bbe360e649c074d95be1c966dfd84bcd0f6f7",
+    "research/experiments/boundary_20260908/rival_gap_pilot/specification.json": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671",
+    "research/experiments/boundary_20260908/rival_gap_pilot/specification_before_header_cursor.json": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c",
+    "research/experiments/boundary_20260908/rival_gap_pilot/test_pilot.py": "af9c293f3bd632a327748fb3bb03c25e20756ef5541bf2aa1ef0c6aeadc17285",
+    "research/experiments/boundary_20260908/rival_gap_pilot_v2/README.md": "ec28a9219165841486580cc85f3e91ae7259c8beee1fc18a5bebcb8f52a2f08e",
+    "research/experiments/boundary_20260908/rival_gap_pilot_v2/pilot.py": "a05834853b2c588fccd851e91cb300044c46b6b50a49f8a560e261fced59fb34",
+    "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification.json": "41ca0b9c77bf87e94ce23ba92ab1e0f385e99976ab882e10e1da6979c4b02bdc",
+    "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification_before_header_cursor.json": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c",
+    "research/experiments/boundary_20260908/rival_gap_pilot_v2/test_pilot.py": "b2f5f7679afbf97aa83a28558674623a4224c4dd879763457a36d55ddbf3cdd7",
+    "research/experiments/boundary_20260908/rival_gap_pilot_v2/verification/verify.py": "9d92b74e37e3ffd78bb792dad2ec522fbc5e3c9b5f86e78206a37f584a2ffd96",
+    "research/experiments/boundary_20260908/telemetry_sequence_publication/publish.py": "7b38c92c2c44918a8a964f4f058db74e62153ee2314d56554201d4689092943d",
+    "research/experiments/boundary_20260908/telemetry_sequence_publication/test_publish.py": "eb82d78d6e8c1012e88334cf3f28405f8fce6df197f820ed11156e19b0ba385a"
+  },
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "-q",
+    "--import-mode=importlib",
+    "-p",
+    "no:cacheprovider",
+    "research/experiments/boundary_20260908/football_xg/ci_contracts",
+    "research/experiments/boundary_20260908/football_xg/execution/test_run.py",
+    "research/experiments/boundary_20260908/sector_pilot",
+    "research/experiments/boundary_20260908/sector_forecast",
+    "research/experiments/boundary_20260908/telemetry_pilot",
+    "research/experiments/boundary_20260908/football_information",
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py",
+    "research/experiments/boundary_20260908/telemetry/test_features.py",
+    "research/experiments/boundary_20260908/telemetry/test_data.py",
+    "research/experiments/boundary_20260908/telemetry/test_models.py",
+    "research/experiments/boundary_20260908/telemetry/test_evaluate.py",
+    "research/experiments/boundary_20260908/telemetry/test_run.py",
+    "research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py",
+    "research/experiments/boundary_20260908/rival_gap_pilot",
+    "research/experiments/boundary_20260908/rival_gap_pilot_v2",
+    "research/experiments/boundary_20260908/telemetry_sequence_publication"
+  ],
+  "completed_at_utc": "2026-09-08T07:01:54.763169+00:00",
+  "copied_sources_canonical_sha256": "dcf10b4d6963b0c78e792bc017f49128afc79397523da9ef756113e85c5c762b",
+  "cwd": "/private/tmp/sport-gap-publication-source-only-20260908-e_yvef5e",
+  "data_and_artifacts_absent_before_and_after": true,
+  "elapsed_seconds": 10.20505704198149,
+  "environment": {
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "."
+  },
+  "exit_code": 0,
+  "frozen_sources_or_prior_evidence_edited": false,
+  "historical_downloads_or_fits": false,
+  "limits": [
+    "Local source-only verification used the existing macOS Python environment. Remote GitHub Ubuntu CI and fresh dependency installation have not run.",
+    "Two exact historical pilot replay tests may skip without local raw archives; synthetic tests remain collected."
+  ],
+  "original_and_copied_source_hashes_unchanged": true,
+  "runtime": {
+    "interpreter": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/bin/python",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "pytest": "8.4.2",
+      "requests": "2.34.2",
+      "scikit-learn": "1.9.0",
+      "scipy": "1.18.1"
+    },
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]"
+  },
+  "source_files_copied": 414,
+  "started_at_utc": "2026-09-08T07:01:44.520921+00:00",
+  "status": "passed",
+  "stderr": "",
+  "stdout": "........................................................................ [  6%]\n........................................................................ [ 13%]\n........................................................................ [ 20%]\n........................................................................ [ 27%]\n........................................................................ [ 34%]\n........................................................................ [ 41%]\n...............ss....................................................... [ 48%]\n........................................................................ [ 55%]\n........................................................................ [ 62%]\n........................................................................ [ 69%]\n........................................................................ [ 76%]\n........................................................................ [ 83%]\n........................................................................ [ 90%]\n........................................................................ [ 97%]\n..........................                                               [100%]\n1032 passed, 2 skipped in 9.56s\n",
+  "suggested_commit": "ci(f1): cover gap ingestion and compact sequence publication",
+  "test_counts": {
+    "passed": 1032,
+    "pytest_seconds": 9.56,
+    "skipped": 2
+  },
+  "workflow": {
+    "added_targets": [
+      "research/experiments/boundary_20260908/rival_gap_pilot",
+      "research/experiments/boundary_20260908/rival_gap_pilot_v2",
+      "research/experiments/boundary_20260908/telemetry_sequence_publication"
+    ],
+    "before_sha256": "3c4b4dd9be951cb4ac3e009d3e071ea0d2452e9186d8640e9b18d34563f2cc89",
+    "job": "contracts",
+    "only_three_test_targets_added": true,
+    "path": ".github/workflows/boundary-research.yml",
+    "remote_python": "3.12",
+    "remote_runner": "ubuntu-latest",
+    "remote_timeout_minutes": 10,
+    "sequence_cpu_job_preserved_byte_for_byte": true,
+    "sha256": "0a72588b24cca3f730f5bbdbe60b7762dc6833c991741a6940d860605fca4ba7"
+  }
+}

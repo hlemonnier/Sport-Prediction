@@ -61,6 +61,9 @@ jobs:
           research/experiments/boundary_20260908/telemetry/test_evaluate.py
           research/experiments/boundary_20260908/telemetry/test_run.py
           research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py
+          research/experiments/boundary_20260908/rival_gap_pilot
+          research/experiments/boundary_20260908/rival_gap_pilot_v2
+          research/experiments/boundary_20260908/telemetry_sequence_publication
 
   sequence-contracts:
     name: Causal telemetry sequence contracts (CPU)

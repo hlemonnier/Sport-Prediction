@@ -1,0 +1,238 @@
+{
+  "acquisition_contract": {
+    "path": "research/experiments/boundary_20260908/telemetry/acquisition_contract.json",
+    "sha256": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c"
+  },
+  "closure_order": [
+    "freeze all source/specification/input hashes",
+    "construct and close target-free all-issuance feature ledgers for both lags",
+    "validate every downloaded telemetry stream exhaustively",
+    "attach training-year original matching labels",
+    "fit exactly three 2022 models",
+    "issue and hash-close every2023 forecast at both lags without reading evaluation labels",
+    "attach evaluation-year original labels and verify original matched+all-issuance populations",
+    "evaluate frozen gates"
+  ],
+  "discovery": {
+    "event_keys": [
+      202201,
+      202202,
+      202203,
+      202204,
+      202205,
+      202206,
+      202207,
+      202208,
+      202209,
+      202210,
+      202211,
+      202212,
+      202213,
+      202214,
+      202215,
+      202216,
+      202217,
+      202218,
+      202219,
+      202220,
+      202221,
+      202222,
+      202301,
+      202302,
+      202303,
+      202304,
+      202305,
+      202306,
+      202307,
+      202308,
+      202309,
+      202310,
+      202311,
+      202312,
+      202313,
+      202314,
+      202315,
+      202316,
+      202317,
+      202318,
+      202319,
+      202320,
+      202321,
+      202322
+    ],
+    "expected_original_issuances": 39220,
+    "matched_rows": 38370,
+    "original_issuance_inventory_required": true,
+    "selection_matched_rows": 20007,
+    "selection_years": [
+      2023
+    ],
+    "train_matched_rows": 18363,
+    "train_years": [
+      2022
+    ],
+    "unmatched_retained": 850
+  },
+  "experiment_id": "original_issuance_telemetry90_20260908",
+  "features": {
+    "additional_count": 90,
+    "clock": "exact original CSV decimal seconds converted to integral nanoseconds; strict cumulative archive-prefix packet availability less than cutoff",
+    "content_count": 27,
+    "equal_packet_weighting": true,
+    "invalid_download": "fail before fitting; preserve earlier feature ledgers; do not rewrite historical availability",
+    "original_count": 80,
+    "primary_lag_seconds": 2,
+    "quality_count": 63,
+    "sensitivity_lag_seconds": 0,
+    "sensitivity_refit": false,
+    "support_gate": {
+      "maximum_newest_age_seconds": 5,
+      "minimum_packets": 6,
+      "minimum_span_seconds": 24,
+      "window_seconds": 30
+    },
+    "unavailable_event": "retain original all-issuance population with empty telemetry encoding and base fallback",
+    "unsupported_prediction": "bitwise exact 2022-only base HGB prediction; retain row",
+    "windows_seconds": [
+      30,
+      90,
+      180
+    ]
+  },
+  "later_transfer_gate": {
+    "all_leave_one_event_out_negative_each": true,
+    "event_and_block3_upper_ci_negative_each": true,
+    "final_fit": {
+      "augmented_fits": 2,
+      "base_reference": "reuse exact current portable frontier model fitted on2022-2023",
+      "fit_telemetry_and_quality_control_on_identical_all_matched_rows": true,
+      "no_reselection": true,
+      "only_after_selection_pass": true,
+      "same_model_hyperparameters_as_selection": true,
+      "same_primary_lag_seconds": 2,
+      "training_rows": 38370,
+      "training_years": [
+        2022,
+        2023
+      ],
+      "zero_second_sensitivity_uses_same_final_coefficients": true
+    },
+    "historical_each_year_positive_each_reference": true,
+    "historical_minimum_relative_event_mae_reduction_each_reference": 0.1,
+    "historical_required_events": 48,
+    "historical_years": [
+      2024,
+      2025
+    ],
+    "implementation_status": "not executed; later fit/refit provenance must be locked without changing these gates",
+    "locked_before_discovery": true,
+    "references": [
+      "unchanged_current_frontier_hgb",
+      "matched_quality_control"
+    ],
+    "requires_discovery_pass_before_later_telemetry_access": true,
+    "stress_minimum_relative_event_mae_reduction_each_reference": 0.05,
+    "stress_required_events": 13,
+    "stress_rounds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ],
+    "stress_year": 2026
+  },
+  "limits": [
+    "Archive availability is a source-time proxy, not certified client receipt.",
+    "Selection2023 and later seasons have been exposed in previous research; bootstrap intervals do not correct all adaptive research selection.",
+    "Point prediction only; no interval, race-order, strategy value or prospective improvement is established by this experiment."
+  ],
+  "measurement_contract": {
+    "path": "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md",
+    "sha256": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3"
+  },
+  "models": {
+    "additional_identifier_predictors": false,
+    "augmented_fits": 2,
+    "baseline_reproduction_absolute_tolerance_seconds": 1e-12,
+    "correction_clip_seconds": 3,
+    "early_stopping": false,
+    "expected_base_selection_event_mae_seconds": 0.512080723333514,
+    "fits_total": 3,
+    "l2_regularization": 10,
+    "learning_rate": 0.06,
+    "loss": "absolute_error",
+    "max_iter": 150,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 80,
+    "model": "HistGradientBoostingRegressor",
+    "names": [
+      "base_hgb",
+      "telemetry_hgb",
+      "quality_hgb"
+    ],
+    "quality_control": "same170 columns;27 content coordinates zeroed at train and inference;63 quality coordinates unchanged",
+    "random_state": 20260907,
+    "training_target": "next eligible lap minus original naive anchor, clipped to [-5,5] seconds",
+    "weight": "N/(E*n_event) on identical full matched 2022 population for all three models"
+  },
+  "objective": "Test incremental predictive information in raw driving measurements at the unchanged original next-eligible-lap issuance.",
+  "original_frontier_bindings": [
+    {
+      "path": "research/experiments/frontier_20260907/live_frontier.py",
+      "sha256": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/feature_encoder.py",
+      "sha256": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec"
+    },
+    {
+      "path": "research/experiments/frontier_20260907/specification.json",
+      "sha256": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740"
+    },
+    {
+      "path": "research/experiments/performance_20260907/live/run_experiment.py",
+      "sha256": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/selection.json",
+      "sha256": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568"
+    },
+    {
+      "path": "artifacts/research/frontier_20260907/live/discovery_data.pkl",
+      "sha256": "9f657a724b93c285fa31453b0dca200812e47b634fddfbb3ccb430a4ba70c66d"
+    }
+  ],
+  "schema_version": 1,
+  "selection_gate": {
+    "all_leave_one_event_out_negative_each": true,
+    "candidate": "telemetry_hgb",
+    "event_and_block3_upper_ci_negative_each": true,
+    "fail_action": "stop family without later acquisition, scoring, retuning or promotion",
+    "minimum_relative_event_mae_reduction_each_reference": 0.01,
+    "references": [
+      "base_hgb",
+      "quality_hgb"
+    ],
+    "required_events": 22,
+    "zero_second_sensitivity_positive_each": true
+  },
+  "status": "declared_before_historical_telemetry_features_or_new_fits",
+  "suggested_commit": "research(f1-live): test raw telemetry at unchanged next-lap issuance",
+  "uncertainty": {
+    "circular_event_block_length": 3,
+    "event_weight": "equal event weight, then equal matched issuance weight within event",
+    "interval": "percentile95",
+    "leave_one_event_out": "every omission must retain negative candidate-minus-reference mean",
+    "resamples_each": 20000,
+    "seed": 20260907
+  }
+}

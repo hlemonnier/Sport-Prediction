@@ -1,0 +1,26 @@
+{
+  "closed_at_utc": "2026-09-08T09:01:11.765569+00:00",
+  "data_lock_sha256": "595519d95844dfa2acb27d791bb1219ba0a374aceb6bef3d2b8c1ab9f4ea6908",
+  "elo_readout": {
+    "bytes": 8726744,
+    "path": "artifacts/research/boundary_20260908/football_past_market/elo_readout_delay1.json",
+    "sha256": "b6b32e919462cfbe436acdfe6d27022b1a10dc75c0984e14c53f137a0e4b0dc3"
+  },
+  "fit_index": {
+    "bytes": 51195,
+    "path": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_fit_index.json",
+    "sha256": "2121e833b1bd93ef8e1ed7145b23db86227a2c16ed7da7662574f51d3109ad12"
+  },
+  "forecasts": {
+    "bytes": 1661512,
+    "path": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_issued.json",
+    "sha256": "5e5395bb779688089e6c687eab4fc51dd4c1dc61a61dd999480a01be6726530f"
+  },
+  "labels_attached": false,
+  "optimizer_fits": 475,
+  "resources": {
+    "elapsed_seconds": 79.42888025002321,
+    "peak_rss_bytes": 429965312
+  },
+  "rows": 760
+}

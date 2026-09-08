@@ -1,0 +1,7 @@
+{
+  "closed_at_utc": "2026-09-08T09:01:12.204207+00:00",
+  "design_lock_sha256": "e9a05b1988bb619a59dc815e00fe46b8c6d1f6f9daf30dfb4fe563210f9f6d41",
+  "passes_all_gates": false,
+  "result_sha256": "0591f1b13c0e0e12497e18b45d2c56114b0b1cf5e02b2ee018fc3e6cde30555e",
+  "selected_candidate": "past_market_shot50"
+}

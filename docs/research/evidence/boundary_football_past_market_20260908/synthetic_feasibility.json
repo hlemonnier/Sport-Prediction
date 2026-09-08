@@ -1,0 +1,82 @@
+{
+  "completed_at_utc": "2026-09-08T08:38:14.108900+00:00",
+  "limits": {
+    "maximum_peak_rss_bytes": 2147483648,
+    "maximum_stage_wall_seconds": 3600,
+    "result": "passed"
+  },
+  "peak_rss_bytes": 90849280,
+  "readout": {
+    "diagnostics": {
+      "function_evaluations": 12,
+      "gradient": [
+        9.093838317575375e-08,
+        -3.657018172398274e-07,
+        -6.228232978577885e-08
+      ],
+      "initial": [
+        1.0,
+        -0.5,
+        1.0
+      ],
+      "iterations": 12,
+      "kkt_residual": 3.6570181721762296e-07,
+      "message": "Optimization terminated successfully",
+      "objective": 0.9022716738663773,
+      "rows": 4000,
+      "solver": "SLSQP",
+      "solver_success": true
+    },
+    "seconds": 0.01459379104198888,
+    "theta": [
+      1.19687070735376,
+      -0.48011368350461825,
+      0.9718159933881765
+    ]
+  },
+  "rows": 4000,
+  "scope": "synthetic_only_no_historical_inputs",
+  "source_files": {
+    "research/experiments/boundary_20260908/football_past_market/model.py": "5ce852070675beff5fcd9efd7fdcab3cfd4422bcc52bdfbd1c2838cf71bd1234",
+    "research/experiments/boundary_20260908/football_past_market/test_model.py": "2e9a126a351b6cea2faf165d57f0bdc8a8f0e2df363c9ee0fe8e9ba5fa1a9149"
+  },
+  "started_at_utc": "2026-09-08T08:38:13.814971+00:00",
+  "strength_fits": [
+    {
+      "free_coordinates": 188,
+      "function_evaluations": 27,
+      "gradient_max": 7.633531309771298e-09,
+      "iterations": 23,
+      "kind": "past_market",
+      "objective": 1.0243892635593128,
+      "prediction_shape": [
+        4000,
+        3
+      ],
+      "seconds": 0.10681791603565216,
+      "solver_success": true,
+      "training_digest": "44c96ddbc884d4212d8117caa8d49190dde90a7769f32e95eb34362bae3297df"
+    },
+    {
+      "free_coordinates": 188,
+      "function_evaluations": 28,
+      "gradient_max": 5.827348610414323e-08,
+      "iterations": 24,
+      "kind": "outcome_control",
+      "objective": 1.005085208815233,
+      "prediction_shape": [
+        4000,
+        3
+      ],
+      "seconds": 0.04430924996268004,
+      "solver_success": true,
+      "training_digest": "4fc2b6ca5760fb83d23d7d51389d78b01bfe000db992891bfaee2d0f15aaed03"
+    }
+  ],
+  "teams": {
+    "E0": 32,
+    "I1": 32,
+    "SP1": 30
+  },
+  "threads": 1
+}

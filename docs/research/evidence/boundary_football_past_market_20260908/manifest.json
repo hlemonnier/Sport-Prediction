@@ -1,0 +1,81 @@
+{
+  "copy_count": 11,
+  "created_at_utc": "2026-09-08T09:09:49.504643+00:00",
+  "exact_copies": [
+    {
+      "bytes": 12943,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/design_lock.json",
+      "sha256": "e9a05b1988bb619a59dc815e00fe46b8c6d1f6f9daf30dfb4fe563210f9f6d41",
+      "source": "artifacts/research/boundary_20260908/football_past_market/design_lock.json"
+    },
+    {
+      "bytes": 1292,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/data_lock.json",
+      "sha256": "595519d95844dfa2acb27d791bb1219ba0a374aceb6bef3d2b8c1ab9f4ea6908",
+      "source": "artifacts/research/boundary_20260908/football_past_market/data_lock.json"
+    },
+    {
+      "bytes": 5090,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/pre_fit_tests.json",
+      "sha256": "b28b1cb24201ff24716cd4c649d3423505b6ce5acf2b51e03862f7a68fb59dcc",
+      "source": "artifacts/research/boundary_20260908/football_past_market/pre_fit_tests.json"
+    },
+    {
+      "bytes": 105038,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/selection_delay1.json",
+      "sha256": "0591f1b13c0e0e12497e18b45d2c56114b0b1cf5e02b2ee018fc3e6cde30555e",
+      "source": "artifacts/research/boundary_20260908/football_past_market/selection_delay1.json"
+    },
+    {
+      "bytes": 991,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/selection_delay1_issuance_lock.json",
+      "sha256": "abf3a8684ceeb30edc6eae47da018c8c8ae0dfe2c71518c5ce5fad1edb0298d3",
+      "source": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_issuance_lock.json"
+    },
+    {
+      "bytes": 312,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/selection_delay1_decision_lock.json",
+      "sha256": "6940464df2d48f005857afaeb6018a214200a9a1e77abf72afa642646d96634c",
+      "source": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_decision_lock.json"
+    },
+    {
+      "bytes": 51283,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/selection_delay1_verification.json",
+      "sha256": "776eed85649217734bc243dc539cb4ccb955187c0c9eac1c9e6b5131ec172eaf",
+      "source": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_verification.json"
+    },
+    {
+      "bytes": 10053,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/independent_review.json",
+      "sha256": "2974072d68fa881fbfc49cc2cc37aaca30d405463bf8d516c31e4ca4733748c9",
+      "source": "artifacts/research/boundary_20260908/football_past_market_review.json"
+    },
+    {
+      "bytes": 2276,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/synthetic_feasibility.json",
+      "sha256": "a71f3442202d89f183e8d81a0d62cfc452e89c666294c0fa2bc0c9d2497b34ee",
+      "source": "artifacts/research/boundary_20260908/football_past_market_synthetic.json"
+    },
+    {
+      "bytes": 102493,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/source_only_ci.json",
+      "sha256": "e651990ab3ca531138864db66daab6e1bc629c0f24a42588b71e55433c5fdf73",
+      "source": "artifacts/research/boundary_20260908/football_past_market_ci.json"
+    },
+    {
+      "bytes": 68091,
+      "copy": "docs/research/evidence/boundary_football_past_market_20260908/elo_post_hoc_diagnostic.json",
+      "sha256": "7a556f6e84a44b5ce9a70d559c71b6d9324c4dd4f623ee45d8c02ae05e75139f",
+      "source": "artifacts/research/boundary_20260908/football_past_market_elo_diagnostic.json"
+    }
+  ],
+  "new_production_model": false,
+  "omitted_local_hash_bound_artifacts": [
+    "row-level reference and forecast ledgers",
+    "raw source CSVs",
+    "all 237 coefficient audit files",
+    "Elo readout and calibration history"
+  ],
+  "status": "verified_failed_selection_no_promotion",
+  "total_bytes": 359862
+}

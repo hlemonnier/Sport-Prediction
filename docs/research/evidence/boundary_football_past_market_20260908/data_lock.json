@@ -1,0 +1,33 @@
+{
+  "candidate_scores_computed": false,
+  "closed_at_utc": "2026-09-08T08:58:33.774212+00:00",
+  "design_lock_sha256": "e9a05b1988bb619a59dc815e00fe46b8c6d1f6f9daf30dfb4fe563210f9f6d41",
+  "files": {
+    "archive_metadata": {
+      "bytes": 6887757,
+      "path": "artifacts/research/boundary_20260908/football_past_market/archive_metadata.json",
+      "sha256": "dcea1faedb7b502e9dadaafd9a690f0675abf680f30f7edcf17823b105dae57f"
+    },
+    "references_selection": {
+      "bytes": 1155859,
+      "path": "artifacts/research/boundary_20260908/football_past_market/references_selection.json",
+      "sha256": "30eb165e70fd5a450188f98613d8daf79d4dad66ba55b618e734c60c13386fc9"
+    },
+    "references_transfer": {
+      "bytes": 2541068,
+      "path": "artifacts/research/boundary_20260908/football_past_market/references_transfer.json",
+      "sha256": "0c7de84ed4093a14c09f094e0b26bbf678aa03aa37bcfde08a8c55f34f8a0063"
+    }
+  },
+  "historical_candidate_fits": 0,
+  "preparation_limit": "Support checks inspect only admitted earlier quotes; no candidate is fitted and no outcome score is computed.",
+  "references_labels_attached": false,
+  "resources": {
+    "elapsed_seconds": 37.76814166700933,
+    "peak_rss_bytes": 341409792
+  },
+  "selection_support": {
+    "1": 758,
+    "7": 757
+  }
+}

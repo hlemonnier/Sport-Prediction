@@ -1,0 +1,50 @@
+{
+  "populations": {
+    "2022": {
+      "events": 11,
+      "rows": 10401,
+      "eligible_rows": 9040,
+      "known_control_rows": 10401,
+      "current_status_counts": {
+        "1": 9619,
+        "2": 145,
+        "4": 449,
+        "5": 0,
+        "6": 164,
+        "7": 24,
+        "unknown": 0
+      },
+      "variant_active_rows": {
+        "control_l7_all": 1361,
+        "control_l7_context": 870,
+        "control_l15_all": 1361,
+        "control_l15_context": 870
+      }
+    },
+    "2023": {
+      "events": 22,
+      "rows": 22174,
+      "eligible_rows": 20007,
+      "known_control_rows": 22174,
+      "current_status_counts": {
+        "1": 21346,
+        "2": 157,
+        "4": 505,
+        "5": 34,
+        "6": 115,
+        "7": 17,
+        "unknown": 0
+      },
+      "variant_active_rows": {
+        "control_l7_all": 2167,
+        "control_l7_context": 1094,
+        "control_l15_all": 2167,
+        "control_l15_context": 1094
+      }
+    }
+  },
+  "feature_count": 222,
+  "control_feature_count": 77,
+  "prepared_sha256": "aabe1eafab2fef569de86817cfc116bd3072bfbc082823f21d2b8ef670d3d5e7",
+  "outcomes_scored": false
+}

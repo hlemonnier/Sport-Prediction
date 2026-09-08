@@ -1,0 +1,256 @@
+{
+  "status": "feasible_raw_packet_replay_processed_timestamps_not_receipt_evidence",
+  "source_sha256": "ec18ea001a623f81271a35e30c03c8bf4d984e24bf4abd38f13ab6da6ba9f98f",
+  "fastf1_version": "3.8.3",
+  "primary_source_hashes": {
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/lib/python3.12/site-packages/fastf1/_api.py": "919b4948a5a981056f0e82b93da44e0625ea09cc29bee4a317e6708840682974",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/lib/python3.12/site-packages/fastf1/core.py": "5968e23d5bb823cacabddbaedd830f275c4777682b7ca7ef37147423277d8917",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/lib/python3.12/site-packages/fastf1/req.py": "1413e9862be889ed1787a5781be76e42d4b3f12110f3145d227fd03adda9e038"
+  },
+  "sample": {
+    "url": "https://livetiming.formula1.com/static/2026/2026-03-08_Australian_Grand_Prix/2026-03-08_Race/TimingData.jsonStream",
+    "raw_bytes": 5607988,
+    "raw_sha256": "a2521be4b468f9ec4c61211558521c993269eb34c24c600e1fa3c90ebb251c8d",
+    "cache_key": "f649ee1e9ceb5d5b",
+    "cache_path": "data/f1/cache/fastf1_http_cache.sqlite",
+    "cache_response_created_at": "2026-07-11T20:22:49.687362+00:00",
+    "native_path": "data/f1/cache/2026/2026-03-08_Australian_Grand_Prix/2026-03-08_Race/_extended_timing_data.ff1pkl",
+    "native_sha256": "8c78e2f32418126b59a1c37fffc7071763a845e65bf015d8742b016ad83ed39a",
+    "packet_count": 54575,
+    "unique_drivers": 22,
+    "timestamp_min_max": [
+      4.046,
+      8850.684
+    ],
+    "nonmonotone_packet_steps": 0
+  },
+  "cache_inventory": {
+    "race_responses": 9,
+    "race_streams": [
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-03-08_Australian_Grand_Prix/2026-03-08_Race/TimingData.jsonStream",
+        "bytes": 5607988
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-03-15_Chinese_Grand_Prix/2026-03-15_Race/TimingData.jsonStream",
+        "bytes": 5248701
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-03-29_Japanese_Grand_Prix/2026-03-29_Race/TimingData.jsonStream",
+        "bytes": 7024902
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-05-03_Miami_Grand_Prix/2026-05-03_Race/TimingData.jsonStream",
+        "bytes": 6329475
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-05-24_Canadian_Grand_Prix/2026-05-24_Race/TimingData.jsonStream",
+        "bytes": 5787515
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-06-07_Monaco_Grand_Prix/2026-06-07_Race/TimingData.jsonStream",
+        "bytes": 7323001
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-06-14_Barcelona_Grand_Prix/2026-06-14_Race/TimingData.jsonStream",
+        "bytes": 6257319
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-06-28_Austrian_Grand_Prix/2026-06-28_Race/TimingData.jsonStream",
+        "bytes": 6591158
+      },
+      {
+        "url": "https://livetiming.formula1.com/static/2026/2026-07-05_British_Grand_Prix/2026-07-05_Race/TimingData.jsonStream",
+        "bytes": 6900743
+      }
+    ],
+    "race_stream_size_min_median_max_bytes": [
+      5248701.0,
+      6329475.0,
+      7323001.0
+    ]
+  },
+  "sector_value_updates": {
+    "2": 1006,
+    "3": 1001,
+    "1": 982
+  },
+  "sector12": {
+    "value_updates": 1988,
+    "missing_seen_lap_count": 20,
+    "updates_coincident_with_counter_advance": 0,
+    "first_observed_driver_counter_sector_keys": 1968,
+    "repeat_updates_within_same_observed_counter": 0,
+    "backwards_counter_updates": 0,
+    "first_update_time_to_next_counter_advance_quantiles_seconds": [
+      35.61699999999928,
+      53.566499999999905,
+      56.721900000000645,
+      79.67041000000002,
+      1137.5860000000002
+    ],
+    "first_update_time_to_next_counter_advance_by_sector": {
+      "1": [
+        53.298000000000684,
+        55.126000000000204,
+        62.06279999999988,
+        85.87150000000025,
+        1137.5860000000002
+      ],
+      "2": [
+        35.61699999999928,
+        37.1220000000003,
+        41.588200000000356,
+        61.39638000000015,
+        1118.0439999999999
+      ]
+    },
+    "first_updates_with_subsequent_counter_advance": 1962,
+    "first_updates_without_subsequent_counter_advance": 6,
+    "unresolved_updates": [
+      {
+        "driver": "6",
+        "sector": 1,
+        "time": 4635.726,
+        "completed_seen": 10.0
+      },
+      {
+        "driver": "6",
+        "sector": 2,
+        "time": 4665.703,
+        "completed_seen": 10.0
+      },
+      {
+        "driver": "77",
+        "sector": 1,
+        "time": 5243.31,
+        "completed_seen": 15.0
+      },
+      {
+        "driver": "77",
+        "sector": 2,
+        "time": 5261.698,
+        "completed_seen": 15.0
+      },
+      {
+        "driver": "14",
+        "sector": 1,
+        "time": 6676.816,
+        "completed_seen": 21.0
+      },
+      {
+        "driver": "14",
+        "sector": 2,
+        "time": 6707.314,
+        "completed_seen": 21.0
+      }
+    ],
+    "capped180_outcomes_observed": 1968,
+    "capped180_outcomes_at_cap": 10,
+    "capped180_right_censored_outcomes": 0,
+    "first_updates_with_at_least_180s_archive_followup": 1933
+  },
+  "processed_cache": {
+    "lap_rows": 1004,
+    "sector12_finite_rows": 1984,
+    "sector12_matched_raw_value_within10s": 1984,
+    "raw_minus_processed_time_quantiles_seconds": [
+      0.0,
+      0.12699999999949796,
+      0.20869999999940778,
+      0.31300000000010186,
+      0.5429999999996653
+    ],
+    "raw_after_processed_timestamp_rows": 1949,
+    "backdating_examples": [
+      {
+        "driver": "63",
+        "lap": 2,
+        "sector": 1,
+        "duration": 29.753,
+        "processed_sector_time": 3862.53,
+        "raw_sector_packet_time": 3862.721,
+        "backdated_seconds": 0.19099999999980355,
+        "raw_packet_sequence": 3751
+      },
+      {
+        "driver": "63",
+        "lap": 2,
+        "sector": 2,
+        "duration": 17.841,
+        "processed_sector_time": 3880.371,
+        "raw_sector_packet_time": 3880.472,
+        "backdated_seconds": 0.10100000000011278,
+        "raw_packet_sequence": 3977
+      },
+      {
+        "driver": "63",
+        "lap": 3,
+        "sector": 1,
+        "duration": 29.845,
+        "processed_sector_time": 3947.629,
+        "raw_sector_packet_time": 3947.762,
+        "backdated_seconds": 0.13300000000026557,
+        "raw_packet_sequence": 4782
+      },
+      {
+        "driver": "63",
+        "lap": 3,
+        "sector": 2,
+        "duration": 18.533,
+        "processed_sector_time": 3966.162,
+        "raw_sector_packet_time": 3966.299,
+        "backdated_seconds": 0.13700000000017099,
+        "raw_packet_sequence": 5016
+      },
+      {
+        "driver": "63",
+        "lap": 4,
+        "sector": 2,
+        "duration": 17.802,
+        "processed_sector_time": 4051.979,
+        "raw_sector_packet_time": 4052.179,
+        "backdated_seconds": 0.20000000000027285,
+        "raw_packet_sequence": 6065
+      },
+      {
+        "driver": "63",
+        "lap": 6,
+        "sector": 1,
+        "duration": 29.498,
+        "processed_sector_time": 4202.532,
+        "raw_sector_packet_time": 4202.676,
+        "backdated_seconds": 0.14400000000023283,
+        "raw_packet_sequence": 7873
+      },
+      {
+        "driver": "63",
+        "lap": 8,
+        "sector": 1,
+        "duration": 29.435,
+        "processed_sector_time": 4371.207,
+        "raw_sector_packet_time": 4371.369,
+        "backdated_seconds": 0.16199999999935244,
+        "raw_packet_sequence": 9923
+      },
+      {
+        "driver": "63",
+        "lap": 9,
+        "sector": 1,
+        "duration": 31.313,
+        "processed_sector_time": 4458.275,
+        "raw_sector_packet_time": 4458.444,
+        "backdated_seconds": 0.16900000000077853,
+        "raw_packet_sequence": 10985
+      }
+    ]
+  },
+  "probe_wall_seconds": 1.6734092090046033,
+  "limits": [
+    "Single2026session is a coverage/cost probe, not a score or discovery selection.",
+    "Raw stream timestamps establish recorded packet ordering, not historical client receipt time.",
+    "First driver/counter/sector counts are a feasibility diagnostic, not a verified causal lap-alignment parser.",
+    "No source receipt times or labels were recovered from future lap endpoints for issuance counts.",
+    "Native timestamp matching uses final data only to demonstrate postprocessing; it cannot define model issuance."
+  ]
+}

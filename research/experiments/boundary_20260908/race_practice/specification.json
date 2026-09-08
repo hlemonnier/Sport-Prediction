@@ -1,0 +1,26 @@
+{
+  "id": "race_practice_rank_20260908",
+  "objective": "Test new same-weekend practice long-run information and a pairwise ranking objective against the strongest existing same-horizon race-order references.",
+  "status": "retrospective_reused_dates_research_only",
+  "horizon": "post_qualifying_provisional_grid; only completed free practice sessions before Grand Prix qualifying; no race-table grid or current race field",
+  "population": "Exact fixed inclusion/exclusion cohort of performance_20260907/race/v3:21 training events2022,20 selection2023,43 historical2024-25,8 exposed2026. Conditional coverage is inherited and depends in part on target completeness; no new outcome-based exclusion allowed.",
+  "training": "Expanding strictly earlier complete events; predict, persist and hash current forecasts before opening current race labels. Hyperparameters selected once on2023. No later model evaluation unless selection advances.",
+  "features": "Original12 causal rank/form features plus10 practice features. Original history resets by season as in prior implementation. Feature definitions are fixed in features.py before scoring.",
+  "practice_measurement": "Use all completed FP sessions before Grand Prix qualifying. Keep accurate all-clear non-pit laps30-240s with known compound/stint and tyre age>=1. Long runs require>=5 such laps; remove laps>stint median+5s. Compare each retained lap with nearest-clock lap per other driver on same compound,within300s and3tyre-age laps; require3 peers. Delta is percentage of session median clean lap time. Median own deltas across sessions; minimum2 matched laps for support. This measures relative observed pace, not fuel-corrected tyre physics. Separate best-lap rank across completed FP sessions is an auxiliary signal.",
+  "candidates": {
+    "pairwise_practice": {"family":"pairwise","penalty":0.05,"q_penalty":0.0005,"max_iterations":2000,"gradient_tolerance":0.000001},
+    "hgb_practice": {"family":"hgb","loss":"absolute_error","leaves":7,"iterations":150,"min_samples_leaf":30,"learning_rate":0.05,"l2":1.0,"random_state":20260908}
+  },
+  "ablations": "Fit each exact candidate configuration on original12features only, with the same training events and weights. Ablations are diagnostic references and cannot be selected as new winners. Total2candidate configurations plus2 matched ablations.",
+  "pairwise_math": "p(i finishes before j)=sigmoid((x_j-x_i) beta); each complete event contributes total pair weight1. Minimize event-mean binary log loss plus0.5 sum_k lambda_k beta_k^2; training-only event-weighted feature scaling; qualifying coefficient constrained nonnegative. Stable scalar-score sort yields a complete permutation. No independence of within-event pairs or calibrated probability claim.",
+  "hgb_math": "Fit normalized finishing-minus-qualifying rank residual without target clipping; event-balanced weights normalized to mean1; stable sort qualifying percentile plus predicted residual. No early stopping.",
+  "references": ["qualifying_order","previous2023selected_huber_movement_1","previousboosted_absolute_movement_1","selected_candidate_without_practice"],
+  "selection": "Choose lowest equally-event-weighted2023 rank MAE of2 candidates, ID tie-break. Advance only if at least1percent lower MAE than every reference including its corresponding no-practice ablation, and all leave-one-event-out mean deltas against each reference are negative.",
+  "substantial_gate": "On2024-25 require>=10percent lower MAE than qualifying, previousHuber and previousboosted references,>=2percent lower than matched ablation, paired within-year3-event block95percent interval upper<0 against all4, and positive relative gains against all4 separately in2024,2025,2026. Fullfield permutations and exactoriginalcohort required. No automatic production promotion from reused historical dates.",
+  "secondary": ["Kendall tau","top3 overlap","winner hit rate","support and unsupported driver/event counts","eachyear MAE","allLOO deltas","model solver projected gradients"],
+  "bootstrap": {"draws":20000,"seed":20260908,"block_length":3,"stratify_by_year":true,"interpretation":"descriptive retrospective paired resampling; not posterior or multiplicity-adjusted prospective proof"},
+  "limits": ["FP fuel loads and run intent are not identified","Historical provider corrections and original receipt times are not verified","Selection dates and all transfer dates were previously exposed","A ranking improvement does not establish strategy or betting value","No new software dependencies or production changes"],
+  "sources": ["https://www.jmlr.org/beta/papers/v24/21-1179.html","https://arxiv.org/abs/2101.04040"],
+  "source_scope": "Primary research motivates pairwise latent strength and dynamic rankings. This custom fixed-feature regularized BTL regression does not implement the papers' spectral/GAS estimators or inherit their guarantees.",
+  "suggested_commit": "research(f1): test practice long-run signals with pairwise race ranking"
+}

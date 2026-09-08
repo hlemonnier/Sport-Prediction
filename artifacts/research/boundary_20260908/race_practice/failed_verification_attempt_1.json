@@ -1,0 +1,8 @@
+{
+  "status": "failed_execution_log_hash_only",
+  "exit_code": 1,
+  "reason": "Frozen runner hashed selection_execution.log while still open; final printed summary appended afterward. Original source, selection, locks and log preserved unchanged.",
+  "original_verifier_sha256": "f101cd74b7eac4f9bc0788a9eac6e61ec54935ec787b493cfe9116f0ab549782",
+  "failed_log_sha256": "0016c9ca04a20217e3975500208017c183a481e6ba9864fa40de3d21f0fa1bd7",
+  "amendment": "New verifier requires the original log hash to match an exact line prefix and records final log hash; every source/input/model/prediction hash remains exact. No model change, new candidate or repeated selection."
+}

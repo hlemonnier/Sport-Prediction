@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/race_practice/verify.py", line 64, in <module>
+    main()
+  File "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/race_practice/verify.py", line 20, in main
+    assert run.sha(run.ROOT / p) == expected, p
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: artifacts/research/boundary_20260908/race_practice/selection_execution.log

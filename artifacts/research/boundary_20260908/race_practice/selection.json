@@ -1,0 +1,3006 @@
+{
+  "advancement_passed": false,
+  "all_candidate_comparisons": {
+    "hgb_practice": {
+      "baseline": {
+        "block3_ci95": [
+          -0.41500000000000004,
+          0.09
+        ],
+        "candidate_mae": 3.5050000000000003,
+        "delta": -0.175,
+        "event_ci95": [
+          -0.44000000000000006,
+          0.08499999999999999
+        ],
+        "event_wins": 11,
+        "events": 20,
+        "loo_max": -0.10526315789473684,
+        "loo_min": -0.23684210526315788,
+        "reference_mae": 3.679999999999999,
+        "relative_gain": 0.047554347826086585
+      },
+      "boosted_absolute_movement_1": {
+        "block3_ci95": [
+          -0.16000000000000003,
+          0.215
+        ],
+        "candidate_mae": 3.5050000000000003,
+        "delta": 0.03500000000000003,
+        "event_ci95": [
+          -0.15999999999999998,
+          0.23500000000000004
+        ],
+        "event_wins": 9,
+        "events": 20,
+        "loo_max": 0.07368421052631584,
+        "loo_min": -0.015789473684210492,
+        "reference_mae": 3.4699999999999998,
+        "relative_gain": -0.01008645533141217
+      },
+      "hgb_practice_without_practice": {
+        "block3_ci95": [
+          -0.15999999999999998,
+          0.15500000000000008
+        ],
+        "candidate_mae": 3.5050000000000003,
+        "delta": 0.009999999999999998,
+        "event_ci95": [
+          -0.155,
+          0.18
+        ],
+        "event_wins": 10,
+        "events": 20,
+        "loo_max": 0.042105263157894736,
+        "loo_min": -0.026315789473684223,
+        "reference_mae": 3.4949999999999997,
+        "relative_gain": -0.0028612303290416197
+      },
+      "huber_movement_1": {
+        "block3_ci95": [
+          0.11499999999999992,
+          0.41
+        ],
+        "candidate_mae": 3.5050000000000003,
+        "delta": 0.2699999999999999,
+        "event_ci95": [
+          0.12499999999999986,
+          0.4199999999999998
+        ],
+        "event_wins": 2,
+        "events": 20,
+        "loo_max": 0.31052631578947354,
+        "loo_min": 0.2368421052631578,
+        "reference_mae": 3.2350000000000003,
+        "relative_gain": -0.08346213292117466
+      }
+    },
+    "pairwise_practice": {
+      "baseline": {
+        "block3_ci95": [
+          -0.7149999999999999,
+          0.015000000000000102
+        ],
+        "candidate_mae": 3.3299999999999996,
+        "delta": -0.35,
+        "event_ci95": [
+          -0.72,
+          -0.009999999999999986
+        ],
+        "event_wins": 13,
+        "events": 20,
+        "loo_max": -0.26315789473684204,
+        "loo_min": -0.41578947368421043,
+        "reference_mae": 3.679999999999999,
+        "relative_gain": 0.09510869565217372
+      },
+      "boosted_absolute_movement_1": {
+        "block3_ci95": [
+          -0.3999999999999999,
+          0.12999999999999998
+        ],
+        "candidate_mae": 3.3299999999999996,
+        "delta": -0.13999999999999993,
+        "event_ci95": [
+          -0.40499999999999997,
+          0.1100000000000001
+        ],
+        "event_wins": 13,
+        "events": 20,
+        "loo_max": -0.06842105263157887,
+        "loo_min": -0.18947368421052624,
+        "reference_mae": 3.4699999999999998,
+        "relative_gain": 0.04034582132564846
+      },
+      "huber_movement_1": {
+        "block3_ci95": [
+          -0.06500000000000003,
+          0.2799999999999999
+        ],
+        "candidate_mae": 3.3299999999999996,
+        "delta": 0.09499999999999995,
+        "event_ci95": [
+          -0.07000000000000006,
+          0.265
+        ],
+        "event_wins": 6,
+        "events": 20,
+        "loo_max": 0.13157894736842102,
+        "loo_min": 0.052631578947368376,
+        "reference_mae": 3.2350000000000003,
+        "relative_gain": -0.02936630602782042
+      },
+      "pairwise_practice_without_practice": {
+        "block3_ci95": [
+          -0.10000000000000005,
+          0.275
+        ],
+        "candidate_mae": 3.3299999999999996,
+        "delta": 0.06500000000000003,
+        "event_ci95": [
+          -0.10500000000000005,
+          0.25
+        ],
+        "event_wins": 8,
+        "events": 20,
+        "loo_max": 0.10526315789473686,
+        "loo_min": 0.01578947368421055,
+        "reference_mae": 3.2649999999999997,
+        "relative_gain": -0.019908116385911168
+      }
+    }
+  },
+  "comparisons": {
+    "baseline": {
+      "block3_ci95": [
+        -0.7149999999999999,
+        0.015000000000000102
+      ],
+      "candidate_mae": 3.3299999999999996,
+      "delta": -0.35,
+      "event_ci95": [
+        -0.72,
+        -0.009999999999999986
+      ],
+      "event_wins": 13,
+      "events": 20,
+      "loo_max": -0.26315789473684204,
+      "loo_min": -0.41578947368421043,
+      "reference_mae": 3.679999999999999,
+      "relative_gain": 0.09510869565217372
+    },
+    "boosted_absolute_movement_1": {
+      "block3_ci95": [
+        -0.3999999999999999,
+        0.12999999999999998
+      ],
+      "candidate_mae": 3.3299999999999996,
+      "delta": -0.13999999999999993,
+      "event_ci95": [
+        -0.40499999999999997,
+        0.1100000000000001
+      ],
+      "event_wins": 13,
+      "events": 20,
+      "loo_max": -0.06842105263157887,
+      "loo_min": -0.18947368421052624,
+      "reference_mae": 3.4699999999999998,
+      "relative_gain": 0.04034582132564846
+    },
+    "huber_movement_1": {
+      "block3_ci95": [
+        -0.06500000000000003,
+        0.2799999999999999
+      ],
+      "candidate_mae": 3.3299999999999996,
+      "delta": 0.09499999999999995,
+      "event_ci95": [
+        -0.07000000000000006,
+        0.265
+      ],
+      "event_wins": 6,
+      "events": 20,
+      "loo_max": 0.13157894736842102,
+      "loo_min": 0.052631578947368376,
+      "reference_mae": 3.2350000000000003,
+      "relative_gain": -0.02936630602782042
+    },
+    "pairwise_practice_without_practice": {
+      "block3_ci95": [
+        -0.10000000000000005,
+        0.275
+      ],
+      "candidate_mae": 3.3299999999999996,
+      "delta": 0.06500000000000003,
+      "event_ci95": [
+        -0.10500000000000005,
+        0.25
+      ],
+      "event_wins": 8,
+      "events": 20,
+      "loo_max": 0.10526315789473686,
+      "loo_min": 0.01578947368421055,
+      "reference_mae": 3.2649999999999997,
+      "relative_gain": -0.019908116385911168
+    }
+  },
+  "included_by_year": {
+    "2022": 21,
+    "2023": 20
+  },
+  "input_manifest": {
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/01_practice_1_laps.csv": "f75ce5a0ec57baaf7cbbabd6b85822f68b59dbadb2070fb38e444c5e7c8c28c7",
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/02_practice_2_laps.csv": "be02fb062365b961ca549480e12751b2f793f35792518af0e620f71a34e750df",
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/03_practice_3_laps.csv": "f459818c2cce1ab1e5c654cd1c9ef516278841f595d575a0e84725daf86db80c",
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/04_qualifying_results.csv": "d3cbb446ebc5cc07f7a0910ce5d4fa9402d1c22450473e9278b9d204d6f965d8",
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_results.csv": "5693e607c9589ea005e4810919f7d39759a49b796e888a974c5bcd51748d34b5",
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/weekend_metadata.json": "89642f389237ec9658d5d85358122cfee4d9844365b044dfb911a6dd1c87098e",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/01_practice_1_laps.csv": "60dc1da1867c4ca5daadb88f68d016605d4d170bb3c646d043b56099abc5de9e",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/02_practice_2_laps.csv": "15d39f32b3135de41ced8eb74cb59d1eaf8a46acea1131dbedc6369dd089a4f2",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/03_practice_3_laps.csv": "920847dbc7aabefe19f2d271c6b88dacb78e041e4cac74a9c1300f842d95e8de",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/04_qualifying_results.csv": "de0c8998fd8a93b7af45e2732151f3d6dee4918538f4543ed3209689be618dde",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/05_race_results.csv": "7fd9350dca9bfe303510cbb69ccd095b494c73adfdfe7c7a81bb073976eca578",
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/weekend_metadata.json": "6369f033f00dbfb9ac45a46b0fa76a7a595036dc68278b60245d4bbd3c7bee9d",
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/01_practice_1_laps.csv": "7bb1ae68c69e2e9a37426e0b18b36da546c223d56d00a3d1f38ba27e9212c2e5",
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/02_qualifying_results.csv": "b2567e8e14bb12490508da8d208226e3a2e29f7cd346bc2cc9b2125ef3f8424d",
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/05_race_results.csv": "58de11cd2b4abba2908774e5efda40608dac8cba3facdbe26bd9195e8daed301",
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/weekend_metadata.json": "b20dcb94de3f371f9aa851308e3f5fb90e754a4834999dc262bad87873008105",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/01_practice_1_laps.csv": "9626109fbef3d28a87999a0d1292f3f93b099f17a4ec2f5a93957c9da66539d2",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/02_practice_2_laps.csv": "0768d189981be501f113a824bcf869940eb215cf64a6e351a066727926691282",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/03_practice_3_laps.csv": "1962117144f0c4efde3cbe6750a7b7dfbf226d7bf2ac4e830071f578d6653d4a",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/04_qualifying_results.csv": "a71495d7fcc8e6bd5d1efda6a82c3c0326ed9538e678e3afa22db253de098b90",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/05_race_results.csv": "054e18d4f471a6a714015ed6c1590f106927b8003c0afe2e1ac7dab074d794f2",
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/weekend_metadata.json": "03b848ffc887947d38089f6dcc8790e0b531282492c04fd7d84313b11103237f",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/01_practice_1_laps.csv": "ca0cf5e91104d090c24929b6e725d872a0b0a49a550b2b75a95a977a89f37089",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/02_practice_2_laps.csv": "134807ee46a73e04a3f48ddcfc08513948b2f15bccef4c772e07e20091533b57",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/03_practice_3_laps.csv": "eac6ad3051fbd79740ea95e6127a2e81321ceee47e811ff04809931181acf579",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/04_qualifying_results.csv": "feb43a78cb6e04e2339c83f4af60a7022c97e4f01123a2060f8b5a51a24c35d8",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/05_race_results.csv": "13654984b84cc8cfe2795a98b176ef628946dba4feb3d1884f017bf8030dfaba",
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/weekend_metadata.json": "61cd0bcbee9fdd53d1a77d5420d40f2eb0cb1f3c8f4ec8b6622779acf0879e8b",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/01_practice_1_laps.csv": "352df873fe6177b73dec29d19c9e951a16a7b9a5d90821fa42e70424859cc235",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/02_practice_2_laps.csv": "428c76ee580fe0d01366871161b6c9819c122bc4e0351f03e042c927dabf1dc0",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/03_practice_3_laps.csv": "f51de3236e542855480aabf7307dfe5ae7e138fe84aeb2f3fbeeaf25c312fa4d",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/04_qualifying_results.csv": "4fffaf4e403f4328dc80a8cfaae79c940ac6cf972f6b9324f2cd414c05b21661",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/05_race_results.csv": "fcf60874faf477b5403fe05846ca682890724c01e8364dd7cd169edb17c4e284",
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/weekend_metadata.json": "79f78ac01b5c28b1ecd174536f293a1626f8171c52f2aec6ebfed84bf264cb83",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/01_practice_1_laps.csv": "8cfb9792d76568ec33020b91c2e0d1cd939eebcb4b344d050594ca3c26745366",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/02_practice_2_laps.csv": "74e0c203c80c14c24ab511cf10dcdce5a8e0b3d66f384f474141df04de4843e4",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/03_practice_3_laps.csv": "9a9638fba6977d1b8454406626c66586cf19b20bfde0935faf1649ee503e8863",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/04_qualifying_results.csv": "1d6e2e698c7d4d16b8c5a75823e7565e726ae3b01343f15dd9f14b3d0a2f7632",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/05_race_results.csv": "8c3237f4cf9ac3b5c6c3cd479f2a2d3464e358b2e9488427b7f4506cb22ef9a9",
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/weekend_metadata.json": "91d84d827e3e046a71613ad01983d5d2b48f046e3fc0b553848966af7f6b595b",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/01_practice_1_laps.csv": "a9f6078586ff1268c37764b71af871aca962d3118ac2a278dcb6fd56820ccc9a",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/02_practice_2_laps.csv": "9db7a4cfee63cc4b79fd906142df5c7662e77e9f601c071b375d2cf1e54d91de",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/03_practice_3_laps.csv": "44486355e6ce744109730e872bc66f511a5dbc3ffddfb018caf7037fcaf3c253",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/04_qualifying_results.csv": "ce742d81e6d0aee72a140687519e1060ff25701a3f9f40871f0c86b92ef2d83c",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/05_race_results.csv": "e4162bc8c8ea7bf612f5cae9b841de1d4d879e0d922c0b0b752092fb85236d7e",
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/weekend_metadata.json": "f1fbd2c9f5b5e4a990b84804319b32e536c7082e2ea51672279b1b295b38764d",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/01_practice_1_laps.csv": "6b1e14ac75db306c10fe8465bac500a28829725e2b1adcfd11b9e111e345b3e6",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/02_practice_2_laps.csv": "c622aa3810e43822057eb5729588db2e478cae6a1c885c9089f57085eb47caa7",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/03_practice_3_laps.csv": "b4ab61e80b516d41b0372bbd583c086c34261214a092c7d53e37f9c75d28d118",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/04_qualifying_results.csv": "79f212f3543bedf371410d5617c183c944db7d9665035fba819331247af9a80e",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/05_race_results.csv": "4d3c449e1246060995a57be6816bd594f7c64b2bf945102959920ba08e24f091",
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/weekend_metadata.json": "f6acc9545a33838a7c242cddf27fea2f520566059d7db6b013f50c0630246a42",
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/01_practice_1_laps.csv": "c13982e4bf2c7ce5b18ffbae575eb1842b83d1a87a7c8e249f8315f370ae7eaa",
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/02_qualifying_results.csv": "f308edeea423e75b7c694d37b74b853862401033eec577f2492f3a0f6ccf84bb",
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/05_race_results.csv": "27362abc725c75c52af22b3e3e60670e78daed9f7c06bb5f580a19f95e69ab60",
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/weekend_metadata.json": "58ed302768ec3cc31d0b9a9ea7fa23897c189cc49bf5859f6c800e371ff14d36",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/01_practice_1_laps.csv": "7ff5adb8fab967dc2fb026e7fb59106f8aa194e914e0ee10b6d93e1dc2a5615c",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/02_practice_2_laps.csv": "21eaf17d85e82c0de3d91cdc02dcfee6cc97c4ebf35367a36061df2c3eb27ac2",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/03_practice_3_laps.csv": "c8e8709464f310c024a05c323238f47fb226ba5176743683a9d9fd1388e11bde",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/04_qualifying_results.csv": "d403a85000a160f9dadeb46851ead22eef8723785cfc226d0870a78d468b9c2a",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/05_race_results.csv": "255823c39ed3b10b2a76f82f42bb30bf20317ce3202ac2bf5da0a34bd66bb215",
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/weekend_metadata.json": "cc26f6f70bb0e657f17cb12900c37c4441534b52e2f8c3231c8d28ce304de0c9",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/01_practice_1_laps.csv": "da1eea5c54b5ae72cc37b87902942f2367fb808271a7c879a5f2917a275f8df7",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/02_practice_2_laps.csv": "58850cda1e8f826c895dfb242873c36872f48821217e043757c5420306a455d0",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/03_practice_3_laps.csv": "591ecf3846aba9e41e1c1761dfdc066ab0e83c6bc8fb6db8c9ebdb5f86037cf3",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/04_qualifying_results.csv": "8bf51da25886948cef50e5b103c0aa00e5372347bd84de123c94b4e88ab3f5e5",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/05_race_results.csv": "215ccbd6c359a93e0ececf7b1983d89d88f333496d9937d76e38c8405f10065a",
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/weekend_metadata.json": "947fb043a8cdbbc8947bbf77ed3e48ad31243c6d51f0504a1fb88c633898bcc4",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/01_practice_1_laps.csv": "b998f2d7ba48c55a8958c4bfc7cb9ddb8f5e27d6d3ab5ba30eb0c6f45646e3a9",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/02_practice_2_laps.csv": "4380771cb9c948a479820739e83e73bfdc6f3d02593faf5d73d079732674e9c1",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/03_practice_3_laps.csv": "4cbb973d615676a0ee2f3243d3a22556d9fbe16e1f72b9127018bdfb909fd7ec",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/04_qualifying_results.csv": "ae3078d9e8b4f1e8cf53c4a4d7e54dfdb2bd0ccfce8e8bf95bf7f291ad637437",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/05_race_results.csv": "b2d8600ef1d1966a788c9908af06f24f8e8f1115b3378160f116c763ca4bca20",
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/weekend_metadata.json": "44c295cfd9546f8e56b655be127cd5320e72b124f68071f48fe9d17f9ea797b6",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/01_practice_1_laps.csv": "4bb60cf10a938af03a05fb9fbbbc912bee018ae85bebffa1c7fddac70cc5fd9a",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/02_practice_2_laps.csv": "49c32f278dcd3a7561648fc1757474797d38fcefcb35cbecc55dd9bbb68b1ae4",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/03_practice_3_laps.csv": "147f81c5b99968a9a82cab1e8cf62b2f9be79ebe28d8d87b1554498bd9d7885c",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/04_qualifying_results.csv": "d5881ee0dde707d7f289ac6b3a096c95454b8616337d8922ed00aea2fc91a7b2",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/05_race_results.csv": "e247f24c14a548931b5b49dbcee2e2af29845ec047dfd34aadabde9ae756fbad",
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/weekend_metadata.json": "bf53281c1d95746b86aad67727d0f892c16f0b61f003034a76326e4ea63bd8f5",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/01_practice_1_laps.csv": "a575a21a6b94ee56a2df455a8e2dab89cdfe7551a2c2245f81951f3dcfa6e95f",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/02_practice_2_laps.csv": "3f1bf518c91ddc58ce5210a81d74c71533503200e72a5a83d6464413e388098a",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/03_practice_3_laps.csv": "b5842d919f29433fb2935862512b3aba1e34dd749214755db3bbb8e8a9c508c0",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/04_qualifying_results.csv": "ce07fe06d722edd7ccee5576c7b8ee751529d100e7c4110cae23ef3073db689c",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/05_race_results.csv": "557d98d18cec4e577b6a01d59522e876785f2fcd1d201e004b85e00a505aaf83",
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/weekend_metadata.json": "3cddc14ad67f0ff9869bd3e738acb527be7bc6fb3d8066f90fbb0867e6ac407c",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/01_practice_1_laps.csv": "f05cda20d34cc6248961482e512ef4e5732020b859591952e06872f2db32c05b",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/02_practice_2_laps.csv": "b22d3e093d85f8c306d95249b4e9087aa2f0d0b6d33ac2c524f62296260a1579",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/03_practice_3_laps.csv": "ddcb5032a770ad2e68498db0e657a655477b853b9f19c26cdd04185191417300",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/04_qualifying_results.csv": "69fefdd5a07bc9ceb004458765c79c73fc8fe14b4b19775d269774a2dfa9f10e",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/05_race_results.csv": "4d23ade9a46dd9e565b59006e222840bd42e7a5fcca485acec83d37fc7be2531",
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/weekend_metadata.json": "4c4ccb798324f4b3a35941de9e8fa02c444bc0c85835cb189d7a1961ced600cb",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/01_practice_1_laps.csv": "a0996ea505dd0c327480838f27be691c1026015c3f0512973edbd477e2f79f6d",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/02_practice_2_laps.csv": "bcb79b0fe6ac7752de52cf089479838732390aab3ed80631f85c19b50d8745d1",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/03_practice_3_laps.csv": "c10afdc15859f5717d6f2689e1e0ab850db29597804e75889df921f7041206d6",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/04_qualifying_results.csv": "dd3f6c2dc42a7b5c855508ce877756c13d5ac8e4c1c397af5d54b7d9c88e3f3d",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/05_race_results.csv": "efc52d0f94b1cfaf32a058d19370a02c8c97f499ee6b38cf0e4159c489875498",
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/weekend_metadata.json": "0bc559447ae20b2599e7f010b035a295aac7ce2d3bd7d4f88b67076ba3fb0cd3",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/01_practice_1_laps.csv": "12a6181526dad98f65c6f77f62723b42dd5b057b8adb8b63abab0ce596a50605",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/02_practice_2_laps.csv": "e8eabe2a8590b89489ae8b99e9ee66c11d3f5e4483d9c8d1b05f0abb3efc1574",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/03_practice_3_laps.csv": "6588bd578e9b52938c4e1e416f46bbfef333fd9b023c7898c25298a31752a7b3",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/04_qualifying_results.csv": "f7e003472641a8b853b312b921a54ca1d19626ea21d064b50d917a4b1ababcaa",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/05_race_results.csv": "7c319fe1de0227099dd0fafa70cd1152c57f46fa780b6c967c88db14dc4f1b46",
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/weekend_metadata.json": "5b7e345b493a66bbe536073b41c00f8703066c25eb6a0d9d1bb1c4b780b4fb42",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/01_practice_1_laps.csv": "f39af40c33d5e0125f128deb2e1296c548fd23d83c7a42ebc44fe6857645aad4",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/02_practice_2_laps.csv": "0ebfa2ea20655f89a070e82975493812c51d5fadcc177a7289e7fc72316dd807",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/03_practice_3_laps.csv": "273ae2734459b7b7f28eb85b1c8e9f3be54fb17d107b7f69813bdadb4f239ee1",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/04_qualifying_results.csv": "78bce5214627a865812688b76c7c641e8b4a357fadb5e0c043222f71b39b23e5",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/05_race_results.csv": "5abc6c3a430fb62dd9ca53a180c551800cb2d5c7dc7ab8e2e969ae9da68c1ce8",
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/weekend_metadata.json": "24c1ca459b66ba3b97851f9c00e87d222ca1bb3b8ffc25f47d38b4730f6d6e33",
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/01_practice_1_laps.csv": "61c39128cfbe21dd27d90a3b844771fe8fb3303135f2f95c0c2746ceb8e2a37d",
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/02_qualifying_results.csv": "0e5b0c70235104a7ede0653994425a1f4d5e66502f273d1d72689ae2eb69bba4",
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/05_race_results.csv": "023ece8c38f8d06544a34273a4d267b90f282cb0cc2f3e7c14df9c3328027287",
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/weekend_metadata.json": "25c9a57a65b2cbd1e870de4a76064bfcc29269a1cb3c9e6f1726e0d483ec5996",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/01_practice_1_laps.csv": "72a60923b76b65e525c01c135f442f05714dfe9928465ed072596aa965f3ffaa",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/02_practice_2_laps.csv": "10347fca937f359c5782849da2dc5d274e0a379e87507277e9768a7a0b23c04d",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/03_practice_3_laps.csv": "a25ff90d9885128e5a9d8e57914a5b66cf3253ec91bdfcfa78765ff3f5a2e444",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/04_qualifying_results.csv": "d17b58c6749e1f9d9e600be6427a140fc496bce71fea2ddcf43aebddfa6b9471",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/05_race_results.csv": "56a72be40049311a1dca027074abbc5fb04b42dce65d409e094dceed2dafcbf0",
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/weekend_metadata.json": "c84363bdfa01b0ffadae6b8ba3661fc2bf6d43e2547a79b55ca6f6447596f5bc",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/01_practice_1_laps.csv": "69dfd668e540cab185f1a27b169c2f22c075a7d2efd736b81b0d894d982937af",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/02_practice_2_laps.csv": "eaaf98ec707975d7024ae042314fa1c535635ddfce9fe5096811389f65e6c33a",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/03_practice_3_laps.csv": "b4fd1296805132b78c3009077eb6ab0be345b3a162114ca2b6c85bb1db1c4d39",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/04_qualifying_results.csv": "f7194ca459fce5311fb197852ec191392938accc851adc8f947bf83f454f4f3f",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_results.csv": "9245a09c537637b4536230f50d2b79816d7e2f114dc124f15925b33553b3801d",
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/weekend_metadata.json": "6026fc2ab17fa493fe410190845e68e0e8a3497bb5050491730501ba791e330b",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/01_practice_1_laps.csv": "1b752a69284bc3b5ab1a05e161a2721bc4d4a8eb6580298531ba426e8cc0b822",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/02_practice_2_laps.csv": "d6b346c4f293d539da1ed2455fcc4872b83b14b2c57840d0235ac43d860aa23c",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/03_practice_3_laps.csv": "d7b7f7269f858d488be9939821c8a6aa74d6d3f122f3c879a89b98658e3ac223",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/04_qualifying_results.csv": "4627ba1fe92e8da587eaf89e3bed0847b2156604bd935dd5f17757865602df60",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/05_race_results.csv": "99171ffd270cee17151c88cbc9c558af26d49e4b2a9590fb0c9e4ac2f6d59d43",
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/weekend_metadata.json": "f58e1058a64bae93578ea950c5f8d0e3c63bb894788d6b83c25af6d8e46b2eca",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/01_practice_1_laps.csv": "24470163c24d5a2ab1d27c056088f02822e7693f6e229b840fc731089431a8f4",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/02_practice_2_laps.csv": "d0b1ddfbdc215d5ab949f1415d00a0b04412794c11c1e101adcd4ffdb59f154d",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/03_practice_3_laps.csv": "2ecf03967d1b0fb8a5f3054f41fb13692a0736fd1a049a85ab4b050148fd164b",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/04_qualifying_results.csv": "3a2f4f27c9bf68aa728c251ed07e1f907d4a311dfc0be2a2a1d3125b086b6fdd",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/05_race_results.csv": "725fc4615bfebc8f4b850911d746521789095385f6b7233894e0a37725e063d9",
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/weekend_metadata.json": "d0b5a49a297e0668e775cf90718445602d942a22a29ef7738450654ed30a39f5",
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/01_practice_1_laps.csv": "91bbcc1f250f43766381113a0dd6eccae5c7679e2ebfa60ef642c2d1a7426f8b",
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/02_qualifying_results.csv": "2ac133ec37756ff6e08206b8ff336bccb12e41a48742e58461a12c87e22ee679",
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/05_race_results.csv": "53ca49b8f2c4ba7ce16aadce7f4cf933c3c1f5378165304f7821835f6381b49a",
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/weekend_metadata.json": "655a8b828b5f110f812994567bff78c2ed73c24999668efbc742b996009c5b88",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/01_practice_1_laps.csv": "ac1e392e7d2c5de66252282f4481eaaf3a10804882acde53e07fffee22a05778",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/02_practice_2_laps.csv": "c94dcee38705d1aaab634e13be5cb9184236d9bc8b36de57d6f0105e6290a808",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/03_practice_3_laps.csv": "fe12d383e99ace46e74039ea3edc663f81c15b6c337d542ee9141ab91d3dbc7e",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/04_qualifying_results.csv": "4ef709f93fa94b4dbee48bc292bf48c7b97e38766bcedce42e4056e7250d8cfd",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/05_race_results.csv": "cba0557fb03f9eeee432f183c7839ecf4552c371bf62548135f4f34d1318b0e1",
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/weekend_metadata.json": "4e3bbd6c46b963c6ddeeebf10dc12ed93f3a39aa920b6058c96e236518477b52",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/01_practice_1_laps.csv": "c26291989ad8b1e147163647aeb46ac83a0e2bc4d679b001105ac1301a503532",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/02_practice_2_laps.csv": "96d3dc690b2548a17b379180b105888806f525dd288d76b6965995f67d0e47db",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/03_practice_3_laps.csv": "52d9d43e8c279db03c0e1b012b9e2ae9123aacfde9a516db433cefc4ddcfbcee",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/04_qualifying_results.csv": "0519d4595a547a9b764807861d47b0a297993eb4cb1067235dcd85683385ad45",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/05_race_results.csv": "bfc80bf1e4f367202ae56d97d6d30af7104d5ba85f6f3f92f86d45733fed09b8",
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/weekend_metadata.json": "dd399b7af975d96cf462ba6b8aa253a1b9224d292b70e64f6f066562495d601f",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/01_practice_1_laps.csv": "f24caf0428891b2cfb2f2d0f4b436818263bf7ddb0c451490df8b97160297fb7",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/02_practice_2_laps.csv": "f6241fbc27e6c5233d7468b532efb929fd6139b2f7849ea962799af1a959c058",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/03_practice_3_laps.csv": "20577e71b65f6ac41bac02ab2264fca703b4ba47c18c0c61cd7114ff0cfbe2d8",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/04_qualifying_results.csv": "9830434fd0e53524b6ae016e68bdf106bfd74d338d2fdb270cb7220c191c81b4",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/05_race_results.csv": "e108558613e090909560d50252e2e97307f27878589d6ad97a4964572d5d5c73",
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/weekend_metadata.json": "af0d9d1e509c4a4509e6375aa1926f34e7d04c5676e64ed1184b5c77440f88e8",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/01_practice_1_laps.csv": "c7db144e6155e2c4a011fd67a969790789798f06af9e316ec02c6af6477cce1e",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/02_practice_2_laps.csv": "18962e009ebce3a7a1dc2df63d275ef3516aa759da14bb86cbc95750c0236774",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/03_practice_3_laps.csv": "c207078a7b408c37e078b2bb18687d48ea9c1f7f61b5de3527176fa422288be8",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/04_qualifying_results.csv": "1fab039f5c75611660882a0f88c80752984a9fa51841fe67c63b070c85524005",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/05_race_results.csv": "a92846e863b4aa80f862a113808e7b6e5b08fd2a712555aac98840bd133cb941",
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/weekend_metadata.json": "7bc4d601b31f5351b9fdae05880e026e285bf925b46a678014a35cf75e1264a7",
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/01_practice_1_laps.csv": "51ed52b1d90d14faadd283aca59e9920232e09687cc691ef6956d2b4be61a4d3",
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/02_qualifying_results.csv": "2e32f49fb485be3a38ebf2b6cd1fcc8e96c786e3eea6be0f3195858ebbed9056",
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/05_race_results.csv": "b3dc27b6f039a3c71da74080f1d78146cd4056e1ede13f2699d6a8159b898516",
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/weekend_metadata.json": "1b35caa9aaf5ed1175435a1e41869972eb369ff59635e670d037707c2637969c",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/01_practice_1_laps.csv": "bf7d7a90ad439f7efa57927a4ce0d09e8979e4f17dca62a7227995c1612c63ed",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/02_practice_2_laps.csv": "5e20d40e6ff610a1b8fb46db8d7c14489cd7647ac175a4290fa8fef9117faa83",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/03_practice_3_laps.csv": "d040a3d2bfcc3133fcd814ede1e67110799dc285a80e94e6428e82313d06b40f",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/04_qualifying_results.csv": "62736738b8a39e200071956c6fafec90f13d4da13b846338218b9a674b2b000a",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/05_race_results.csv": "c9e64ab5ee624483a0d578ebb47242397bceda4b6fdd7e7e0d4e1546dbbcb14c",
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/weekend_metadata.json": "e2c14693a2d52b3f61ec7047c66bcb895a89cd37c849c0ca30dc2fc6e149ad6a",
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/01_practice_1_laps.csv": "eed15f0c2fa890f4c16ed6def2e1615de8de76d381a99b5abba25d96053a2ad5",
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/02_qualifying_results.csv": "1312b7cfb61b1f31c5f90987c7306b5ebad15f37954fa997b764111a3f157cc4",
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/05_race_results.csv": "69f2df060c12ed9bc3ea01376e1a5957b9bbda4aa5fe51113fc08046f2f37402",
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/weekend_metadata.json": "d0c2adaddbadec2bf13516eb33ce2473620ab0c458e6fc45d44e189f557bb925",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/01_practice_1_laps.csv": "7bb25380d94ff4cf848ce01795fbd5d14abe2a33f21eadbe102d82622b60c21b",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/02_practice_2_laps.csv": "f55374e18937acd4193e0271f53cc20719d782247371a8626db0ad08b8d3d790",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/03_practice_3_laps.csv": "ebffb8417168e1171d696cc69f0725134685f0242017578e7ec33530063a0fc1",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/04_qualifying_results.csv": "1f43de5e7896e063d975d46d924ebf9a240c75a9819084ea72123c406c738fbe",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/05_race_results.csv": "2490efda79f469fffebccc20de2ac582fb1c6a0b5cc03de133a94760d2987647",
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/weekend_metadata.json": "1d50cbaa6224b86017a1ea15935a7c5aa2ed2c16c4c9fadfe3628edfbadd44d2",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/01_practice_1_laps.csv": "d36282a18bb8ac7befd22385bc6f89e4c4b84ebb960d0b3890db33fe6588194c",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/02_practice_2_laps.csv": "27134a1d81e96b1df602e633b18b06676ebc046c936a1f27cff8f714e731a499",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/03_practice_3_laps.csv": "e5a349be0857ec0d10e3c60e8a97ad63b7b29ebb81bea85359667d4f61458bdf",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/04_qualifying_results.csv": "0372c58c96ce9ead90481ad3f3e8a30c35360aa7fa2f7c5d2fbb6daa0dd96a60",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/05_race_results.csv": "6be298e5a8b2784fa1fe9f6e37b5a9b0d528dd9cac86a7299ea5a048c571d64a",
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/weekend_metadata.json": "21f297217e14a96ab2df9bfe56c63ed41ba6b4c663f7ef3b6b4a5d9f4a33dd92",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/01_practice_1_laps.csv": "124e66a0eef585deb2cffd042491004d4e5707a8e0e2227b54da50807580d91d",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/02_practice_2_laps.csv": "061fe074b99d6357d97247c1473145f572e97a5b703c47ffa97f3bc2dd7af7dd",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/03_practice_3_laps.csv": "4b2ff78d79b2ada17d80695b15810cb6dc280692b22417c776a6b6de748de1f7",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/04_qualifying_results.csv": "60409ab85a3dffc98b6dded49531ed55f6ee639a88c09af96692d2d50226655f",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/05_race_results.csv": "b613f17e078bad3a471c42bbfeb8ca5fcb1788a3c835e76fe8e1890b125a2ce5",
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/weekend_metadata.json": "ea06cfe537e72bc8b850d603fe6fa686fc560e5a03cea0905c11e866d9ed9223",
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/01_practice_1_laps.csv": "76d82b46fea93f053cec8f7b14f91d3b3d17ed0f9526b0dd20b8f325fb8d1053",
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/02_qualifying_results.csv": "46a1c1c83bd78c21f39c90424b15ea1946036b1ef37113ac28ed67136b30ffa0",
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/05_race_results.csv": "0327dc515e181f84b35b1b5e24b3d8046ad5b49ab3845b34531372190eb90efa",
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/weekend_metadata.json": "706fc152673b8494ba020f30451be793758db62a0307c1282bf829a8f66f6d15",
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/01_practice_1_laps.csv": "2618468115b15fc5d2be44159cc99826a29b9e6f0a724c5f793bdab9cd2de5ba",
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/02_qualifying_results.csv": "6b83846138a1ebb45d8eeaa131adc77388405deece46e2615965939ee261cbeb",
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/05_race_results.csv": "7970e459c27e1d6bc3039f5de9adf41893e924b077af5335ba315a567c4ba0f1",
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/weekend_metadata.json": "e633883276228604370a3f192e6bb1e61fc753a4c286104a1db64280fdbdc66c",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/01_practice_1_laps.csv": "8a4ac43bc12f62236875924d04e8ae9d2f0aa41c227a29c8b64768bf5d7fb27f",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/02_practice_2_laps.csv": "cca8c3098e725b775f9f8f2c07a88475d65b6c3c48dba4c6d5fdf2e63ae55be3",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/03_practice_3_laps.csv": "a2fadaf3fb13c1369113a6566a125b343eb89b8af69873898e9887eae120c9a8",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/04_qualifying_results.csv": "e5d752bb28da6646af2bca11fbc0bf9e4e33e975d3e80495622b727582498450",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/05_race_results.csv": "c683c36bfc37aa6faad1db5eb5124181ad42f2595f3740f9fcc97037761a9044",
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/weekend_metadata.json": "f8158c65aaea67c96c7dc27cebd9af63b888de9d0822e54351601dcc2dcd40ab",
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/01_practice_1_laps.csv": "cb878805dce1867546b074386b6be9f7c00289af5037f80aa1fa3cd25fd1aa1f",
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/02_qualifying_results.csv": "5f7c1e05275dbad5e5c0d8e628efe86057bfe05c316ff30bf4801be16f83bad1",
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/05_race_results.csv": "b750e556419dc6b7e822e75e15fc512c81f32a2c07d2b9274c4e6b688735139b",
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/weekend_metadata.json": "78c8b1c3fb0b4158d2b0435ecb24e90d5802c040dc70715ef5538147ce1b1c0a",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/01_practice_1_laps.csv": "01c532ec36064b6f53a00597a95e3e9ea8490a24a0555bc32d80d4e599e93ee6",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/02_practice_2_laps.csv": "88f7af9e6a51b3491bb6e47233dbcf31089b4a8503ee32954ed244571fee157a",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/03_practice_3_laps.csv": "5f7793ee063e2f11061608b1ef82b4219e8dea5e2ce1e052ea4529a1429c33bb",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/04_qualifying_results.csv": "949679dc377a82e197df53ca3ecbfaadd5bfb0f7f72ed751836582b3e6abefcf",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/05_race_results.csv": "73a3f7debb73c2c7985999ca520ba722d864ff3e40e64f84fe7230f0259b3b30",
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/weekend_metadata.json": "9b8fdbc2cf4fd70abe27d3fd893aa57203e60fa52fa9ad25b924d3dd30101ec4",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/01_practice_1_laps.csv": "3ca32419212ee399a1d18ec57d59d332a3e073f2e5c88440188e308627cd4aed",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/02_practice_2_laps.csv": "ecde3a0b25821e556dadcc4b003a76179ed1b20fe32ac0a80031032bc9b6e688",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/03_practice_3_laps.csv": "15e7b503702cb7613b4ddf746e2ec4606201e026201770d3492160db4c63a678",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/04_qualifying_results.csv": "c7ab6974d6a338ef5d4d2f5c84de93c51f68fb8cba50b6d6f553093ef1ebc0f6",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/05_race_results.csv": "d65f566734de357f72cf70c67e81993223668257feefbc0e0b3ef4eab29ed5ee",
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/weekend_metadata.json": "83b9ab994e33dd2fe87c383d778d763d42d2f9208adaefb802335690494f05cb"
+  },
+  "output_manifest": {
+    "artifacts/research/boundary_20260908/race_practice/selection_design_lock.json": "30e55bca0e2059893f09460ece116dee93af44f7999bc74c0b450bf6abd3566c",
+    "artifacts/research/boundary_20260908/race_practice/selection_execution.log": "f9b4bb10535db40440c6760d5aaaad287ae4f25b6d88f54ac57b1d8b2511cc3d",
+    "artifacts/research/boundary_20260908/race_practice/selection_feature_ledger.json": "f574401d832052564273b0ddde3526a86563462b1060ab5b8fb0a9e8e99451f9",
+    "artifacts/research/boundary_20260908/race_practice/selection_fits.json": "4147d5c5ac1cf5268dcef14ece21210b41e28677cae0f716a501bd3be29d6242",
+    "artifacts/research/boundary_20260908/race_practice/selection_forecasts.json": "51fc2803a85863c0ea747e2124b264bd85d496e48e0f57b732e5223d5ce3c4d4",
+    "artifacts/research/boundary_20260908/race_practice/selection_forecasts_before_targets.jsonl": "4bf72d4c0ac9623be4de068fba2497b7be1c61a15cfa115d7b83313cbde435fe"
+  },
+  "prior_result_sha256": "b068c36190abf19ad0d93c1c608d6af3cdd36884888e1e4ac07a70d83d0008ca",
+  "production_changed": false,
+  "promotion": false,
+  "scores": {
+    "baseline": [
+      {
+        "drivers": 20,
+        "event": "2023:01",
+        "format": "standard",
+        "kendall": 0.38947368421052636,
+        "mae": 4.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:02",
+        "format": "standard",
+        "kendall": 0.4736842105263158,
+        "mae": 3.5,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:03",
+        "format": "standard",
+        "kendall": 0.11578947368421053,
+        "mae": 5.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:04",
+        "format": "sprint",
+        "kendall": 0.7473684210526316,
+        "mae": 2.0,
+        "top3_overlap": 1.0,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:05",
+        "format": "standard",
+        "kendall": 0.631578947368421,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:06",
+        "format": "standard",
+        "kendall": 0.6842105263157895,
+        "mae": 2.3,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:07",
+        "format": "standard",
+        "kendall": 0.43157894736842106,
+        "mae": 3.8,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:08",
+        "format": "standard",
+        "kendall": 0.43157894736842106,
+        "mae": 4.1,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:09",
+        "format": "sprint",
+        "kendall": 0.5473684210526316,
+        "mae": 3.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:11",
+        "format": "standard",
+        "kendall": 0.4736842105263158,
+        "mae": 3.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:12",
+        "format": "sprint",
+        "kendall": 0.5578947368421052,
+        "mae": 3.1,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:13",
+        "format": "standard",
+        "kendall": 0.3263157894736842,
+        "mae": 4.7,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:14",
+        "format": "standard",
+        "kendall": 0.7052631578947369,
+        "mae": 2.4,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:16",
+        "format": "standard",
+        "kendall": 0.6105263157894737,
+        "mae": 2.6,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:17",
+        "format": "sprint",
+        "kendall": 0.38947368421052636,
+        "mae": 4.0,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:18",
+        "format": "sprint",
+        "kendall": 0.0736842105263158,
+        "mae": 5.3,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:19",
+        "format": "standard",
+        "kendall": 0.3684210526315789,
+        "mae": 4.1,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:20",
+        "format": "sprint",
+        "kendall": 0.35789473684210527,
+        "mae": 4.5,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:21",
+        "format": "standard",
+        "kendall": 0.30526315789473685,
+        "mae": 5.3,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:22",
+        "format": "standard",
+        "kendall": 0.6947368421052632,
+        "mae": 2.1,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      }
+    ],
+    "boosted_absolute_movement_1": [
+      {
+        "drivers": 20,
+        "event": "2023:01",
+        "format": "standard",
+        "kendall": 0.38947368421052636,
+        "mae": 4.1,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:02",
+        "format": "standard",
+        "kendall": 0.4736842105263158,
+        "mae": 3.6,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:03",
+        "format": "standard",
+        "kendall": 0.06315789473684211,
+        "mae": 6.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:04",
+        "format": "sprint",
+        "kendall": 0.7578947368421053,
+        "mae": 2.0,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:05",
+        "format": "standard",
+        "kendall": 0.7157894736842105,
+        "mae": 2.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:06",
+        "format": "standard",
+        "kendall": 0.6631578947368422,
+        "mae": 2.3,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:07",
+        "format": "standard",
+        "kendall": 0.5578947368421052,
+        "mae": 3.0,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:08",
+        "format": "standard",
+        "kendall": 0.4631578947368421,
+        "mae": 3.8,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:09",
+        "format": "sprint",
+        "kendall": 0.6000000000000001,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:11",
+        "format": "standard",
+        "kendall": 0.5789473684210527,
+        "mae": 3.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:12",
+        "format": "sprint",
+        "kendall": 0.6000000000000001,
+        "mae": 2.8,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:13",
+        "format": "standard",
+        "kendall": 0.37894736842105264,
+        "mae": 4.2,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:14",
+        "format": "standard",
+        "kendall": 0.6947368421052632,
+        "mae": 2.4,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:16",
+        "format": "standard",
+        "kendall": 0.5684210526315789,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:17",
+        "format": "sprint",
+        "kendall": 0.39999999999999997,
+        "mae": 3.9,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:18",
+        "format": "sprint",
+        "kendall": 0.052631578947368425,
+        "mae": 5.8,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:19",
+        "format": "standard",
+        "kendall": 0.38947368421052636,
+        "mae": 3.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:20",
+        "format": "sprint",
+        "kendall": 0.3684210526315789,
+        "mae": 4.3,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:21",
+        "format": "standard",
+        "kendall": 0.4631578947368421,
+        "mae": 4.1,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:22",
+        "format": "standard",
+        "kendall": 0.7473684210526316,
+        "mae": 1.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      }
+    ],
+    "hgb_practice": [
+      {
+        "drivers": 20,
+        "event": "2023:01",
+        "format": "standard",
+        "kendall": 0.37894736842105264,
+        "mae": 4.5,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:02",
+        "format": "standard",
+        "kendall": 0.5368421052631579,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:03",
+        "format": "standard",
+        "kendall": 0.1368421052631579,
+        "mae": 5.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:04",
+        "format": "sprint",
+        "kendall": 0.7789473684210527,
+        "mae": 1.5,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:05",
+        "format": "standard",
+        "kendall": 0.6631578947368422,
+        "mae": 2.4,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:06",
+        "format": "standard",
+        "kendall": 0.5368421052631579,
+        "mae": 3.3,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:07",
+        "format": "standard",
+        "kendall": 0.5789473684210527,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:08",
+        "format": "standard",
+        "kendall": 0.49473684210526314,
+        "mae": 3.2,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:09",
+        "format": "sprint",
+        "kendall": 0.6000000000000001,
+        "mae": 2.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:11",
+        "format": "standard",
+        "kendall": 0.5157894736842106,
+        "mae": 3.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:12",
+        "format": "sprint",
+        "kendall": 0.5473684210526316,
+        "mae": 3.0,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:13",
+        "format": "standard",
+        "kendall": 0.4210526315789474,
+        "mae": 3.9,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:14",
+        "format": "standard",
+        "kendall": 0.6421052631578947,
+        "mae": 2.4,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:16",
+        "format": "standard",
+        "kendall": 0.5473684210526316,
+        "mae": 3.2,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:17",
+        "format": "sprint",
+        "kendall": 0.2736842105263158,
+        "mae": 4.8,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:18",
+        "format": "sprint",
+        "kendall": 0.06315789473684211,
+        "mae": 5.7,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:19",
+        "format": "standard",
+        "kendall": 0.4631578947368421,
+        "mae": 3.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:20",
+        "format": "sprint",
+        "kendall": 0.3473684210526316,
+        "mae": 4.5,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:21",
+        "format": "standard",
+        "kendall": 0.4736842105263158,
+        "mae": 3.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:22",
+        "format": "standard",
+        "kendall": 0.7368421052631579,
+        "mae": 1.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      }
+    ],
+    "hgb_practice_without_practice": [
+      {
+        "drivers": 20,
+        "event": "2023:01",
+        "format": "standard",
+        "kendall": 0.4105263157894737,
+        "mae": 4.0,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:02",
+        "format": "standard",
+        "kendall": 0.4736842105263158,
+        "mae": 3.5,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:03",
+        "format": "standard",
+        "kendall": 0.021052631578947368,
+        "mae": 6.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:04",
+        "format": "sprint",
+        "kendall": 0.7473684210526316,
+        "mae": 1.9,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:05",
+        "format": "standard",
+        "kendall": 0.631578947368421,
+        "mae": 2.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:06",
+        "format": "standard",
+        "kendall": 0.6000000000000001,
+        "mae": 2.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:07",
+        "format": "standard",
+        "kendall": 0.5578947368421052,
+        "mae": 3.0,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:08",
+        "format": "standard",
+        "kendall": 0.5052631578947369,
+        "mae": 3.5,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:09",
+        "format": "sprint",
+        "kendall": 0.5894736842105264,
+        "mae": 2.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:11",
+        "format": "standard",
+        "kendall": 0.5684210526315789,
+        "mae": 3.3,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:12",
+        "format": "sprint",
+        "kendall": 0.6421052631578947,
+        "mae": 2.7,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:13",
+        "format": "standard",
+        "kendall": 0.35789473684210527,
+        "mae": 4.3,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:14",
+        "format": "standard",
+        "kendall": 0.6736842105263158,
+        "mae": 2.4,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:16",
+        "format": "standard",
+        "kendall": 0.5789473684210527,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:17",
+        "format": "sprint",
+        "kendall": 0.35789473684210527,
+        "mae": 4.1,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:18",
+        "format": "sprint",
+        "kendall": 0.021052631578947368,
+        "mae": 5.8,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:19",
+        "format": "standard",
+        "kendall": 0.39999999999999997,
+        "mae": 4.0,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:20",
+        "format": "sprint",
+        "kendall": 0.3368421052631579,
+        "mae": 4.3,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:21",
+        "format": "standard",
+        "kendall": 0.4736842105263158,
+        "mae": 4.0,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:22",
+        "format": "standard",
+        "kendall": 0.7578947368421053,
+        "mae": 1.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      }
+    ],
+    "huber_movement_1": [
+      {
+        "drivers": 20,
+        "event": "2023:01",
+        "format": "standard",
+        "kendall": 0.38947368421052636,
+        "mae": 4.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:02",
+        "format": "standard",
+        "kendall": 0.5052631578947369,
+        "mae": 3.4,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:03",
+        "format": "standard",
+        "kendall": 0.1473684210526316,
+        "mae": 5.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:04",
+        "format": "sprint",
+        "kendall": 0.7894736842105264,
+        "mae": 1.5,
+        "top3_overlap": 1.0,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:05",
+        "format": "standard",
+        "kendall": 0.7894736842105264,
+        "mae": 1.5,
+        "top3_overlap": 1.0,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:06",
+        "format": "standard",
+        "kendall": 0.5684210526315789,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:07",
+        "format": "standard",
+        "kendall": 0.7052631578947369,
+        "mae": 2.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:08",
+        "format": "standard",
+        "kendall": 0.5473684210526316,
+        "mae": 2.9,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:09",
+        "format": "sprint",
+        "kendall": 0.6105263157894737,
+        "mae": 2.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:11",
+        "format": "standard",
+        "kendall": 0.6210526315789474,
+        "mae": 3.0,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:12",
+        "format": "sprint",
+        "kendall": 0.631578947368421,
+        "mae": 2.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:13",
+        "format": "standard",
+        "kendall": 0.43157894736842106,
+        "mae": 4.0,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:14",
+        "format": "standard",
+        "kendall": 0.6842105263157895,
+        "mae": 2.2,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:16",
+        "format": "standard",
+        "kendall": 0.5578947368421052,
+        "mae": 3.0,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:17",
+        "format": "sprint",
+        "kendall": 0.39999999999999997,
+        "mae": 4.0,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:18",
+        "format": "sprint",
+        "kendall": 0.052631578947368425,
+        "mae": 5.7,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:19",
+        "format": "standard",
+        "kendall": 0.39999999999999997,
+        "mae": 3.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:20",
+        "format": "sprint",
+        "kendall": 0.35789473684210527,
+        "mae": 4.3,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:21",
+        "format": "standard",
+        "kendall": 0.5578947368421052,
+        "mae": 3.5,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:22",
+        "format": "standard",
+        "kendall": 0.7999999999999999,
+        "mae": 1.6,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      }
+    ],
+    "pairwise_practice": [
+      {
+        "drivers": 20,
+        "event": "2023:01",
+        "format": "standard",
+        "kendall": 0.4210526315789474,
+        "mae": 3.9,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:02",
+        "format": "standard",
+        "kendall": 0.49473684210526314,
+        "mae": 3.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:03",
+        "format": "standard",
+        "kendall": 0.23157894736842105,
+        "mae": 5.5,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:04",
+        "format": "sprint",
+        "kendall": 0.7263157894736842,
+        "mae": 2.1,
+        "top3_overlap": 1.0,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:05",
+        "format": "standard",
+        "kendall": 0.8631578947368421,
+        "mae": 0.9,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:06",
+        "format": "standard",
+        "kendall": 0.5894736842105264,
+        "mae": 3.1,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:07",
+        "format": "standard",
+        "kendall": 0.6526315789473685,
+        "mae": 2.4,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:08",
+        "format": "standard",
+        "kendall": 0.6105263157894737,
+        "mae": 2.3,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:09",
+        "format": "sprint",
+        "kendall": 0.6105263157894737,
+        "mae": 2.8,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:11",
+        "format": "standard",
+        "kendall": 0.5368421052631579,
+        "mae": 3.3,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:12",
+        "format": "sprint",
+        "kendall": 0.5052631578947369,
+        "mae": 3.5,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:13",
+        "format": "standard",
+        "kendall": 0.4210526315789474,
+        "mae": 4.0,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:14",
+        "format": "standard",
+        "kendall": 0.5789473684210527,
+        "mae": 3.1,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:16",
+        "format": "standard",
+        "kendall": 0.4842105263157895,
+        "mae": 3.5,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:17",
+        "format": "sprint",
+        "kendall": 0.37894736842105264,
+        "mae": 4.1,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:18",
+        "format": "sprint",
+        "kendall": 0.1368421052631579,
+        "mae": 5.7,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:19",
+        "format": "standard",
+        "kendall": 0.43157894736842106,
+        "mae": 3.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:20",
+        "format": "sprint",
+        "kendall": 0.3473684210526316,
+        "mae": 4.2,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:21",
+        "format": "standard",
+        "kendall": 0.5052631578947369,
+        "mae": 3.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:22",
+        "format": "standard",
+        "kendall": 0.7789473684210527,
+        "mae": 1.6,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      }
+    ],
+    "pairwise_practice_without_practice": [
+      {
+        "drivers": 20,
+        "event": "2023:01",
+        "format": "standard",
+        "kendall": 0.38947368421052636,
+        "mae": 4.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:02",
+        "format": "standard",
+        "kendall": 0.5263157894736842,
+        "mae": 3.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:03",
+        "format": "standard",
+        "kendall": 0.15789473684210525,
+        "mae": 5.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:04",
+        "format": "sprint",
+        "kendall": 0.7789473684210527,
+        "mae": 1.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:05",
+        "format": "standard",
+        "kendall": 0.7894736842105264,
+        "mae": 1.6,
+        "top3_overlap": 1.0,
+        "winner_hit": 0,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:06",
+        "format": "standard",
+        "kendall": 0.6105263157894737,
+        "mae": 2.9,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:07",
+        "format": "standard",
+        "kendall": 0.7052631578947369,
+        "mae": 2.2,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:08",
+        "format": "standard",
+        "kendall": 0.5578947368421052,
+        "mae": 2.9,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:09",
+        "format": "sprint",
+        "kendall": 0.6105263157894737,
+        "mae": 2.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:11",
+        "format": "standard",
+        "kendall": 0.6210526315789474,
+        "mae": 3.0,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:12",
+        "format": "sprint",
+        "kendall": 0.6631578947368422,
+        "mae": 2.6,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:13",
+        "format": "standard",
+        "kendall": 0.4421052631578947,
+        "mae": 3.9,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:14",
+        "format": "standard",
+        "kendall": 0.7157894736842105,
+        "mae": 2.1,
+        "top3_overlap": 1.0,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:16",
+        "format": "standard",
+        "kendall": 0.5368421052631579,
+        "mae": 3.1,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:17",
+        "format": "sprint",
+        "kendall": 0.35789473684210527,
+        "mae": 4.3,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:18",
+        "format": "sprint",
+        "kendall": 0.08421052631578947,
+        "mae": 5.6,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:19",
+        "format": "standard",
+        "kendall": 0.4105263157894737,
+        "mae": 3.8,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:20",
+        "format": "sprint",
+        "kendall": 0.35789473684210527,
+        "mae": 4.3,
+        "top3_overlap": 0.3333333333333333,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:21",
+        "format": "standard",
+        "kendall": 0.5263157894736842,
+        "mae": 3.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      },
+      {
+        "drivers": 20,
+        "event": "2023:22",
+        "format": "standard",
+        "kendall": 0.7789473684210527,
+        "mae": 1.7,
+        "top3_overlap": 0.6666666666666666,
+        "winner_hit": 1,
+        "year": 2023
+      }
+    ]
+  },
+  "selected": "pairwise_practice",
+  "source_manifest": {
+    "research/experiments/boundary_20260908/race_practice/features.py": "86b8f5fecbb19a19ea22d373185576fb0bcf7e6f99ca4f005a51da1fd52ca2fe",
+    "research/experiments/boundary_20260908/race_practice/models.py": "2cb152dc640ee1a8ad573ab2f00c0583c2619071050065b3e6b73f647ca9b232",
+    "research/experiments/boundary_20260908/race_practice/run.py": "380fc3cb1c1aab8e37530b472912e76877791ea6331fe21a8f24d39679e79366",
+    "research/experiments/boundary_20260908/race_practice/specification.json": "0209bc9332c4f33c834b44f5681b5cc0721b5b39fb2ddd3259f2d203e9822f8d",
+    "research/experiments/boundary_20260908/race_practice/test_experiment.py": "5ddf6d3637ae25f75fe7ef3c52220f0def8563d41215ab59fcf3eaa57067baff",
+    "research/experiments/boundary_20260908/race_practice/verify.py": "f101cd74b7eac4f9bc0788a9eac6e61ec54935ec787b493cfe9116f0ab549782",
+    "research/experiments/performance_20260907/race/run.py": "09b09b7c583a37d4e23482c856c1ddac4170ad5aea825ac3ed01c808de23396c",
+    "research/experiments/performance_20260907/race/specification.json": "cc4958cbe496aa985bf76ca24062d3925cb2124920c37166a90b8a55d56ac25f"
+  },
+  "specification_sha256": "0209bc9332c4f33c834b44f5681b5cc0721b5b39fb2ddd3259f2d203e9822f8d",
+  "support": [
+    {
+      "drivers": 20,
+      "event": "2022:01",
+      "matched_laps": 270,
+      "sessions": [
+        {
+          "clean_laps": 223,
+          "longrun_laps": 109,
+          "matched_laps": 92,
+          "path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 316,
+          "longrun_laps": 172,
+          "matched_laps": 155,
+          "path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 164,
+          "longrun_laps": 42,
+          "matched_laps": 23,
+          "path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:03",
+      "matched_laps": 245,
+      "sessions": [
+        {
+          "clean_laps": 290,
+          "longrun_laps": 167,
+          "matched_laps": 114,
+          "path": "data/f1/raw/weekends/2022/round_03_australian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 285,
+          "longrun_laps": 145,
+          "matched_laps": 115,
+          "path": "data/f1/raw/weekends/2022/round_03_australian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 140,
+          "longrun_laps": 28,
+          "matched_laps": 16,
+          "path": "data/f1/raw/weekends/2022/round_03_australian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:04",
+      "matched_laps": 64,
+      "sessions": [
+        {
+          "clean_laps": 175,
+          "longrun_laps": 73,
+          "matched_laps": 64,
+          "path": "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 10,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:05",
+      "matched_laps": 206,
+      "sessions": [
+        {
+          "clean_laps": 297,
+          "longrun_laps": 157,
+          "matched_laps": 115,
+          "path": "data/f1/raw/weekends/2022/round_05_miami_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 177,
+          "longrun_laps": 66,
+          "matched_laps": 51,
+          "path": "data/f1/raw/weekends/2022/round_05_miami_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 215,
+          "longrun_laps": 77,
+          "matched_laps": 40,
+          "path": "data/f1/raw/weekends/2022/round_05_miami_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 19,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:06",
+      "matched_laps": 267,
+      "sessions": [
+        {
+          "clean_laps": 310,
+          "longrun_laps": 161,
+          "matched_laps": 137,
+          "path": "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 328,
+          "longrun_laps": 181,
+          "matched_laps": 148,
+          "path": "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 177,
+          "longrun_laps": 53,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:07",
+      "matched_laps": 405,
+      "sessions": [
+        {
+          "clean_laps": 368,
+          "longrun_laps": 214,
+          "matched_laps": 149,
+          "path": "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 348,
+          "longrun_laps": 178,
+          "matched_laps": 128,
+          "path": "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 315,
+          "longrun_laps": 150,
+          "matched_laps": 128,
+          "path": "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:08",
+      "matched_laps": 135,
+      "sessions": [
+        {
+          "clean_laps": 175,
+          "longrun_laps": 40,
+          "matched_laps": 19,
+          "path": "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 233,
+          "longrun_laps": 107,
+          "matched_laps": 99,
+          "path": "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 165,
+          "longrun_laps": 30,
+          "matched_laps": 17,
+          "path": "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 17,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:09",
+      "matched_laps": 487,
+      "sessions": [
+        {
+          "clean_laps": 421,
+          "longrun_laps": 287,
+          "matched_laps": 243,
+          "path": "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 440,
+          "longrun_laps": 288,
+          "matched_laps": 228,
+          "path": "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 135,
+          "longrun_laps": 58,
+          "matched_laps": 16,
+          "path": "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:10",
+      "matched_laps": 252,
+      "sessions": [
+        {
+          "clean_laps": 16,
+          "longrun_laps": 0,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2022/round_10_british_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 330,
+          "longrun_laps": 206,
+          "matched_laps": 178,
+          "path": "data/f1/raw/weekends/2022/round_10_british_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 253,
+          "longrun_laps": 106,
+          "matched_laps": 74,
+          "path": "data/f1/raw/weekends/2022/round_10_british_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:11",
+      "matched_laps": 176,
+      "sessions": [
+        {
+          "clean_laps": 399,
+          "longrun_laps": 199,
+          "matched_laps": 176,
+          "path": "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 19,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:12",
+      "matched_laps": 150,
+      "sessions": [
+        {
+          "clean_laps": 225,
+          "longrun_laps": 80,
+          "matched_laps": 42,
+          "path": "data/f1/raw/weekends/2022/round_12_french_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 272,
+          "longrun_laps": 139,
+          "matched_laps": 102,
+          "path": "data/f1/raw/weekends/2022/round_12_french_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 167,
+          "longrun_laps": 51,
+          "matched_laps": 11,
+          "path": "data/f1/raw/weekends/2022/round_12_french_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 17,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:13",
+      "matched_laps": 308,
+      "sessions": [
+        {
+          "clean_laps": 300,
+          "longrun_laps": 154,
+          "matched_laps": 105,
+          "path": "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 367,
+          "longrun_laps": 224,
+          "matched_laps": 187,
+          "path": "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 141,
+          "longrun_laps": 25,
+          "matched_laps": 20,
+          "path": "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:14",
+      "matched_laps": 71,
+      "sessions": [
+        {
+          "clean_laps": 97,
+          "longrun_laps": 25,
+          "matched_laps": 23,
+          "path": "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 171,
+          "longrun_laps": 37,
+          "matched_laps": 15,
+          "path": "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 174,
+          "longrun_laps": 65,
+          "matched_laps": 38,
+          "path": "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 11,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:15",
+      "matched_laps": 361,
+      "sessions": [
+        {
+          "clean_laps": 378,
+          "longrun_laps": 211,
+          "matched_laps": 118,
+          "path": "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 282,
+          "longrun_laps": 193,
+          "matched_laps": 162,
+          "path": "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 242,
+          "longrun_laps": 113,
+          "matched_laps": 81,
+          "path": "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:16",
+      "matched_laps": 340,
+      "sessions": [
+        {
+          "clean_laps": 352,
+          "longrun_laps": 199,
+          "matched_laps": 159,
+          "path": "data/f1/raw/weekends/2022/round_16_italian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 298,
+          "longrun_laps": 178,
+          "matched_laps": 133,
+          "path": "data/f1/raw/weekends/2022/round_16_italian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 230,
+          "longrun_laps": 107,
+          "matched_laps": 61,
+          "path": "data/f1/raw/weekends/2022/round_16_italian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:17",
+      "matched_laps": 192,
+      "sessions": [
+        {
+          "clean_laps": 212,
+          "longrun_laps": 99,
+          "matched_laps": 78,
+          "path": "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 192,
+          "longrun_laps": 100,
+          "matched_laps": 88,
+          "path": "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 86,
+          "longrun_laps": 26,
+          "matched_laps": 26,
+          "path": "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:18",
+      "matched_laps": 211,
+      "sessions": [
+        {
+          "clean_laps": 90,
+          "longrun_laps": 8,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 183,
+          "longrun_laps": 76,
+          "matched_laps": 63,
+          "path": "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 329,
+          "longrun_laps": 192,
+          "matched_laps": 148,
+          "path": "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 17,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:19",
+      "matched_laps": 77,
+      "sessions": [
+        {
+          "clean_laps": 236,
+          "longrun_laps": 108,
+          "matched_laps": 50,
+          "path": "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 28,
+          "longrun_laps": 14,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 182,
+          "longrun_laps": 57,
+          "matched_laps": 37,
+          "path": "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 13,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:20",
+      "matched_laps": 174,
+      "sessions": [
+        {
+          "clean_laps": 228,
+          "longrun_laps": 112,
+          "matched_laps": 98,
+          "path": "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 29,
+          "longrun_laps": 10,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 262,
+          "longrun_laps": 132,
+          "matched_laps": 91,
+          "path": "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 17,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:21",
+      "matched_laps": 166,
+      "sessions": [
+        {
+          "clean_laps": 395,
+          "longrun_laps": 225,
+          "matched_laps": 166,
+          "path": "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 18,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2022:22",
+      "matched_laps": 245,
+      "sessions": [
+        {
+          "clean_laps": 304,
+          "longrun_laps": 137,
+          "matched_laps": 74,
+          "path": "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 361,
+          "longrun_laps": 221,
+          "matched_laps": 209,
+          "path": "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 172,
+          "longrun_laps": 37,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2022
+    },
+    {
+      "drivers": 20,
+      "event": "2023:01",
+      "matched_laps": 272,
+      "sessions": [
+        {
+          "clean_laps": 228,
+          "longrun_laps": 129,
+          "matched_laps": 83,
+          "path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 334,
+          "longrun_laps": 211,
+          "matched_laps": 174,
+          "path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 162,
+          "longrun_laps": 40,
+          "matched_laps": 15,
+          "path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 18,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:02",
+      "matched_laps": 298,
+      "sessions": [
+        {
+          "clean_laps": 279,
+          "longrun_laps": 139,
+          "matched_laps": 80,
+          "path": "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 353,
+          "longrun_laps": 224,
+          "matched_laps": 181,
+          "path": "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 206,
+          "longrun_laps": 69,
+          "matched_laps": 37,
+          "path": "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:03",
+      "matched_laps": 237,
+      "sessions": [
+        {
+          "clean_laps": 201,
+          "longrun_laps": 55,
+          "matched_laps": 45,
+          "path": "data/f1/raw/weekends/2023/round_03_australian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 178,
+          "longrun_laps": 116,
+          "matched_laps": 112,
+          "path": "data/f1/raw/weekends/2023/round_03_australian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 246,
+          "longrun_laps": 110,
+          "matched_laps": 80,
+          "path": "data/f1/raw/weekends/2023/round_03_australian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 17,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:04",
+      "matched_laps": 2,
+      "sessions": [
+        {
+          "clean_laps": 130,
+          "longrun_laps": 21,
+          "matched_laps": 2,
+          "path": "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 1,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:05",
+      "matched_laps": 216,
+      "sessions": [
+        {
+          "clean_laps": 278,
+          "longrun_laps": 165,
+          "matched_laps": 134,
+          "path": "data/f1/raw/weekends/2023/round_05_miami_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 234,
+          "longrun_laps": 35,
+          "matched_laps": 15,
+          "path": "data/f1/raw/weekends/2023/round_05_miami_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 224,
+          "longrun_laps": 86,
+          "matched_laps": 67,
+          "path": "data/f1/raw/weekends/2023/round_05_miami_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 19,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:06",
+      "matched_laps": 496,
+      "sessions": [
+        {
+          "clean_laps": 369,
+          "longrun_laps": 209,
+          "matched_laps": 187,
+          "path": "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 390,
+          "longrun_laps": 242,
+          "matched_laps": 224,
+          "path": "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 227,
+          "longrun_laps": 93,
+          "matched_laps": 85,
+          "path": "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:07",
+      "matched_laps": 262,
+      "sessions": [
+        {
+          "clean_laps": 251,
+          "longrun_laps": 121,
+          "matched_laps": 76,
+          "path": "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 347,
+          "longrun_laps": 223,
+          "matched_laps": 186,
+          "path": "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 151,
+          "longrun_laps": 19,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:08",
+      "matched_laps": 408,
+      "sessions": [
+        {
+          "clean_laps": 0,
+          "longrun_laps": 0,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 442,
+          "longrun_laps": 275,
+          "matched_laps": 233,
+          "path": "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 274,
+          "longrun_laps": 181,
+          "matched_laps": 175,
+          "path": "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:09",
+      "matched_laps": 188,
+      "sessions": [
+        {
+          "clean_laps": 403,
+          "longrun_laps": 238,
+          "matched_laps": 188,
+          "path": "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 18,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:11",
+      "matched_laps": 228,
+      "sessions": [
+        {
+          "clean_laps": 33,
+          "longrun_laps": 4,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 350,
+          "longrun_laps": 237,
+          "matched_laps": 195,
+          "path": "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 266,
+          "longrun_laps": 124,
+          "matched_laps": 33,
+          "path": "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 19,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:12",
+      "matched_laps": 0,
+      "sessions": [
+        {
+          "clean_laps": 12,
+          "longrun_laps": 0,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 0,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:13",
+      "matched_laps": 401,
+      "sessions": [
+        {
+          "clean_laps": 312,
+          "longrun_laps": 198,
+          "matched_laps": 124,
+          "path": "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 369,
+          "longrun_laps": 233,
+          "matched_laps": 222,
+          "path": "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 177,
+          "longrun_laps": 85,
+          "matched_laps": 71,
+          "path": "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:14",
+      "matched_laps": 180,
+      "sessions": [
+        {
+          "clean_laps": 309,
+          "longrun_laps": 182,
+          "matched_laps": 111,
+          "path": "data/f1/raw/weekends/2023/round_14_italian_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 164,
+          "longrun_laps": 16,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2023/round_14_italian_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 289,
+          "longrun_laps": 132,
+          "matched_laps": 69,
+          "path": "data/f1/raw/weekends/2023/round_14_italian_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 16,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:16",
+      "matched_laps": 139,
+      "sessions": [
+        {
+          "clean_laps": 192,
+          "longrun_laps": 88,
+          "matched_laps": 33,
+          "path": "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 203,
+          "longrun_laps": 128,
+          "matched_laps": 106,
+          "path": "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 122,
+          "longrun_laps": 16,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 16,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:17",
+      "matched_laps": 170,
+      "sessions": [
+        {
+          "clean_laps": 355,
+          "longrun_laps": 207,
+          "matched_laps": 170,
+          "path": "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 18,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:18",
+      "matched_laps": 98,
+      "sessions": [
+        {
+          "clean_laps": 260,
+          "longrun_laps": 143,
+          "matched_laps": 98,
+          "path": "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 17,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:19",
+      "matched_laps": 279,
+      "sessions": [
+        {
+          "clean_laps": 265,
+          "longrun_laps": 171,
+          "matched_laps": 99,
+          "path": "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 319,
+          "longrun_laps": 207,
+          "matched_laps": 142,
+          "path": "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 226,
+          "longrun_laps": 89,
+          "matched_laps": 57,
+          "path": "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:20",
+      "matched_laps": 190,
+      "sessions": [
+        {
+          "clean_laps": 409,
+          "longrun_laps": 263,
+          "matched_laps": 190,
+          "path": "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:21",
+      "matched_laps": 274,
+      "sessions": [
+        {
+          "clean_laps": 28,
+          "longrun_laps": 0,
+          "matched_laps": 0,
+          "path": "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 464,
+          "longrun_laps": 265,
+          "matched_laps": 206,
+          "path": "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 176,
+          "longrun_laps": 89,
+          "matched_laps": 68,
+          "path": "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 20,
+      "year": 2023
+    },
+    {
+      "drivers": 20,
+      "event": "2023:22",
+      "matched_laps": 124,
+      "sessions": [
+        {
+          "clean_laps": 248,
+          "longrun_laps": 80,
+          "matched_laps": 37,
+          "path": "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/01_practice_1_laps.csv",
+          "session_order": 1
+        },
+        {
+          "clean_laps": 170,
+          "longrun_laps": 79,
+          "matched_laps": 71,
+          "path": "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/02_practice_2_laps.csv",
+          "session_order": 2
+        },
+        {
+          "clean_laps": 204,
+          "longrun_laps": 73,
+          "matched_laps": 40,
+          "path": "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/03_practice_3_laps.csv",
+          "session_order": 3
+        }
+      ],
+      "supported_drivers": 18,
+      "year": 2023
+    }
+  ]
+}

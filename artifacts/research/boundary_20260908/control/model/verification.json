@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "source_sha256": "36234b81ede4c139abb32567be4f0b1d118a35383c007114b0b0e391253383a3",
+  "results_sha256": "ce8dfb6034ed33269a5b0bd7f1839f061250238b4c589960bdfbdc6c85bdf859",
+  "design_sha256": "f43e97c7f857cd841ed50265394e368a5338d83a7b6a16b4c6987cfbf3b9ca02",
+  "input_files": 132,
+  "dependencies": 20,
+  "control_feature_rows_exact": 32575,
+  "base_and_c1_chronology_predictions_exact": 32575,
+  "candidate_and_latency_predictions_exact": 133044,
+  "independent_event_and_target_metric_means": true,
+  "all_saved_metrics_and_uncertainty_exact": true,
+  "model_feature_and_target_pairing_unchanged": true,
+  "real_prefix_checks": [
+    {
+      "event_key": 202212,
+      "checkpoints": 40,
+      "prefix_and_future_poison_equal": true
+    },
+    {
+      "event_key": 202303,
+      "checkpoints": 40,
+      "prefix_and_future_poison_equal": true
+    }
+  ],
+  "advanced": false,
+  "transfer_executed": false
+}

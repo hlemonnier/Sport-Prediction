@@ -1,0 +1,98 @@
+selection 2023:01 supported 18 of 20
+selection 2023:02 supported 20 of 20
+selection 2023:03 supported 17 of 20
+selection 2023:04 supported 1 of 20
+selection 2023:05 supported 19 of 20
+selection 2023:06 supported 20 of 20
+selection 2023:07 supported 20 of 20
+selection 2023:08 supported 20 of 20
+selection 2023:09 supported 18 of 20
+selection 2023:11 supported 19 of 20
+selection 2023:12 supported 0 of 20
+selection 2023:13 supported 20 of 20
+selection 2023:14 supported 16 of 20
+selection 2023:16 supported 16 of 20
+selection 2023:17 supported 18 of 20
+selection 2023:18 supported 17 of 20
+selection 2023:19 supported 20 of 20
+selection 2023:20 supported 20 of 20
+selection 2023:21 supported 20 of 20
+selection 2023:22 supported 18 of 20
+{
+  "selected": "pairwise_practice",
+  "comparisons": {
+    "baseline": {
+      "events": 20,
+      "candidate_mae": 3.3299999999999996,
+      "reference_mae": 3.679999999999999,
+      "relative_gain": 0.09510869565217372,
+      "delta": -0.35,
+      "event_ci95": [
+        -0.72,
+        -0.009999999999999986
+      ],
+      "block3_ci95": [
+        -0.7149999999999999,
+        0.015000000000000102
+      ],
+      "loo_min": -0.41578947368421043,
+      "loo_max": -0.26315789473684204,
+      "event_wins": 13
+    },
+    "huber_movement_1": {
+      "events": 20,
+      "candidate_mae": 3.3299999999999996,
+      "reference_mae": 3.2350000000000003,
+      "relative_gain": -0.02936630602782042,
+      "delta": 0.09499999999999995,
+      "event_ci95": [
+        -0.07000000000000006,
+        0.265
+      ],
+      "block3_ci95": [
+        -0.06500000000000003,
+        0.2799999999999999
+      ],
+      "loo_min": 0.052631578947368376,
+      "loo_max": 0.13157894736842102,
+      "event_wins": 6
+    },
+    "boosted_absolute_movement_1": {
+      "events": 20,
+      "candidate_mae": 3.3299999999999996,
+      "reference_mae": 3.4699999999999998,
+      "relative_gain": 0.04034582132564846,
+      "delta": -0.13999999999999993,
+      "event_ci95": [
+        -0.40499999999999997,
+        0.1100000000000001
+      ],
+      "block3_ci95": [
+        -0.3999999999999999,
+        0.12999999999999998
+      ],
+      "loo_min": -0.18947368421052624,
+      "loo_max": -0.06842105263157887,
+      "event_wins": 13
+    },
+    "pairwise_practice_without_practice": {
+      "events": 20,
+      "candidate_mae": 3.3299999999999996,
+      "reference_mae": 3.2649999999999997,
+      "relative_gain": -0.019908116385911168,
+      "delta": 0.06500000000000003,
+      "event_ci95": [
+        -0.10500000000000005,
+        0.25
+      ],
+      "block3_ci95": [
+        -0.10000000000000005,
+        0.275
+      ],
+      "loo_min": 0.01578947368421055,
+      "loo_max": 0.10526315789473686,
+      "event_wins": 8
+    }
+  },
+  "advancement_passed": false
+}

@@ -1,0 +1,42 @@
+selection 2023:01 supported 18 of 20
+selection 2023:02 supported 20 of 20
+selection 2023:03 supported 17 of 20
+selection 2023:04 supported 1 of 20
+selection 2023:05 supported 19 of 20
+selection 2023:06 supported 20 of 20
+selection 2023:07 supported 20 of 20
+selection 2023:08 supported 20 of 20
+selection 2023:09 supported 18 of 20
+selection 2023:11 supported 19 of 20
+selection 2023:12 supported 0 of 20
+selection 2023:13 supported 20 of 20
+selection 2023:14 supported 16 of 20
+selection 2023:16 supported 16 of 20
+selection 2023:17 supported 18 of 20
+selection 2023:18 supported 17 of 20
+selection 2023:19 supported 20 of 20
+selection 2023:20 supported 20 of 20
+selection 2023:21 supported 20 of 20
+selection 2023:22 supported 18 of 20
+{
+  "status": "passed_with_append_only_log_binding_amendment",
+  "selected": "pairwise_practice",
+  "advancement_passed": false,
+  "exact_replayed_predictions": 2800,
+  "exact_reference_target_bindings": 1200,
+  "input_hashes": 228,
+  "source_hashes": 8,
+  "original_selection_sha256": "d89525a0aad7e63eddb858d406daf47307ede406013fbb3111360470df823658",
+  "append_only_log_binding_amendment": {
+    "path": "artifacts/research/boundary_20260908/race_practice/selection_execution.log",
+    "bound_prefix_bytes": 738,
+    "bound_prefix_sha256": "f9b4bb10535db40440c6760d5aaaad287ae4f25b6d88f54ac57b1d8b2511cc3d",
+    "closed_bytes": 2772,
+    "closed_sha256": "091d83a2234fd9c1ef65d7277087165878f6c47e32874dacc50dfced52ebc248"
+  },
+  "verification_source_sha256": "0abd1dff917e4d4f33e456b51cecb80a0aafb02585b55b042b8568770fc73776",
+  "all_model_fits_reconstructed": true,
+  "all_features_reconstructed": true,
+  "all_selection_metrics_reconstructed": true,
+  "production_changed": false
+}

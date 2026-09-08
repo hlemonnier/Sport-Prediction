@@ -1,0 +1,58 @@
+{
+  "experiment": "global_track_control_checkpoint_residual_cycle_1",
+  "seed": 20260908,
+  "scope": "Retrospective discovery research only. Previously exposed dates are not pristine. Published acquisition, earlier experiments and serving models remain unchanged.",
+  "hypothesis": "A current global flag change can carry new information after the older eligible-lap HGB issuance. A correction to the selected C1 checkpoint expert may exploit neutralization and restart timing absent from the own-lap aggregated TrackStatus.",
+  "population": "Exact C2 crossfit cache rows and C1 checkpoint-target pairs. All eligible points preserve the exact HGB and C1 predictions. No target-dependent activation or filtering.",
+  "references": ["Current bundled HGB with unchanged carried prediction semantics", "Selected C1 hgb_l15_c3 checkpoint expert"],
+  "data": "Only the verified 44 discovery TrackStatus streams from 2022 and 2023. The cache supplies honest C1 predictions for 2022 R12-R22 and unseen-year C1 predictions for all 2023 races. Peer C2 features are excluded.",
+  "clock": {
+    "primary_lag_seconds": 15,
+    "strict_lookup": "Only Status records with recorded session Time < checkpoint_time - lag_seconds; equality is excluded. Prior state is looked up at prior_time - lag_seconds. No time-origin transformation, interpolation or future backfill.",
+    "missing_status": "A missing Status field does not update the status; an explicit unknown Status resets it to unknown. Unknown is never clear. Same-timestamp records retain source order.",
+    "semantics": "Codes 1 clear, 2 yellow, 4 SC, 5 red, 6 VSC, 7 VSC ending. Code 7 remains VSC until a later observed change. Status persists between change records; historical receipt latency is unknown.",
+    "sensitivity_lags_seconds": [0, 60],
+    "sensitivity_method": "Only after primary selection, recompute features and activation at lag 0 and 60 for the selected fitted 15-second model. No refitting or reselection. This checks input-delay sensitivity, not measured historical receipt latency."
+  },
+  "features": "Frozen C1 features and C1 point/correction, plus current and prior global status one-hots, known flags, ages of last observed update and change, number of changes after the old issuance, and per-family yellow/SC/red/VSC/combined-neutralized entry and observed exit ages, left-censor flags, current observed duration lower bound, last fully observed completed duration, and observed durations in the last 300 seconds and after old issuance. All ages capped at 7200 seconds, explicit missing indicators. Prefix-only interval arithmetic; no unknown interval is assigned a known flag.",
+  "training": {
+    "fit_year": 2022,
+    "fit_events": [202212, 202213, 202214, 202215, 202216, 202217, 202218, 202219, 202220, 202221, 202222],
+    "base_and_c1_crossfit": "Reuse and verify C2 crossfit_training.pkl and its locked stage-1 models: C1 trained on 2022 R7-R11 predicts R12-R16; C1 trained on R7-R16 predicts R17-R22. HGB forecasts underneath are themselves chronological expanding out-of-fold points. Every fit event precedes its scored event.",
+    "selection_year": 2023,
+    "selection_base": "HGB trained only on 2022 and C1 discovery expert trained on 2022 expanding HGB forecasts. No C1 model fitted on 2023 targets is used for selection.",
+    "objective": "Equal-event weighted absolute-error loss on target_seconds minus honest C1 point, with training residual clipped to [-12,+12] seconds. Correction clipped to [-6,+6] seconds at prediction, with positive point lower bound 1 second.",
+    "estimator": {"loss": "absolute_error", "learning_rate": 0.05, "max_iter": 100, "min_samples_leaf": 40, "l2_regularization": 20, "early_stopping": false, "random_state": 20260908},
+    "grid": [
+      {"name": "control_l7_all", "max_leaf_nodes": 7, "scope": "all_known_ineligible"},
+      {"name": "control_l7_context", "max_leaf_nodes": 7, "scope": "flag_context"},
+      {"name": "control_l15_all", "max_leaf_nodes": 15, "scope": "all_known_ineligible"},
+      {"name": "control_l15_context", "max_leaf_nodes": 15, "scope": "flag_context"}
+    ],
+    "activation": "All variants require ineligible checkpoint and known current global state. Context variants additionally require current state other than clear or positive observed non-clear duration in the past 300 seconds. Unsupported rows return exact C1.",
+    "selection_rule": "Minimum 2023 full-checkpoint equal-event MAE; exact ties follow declared grid order. All four variants and any failures are reported.",
+    "final_fit_if_advanced": "Only the selected residual model is refitted on the same honest 2022 C1 OOF rows plus 2023 unseen C1 predictions. No 2024-2026 target fitting. Transfer compares unchanged bundled HGB and frozen final C1 expert."
+  },
+  "selection_advancement": {
+    "full_relative_gain_vs_c1_at_least": 0.005,
+    "target_balanced_delta_vs_c1_negative": true,
+    "full_block3_ci_upper_vs_c1_negative": true,
+    "full_loo_max_delta_vs_c1_negative": true,
+    "selected_lag0_and_lag60_full_and_target_delta_vs_c1_negative": true,
+    "eligible_and_unsupported_predictions_exact": true,
+    "on_failure": "Stop without acquiring or scoring later control streams. No second grid."
+  },
+  "evaluation": "Equal-event full-checkpoint MAE and equal-event/equal-driver-target MAE (checkpoint losses averaged within each eventual driver-target lap), paired per-event deltas, 20000 event bootstrap draws, within-year circular 3-event block bootstrap, leave-one-event-out worst delta and subgroup diagnostics. Errors and deltas are seconds; positive relative reduction is improvement.",
+  "transfer_gate": {
+    "2024_2025_full_gain_vs_hgb_at_least": 0.10,
+    "2024_2025_target_balanced_gain_vs_hgb_at_least": 0.05,
+    "both_historical_years_full_improve_vs_hgb_and_c1": true,
+    "historical_full_block3_ci_upper_vs_hgb_and_c1_negative": true,
+    "historical_full_loo_max_delta_vs_hgb_and_c1_negative": true,
+    "historical_full_and_target_balanced_improve_vs_c1": true,
+    "2026_exposed_full_and_target_balanced_improve_vs_hgb_and_c1": true,
+    "no_post_selection_reselection": true,
+    "eligible_and_unsupported_predictions_exact": true
+  },
+  "constraints": "One CPU; at most four fits before selected-only latency sensitivity. No production, Git or earlier artifact edits. Later-year acquisition forbidden unless every 2023 advancement criterion passes. Research gates are not authorization for serving promotion."
+}

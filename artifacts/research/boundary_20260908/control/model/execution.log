@@ -1,0 +1,5 @@
+selection control_l7_all -0.013554152650368856
+selection control_l7_context 0.0017613203895362473
+selection control_l15_all -0.010693768559495664
+selection control_l15_context -0.00019190806726276932
+{"selected": {"name": "control_l7_context", "max_leaf_nodes": 7, "scope": "flag_context"}, "advancement_criteria": {"full_gain_vs_c1_at_least_half_percent": false, "target_balanced_improves_vs_c1": true, "full_block3_ci_upper_vs_c1_negative": false, "full_loo_max_delta_vs_c1_negative": false, "lag0_and_lag60_full_and_target_improve_vs_c1": true, "eligible_and_unsupported_predictions_exact": true}, "advanced": false}

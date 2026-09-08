@@ -1,0 +1,8 @@
+{
+  "advances_to_later_evaluation": false,
+  "closed_at_utc": "2026-09-08T04:33:35.226496+00:00",
+  "data_lock_sha256": "d5167a2aae09b5e31c9b6bc26e0a0ab446f3bcb91dfbce0424fb5e9fc24e5536",
+  "design_lock_sha256": "d90a2087dfe5c99c0aa63357ce63fa798108c43d0c7f199757d09219107d0af2",
+  "selected_candidate": "pool_shared",
+  "selection_sha256": "edbb800ae4ce5b3e694ce7bcdb2f45274d32663d336ee9e2966ce913440569b2"
+}

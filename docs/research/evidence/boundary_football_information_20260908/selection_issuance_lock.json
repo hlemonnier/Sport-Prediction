@@ -1,0 +1,9 @@
+{
+  "closed_at_utc": "2026-09-08T04:33:33.886304+00:00",
+  "current_row_labels_attached": false,
+  "data_lock_sha256": "d5167a2aae09b5e31c9b6bc26e0a0ab446f3bcb91dfbce0424fb5e9fc24e5536",
+  "earlier_selection_labels_used_only_after_strict_availability": true,
+  "fits_sha256": "7dab8a74650468dc63ee005f04d76c1864d1db8593df0c9ea5c1ee101b20ddae",
+  "issued_sha256": "311046461ce36132e5bb978313db5fe4084598f1edd3d1123810d96b52e9eab6",
+  "rows": 760
+}

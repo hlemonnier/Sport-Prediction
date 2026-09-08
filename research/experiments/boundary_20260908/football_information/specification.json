@@ -1,0 +1,124 @@
+{
+  "candidate_scores_computed": false,
+  "candidates": [
+    "pool_shared",
+    "pool_classwise"
+  ],
+  "evaluation": {
+    "brier_nonworse_pooled_and_each_country_season": true,
+    "expected_rows": 2280,
+    "minimum_relative_nll_gain_vs_every_reference": 0.02,
+    "no_country_season_deterioration": true,
+    "positive_each_country": true,
+    "require_negative_upper_95_28day_interval": true,
+    "requires_selection_advancement": true,
+    "seasons": [
+      2024,
+      2025
+    ]
+  },
+  "historical_quote_receipt_certified": false,
+  "id": "football_information_preclosing_snapshot_pool_20260908",
+  "inputs": {
+    "artifacts/research/boundary_20260908/football/evaluation.json": "1c1d037ffbdf00a693728254e630792315ee7db8d8f79cbdb3545d34df66a795",
+    "artifacts/research/boundary_20260908/football/features_selection_E0.json": "f019500fedd4ee47be99ac82f29078d2ceeceec61b89f3861eb325766dd11f0f",
+    "artifacts/research/boundary_20260908/football/features_selection_I1.json": "a7c857dcfe7313892e4c5bd1db2767bc68179a5dff38aee58af3bd951a8f3279",
+    "artifacts/research/boundary_20260908/football/features_selection_SP1.json": "cb0fb30235b0566c88b95dc14cc3b8a36a5a47bcce8b067d9dee01e4af77a361",
+    "artifacts/research/boundary_20260908/football/selection.json": "e1db351c667da7ab438f8364e6ced76b06f3e34784efedafef7bcab18316e806",
+    "data/football/performance_20260907/source_manifest.json": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b",
+    "data/football/performance_20260907/transfer_source_manifest.json": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6"
+  },
+  "internal_configuration": [
+    "shot_strength_90d",
+    0.1
+  ],
+  "internal_model": "shot_strength_90d_ridge0.1",
+  "leagues": {
+    "E0": "Europe/London",
+    "I1": "Europe/Rome",
+    "SP1": "Europe/Madrid"
+  },
+  "pooling": {
+    "bias_coordinates": "two orthonormal contrasts; ||b||^2 equals squared free-coordinate norm",
+    "bias_sum": 0.0,
+    "coefficient_bounds": [
+      0.0,
+      4.0
+    ],
+    "ftol": 1e-13,
+    "gtol": 1e-08,
+    "maximum_projected_gradient": 1e-06,
+    "maxiter": 2000,
+    "penalty": 0.01,
+    "probability_floor": 1e-12,
+    "solver": "L-BFGS-B"
+  },
+  "product": "provider_preclosing_snapshot",
+  "proposal": {
+    "path": "research/experiments/boundary_20260908/football_information/README.md",
+    "sha256": "bb1ac1c9911631487d603394623110268bf286fd22abd49e45578cb4424433a2"
+  },
+  "quote_observed_at": null,
+  "references": [
+    "avg_normalized",
+    "avg_power",
+    "b365_normalized",
+    "b365_power",
+    "market_shared",
+    "market_classwise",
+    "arithmetic_half",
+    "production_default_dc_auto",
+    "dc365_elo50",
+    "dc_180",
+    "shot_strength_90d_ridge0.1"
+  ],
+  "resources": {
+    "new_dependencies": false,
+    "new_raw_downloads": false,
+    "parallel_fits": 1,
+    "threads": 1
+  },
+  "selection": {
+    "expected_rows": 760,
+    "league": "E0",
+    "minimum_relative_nll_gain_vs_every_reference": 0.005,
+    "require_negative_upper_95_28day_interval": true,
+    "seasons": [
+      2022,
+      2023
+    ]
+  },
+  "status": "implementation_before_review_and_execution_lock_no_scores",
+  "training": {
+    "calibration_label_scope": "pooled three-league past prequential rows only",
+    "forecast_before_cutoff": "strict",
+    "frozen_selection_incumbent_rows": 760,
+    "historical_generated_internal_rows": 3800,
+    "history_elapsed_days": 1460,
+    "missing_required_training_inputs": "exclude identically from every fitted family and report IDs",
+    "no_same_day_updates": true,
+    "refit": "inherited league/fit_id/fit_cutoff_utc buckets",
+    "result_available_before_cutoff": "strict"
+  },
+  "training_season_start_years": [
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "uncertainty": {
+    "blocks_calendar_days": [
+      1,
+      7,
+      28
+    ],
+    "interval": "percentile95",
+    "resamples": 4000,
+    "seed": 20260908,
+    "sign": "candidate minus reference",
+    "strata": [
+      "league",
+      "season"
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "approved_for_execution_lock": true,
+  "chronology_and_reference_checks": [
+    "UTC timestamps are normalized; new pool training filters both forecast and result availability strictly before each inherited cutoff, before reading unavailable labels or prices.",
+    "Prepared internal vectors reconstruct only the fixed prior shot configuration, retaining its declared inherited <= availability condition; existing 760 EPL selection vectors and fixture IDs are reused verbatim.",
+    "All 19 inherited implementation source hashes match their prior evidence and are explicitly verified by the new source inventory.",
+    "Odds joins use exact fixture identity and date, Avg/BbAv and Bet365 non-closing columns only; missing selection inputs abort rather than shrink the fixed cohort.",
+    "All four fitted families use one common past population per cutoff. Current batch IDs cannot enter training.",
+    "Selection forecasts and fitted coefficients are saved and hash-closed before the final current-row outcome attachment and scoring pass.",
+    "Every frozen reference participates in selection advancement. No later evaluation command exists in this runner.",
+    "Execution/source/input/reconstruction hashes and exclusive artifact writes were reviewed. The original proposal remains unchanged."
+  ],
+  "independent_tests": {
+    "command": "PYTHONPATH=\"$PWD\" PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv-f1/bin/python -m pytest -q -p no:cacheprovider --import-mode=importlib research/experiments/boundary_20260908/football_information",
+    "exit_code": 0,
+    "passed": 42,
+    "reported_seconds": 1.76,
+    "stdout_summary": "42 passed in 1.76s"
+  },
+  "limitations": [
+    "Unknown quote receipt times mean neither refit cutoffs nor carried midnight predictions prove availability before the historical quote. This is only a retrospective snapshot product.",
+    "Past dates and incumbent selection are already exposed; no pristine, prospective or fixed-lead-time claim follows.",
+    "This is pre-fit source review and synthetic verification. No new historical candidate fit, score, performance conclusion or promotion was performed by the reviewer.",
+    "Existing incumbent numerical forecasts are reused as frozen references. This review did not independently refit all historical predecessor models.",
+    "A later evaluation runner must be separately reviewed and enforce a hash-bound successful selection gate before later outcome access."
+  ],
+  "mathematical_checks": [
+    "Power margin removal has a unique positive root for finite decimal odds above one; log-sum-exp computation and bracket expansion support overrounds and underrounds.",
+    "Both probability pools have affine logits and a convex constrained log-loss objective; orthonormal sum-zero bias coordinates implement the declared L2 penalty exactly.",
+    "Analytic gradients, positive penalized Hessian, correct projected-gradient signs at bounds, identity initialization, and serialized synthetic prediction replay were reviewed and tested.",
+    "Matched market-only fits do not consume internal probability values and share the same training labels and population as the combined models."
+  ],
+  "review_date": "2026-09-08",
+  "reviewer": "independent sibling agent; did not author this model, data loader or runner",
+  "schema_version": 1,
+  "source_file_count": 28,
+  "source_files": {
+    "packages/football/mrp/__init__.py": "022b1bec73bb3db9b88bbc871a1a9ecc5ec088181a1903ca6c6ae089abed3bb7",
+    "packages/football/mrp/config.py": "5c637788e5c44a0602521b777e9755c1d6cf5e743091b94c41de548cde4fee7b",
+    "packages/football/mrp/constants.py": "2c32ada9148c9fdf1a57844559ce77ba7530ed1d3cb5d58afa33335b7a4ea28b",
+    "packages/football/mrp/data.py": "c4742cd2744b46817e34d3e7767f175179ee4919d4a0d61ae5770b254138fb33",
+    "packages/football/mrp/joint.py": "cab06d09c0b827cf37de34b1ad89793a1f442aded2d72ca0d0eeb35027559b4b",
+    "packages/football/mrp/prediction.py": "c5085b32c8a33efa485cac87ce2c2b279a23cff97b0fe04fdeb10f383cb90918",
+    "packages/football/mrp/protocol.py": "61df7a8735bd523fece0e75a1558e41c94978b356515ad40b833d5a1c24c9906",
+    "packages/football/mrp/providers.py": "3b8cfb677df7b60a885f6faa2db49f5dc3756ec8655f2e38d548175c2512231a",
+    "packages/football/mrp/score_distribution.py": "904c747f36658050112600fa31ee2392f289fab96ec292a66a2552f9dcfb0bfa",
+    "packages/football/mrp/training.py": "08ed99dc3a47563379f7c6fb37561531b3d1d8cce7805363acb0c36131718443",
+    "packages/football/mrp/utils.py": "a721c82f2a773092bb174b05230e7c286a54b48a00984ae1af7c6c73fc84540e",
+    "packages/football/mrp/weather.py": "52a573771e9a2d07ecafa4b306f30d06b0fba2e4f43b40b43282af0da7c663b1",
+    "research/experiments/boundary_20260908/football/models.py": "fe66fd4d399efe8249d1887820884cd576541e06769d3289109e11d64d01c971",
+    "research/experiments/boundary_20260908/football/run.py": "d735042fb251e324012c625ab5e51ce265c3498bf53fc175eca43f45eca81083",
+    "research/experiments/boundary_20260908/football/specification.json": "74e11bdeeb2ec5951daef1ae97c55ea5ad852ab6133110c003edabf47fef58a8",
+    "research/experiments/boundary_20260908/football/test_math.py": "9f6a09d4562797bcdcd836bcac4ffa8e337bd430480e28029d835b3a7d24d474",
+    "research/experiments/boundary_20260908/football/verify.py": "ff58500eb50db8e7d121955dfc16e067d79fbd039c8c7a3e6d8553c9d6aeeed2",
+    "research/experiments/boundary_20260908/football_information/EXECUTION.md": "60e01556bb8641f9c26555260ac40c874efaff4d1e6a7e65cc1985390d00128b",
+    "research/experiments/boundary_20260908/football_information/README.md": "bb1ac1c9911631487d603394623110268bf286fd22abd49e45578cb4424433a2",
+    "research/experiments/boundary_20260908/football_information/data.py": "57f7c3d27884e992cb2c1490a19d6082816ea6a348cf3ea6200d360b893131f8",
+    "research/experiments/boundary_20260908/football_information/model.py": "2e3a6adf01035e71a7720ebfcdd97f4240a9d68bc02c75727d22bbf8cfcae142",
+    "research/experiments/boundary_20260908/football_information/run.py": "242eb840734d6cf867a85f20eda9e85aec75dc6f8bd2985a4275ddc2768a5274",
+    "research/experiments/boundary_20260908/football_information/specification.json": "4e7087165e544f8ed09b172ae6822b29f6d9a6c92f32204793b3827fd4ebea1d",
+    "research/experiments/boundary_20260908/football_information/test_data.py": "c31469528a233a762dede5cc8746b977b59299d0a4b10ea0ec013aaffe972b80",
+    "research/experiments/boundary_20260908/football_information/test_model.py": "5cc5ca4e8952de8aba2e1c459e7e17140279f0a96af6b00ddd44f88aa98d9a66",
+    "research/experiments/boundary_20260908/football_information/test_run.py": "63877fd687e872499b00a160d93b44fdf998c574b82e0bfaf84e453197169442",
+    "research/experiments/performance_20260907/football/benchmark.py": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+    "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6"
+  },
+  "source_files_sha256": "3d9648117a96975c6f6d6f19fca582c8ab86e3aa3875277e434e199a1c913cd4",
+  "suggested_commit": "research(football): record independent market pooling execution review",
+  "verified_input_binding_count": 40
+}

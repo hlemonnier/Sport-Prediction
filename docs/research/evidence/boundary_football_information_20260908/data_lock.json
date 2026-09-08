@@ -1,0 +1,26 @@
+{
+  "closed_at_utc": "2026-09-08T04:33:00.132173+00:00",
+  "design_lock_sha256": "d90a2087dfe5c99c0aa63357ce63fa798108c43d0c7f199757d09219107d0af2",
+  "incumbent_reconstruction_sha256": "73c161bfe09b3d1cc5450ec52caa5e8842a50d9104f7ad736a10d5885eada11b",
+  "labels_attached": false,
+  "new_candidate_scores_computed": false,
+  "pooling_models_fitted": 0,
+  "prepared_inputs_sha256": "5a75c6c51b536f853c82f174a0c61356f13d4e18dc50e9b19a9cef4b4fffb91c",
+  "quote_input_bindings": {
+    "data/football/performance_20260907/E0_2020_2021.csv": "5afe63f69401457b8354eaacee24f9a3e520b3c3af6329564a9783e20d789c62",
+    "data/football/performance_20260907/E0_2021_2022.csv": "335afcbabeb2939fa10ab39ba3e8215072d0b577cb8d0705c1e44c56e934e703",
+    "data/football/performance_20260907/E0_2022_2023.csv": "8442792d3b614c94ea3cf381bd2736805889cc1713169035368fff19c3d02380",
+    "data/football/performance_20260907/E0_2023_2024.csv": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3",
+    "data/football/performance_20260907/transfer_I1_2020_2021.csv": "c09196fa18877547442807d375317299947abdd6d51a5e0df044cc6026e13f36",
+    "data/football/performance_20260907/transfer_I1_2021_2022.csv": "6a9555d5a90e652a883fd2862a52545c06e264016cd770347c067a6d7c993170",
+    "data/football/performance_20260907/transfer_I1_2022_2023.csv": "9960837f37a97ae700f876c87b85a8b7a2f5a5d05a53077830c21b9db8880c45",
+    "data/football/performance_20260907/transfer_I1_2023_2024.csv": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723",
+    "data/football/performance_20260907/transfer_SP1_2020_2021.csv": "b4137db923101f464e8403c4973acbfaf7d71724ce93b4336fad580e894d9591",
+    "data/football/performance_20260907/transfer_SP1_2021_2022.csv": "2d9e619700712823d15716c07715133f8c3b1a09046930dcfc785a38633dee2e",
+    "data/football/performance_20260907/transfer_SP1_2022_2023.csv": "53348112526b5165539df240be350083989bb258f30c0ff7cacbc0165ca7e4b3",
+    "data/football/performance_20260907/transfer_SP1_2023_2024.csv": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9"
+  },
+  "rows": 4560,
+  "selection_rows": 760,
+  "timing_limit": "Coefficient clocks and carried midnight predictions do not certify availability before unknown historical quote times."
+}

@@ -1,0 +1,76 @@
+{
+  "all_other_failures_fatal": true,
+  "id": "football_deployment_provenance_replay_v2_20260908",
+  "inputs": {
+    "data_lock.json": {
+      "bytes": 1302,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/data_lock.json",
+      "sha256": "eb9f414572ed1d707708d2bcbecd7b7a7840cc6fb0b66f92a5bfc7679f33e915"
+    },
+    "design_lock.json": {
+      "bytes": 27434,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/design_lock.json",
+      "sha256": "c1124e01cf338d44d7260436423d9f520a6cbd717157911d839b31c52923c1c5"
+    },
+    "evaluation.json": {
+      "bytes": 43013,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/evaluation.json",
+      "sha256": "dc92ed8ecaaa98ba2c2e0225822cb55bb9123663fc9cedfd44f0c0148043c7e8"
+    },
+    "forecast_closure.json": {
+      "bytes": 8604,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/forecast_closure.json",
+      "sha256": "b5465a366b2fd0f3558b35cbfff370b4a7b2a7ece6be1eb7e1cf4bbdf7e15ba2"
+    },
+    "verification_attempt.json": {
+      "bytes": 151,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/verification_attempt.json",
+      "sha256": "f8c63315ce53ee3ba7a82ebffc235957d31bdb5d1d93a77e06e80480f95506fa"
+    },
+    "verification_failure.json": {
+      "bytes": 196,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/verification_failure.json",
+      "sha256": "5f6af62e3fdbdd289caa9dbe62e01e39dc7592daf0d1d84450c1cef4c39b951a"
+    }
+  },
+  "maximum_peak_rss_bytes": 2147483648,
+  "maximum_stage_wall_seconds": 3600,
+  "new_calibrations": 0,
+  "new_fits": 0,
+  "new_forecasts": 0,
+  "numerical_scoring_or_gate_changes": false,
+  "only_correction": {
+    "derivation": "From original specification feature_artifacts[league].path/sha256 and canonical digest of descriptor.saved_full_model; never from the closed metadata being verified.",
+    "fields": [
+      "goal_state_sha256",
+      "source_artifact",
+      "source_artifact_sha256"
+    ],
+    "location": "independent reference_inputs expected block saved_full_lineage"
+  },
+  "original_independent_arithmetic": {
+    "bytes": 22750,
+    "path": "research/experiments/boundary_20260908/football_deployment_policy/independent.py",
+    "sha256": "49828d10ef537eb0ce14735c6714023051f10671f141c3c5ae60dcfc331ec681"
+  },
+  "original_verifier": {
+    "bytes": 36583,
+    "path": "research/experiments/boundary_20260908/football_deployment_policy/verify.py",
+    "sha256": "a9a3766b10517ce7c7ad74e4f7e3e26e3c1ffe12ea307ff5ea024184ac425ff9"
+  },
+  "parent_out": "artifacts/research/boundary_20260908/football_deployment_policy",
+  "permitted_failure": {
+    "exception_type": "ValueError",
+    "filename": "verification_failure.json",
+    "message": "Closed metadata differs from independent reconstruction"
+  },
+  "preserve_original_terminal_attempt": true,
+  "proposal": {
+    "bytes": 1502,
+    "path": "research/experiments/boundary_20260908/football_deployment_replay_v2/README.md",
+    "sha256": "ee0a8f0f5a824c56bda69c6a539cd5b52b8c2e01c1141ba45f709f81b1343c6f"
+  },
+  "status": "fixed_before_corrective_historical_replay",
+  "suggested_commit": "fix(research): reconstruct complete deployment provenance",
+  "threads": 1
+}

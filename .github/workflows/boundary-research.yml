@@ -67,6 +67,8 @@ jobs:
           research/experiments/boundary_20260908/catboost_frontier
           research/experiments/boundary_20260908/football_past_market
           research/experiments/boundary_20260908/football_elo_followup
+          research/experiments/boundary_20260908/football_deployment_policy
+          packages/football/tests/test_deployment.py
           research/experiments/boundary_20260908/rival_gap_verification/test_prefix.py
           research/experiments/boundary_20260908/rival_gap_verification/test_cross_implementation.py
           research/experiments/boundary_20260908/telemetry_sequence_publication

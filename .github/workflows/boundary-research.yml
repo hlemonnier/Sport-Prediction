@@ -42,7 +42,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install research test dependencies
-        run: python -m pip install pytest numpy pandas scipy scikit-learn requests
+        run: python -m pip install pytest numpy pandas scipy scikit-learn requests catboost==1.2.10
       - name: Verify model mathematics and causal stream contracts
         # The two optional exact-pilot replay tests skip without the local raw
         # archives. Synthetic contracts need no provider access or historical fits.
@@ -64,6 +64,7 @@ jobs:
           research/experiments/boundary_20260908/rival_gap_pilot
           research/experiments/boundary_20260908/rival_gap_pilot_v2
           research/experiments/boundary_20260908/rival_gap_forecast
+          research/experiments/boundary_20260908/catboost_frontier
           research/experiments/boundary_20260908/rival_gap_verification/test_prefix.py
           research/experiments/boundary_20260908/rival_gap_verification/test_cross_implementation.py
           research/experiments/boundary_20260908/telemetry_sequence_publication

@@ -1,0 +1,1 @@
+{"status": "passed", "checks": {"selection": {"rows": 20007, "policies_replayed": 8, "forecast_max_absolute_error": 0.0, "latest_feedback_strictly_prior": true, "point_max_absolute_change": 0.0}}, "transfer_evaluated": false}

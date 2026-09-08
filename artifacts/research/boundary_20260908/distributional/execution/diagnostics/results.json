@@ -1,0 +1,2009 @@
+{
+  "schema_version": "fixed_forecast_wis_diagnosis_v1",
+  "created_at_utc": "2026-09-08T01:14:06.566100+00:00",
+  "status": "post_score_exploratory_diagnosis_not_model_selection",
+  "source_sha256": "186f4a44a4586782c136e770a79efe4074bdd8363ecb71283a6e022be27df35e",
+  "inputs": {
+    "artifacts/research/boundary_20260908/distributional/execution/results.json": "219d4ed8b9001a076257111891953c8eda7daa8dc11d00497b3e1efd2a4b0095",
+    "artifacts/research/boundary_20260908/distributional/execution/selection.json": "b631df4ca99289b962d823e470fefd5f0dd74679bdfd44a3e0e17ceea0a445a0",
+    "artifacts/research/boundary_20260908/distributional/execution/verification.json": "1fff8f05b37285012d6f7d706f1fdc47f3bd7b02dc83d9b0e1f08ba4a02a9fd3",
+    "artifacts/research/boundary_20260908/distributional/execution/evidence.json": "eb48cbd67a79e9fa4df6bc3c422555092dbbf1793903f10d0f147e98c4d063d8",
+    "artifacts/research/boundary_20260908/distributional/execution/selection_forecasts.pkl": "43e1743e60805c4e1cbfe3c633d6e0edcc47de5e696a16641040a3b8a9bb4c2c",
+    "artifacts/research/boundary_20260908/distributional/execution/transfer_forecasts.pkl": "94dcb28f77664420120b46ad1d1826130ebb867a4dc0d78aa5f45ee8ed24fdf4",
+    "artifacts/research/boundary_20260908/distributional/execution/selection_bundle.pkl": "8117a5a4a1818835f8d210a2a99854ac64fe46527eb193449b44d190dbc5942d",
+    "artifacts/research/boundary_20260908/distributional/execution/final_distribution_bundle.pkl": "fb5731adec2206b155d8d827126a0e4cd03245b9f3f1e89aca9666ceecf3f05e"
+  },
+  "quantile_levels": [
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    0.9,
+    0.95,
+    0.975
+  ],
+  "weighting": "Each complete event has equal total weight. Regime WIS contributions retain these original weights; conditioned regime averages divide by regime weight share and do not reweight events within a regime.",
+  "selected_candidate_unchanged": "quantile_hgb_l7_i100",
+  "fits_executed": 0,
+  "promotion": false,
+  "groups": {
+    "2023_selection": {
+      "rows": 20007,
+      "events": 22,
+      "models": {
+        "global_empirical": {
+          "wis": 0.35413373830413036,
+          "decomposition": {
+            "median_absolute_error_component": 0.05689785814816824,
+            "weighted_width_component": 0.10844707352330629,
+            "underprediction_penalty_y_above_upper": 0.105372184768003,
+            "overprediction_penalty_y_below_lower": 0.08341662186465196
+          },
+          "quantile_probability_y_le_q": [
+            0.021488725017374043,
+            0.041984781052281026,
+            0.08259878377312146,
+            0.2316562014987145,
+            0.5272357160367125,
+            0.840539153091122,
+            0.9329149808334939,
+            0.9580495648533409,
+            0.9746835762405575
+          ],
+          "calibration_probability_minus_nominal": [
+            -0.003511274982625958,
+            -0.008015218947718977,
+            -0.01740121622687854,
+            -0.018343798501285508,
+            0.027235716036712487,
+            0.09053915309112204,
+            0.03291498083349387,
+            0.008049564853340963,
+            -0.000316423759442519
+          ],
+          "weighted_wis_by_quantile": [
+            0.02173332603150412,
+            0.027915066851179143,
+            0.035323649583892676,
+            0.04780734173308789,
+            0.0568978581481682,
+            0.05633040136712307,
+            0.04469477108315385,
+            0.03535548102838767,
+            0.02807584247763388
+          ]
+        },
+        "stratified_empirical": {
+          "wis": 0.3484546323433943,
+          "decomposition": {
+            "median_absolute_error_component": 0.05689785814816824,
+            "weighted_width_component": 0.10278458979726604,
+            "underprediction_penalty_y_above_upper": 0.10576857336773815,
+            "overprediction_penalty_y_below_lower": 0.08300361103022229
+          },
+          "quantile_probability_y_le_q": [
+            0.02613562983151089,
+            0.04657768590445281,
+            0.08994736391360877,
+            0.2482012652800541,
+            0.5272357160367125,
+            0.8292986146729533,
+            0.9324913861963621,
+            0.9560444962649701,
+            0.9733796997184586
+          ],
+          "calibration_probability_minus_nominal": [
+            0.001135629831510887,
+            -0.003422314095547191,
+            -0.010052636086391231,
+            -0.0017987347199459047,
+            0.027235716036712487,
+            0.0792986146729533,
+            0.03249138619636205,
+            0.006044496264970167,
+            -0.0016203002815413647
+          ],
+          "weighted_wis_by_quantile": [
+            0.020614204572371748,
+            0.026839381017098672,
+            0.03445170845658978,
+            0.0475304218181413,
+            0.0568978581481682,
+            0.05555664002995809,
+            0.04413350195682212,
+            0.034836141915306526,
+            0.027594774428938058
+          ]
+        },
+        "quantile_hgb_l7_i100": {
+          "wis": 0.33517327981761363,
+          "decomposition": {
+            "median_absolute_error_component": 0.05689785814816824,
+            "weighted_width_component": 0.09397622283881293,
+            "underprediction_penalty_y_above_upper": 0.11008769430052137,
+            "overprediction_penalty_y_below_lower": 0.0742115045301109
+          },
+          "quantile_probability_y_le_q": [
+            0.02741835694652855,
+            0.05009000823371232,
+            0.11115228930495208,
+            0.282524419808106,
+            0.5272357160367125,
+            0.7577043525983618,
+            0.9004131921481586,
+            0.9484441057445039,
+            0.9706522789158877
+          ],
+          "calibration_probability_minus_nominal": [
+            0.00241835694652855,
+            9.000823371231592e-05,
+            0.011152289304952073,
+            0.032524419808106,
+            0.027235716036712487,
+            0.0077043525983617744,
+            0.00041319214815860317,
+            -0.0015558942554960709,
+            -0.004347721084112299
+          ],
+          "weighted_wis_by_quantile": [
+            0.01746190953759125,
+            0.023764263128833604,
+            0.032067520594934555,
+            0.048285468409865626,
+            0.0568978581481682,
+            0.054421965525984085,
+            0.04189676409628474,
+            0.03352970547490121,
+            0.02684782490105013
+          ]
+        }
+      },
+      "differences": {
+        "global_empirical": {
+          "wis_delta": -0.01896045848651673,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.014470850684493358,
+            "underprediction_penalty_y_above_upper": 0.004715509532518369,
+            "overprediction_penalty_y_below_lower": -0.00920511733454106
+          },
+          "quantile_wis_delta": [
+            -0.004271416493912869,
+            -0.004150803722345539,
+            -0.0032561289889581208,
+            0.0004781266767777334,
+            0.0,
+            -0.0019084358411389848,
+            -0.002798006986869113,
+            -0.0018257755534864598,
+            -0.0012280175765837509
+          ]
+        },
+        "stratified_empirical": {
+          "wis_delta": -0.013281352525780665,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.008808366958453107,
+            "underprediction_penalty_y_above_upper": 0.004319120932783221,
+            "overprediction_penalty_y_below_lower": -0.00879210650011139
+          },
+          "quantile_wis_delta": [
+            -0.0031522950347804973,
+            -0.003075117888265068,
+            -0.0023841878616552223,
+            0.0007550465917243246,
+            0.0,
+            -0.0011346745039740036,
+            -0.00223673786053738,
+            -0.0013064364404053175,
+            -0.000746949527887928
+          ]
+        }
+      },
+      "regimes": {
+        "wet_compound": {
+          "rows": 563,
+          "events_with_rows": 2,
+          "global_event_weight_share": 0.02116309064425733,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.028695714072794122,
+              "wis_conditional_on_regime_under_global_weights": 1.355932106286224
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.027252487159243707,
+              "wis_conditional_on_regime_under_global_weights": 1.2877366362667237
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.02622878426099557,
+              "wis_conditional_on_regime_under_global_weights": 1.2393645475460282
+            }
+          },
+          "contribution_delta_vs_conditional": -0.001023702898248137
+        },
+        "dry_compound": {
+          "rows": 19444,
+          "events_with_rows": 22,
+          "global_event_weight_share": 0.9788369093557426,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.3254380242313364,
+              "wis_conditional_on_regime_under_global_weights": 0.33247420598957117
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.3212021451841507,
+              "wis_conditional_on_regime_under_global_weights": 0.32814674448224646
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.30894449555661807,
+              "wis_conditional_on_regime_under_global_weights": 0.31562407649703483
+            }
+          },
+          "contribution_delta_vs_conditional": -0.012257649627532619
+        },
+        "stint_first_three_clean": {
+          "rows": 2570,
+          "events_with_rows": 22,
+          "global_event_weight_share": 0.13187729868058387,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.0862409593367429,
+              "wis_conditional_on_regime_under_global_weights": 0.6539484824118562
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.08596664337230975,
+              "wis_conditional_on_regime_under_global_weights": 0.651868397611988
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.08076621028057193,
+              "wis_conditional_on_regime_under_global_weights": 0.6124345212453388
+            }
+          },
+          "contribution_delta_vs_conditional": -0.005200433091737816
+        },
+        "stint_after_three_clean": {
+          "rows": 17437,
+          "events_with_rows": 22,
+          "global_event_weight_share": 0.868122701319416,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.2678927789673875,
+              "wis_conditional_on_regime_under_global_weights": 0.3085886114488548
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.26248798897108483,
+              "wis_conditional_on_regime_under_global_weights": 0.30236277495352043
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.2544070695370415,
+              "wis_conditional_on_regime_under_global_weights": 0.2930542757957844
+            }
+          },
+          "contribution_delta_vs_conditional": -0.008080919434043321
+        },
+        "past_only_volatility_bin_0": {
+          "rows": 5650,
+          "events_with_rows": 22,
+          "global_event_weight_share": 0.27696664552120187,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.10078025389171022,
+              "wis_conditional_on_regime_under_global_weights": 0.3638714463326793
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.09805418222686445,
+              "wis_conditional_on_regime_under_global_weights": 0.3540288472005138
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.09201982987659058,
+              "wis_conditional_on_regime_under_global_weights": 0.33224155819710943
+            }
+          },
+          "contribution_delta_vs_conditional": -0.006034352350273872
+        },
+        "past_only_volatility_bin_1": {
+          "rows": 5603,
+          "events_with_rows": 22,
+          "global_event_weight_share": 0.2793024184521642,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.07165489038551077,
+              "wis_conditional_on_regime_under_global_weights": 0.25654948060459787
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.07026807543809854,
+              "wis_conditional_on_regime_under_global_weights": 0.25158419976278606
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.06826427747411287,
+              "wis_conditional_on_regime_under_global_weights": 0.24440990469190807
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0020037979639856707
+        },
+        "past_only_volatility_bin_2": {
+          "rows": 4974,
+          "events_with_rows": 22,
+          "global_event_weight_share": 0.25299508083746824,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.07572934503011675,
+              "wis_conditional_on_regime_under_global_weights": 0.29933129442452516
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.07545640910258031,
+              "wis_conditional_on_regime_under_global_weights": 0.2982524753161339
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.07395638194933293,
+              "wis_conditional_on_regime_under_global_weights": 0.29232339895511555
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0015000271532473741
+        },
+        "past_only_volatility_bin_3": {
+          "rows": 3780,
+          "events_with_rows": 22,
+          "global_event_weight_share": 0.19073585518916567,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.10596924899679278,
+              "wis_conditional_on_regime_under_global_weights": 0.5555811669059071
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.1046759655758511,
+              "wis_conditional_on_regime_under_global_weights": 0.5488006723855714
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.10093279051757698,
+              "wis_conditional_on_regime_under_global_weights": 0.5291757567945213
+            }
+          },
+          "contribution_delta_vs_conditional": -0.003743175058274123
+        }
+      }
+    },
+    "2024": {
+      "rows": 22171,
+      "events": 24,
+      "models": {
+        "global_empirical": {
+          "wis": 0.30928485879842205,
+          "decomposition": {
+            "median_absolute_error_component": 0.053788096721757224,
+            "weighted_width_component": 0.09624890238571251,
+            "underprediction_penalty_y_above_upper": 0.08838169372979116,
+            "overprediction_penalty_y_below_lower": 0.07086616596116169
+          },
+          "quantile_probability_y_le_q": [
+            0.02664826574872495,
+            0.054281367676197866,
+            0.10161438209293819,
+            0.2501501171035604,
+            0.5125962799469347,
+            0.7713381938998889,
+            0.9102745048739099,
+            0.9483423740870224,
+            0.970539441155691
+          ],
+          "calibration_probability_minus_nominal": [
+            0.0016482657487249495,
+            0.004281367676197863,
+            0.0016143820929381825,
+            0.00015011710356038765,
+            0.012596279946934685,
+            0.02133819389988889,
+            0.010274504873909907,
+            -0.0016576259129775783,
+            -0.0044605588443089594
+          ],
+          "weighted_wis_by_quantile": [
+            0.016870100659952203,
+            0.023684822077919925,
+            0.031796722607693576,
+            0.04498495836585851,
+            0.05378809672175723,
+            0.050210323697423974,
+            0.03823133288675151,
+            0.028749514254785107,
+            0.020968987526280066
+          ]
+        },
+        "stratified_empirical": {
+          "wis": 0.3013667114360489,
+          "decomposition": {
+            "median_absolute_error_component": 0.053788096721757224,
+            "weighted_width_component": 0.09681586408058021,
+            "underprediction_penalty_y_above_upper": 0.08559876399913213,
+            "overprediction_penalty_y_below_lower": 0.06516398663457926
+          },
+          "quantile_probability_y_le_q": [
+            0.026331171338392988,
+            0.0495391266930847,
+            0.10201281860725381,
+            0.24943148570988666,
+            0.5125962799469347,
+            0.7632331298476597,
+            0.9104994059500906,
+            0.9485552632947492,
+            0.9712019175892984
+          ],
+          "calibration_probability_minus_nominal": [
+            0.0013311713383929863,
+            -0.0004608733069153062,
+            0.0020128186072538023,
+            -0.0005685142901133422,
+            0.012596279946934685,
+            0.013233129847659675,
+            0.010499405950090579,
+            -0.0014447367052508042,
+            -0.0037980824107015643
+          ],
+          "weighted_wis_by_quantile": [
+            0.015818838303862208,
+            0.02201990058205886,
+            0.030178761081337106,
+            0.04431084662440413,
+            0.05378809672175723,
+            0.04988953397878843,
+            0.037342574452453384,
+            0.027876842577239463,
+            0.020141317114148013
+          ]
+        },
+        "quantile_hgb_l7_i100": {
+          "wis": 0.2857088905144979,
+          "decomposition": {
+            "median_absolute_error_component": 0.053788096721757224,
+            "weighted_width_component": 0.09610979954938165,
+            "underprediction_penalty_y_above_upper": 0.08113280798991647,
+            "overprediction_penalty_y_below_lower": 0.05467818625344237
+          },
+          "quantile_probability_y_le_q": [
+            0.030932588881706913,
+            0.05917747490909774,
+            0.11707566246424513,
+            0.25788608965845733,
+            0.5125962799469347,
+            0.7350178425456685,
+            0.8968089292758293,
+            0.9447074949436307,
+            0.9704098019729103
+          ],
+          "calibration_probability_minus_nominal": [
+            0.005932588881706911,
+            0.00917747490909774,
+            0.01707566246424512,
+            0.00788608965845733,
+            0.012596279946934685,
+            -0.014982157454331513,
+            -0.003191070724170686,
+            -0.0052925050563692455,
+            -0.004590198027089709
+          ],
+          "weighted_wis_by_quantile": [
+            0.012637218965971813,
+            0.018740692912762206,
+            0.027617647839338285,
+            0.04353239771460384,
+            0.05378809672175723,
+            0.04970902220791085,
+            0.035786092341167794,
+            0.025937386738451584,
+            0.01796033507253419
+          ]
+        }
+      },
+      "differences": {
+        "global_empirical": {
+          "wis_delta": -0.023575968283924165,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.00013910283633086773,
+            "underprediction_penalty_y_above_upper": -0.007248885739874686,
+            "overprediction_penalty_y_below_lower": -0.01618797970771932
+          },
+          "quantile_wis_delta": [
+            -0.00423288169398039,
+            -0.004944129165157719,
+            -0.0041790747683552905,
+            -0.0014525606512546668,
+            0.0,
+            -0.0005013014895131271,
+            -0.0024452405455837184,
+            -0.002812127516333522,
+            -0.0030086524537458748
+          ]
+        },
+        "stratified_empirical": {
+          "wis_delta": -0.01565782092155099,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.0007060645311985636,
+            "underprediction_penalty_y_above_upper": -0.004465956009215663,
+            "overprediction_penalty_y_below_lower": -0.01048580038113689
+          },
+          "quantile_wis_delta": [
+            -0.0031816193378903946,
+            -0.0032792076692966556,
+            -0.0025611132419988206,
+            -0.0007784489098002847,
+            0.0,
+            -0.00018051177087758524,
+            -0.0015564821112855898,
+            -0.001939455838787879,
+            -0.0021809820416138215
+          ]
+        }
+      },
+      "regimes": {
+        "wet_compound": {
+          "rows": 1738,
+          "events_with_rows": 3,
+          "global_event_weight_share": 0.08016512729627484,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.06776705917441733,
+              "wis_conditional_on_regime_under_global_weights": 0.8453433738583531
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.06296081978755134,
+              "wis_conditional_on_regime_under_global_weights": 0.7853891325446326
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.06091110358390471,
+              "wis_conditional_on_regime_under_global_weights": 0.7598204560792254
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0020497162036466343
+        },
+        "dry_compound": {
+          "rows": 20433,
+          "events_with_rows": 23,
+          "global_event_weight_share": 0.9198348727037251,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.2415177996240049,
+              "wis_conditional_on_regime_under_global_weights": 0.26256647447394266
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.23840589164849763,
+              "wis_conditional_on_regime_under_global_weights": 0.25918335858232583
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.22479778693059313,
+              "wis_conditional_on_regime_under_global_weights": 0.24438928507877908
+            }
+          },
+          "contribution_delta_vs_conditional": -0.013608104717904496
+        },
+        "stint_first_three_clean": {
+          "rows": 2549,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.11907606636861177,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.04196265023611358,
+              "wis_conditional_on_regime_under_global_weights": 0.3524020528710953
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.040863711099528945,
+              "wis_conditional_on_regime_under_global_weights": 0.34317316943466436
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.03767382233046039,
+              "wis_conditional_on_regime_under_global_weights": 0.3163845051266418
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0031898887690685537
+        },
+        "stint_after_three_clean": {
+          "rows": 19622,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.8809239336313882,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.2673222085623085,
+              "wis_conditional_on_regime_under_global_weights": 0.3034566304270332
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.2605030003365201,
+              "wis_conditional_on_regime_under_global_weights": 0.29571565760809987
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.24803506818403737,
+              "wis_conditional_on_regime_under_global_weights": 0.2815624127290706
+            }
+          },
+          "contribution_delta_vs_conditional": -0.012467932152482708
+        },
+        "past_only_volatility_bin_0": {
+          "rows": 5322,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.2393678650667515,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.0568675268207081,
+              "wis_conditional_on_regime_under_global_weights": 0.2375737729241546
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.054820204352317436,
+              "wis_conditional_on_regime_under_global_weights": 0.2290207348301743
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.05158662726297078,
+              "wis_conditional_on_regime_under_global_weights": 0.2155119161403935
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0032335770893466564
+        },
+        "past_only_volatility_bin_1": {
+          "rows": 5614,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.25186617385457666,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.053972850345180845,
+              "wis_conditional_on_regime_under_global_weights": 0.21429177852339898
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.053158946411452024,
+              "wis_conditional_on_regime_under_global_weights": 0.21106028490409798
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.05165078636534157,
+              "wis_conditional_on_regime_under_global_weights": 0.20507234288302595
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0015081600461104572
+        },
+        "past_only_volatility_bin_2": {
+          "rows": 5758,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.2602565551569097,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.06812316593655551,
+              "wis_conditional_on_regime_under_global_weights": 0.26175389086927625
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.06800620593133597,
+              "wis_conditional_on_regime_under_global_weights": 0.2613044881437655
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.06646911079627904,
+              "wis_conditional_on_regime_under_global_weights": 0.2553984116027531
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0015370951350569262
+        },
+        "past_only_volatility_bin_3": {
+          "rows": 5477,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.24850940592176213,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.1303213156959777,
+              "wis_conditional_on_regime_under_global_weights": 0.5244120044977557
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.12538135474094345,
+              "wis_conditional_on_regime_under_global_weights": 0.504533638378328
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.11600236608990638,
+              "wis_conditional_on_regime_under_global_weights": 0.46679265784582513
+            }
+          },
+          "contribution_delta_vs_conditional": -0.009378988651037062
+        }
+      }
+    },
+    "2025": {
+      "rows": 21663,
+      "events": 24,
+      "models": {
+        "global_empirical": {
+          "wis": 0.2750404327986562,
+          "decomposition": {
+            "median_absolute_error_component": 0.048231742665410304,
+            "weighted_width_component": 0.09624890238571322,
+            "underprediction_penalty_y_above_upper": 0.06443473696902524,
+            "overprediction_penalty_y_below_lower": 0.06612505077850858
+          },
+          "quantile_probability_y_le_q": [
+            0.023494449088447056,
+            0.04684406512439657,
+            0.09287605168310115,
+            0.24444538444933026,
+            0.52798449945635,
+            0.790028581577417,
+            0.9227185086447018,
+            0.9596150474105423,
+            0.978303429664951
+          ],
+          "calibration_probability_minus_nominal": [
+            -0.0015055509115529456,
+            -0.003155934875603436,
+            -0.007123948316898859,
+            -0.005554615550669745,
+            0.027984499456349954,
+            0.040028581577416955,
+            0.022718508644701818,
+            0.00961504741054231,
+            0.0033034296649510075
+          ],
+          "weighted_wis_by_quantile": [
+            0.01645401740573966,
+            0.02243939993865663,
+            0.029544621564715223,
+            0.0410530732857264,
+            0.048231742665410304,
+            0.04412463328453825,
+            0.032489902757541475,
+            0.023815449326816458,
+            0.01688759256951171
+          ]
+        },
+        "stratified_empirical": {
+          "wis": 0.26600068072219607,
+          "decomposition": {
+            "median_absolute_error_component": 0.048231742665410304,
+            "weighted_width_component": 0.0954526840949216,
+            "underprediction_penalty_y_above_upper": 0.06083996651861468,
+            "overprediction_penalty_y_below_lower": 0.06147628744325011
+          },
+          "quantile_probability_y_le_q": [
+            0.02500467088938873,
+            0.04669865289440077,
+            0.09306374607673652,
+            0.24460932876857763,
+            0.52798449945635,
+            0.7798795981570823,
+            0.9227432624657184,
+            0.95991172335412,
+            0.9790112498972572
+          ],
+          "calibration_probability_minus_nominal": [
+            4.670889388727617e-06,
+            -0.003301347105599234,
+            -0.006936253923263483,
+            -0.005390671231422367,
+            0.027984499456349954,
+            0.0298795981570823,
+            0.02274326246571834,
+            0.00991172335412005,
+            0.0040112498972572075
+          ],
+          "weighted_wis_by_quantile": [
+            0.015060320649558964,
+            0.021052613067569687,
+            0.028363644812253376,
+            0.04047540682212351,
+            0.048231742665410304,
+            0.04373819170675268,
+            0.03140783261547486,
+            0.02275941792299082,
+            0.014911510460061825
+          ]
+        },
+        "quantile_hgb_l7_i100": {
+          "wis": 0.25235658286963947,
+          "decomposition": {
+            "median_absolute_error_component": 0.048231742665410304,
+            "weighted_width_component": 0.0920915948278821,
+            "underprediction_penalty_y_above_upper": 0.06092840764490997,
+            "overprediction_penalty_y_below_lower": 0.051104837731436974
+          },
+          "quantile_probability_y_le_q": [
+            0.028662966256745363,
+            0.05567825634045141,
+            0.10651286323047197,
+            0.25519648591878,
+            0.52798449945635,
+            0.7493895713354263,
+            0.9048065091348643,
+            0.9525803636367965,
+            0.9785272056658377
+          ],
+          "calibration_probability_minus_nominal": [
+            0.0036629662567453612,
+            0.00567825634045141,
+            0.006512863230471969,
+            0.005196485918780025,
+            0.027984499456349954,
+            -0.0006104286645737256,
+            0.004806509134864245,
+            0.00258036363679659,
+            0.0035272056658377515
+          ],
+          "weighted_wis_by_quantile": [
+            0.011055640180337627,
+            0.017767186138200566,
+            0.026484151528139193,
+            0.0406540818271561,
+            0.048231742665410304,
+            0.042885430867422566,
+            0.029630344031336815,
+            0.021178568187338324,
+            0.014469437444297954
+          ]
+        }
+      },
+      "differences": {
+        "global_empirical": {
+          "wis_delta": -0.02268384992901673,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.0041573075578311275,
+            "underprediction_penalty_y_above_upper": -0.003506329324115272,
+            "overprediction_penalty_y_below_lower": -0.015020213047071608
+          },
+          "quantile_wis_delta": [
+            -0.0053983772254020315,
+            -0.004672213800456064,
+            -0.0030604700365760296,
+            -0.0003989914585703011,
+            0.0,
+            -0.001239202417115684,
+            -0.0028595587262046605,
+            -0.0026368811394781345,
+            -0.0024181551252137543
+          ]
+        },
+        "stratified_empirical": {
+          "wis_delta": -0.013644097852556603,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.0033610892670394993,
+            "underprediction_penalty_y_above_upper": 8.844112629528833e-05,
+            "overprediction_penalty_y_below_lower": -0.010371449711813134
+          },
+          "quantile_wis_delta": [
+            -0.004004680469221337,
+            -0.003285426929369121,
+            -0.001879493284114183,
+            0.00017867500503259554,
+            0.0,
+            -0.0008527608393301134,
+            -0.0017774885841380476,
+            -0.001580849735652496,
+            -0.00044207301576387054
+          ]
+        }
+      },
+      "regimes": {
+        "wet_compound": {
+          "rows": 878,
+          "events_with_rows": 3,
+          "global_event_weight_share": 0.07279579596479882,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.05088056742629446,
+              "wis_conditional_on_regime_under_global_weights": 0.6989492559556365
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.04779778486818274,
+              "wis_conditional_on_regime_under_global_weights": 0.6566008961739475
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.04199090839474207,
+              "wis_conditional_on_regime_under_global_weights": 0.5768315029489783
+            }
+          },
+          "contribution_delta_vs_conditional": -0.005806876473440664
+        },
+        "dry_compound": {
+          "rows": 20785,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.9272042040352013,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.2241598653723617,
+              "wis_conditional_on_regime_under_global_weights": 0.2417588966883626
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.21820289585401342,
+              "wis_conditional_on_regime_under_global_weights": 0.2353342391076231
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.2103656744748975,
+              "wis_conditional_on_regime_under_global_weights": 0.22688170907701252
+            }
+          },
+          "contribution_delta_vs_conditional": -0.00783722137911591
+        },
+        "stint_first_three_clean": {
+          "rows": 2518,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.12154920015598807,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.05635732916346248,
+              "wis_conditional_on_regime_under_global_weights": 0.4636585768654773
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.053359790171092505,
+              "wis_conditional_on_regime_under_global_weights": 0.43899746030919284
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.049246118999853095,
+              "wis_conditional_on_regime_under_global_weights": 0.40515378905541083
+            }
+          },
+          "contribution_delta_vs_conditional": -0.004113671171239411
+        },
+        "stint_after_three_clean": {
+          "rows": 19145,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.878450799844012,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.21868310363519372,
+              "wis_conditional_on_regime_under_global_weights": 0.24894177758620706
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.2126408905511036,
+              "wis_conditional_on_regime_under_global_weights": 0.24206351748881397
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.20311046386978635,
+              "wis_conditional_on_regime_under_global_weights": 0.23121438776748
+            }
+          },
+          "contribution_delta_vs_conditional": -0.009530426681317261
+        },
+        "past_only_volatility_bin_0": {
+          "rows": 6050,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.27322605642059383,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.060136521726489686,
+              "wis_conditional_on_regime_under_global_weights": 0.22009804816681833
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.05683755105738321,
+              "wis_conditional_on_regime_under_global_weights": 0.20802390446206068
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.05353235179859444,
+              "wis_conditional_on_regime_under_global_weights": 0.195926964286996
+            }
+          },
+          "contribution_delta_vs_conditional": -0.00330519925878877
+        },
+        "past_only_volatility_bin_1": {
+          "rows": 5713,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.25710547706575515,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.048514391352466275,
+              "wis_conditional_on_regime_under_global_weights": 0.18869450742995506
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.04703642928574349,
+              "wis_conditional_on_regime_under_global_weights": 0.1829460415334281
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.046357162631094434,
+              "wis_conditional_on_regime_under_global_weights": 0.18030406493144646
+            }
+          },
+          "contribution_delta_vs_conditional": -0.000679266654649055
+        },
+        "past_only_volatility_bin_2": {
+          "rows": 5110,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.23205794675859664,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.05687832680464014,
+              "wis_conditional_on_regime_under_global_weights": 0.24510398199725977
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.056466592101642635,
+              "wis_conditional_on_regime_under_global_weights": 0.24332970661152684
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.054726510589888894,
+              "wis_conditional_on_regime_under_global_weights": 0.23583122816655508
+            }
+          },
+          "contribution_delta_vs_conditional": -0.001740081511753741
+        },
+        "past_only_volatility_bin_3": {
+          "rows": 4790,
+          "events_with_rows": 24,
+          "global_event_weight_share": 0.23761051975505443,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.10951119291506006,
+              "wis_conditional_on_regime_under_global_weights": 0.460885288361609
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.10566010827742672,
+              "wis_conditional_on_regime_under_global_weights": 0.44467773727505233
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.09774055785006167,
+              "wis_conditional_on_regime_under_global_weights": 0.411347771768773
+            }
+          },
+          "contribution_delta_vs_conditional": -0.007919550427365057
+        }
+      }
+    },
+    "2024_2025": {
+      "rows": 43834,
+      "events": 48,
+      "models": {
+        "global_empirical": {
+          "wis": 0.29216264579853873,
+          "decomposition": {
+            "median_absolute_error_component": 0.05100991969358376,
+            "weighted_width_component": 0.09624890238571107,
+            "underprediction_penalty_y_above_upper": 0.07640821534940817,
+            "overprediction_penalty_y_below_lower": 0.06849560836983516
+          },
+          "quantile_probability_y_le_q": [
+            0.025071357418586,
+            0.05056271640029722,
+            0.0972452168880197,
+            0.24729775077644536,
+            0.5202903897016429,
+            0.7806833877386531,
+            0.9164965067593062,
+            0.9539787107487825,
+            0.9744214354103212
+          ],
+          "calibration_probability_minus_nominal": [
+            7.135741858600025e-05,
+            0.0005627164002972168,
+            -0.0027547831119803107,
+            -0.002702249223554637,
+            0.020290389701642875,
+            0.03068338773865309,
+            0.01649650675930614,
+            0.003978710748782532,
+            -0.0005785645896787539
+          ],
+          "weighted_wis_by_quantile": [
+            0.016662059032845927,
+            0.02306211100828829,
+            0.030670672086204415,
+            0.043019015825792456,
+            0.05100991969358378,
+            0.04716747849098112,
+            0.03536061782214648,
+            0.026282481790800775,
+            0.018928290047895886
+          ]
+        },
+        "stratified_empirical": {
+          "wis": 0.283683696079122,
+          "decomposition": {
+            "median_absolute_error_component": 0.05100991969358376,
+            "weighted_width_component": 0.09613427408775087,
+            "underprediction_penalty_y_above_upper": 0.07321936525887339,
+            "overprediction_penalty_y_below_lower": 0.06332013703891468
+          },
+          "quantile_probability_y_le_q": [
+            0.025667921113890855,
+            0.04811888979374272,
+            0.09753828234199516,
+            0.24702040723923216,
+            0.5202903897016429,
+            0.7715563640023712,
+            0.916621334207905,
+            0.954233493324435,
+            0.9751065837432783
+          ],
+          "calibration_probability_minus_nominal": [
+            0.0006679211138908535,
+            -0.0018811102062572804,
+            -0.002461717658004847,
+            -0.0029795927607678407,
+            0.020290389701642875,
+            0.021556364002371153,
+            0.016621334207905014,
+            0.0042334933244350115,
+            0.00010658374327832121
+          ],
+          "weighted_wis_by_quantile": [
+            0.015439579476710583,
+            0.021536256824814276,
+            0.029271202946795236,
+            0.04239312672326382,
+            0.05100991969358378,
+            0.046813862842770566,
+            0.034375203533964116,
+            0.025318130250115145,
+            0.01752641378710492
+          ]
+        },
+        "quantile_hgb_l7_i100": {
+          "wis": 0.26903273669206873,
+          "decomposition": {
+            "median_absolute_error_component": 0.05100991969358376,
+            "weighted_width_component": 0.09410069718863177,
+            "underprediction_penalty_y_above_upper": 0.07103060781741326,
+            "overprediction_penalty_y_below_lower": 0.05289151199243968
+          },
+          "quantile_probability_y_le_q": [
+            0.029797777569226136,
+            0.057427865624774574,
+            0.11179426284735851,
+            0.2565412877886189,
+            0.5202903897016429,
+            0.7422037069405476,
+            0.9008077192053471,
+            0.9486439292902142,
+            0.9744685038193742
+          ],
+          "calibration_probability_minus_nominal": [
+            0.004797777569226135,
+            0.007427865624774571,
+            0.011794262847358503,
+            0.006541287788618899,
+            0.020290389701642875,
+            -0.007796293059452397,
+            0.0008077192053470572,
+            -0.0013560707097857172,
+            -0.0005314961806257568
+          ],
+          "weighted_wis_by_quantile": [
+            0.011846429573154717,
+            0.01825393952548138,
+            0.02705089968373875,
+            0.04209323977087996,
+            0.05100991969358378,
+            0.04629722653766669,
+            0.03270821818625231,
+            0.02355797746289497,
+            0.016214886258416068
+          ]
+        }
+      },
+      "differences": {
+        "global_empirical": {
+          "wis_delta": -0.023129909106470004,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.0021482051970792976,
+            "underprediction_penalty_y_above_upper": -0.005377607531994913,
+            "overprediction_penalty_y_below_lower": -0.01560409637739548
+          },
+          "quantile_wis_delta": [
+            -0.0048156294596912105,
+            -0.004808171482806909,
+            -0.0036197724024656652,
+            -0.0009257760549124944,
+            0.0,
+            -0.0008702519533144298,
+            -0.0026523996358941704,
+            -0.002724504327905806,
+            -0.002713403789479818
+          ]
+        },
+        "stratified_empirical": {
+          "wis_delta": -0.014650959387053297,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": -0.002033576899119094,
+            "underprediction_penalty_y_above_upper": -0.002188757441460132,
+            "overprediction_penalty_y_below_lower": -0.010428625046474994
+          },
+          "quantile_wis_delta": [
+            -0.003593149903555866,
+            -0.003282317299332895,
+            -0.002220303263056486,
+            -0.0002998869523838585,
+            0.0,
+            -0.0005166363051038736,
+            -0.0016669853477118066,
+            -0.0017601527872201754,
+            -0.001311527528688853
+          ]
+        }
+      },
+      "regimes": {
+        "wet_compound": {
+          "rows": 2616,
+          "events_with_rows": 6,
+          "global_event_weight_share": 0.07648046163053683,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.059323813300355896,
+              "wis_conditional_on_regime_under_global_weights": 0.775672793228399
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.05537930232786704,
+              "wis_conditional_on_regime_under_global_weights": 0.724097385753166
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.05145100598932339,
+              "wis_conditional_on_regime_under_global_weights": 0.6727339884253553
+            }
+          },
+          "contribution_delta_vs_conditional": -0.003928296338543649
+        },
+        "dry_compound": {
+          "rows": 41218,
+          "events_with_rows": 47,
+          "global_event_weight_share": 0.9235195383694632,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.23283883249818327,
+              "wis_conditional_on_regime_under_global_weights": 0.25212117646073423
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.22830439375125533,
+              "wis_conditional_on_regime_under_global_weights": 0.2472112221408356
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.21758173070274525,
+              "wis_conditional_on_regime_under_global_weights": 0.23560057114427774
+            }
+          },
+          "contribution_delta_vs_conditional": -0.010722663048510078
+        },
+        "stint_first_three_clean": {
+          "rows": 5067,
+          "events_with_rows": 48,
+          "global_event_weight_share": 0.12031263326229992,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.04915998969978802,
+              "wis_conditional_on_regime_under_global_weights": 0.40860205920862636
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.04711175063531074,
+              "wis_conditional_on_regime_under_global_weights": 0.39157775337357903
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.04345997066515675,
+              "wis_conditional_on_regime_under_global_weights": 0.3612253300981899
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0036517799701539927
+        },
+        "stint_after_three_clean": {
+          "rows": 38767,
+          "events_with_rows": 48,
+          "global_event_weight_share": 0.8796873667377001,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.24300265609875102,
+              "wis_conditional_on_regime_under_global_weights": 0.27623751947231057
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.23657194544381172,
+              "wis_conditional_on_regime_under_global_weights": 0.2689272966612368
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.2255727660269119,
+              "wis_conditional_on_regime_under_global_weights": 0.25642378708181657
+            }
+          },
+          "contribution_delta_vs_conditional": -0.010999179416899818
+        },
+        "past_only_volatility_bin_0": {
+          "rows": 11372,
+          "events_with_rows": 48,
+          "global_event_weight_share": 0.2562969607436727,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.05850202427359893,
+              "wis_conditional_on_regime_under_global_weights": 0.2282587515039161
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.055828877704850344,
+              "wis_conditional_on_regime_under_global_weights": 0.2178288714109483
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.0525594895307826,
+              "wis_conditional_on_regime_under_global_weights": 0.2050726211433631
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0032693881740677444
+        },
+        "past_only_volatility_bin_1": {
+          "rows": 11327,
+          "events_with_rows": 48,
+          "global_event_weight_share": 0.2544858254601659,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.05124362084882354,
+              "wis_conditional_on_regime_under_global_weights": 0.20136139510388798
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.05009768784859779,
+              "wis_conditional_on_regime_under_global_weights": 0.19685846061567572
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.04900397449821796,
+              "wis_conditional_on_regime_under_global_weights": 0.19256072282064465
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0010937133503798324
+        },
+        "past_only_volatility_bin_2": {
+          "rows": 10868,
+          "events_with_rows": 48,
+          "global_event_weight_share": 0.2461572509577532,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.06250074637059785,
+              "wis_conditional_on_regime_under_global_weights": 0.2539057701019116
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.0622363990164893,
+              "wis_conditional_on_regime_under_global_weights": 0.25283187382999595
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.06059781069308398,
+              "wis_conditional_on_regime_under_global_weights": 0.24617520084136824
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0016385883234053197
+        },
+        "past_only_volatility_bin_3": {
+          "rows": 10267,
+          "events_with_rows": 48,
+          "global_event_weight_share": 0.2430599628384083,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.11991625430551889,
+              "wis_conditional_on_regime_under_global_weights": 0.4933607859770879
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.1155207315091851,
+              "wis_conditional_on_regime_under_global_weights": 0.47527667724521894
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.10687146196998405,
+              "wis_conditional_on_regime_under_global_weights": 0.4396917563960733
+            }
+          },
+          "contribution_delta_vs_conditional": -0.008649269539201046
+        }
+      }
+    },
+    "2026": {
+      "rows": 11923,
+      "events": 13,
+      "models": {
+        "global_empirical": {
+          "wis": 0.28963147381583554,
+          "decomposition": {
+            "median_absolute_error_component": 0.0528379535380533,
+            "weighted_width_component": 0.09624890238571081,
+            "underprediction_penalty_y_above_upper": 0.09430416808034564,
+            "overprediction_penalty_y_below_lower": 0.04624044981172456
+          },
+          "quantile_probability_y_le_q": [
+            0.01724259300038922,
+            0.04151538846184263,
+            0.08648836430793269,
+            0.220857068752138,
+            0.4626356740228176,
+            0.7261942902642912,
+            0.8861400106668706,
+            0.9331162004363632,
+            0.9624546549985626
+          ],
+          "calibration_probability_minus_nominal": [
+            -0.007757406999610781,
+            -0.008484611538157376,
+            -0.013511635692067314,
+            -0.029142931247861992,
+            -0.03736432597718242,
+            -0.023805709735708835,
+            -0.013859989333129374,
+            -0.016883799563636726,
+            -0.012545345001437336
+          ],
+          "weighted_wis_by_quantile": [
+            0.013091497074726807,
+            0.018962196274142487,
+            0.026928509214590696,
+            0.04151179453080538,
+            0.05283795353805328,
+            0.050933288662489105,
+            0.038210400908959656,
+            0.027894793915684748,
+            0.0192610396963833
+          ]
+        },
+        "stratified_empirical": {
+          "wis": 0.28575890601241327,
+          "decomposition": {
+            "median_absolute_error_component": 0.0528379535380533,
+            "weighted_width_component": 0.09451463100884355,
+            "underprediction_penalty_y_above_upper": 0.0930849480543203,
+            "overprediction_penalty_y_below_lower": 0.04532137341119656
+          },
+          "quantile_probability_y_le_q": [
+            0.02124581231258196,
+            0.04276458171426309,
+            0.08987573943746077,
+            0.2243828853027638,
+            0.4626356740228176,
+            0.7190135579703371,
+            0.8830273527030863,
+            0.9340054042139591,
+            0.963023296041546
+          ],
+          "calibration_probability_minus_nominal": [
+            -0.0037541876874180417,
+            -0.007235418285736914,
+            -0.010124260562539233,
+            -0.02561711469723621,
+            -0.03736432597718242,
+            -0.03098644202966294,
+            -0.016972647296913723,
+            -0.0159945957860409,
+            -0.01197670395845396
+          ],
+          "weighted_wis_by_quantile": [
+            0.012705166196441405,
+            0.018318825739464,
+            0.026188001207513478,
+            0.04125871424608997,
+            0.05283795353805328,
+            0.05069306309532293,
+            0.03751628730096796,
+            0.027209289256931404,
+            0.01903160543162903
+          ]
+        },
+        "quantile_hgb_l7_i100": {
+          "wis": 0.2781673777321839,
+          "decomposition": {
+            "median_absolute_error_component": 0.0528379535380533,
+            "weighted_width_component": 0.09717555714230325,
+            "underprediction_penalty_y_above_upper": 0.09020551583676123,
+            "overprediction_penalty_y_below_lower": 0.037948351215066164
+          },
+          "quantile_probability_y_le_q": [
+            0.02610929169608216,
+            0.05243877153293878,
+            0.09634174480008768,
+            0.23897739610718846,
+            0.4626356740228176,
+            0.6974441496863775,
+            0.8690870143908161,
+            0.9312390847745454,
+            0.9627292966007366
+          ],
+          "calibration_probability_minus_nominal": [
+            0.001109291696082159,
+            0.0024387715329387757,
+            -0.003658255199912322,
+            -0.011022603892811539,
+            -0.03736432597718242,
+            -0.05255585031362253,
+            -0.030912985609183874,
+            -0.018760915225454533,
+            -0.012270703399263394
+          ],
+          "weighted_wis_by_quantile": [
+            0.01074541667587076,
+            0.016576147813616632,
+            0.025360290342219215,
+            0.042899198093772746,
+            0.05283795353805328,
+            0.0509636469384773,
+            0.036052079532034015,
+            0.02528960972900321,
+            0.017443035069136786
+          ]
+        }
+      },
+      "differences": {
+        "global_empirical": {
+          "wis_delta": -0.01146409608365162,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": 0.0009266547565924405,
+            "underprediction_penalty_y_above_upper": -0.004098652243584411,
+            "overprediction_penalty_y_below_lower": -0.008292098596658394
+          },
+          "quantile_wis_delta": [
+            -0.0023460803988560475,
+            -0.0023860484605258553,
+            -0.0015682188723714803,
+            0.0013874035629673626,
+            0.0,
+            3.0358275988191796e-05,
+            -0.0021583213769256412,
+            -0.0026051841866815383,
+            -0.0018180046272465132
+          ]
+        },
+        "stratified_empirical": {
+          "wis_delta": -0.007591528280229354,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": 0.0026609261334596956,
+            "underprediction_penalty_y_above_upper": -0.002879432217559069,
+            "overprediction_penalty_y_below_lower": -0.0073730221961303966
+          },
+          "quantile_wis_delta": [
+            -0.001959749520570646,
+            -0.001742677925847369,
+            -0.0008277108652942622,
+            0.0016404838476827763,
+            0.0,
+            0.00027058384315437056,
+            -0.0014642077689339464,
+            -0.0019196795279281947,
+            -0.0015885703624922455
+          ]
+        }
+      },
+      "regimes": {
+        "dry_compound": {
+          "rows": 11923,
+          "events_with_rows": 13,
+          "global_event_weight_share": 1.0,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.28963147381583554,
+              "wis_conditional_on_regime_under_global_weights": 0.28963147381583554
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.28575890601241327,
+              "wis_conditional_on_regime_under_global_weights": 0.28575890601241327
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.2781673777321839,
+              "wis_conditional_on_regime_under_global_weights": 0.2781673777321839
+            }
+          },
+          "contribution_delta_vs_conditional": -0.007591528280229354
+        },
+        "stint_first_three_clean": {
+          "rows": 1422,
+          "events_with_rows": 13,
+          "global_event_weight_share": 0.11869771322810642,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.04505813460432988,
+              "wis_conditional_on_regime_under_global_weights": 0.37960406632046695
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.04488102328157118,
+              "wis_conditional_on_regime_under_global_weights": 0.37811194555468325
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.04148488510347395,
+              "wis_conditional_on_regime_under_global_weights": 0.3495002892241967
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0033961381780972313
+        },
+        "stint_after_three_clean": {
+          "rows": 10501,
+          "events_with_rows": 13,
+          "global_event_weight_share": 0.8813022867718936,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.24457333921150562,
+              "wis_conditional_on_regime_under_global_weights": 0.27751356473537464
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.24087788273084232,
+              "wis_conditional_on_regime_under_global_weights": 0.2733203877334185
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.23668249262871005,
+              "wis_conditional_on_regime_under_global_weights": 0.268559943825461
+            }
+          },
+          "contribution_delta_vs_conditional": -0.004195390102132268
+        },
+        "past_only_volatility_bin_0": {
+          "rows": 2614,
+          "events_with_rows": 13,
+          "global_event_weight_share": 0.22193634507208482,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.059750222626786,
+              "wis_conditional_on_regime_under_global_weights": 0.26922234214219914
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.05871082864566575,
+              "wis_conditional_on_regime_under_global_weights": 0.2645390444120205
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.055410006568707156,
+              "wis_conditional_on_regime_under_global_weights": 0.2496662119523957
+            }
+          },
+          "contribution_delta_vs_conditional": -0.003300822076958594
+        },
+        "past_only_volatility_bin_1": {
+          "rows": 2912,
+          "events_with_rows": 13,
+          "global_event_weight_share": 0.2467808837941451,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.05446796328992606,
+              "wis_conditional_on_regime_under_global_weights": 0.22071386751074726
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.053640763435582314,
+              "wis_conditional_on_regime_under_global_weights": 0.21736190668774544
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.053360979592539014,
+              "wis_conditional_on_regime_under_global_weights": 0.21622817283145257
+            }
+          },
+          "contribution_delta_vs_conditional": -0.00027978384304330056
+        },
+        "past_only_volatility_bin_2": {
+          "rows": 3173,
+          "events_with_rows": 13,
+          "global_event_weight_share": 0.26569314398925403,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.07082296325724836,
+              "wis_conditional_on_regime_under_global_weights": 0.26655924271840753
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.07066009110849061,
+              "wis_conditional_on_regime_under_global_weights": 0.265946234244375
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.06971415785106315,
+              "wis_conditional_on_regime_under_global_weights": 0.26238598709902256
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0009459332574274643
+        },
+        "past_only_volatility_bin_3": {
+          "rows": 3224,
+          "events_with_rows": 13,
+          "global_event_weight_share": 0.26558962714451617,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.10459032464187512,
+              "wis_conditional_on_regime_under_global_weights": 0.39380425269758007
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.10274722282267484,
+              "wis_conditional_on_regime_under_global_weights": 0.38686459229360887
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.09968223371987461,
+              "wis_conditional_on_regime_under_global_weights": 0.3753242729831244
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0030649891028002307
+        }
+      }
+    },
+    "2026_recent": {
+      "rows": 3779,
+      "events": 4,
+      "models": {
+        "global_empirical": {
+          "wis": 0.26007010557281146,
+          "decomposition": {
+            "median_absolute_error_component": 0.048788822568162846,
+            "weighted_width_component": 0.09624890238571256,
+            "underprediction_penalty_y_above_upper": 0.0729233740640399,
+            "overprediction_penalty_y_below_lower": 0.04210900655489682
+          },
+          "quantile_probability_y_le_q": [
+            0.01756464879095895,
+            0.04679406521649341,
+            0.09704176050343807,
+            0.2435279990440654,
+            0.5041111544233777,
+            0.7514629875618098,
+            0.9035927895142853,
+            0.9438509175898958,
+            0.9712408587704064
+          ],
+          "calibration_probability_minus_nominal": [
+            -0.007435351209041052,
+            -0.0032059347835065935,
+            -0.002958239496561932,
+            -0.006472000955934587,
+            0.0041111544233777275,
+            0.0014629875618098476,
+            0.0035927895142853217,
+            -0.006149082410104145,
+            -0.0037591412295935323
+          ],
+          "weighted_wis_by_quantile": [
+            0.010984851159689299,
+            0.016881293106198885,
+            0.024866707015427092,
+            0.03873463353294329,
+            0.048788822568162804,
+            0.046031606076349235,
+            0.03356485752347397,
+            0.023949768974469505,
+            0.01626756561609742
+          ]
+        },
+        "stratified_empirical": {
+          "wis": 0.258233684762913,
+          "decomposition": {
+            "median_absolute_error_component": 0.048788822568162846,
+            "weighted_width_component": 0.09388650284034217,
+            "underprediction_penalty_y_above_upper": 0.07211842835198123,
+            "overprediction_penalty_y_below_lower": 0.04343993100242672
+          },
+          "quantile_probability_y_le_q": [
+            0.023687532936202207,
+            0.051367907210886216,
+            0.1037512596012748,
+            0.24842839323176716,
+            0.5041111544233777,
+            0.7460149065276238,
+            0.899214702769322,
+            0.9462132151569694,
+            0.972443925771277
+          ],
+          "calibration_probability_minus_nominal": [
+            -0.0013124670637977946,
+            0.0013679072108862128,
+            0.0037512596012748006,
+            -0.0015716067682328416,
+            0.0041111544233777275,
+            -0.003985093472376189,
+            -0.0007852972306779948,
+            -0.0037867848430305218,
+            -0.0025560742287229488
+          ],
+          "weighted_wis_by_quantile": [
+            0.011481851423251152,
+            0.01684185339326687,
+            0.024419727620506617,
+            0.0385711475110156,
+            0.048788822568162804,
+            0.04569034553288012,
+            0.0329769625003666,
+            0.02337720304194166,
+            0.016085771171521383
+          ]
+        },
+        "quantile_hgb_l7_i100": {
+          "wis": 0.2555716736892122,
+          "decomposition": {
+            "median_absolute_error_component": 0.048788822568162846,
+            "weighted_width_component": 0.09649758847232998,
+            "underprediction_penalty_y_above_upper": 0.07024020084485935,
+            "overprediction_penalty_y_below_lower": 0.040045061803859985
+          },
+          "quantile_probability_y_le_q": [
+            0.026354071847620966,
+            0.059038426326994034,
+            0.1076214524763827,
+            0.2787961934928335,
+            0.5041111544233777,
+            0.7362782464484019,
+            0.8898986674054419,
+            0.942610358132055,
+            0.9697117258936317
+          ],
+          "calibration_probability_minus_nominal": [
+            0.0013540718476209648,
+            0.009038426326994031,
+            0.007621452476382698,
+            0.02879619349283352,
+            0.0041111544233777275,
+            -0.013721753551598104,
+            -0.010101332594558143,
+            -0.007389641867944996,
+            -0.005288274106368229
+          ],
+          "weighted_wis_by_quantile": [
+            0.010285441404365301,
+            0.01602706766410583,
+            0.02424290313203574,
+            0.04100930139034615,
+            0.048788822568162804,
+            0.046531937393446667,
+            0.03172888516388253,
+            0.022058820918835525,
+            0.014898494054031555
+          ]
+        }
+      },
+      "differences": {
+        "global_empirical": {
+          "wis_delta": -0.004498431883599274,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": 0.00024868608661741953,
+            "underprediction_penalty_y_above_upper": -0.0026831732191805457,
+            "overprediction_penalty_y_below_lower": -0.002063944751036835
+          },
+          "quantile_wis_delta": [
+            -0.0006994097553239976,
+            -0.0008542254420930567,
+            -0.0006238038833913523,
+            0.002274667857402858,
+            0.0,
+            0.0005003313170974313,
+            -0.0018359723595914382,
+            -0.00189094805563398,
+            -0.0013690715620658656
+          ]
+        },
+        "stratified_empirical": {
+          "wis_delta": -0.0026620110737007874,
+          "decomposition_delta": {
+            "median_absolute_error_component": 0.0,
+            "weighted_width_component": 0.0026110856319878084,
+            "underprediction_penalty_y_above_upper": -0.0018782275071218824,
+            "overprediction_penalty_y_below_lower": -0.0033948691985667342
+          },
+          "quantile_wis_delta": [
+            -0.0011964100188858514,
+            -0.0008147857291610425,
+            -0.00017682448847087737,
+            0.0024381538793305513,
+            0.0,
+            0.0008415918605665443,
+            -0.00124807733648407,
+            -0.0013183821231061363,
+            -0.0011872771174898274
+          ]
+        }
+      },
+      "regimes": {
+        "dry_compound": {
+          "rows": 3779,
+          "events_with_rows": 4,
+          "global_event_weight_share": 1.0,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.26007010557281146,
+              "wis_conditional_on_regime_under_global_weights": 0.26007010557281146
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.258233684762913,
+              "wis_conditional_on_regime_under_global_weights": 0.258233684762913
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.2555716736892122,
+              "wis_conditional_on_regime_under_global_weights": 0.2555716736892122
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0026620110737007874
+        },
+        "stint_first_three_clean": {
+          "rows": 454,
+          "events_with_rows": 4,
+          "global_event_weight_share": 0.11911160137504004,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.03437749447877533,
+              "wis_conditional_on_regime_under_global_weights": 0.28861583659288437
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.03455792004891386,
+              "wis_conditional_on_regime_under_global_weights": 0.2901305972715728
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.034539261162733675,
+              "wis_conditional_on_regime_under_global_weights": 0.28997394681968747
+            }
+          },
+          "contribution_delta_vs_conditional": -1.8658886180182577e-05
+        },
+        "stint_after_three_clean": {
+          "rows": 3325,
+          "events_with_rows": 4,
+          "global_event_weight_share": 0.88088839862496,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.2256926110940362,
+              "wis_conditional_on_regime_under_global_weights": 0.2562102207797668
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.2236757647139991,
+              "wis_conditional_on_regime_under_global_weights": 0.253920661304145
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.22103241252647846,
+              "wis_conditional_on_regime_under_global_weights": 0.25091988141914834
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0026433521875206534
+        },
+        "past_only_volatility_bin_0": {
+          "rows": 838,
+          "events_with_rows": 4,
+          "global_event_weight_share": 0.2223067539093167,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.05152670417676364,
+              "wis_conditional_on_regime_under_global_weights": 0.23178200063945154
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.051166817537544936,
+              "wis_conditional_on_regime_under_global_weights": 0.2301631265706704
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.05033389030922355,
+              "wis_conditional_on_regime_under_global_weights": 0.22641637927813804
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0008329272283213868
+        },
+        "past_only_volatility_bin_1": {
+          "rows": 964,
+          "events_with_rows": 4,
+          "global_event_weight_share": 0.2557732875019012,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.054858392509435056,
+              "wis_conditional_on_regime_under_global_weights": 0.21448053878193704
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.0542780627138651,
+              "wis_conditional_on_regime_under_global_weights": 0.2122116161698928
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.054294461964729535,
+              "wis_conditional_on_regime_under_global_weights": 0.2122757325247499
+            }
+          },
+          "contribution_delta_vs_conditional": 1.6399250864433668e-05
+        },
+        "past_only_volatility_bin_2": {
+          "rows": 1010,
+          "events_with_rows": 4,
+          "global_event_weight_share": 0.2673722135077605,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.06592746640735586,
+              "wis_conditional_on_regime_under_global_weights": 0.24657560911969
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.06607936721771297,
+              "wis_conditional_on_regime_under_global_weights": 0.24714373401331402
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.06539051392374803,
+              "wis_conditional_on_regime_under_global_weights": 0.2445673507574491
+            }
+          },
+          "contribution_delta_vs_conditional": -0.0006888532939649389
+        },
+        "past_only_volatility_bin_3": {
+          "rows": 967,
+          "events_with_rows": 4,
+          "global_event_weight_share": 0.25454774508102174,
+          "models": {
+            "global_empirical": {
+              "wis_contribution_to_global": 0.08775754247925702,
+              "wis_conditional_on_regime_under_global_weights": 0.34475867170351115
+            },
+            "stratified_empirical": {
+              "wis_contribution_to_global": 0.08670943729378985,
+              "wis_conditional_on_regime_under_global_weights": 0.3406411526693765
+            },
+            "quantile_hgb_l7_i100": {
+              "wis_contribution_to_global": 0.08555280749151103,
+              "wis_conditional_on_regime_under_global_weights": 0.33609729076279915
+            }
+          },
+          "contribution_delta_vs_conditional": -0.001156629802278819
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "started_at_utc": "2026-09-08T01:04:04.936750+00:00",
+  "source_files": {
+    "research/experiments/boundary_20260908/distributional/execution/model.py": "f4a97e0763f4eff6f83d989263e14497a778376a460356d8cd230cde7f53a0e0",
+    "research/experiments/boundary_20260908/distributional/execution/run.py": "b6e4849559a3ce684521c7751ba8ad5713d0b3dd6a796b6db7cd80cbd82bf8c8",
+    "research/experiments/boundary_20260908/distributional/execution/test_math.py": "9a3ff240e0d6e14ed13c69be674881f661650b089122bbf9b572f83c6b45aac5",
+    "research/experiments/boundary_20260908/distributional/execution/verify.py": "f279b9d31c5d484c2939787159aa1ed7c4c777d50b8adcb304f2e4b628efa7ef",
+    "research/experiments/boundary_20260908/distributional/specification.json": "84c97707c6b8ada670b4a4b12df9cf33dee3e6a6087f85cb15565166a45b0067",
+    "research/experiments/boundary_20260908/online_residual/run.py": "b5b157e724cd72e825df9d88f0d3b8d83f1f89a26b10f502b21423002f16073a",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097"
+  },
+  "source_sha256": "d5cdcc5d2201fc49f0d09186083510053ec8959b7382aad811bf4521f4f05c5a",
+  "spec_sha256": "84c97707c6b8ada670b4a4b12df9cf33dee3e6a6087f85cb15565166a45b0067",
+  "runtime": {
+    "python": "3.12.14",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.0",
+    "threads": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "frozen_at_utc": "2026-09-08T01:29:25.923846+00:00",
+  "spec_sha256": "9099de60861c0c99a5c9f9d51a603ba495b3bf23e309eef4801e69e2a39d9a39",
+  "design_lock_sha256": "c325c2e440c1046d82eb5ecf9acc0c58b16b09176a2e5783ef60e037f9882537",
+  "source_files": {
+    "research/experiments/boundary_20260908/distributional/online_calibration/model.py": "eacb6c826652f628e39a054123acd627a356c4699753cad5d1d5791dffc59113",
+    "research/experiments/boundary_20260908/distributional/online_calibration/run.py": "ba8f7327ba0c09c8b3562ad6a72d808a316fed950b3cdc0f69b0cc093a6b7166",
+    "research/experiments/boundary_20260908/distributional/online_calibration/test_model.py": "0733eca31398f171401db046d0f22a62610ebe09f7f2053af557fccef47e46f1",
+    "research/experiments/boundary_20260908/distributional/online_calibration/verify.py": "8bc2fa98b7af57f46e77e2a4f6620c68a51ac129e0b718fb4d24c16cd0bfee9f",
+    "research/experiments/boundary_20260908/distributional/online_calibration/specification.json": "9099de60861c0c99a5c9f9d51a603ba495b3bf23e309eef4801e69e2a39d9a39",
+    "research/experiments/boundary_20260908/distributional/execution/model.py": "f4a97e0763f4eff6f83d989263e14497a778376a460356d8cd230cde7f53a0e0",
+    "research/experiments/boundary_20260908/distributional/execution/run.py": "b6e4849559a3ce684521c7751ba8ad5713d0b3dd6a796b6db7cd80cbd82bf8c8"
+  },
+  "source_sha256": "81ebb8e6c6c1a9819982a9e338ecc4e81150ee350014820474405d230be24516",
+  "tests_sha256": "e725e116e55ca8b82bf00859da42d14343f4c4075e722724b023c3a61d6fdfe4",
+  "independent_review_sha256": "b0f80ad1cc5fd5779b804ab797d82e9ca6dc94cdf9e574cf18f9c6ca531c18c6",
+  "online_scores_inspected": false,
+  "candidate_settings_or_gates_changed": false
+}

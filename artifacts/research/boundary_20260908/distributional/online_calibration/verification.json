@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "verified_at_utc": "2026-09-08T01:30:10.197302+00:00",
+  "source_sha256": "81ebb8e6c6c1a9819982a9e338ecc4e81150ee350014820474405d230be24516",
+  "selection_sha256": "d07700e776d5d86d0104998089b6d56ac930f2a752e5193a3f4c7019248dbe4c",
+  "results_sha256": "5f7a289e59327b004977133c0a8d6569618a86aed38a61de7c473bd0fb9dca4b",
+  "checks": {
+    "selection": {
+      "rows": 20007,
+      "policies_replayed": 8,
+      "forecast_max_absolute_error": 0.0,
+      "latest_feedback_strictly_prior": true,
+      "point_max_absolute_change": 0.0
+    }
+  },
+  "fits_executed": 0,
+  "selection_and_gates_recomputed": true
+}

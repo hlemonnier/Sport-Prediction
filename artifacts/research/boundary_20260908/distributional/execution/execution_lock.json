@@ -1,0 +1,39 @@
+{
+  "frozen_at_utc": "2026-09-08T01:04:03.623541+00:00",
+  "status": "tested_source_frozen_before_selection",
+  "source_files": {
+    "research/experiments/boundary_20260908/distributional/execution/model.py": "f4a97e0763f4eff6f83d989263e14497a778376a460356d8cd230cde7f53a0e0",
+    "research/experiments/boundary_20260908/distributional/execution/run.py": "b6e4849559a3ce684521c7751ba8ad5713d0b3dd6a796b6db7cd80cbd82bf8c8",
+    "research/experiments/boundary_20260908/distributional/execution/test_math.py": "9a3ff240e0d6e14ed13c69be674881f661650b089122bbf9b572f83c6b45aac5",
+    "research/experiments/boundary_20260908/distributional/execution/verify.py": "f279b9d31c5d484c2939787159aa1ed7c4c777d50b8adcb304f2e4b628efa7ef",
+    "research/experiments/boundary_20260908/distributional/specification.json": "84c97707c6b8ada670b4a4b12df9cf33dee3e6a6087f85cb15565166a45b0067",
+    "research/experiments/boundary_20260908/online_residual/run.py": "b5b157e724cd72e825df9d88f0d3b8d83f1f89a26b10f502b21423002f16073a",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097"
+  },
+  "source_sha256": "d5cdcc5d2201fc49f0d09186083510053ec8959b7382aad811bf4521f4f05c5a",
+  "original_spec_sha256": "84c97707c6b8ada670b4a4b12df9cf33dee3e6a6087f85cb15565166a45b0067",
+  "original_design_lock_sha256": "8fbe47a3843f596a9df71fd9caacf7d749c6ccd93ba07260eba8b5ba6a1d01bf",
+  "archived_files": {
+    "research/experiments/boundary_20260908/distributional/README.md": "9c42b155b1e7dca49ad9cbd3190bf0a47fa727decc23f8dc86b4c07cc36d08b0",
+    "research/experiments/boundary_20260908/distributional/model.py": "64c0cba3c9f4b352e3dafaedc5679b9b13cb1d834513646179bddcc3bfa77f6b",
+    "research/experiments/boundary_20260908/distributional/run.py": "89d59869ad01303665a84edf3a51f03a1bf24d0fa88b9f844ff0e3a2cbb2e917",
+    "research/experiments/boundary_20260908/distributional/specification.json": "84c97707c6b8ada670b4a4b12df9cf33dee3e6a6087f85cb15565166a45b0067",
+    "artifacts/research/boundary_20260908/distributional/design_lock.json": "8fbe47a3843f596a9df71fd9caacf7d749c6ccd93ba07260eba8b5ba6a1d01bf",
+    "artifacts/research/boundary_20260908/distributional/status.json": "02f279bd4efdd050851dbe9daa755931becf3703cbf01ba81e3d3509333e87fa"
+  },
+  "pre_fit_tests_sha256": "891f9760f018adc32adb7014810b9f6ce6b650beaf14b35c497d32ec3a5f3008",
+  "candidate_settings_changed": false,
+  "selection_or_transfer_gates_changed": false,
+  "new_distributional_metrics_inspected": false,
+  "implementation_amendments": [
+    "Strict flat event_key/path/sha256 input manifest validation; reject malformed or changed inputs.",
+    "Explicit year, feature, issuance uniqueness and later-target checks.",
+    "Independent score/CDF/chronology/serialization verifier and meaningful mathematical tests."
+  ],
+  "parent_publication": "28cf198",
+  "resources": {
+    "threads": 1,
+    "parallel_fits": 1
+  }
+}

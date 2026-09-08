@@ -1,0 +1,10 @@
+{
+  "status": "rejected_on_2023_online_calibration_screen",
+  "selected": "eta0p01_race_global",
+  "selection_sha256": "d07700e776d5d86d0104998089b6d56ac930f2a752e5193a3f4c7019248dbe4c",
+  "transfer_evaluated": false,
+  "substantial_gate_passed": false,
+  "promotion": false,
+  "point_mae_gain_claimed": false,
+  "source_sha256": "81ebb8e6c6c1a9819982a9e338ecc4e81150ee350014820474405d230be24516"
+}

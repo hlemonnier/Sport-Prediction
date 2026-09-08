@@ -1,0 +1,25 @@
+{
+  "status": "passed_after_parameter_validation_fix",
+  "reviewer": "independent_agent_audit_live_runtime",
+  "reviewed_at_utc": "2026-09-08T01:29:25.922345+00:00",
+  "checked": [
+    "gradient sign and units",
+    "stored issued post-projection quantile feedback",
+    "allissuances before equaltime label arrivals",
+    "originalcompound context",
+    "atomiccontextmean gradients",
+    "perrace resets",
+    "both strong adaptiveconditional comparators"
+  ],
+  "finding_and_fix": "Both-negative eta/lambda formerly passed the product-only check; now explicitly finite and positive, with regression. Frozenpositivegrid unaffected.",
+  "scores_inspected": false,
+  "source_files": {
+    "research/experiments/boundary_20260908/distributional/online_calibration/model.py": "eacb6c826652f628e39a054123acd627a356c4699753cad5d1d5791dffc59113",
+    "research/experiments/boundary_20260908/distributional/online_calibration/run.py": "ba8f7327ba0c09c8b3562ad6a72d808a316fed950b3cdc0f69b0cc093a6b7166",
+    "research/experiments/boundary_20260908/distributional/online_calibration/test_model.py": "0733eca31398f171401db046d0f22a62610ebe09f7f2053af557fccef47e46f1",
+    "research/experiments/boundary_20260908/distributional/online_calibration/verify.py": "8bc2fa98b7af57f46e77e2a4f6620c68a51ac129e0b718fb4d24c16cd0bfee9f",
+    "research/experiments/boundary_20260908/distributional/online_calibration/specification.json": "9099de60861c0c99a5c9f9d51a603ba495b3bf23e309eef4801e69e2a39d9a39",
+    "research/experiments/boundary_20260908/distributional/execution/model.py": "f4a97e0763f4eff6f83d989263e14497a778376a460356d8cd230cde7f53a0e0",
+    "research/experiments/boundary_20260908/distributional/execution/run.py": "b6e4849559a3ce684521c7751ba8ad5713d0b3dd6a796b6db7cd80cbd82bf8c8"
+  }
+}

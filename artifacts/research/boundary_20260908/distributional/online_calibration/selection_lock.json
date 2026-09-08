@@ -1,0 +1,16 @@
+{
+  "selected": "eta0p01_race_global",
+  "best_conditional": "eta0p03_race_global",
+  "references": [
+    "global_empirical",
+    "stratified_empirical",
+    "selected_quantile",
+    "conditional__eta0p01_race_global",
+    "conditional__eta0p03_race_global"
+  ],
+  "selection_sha256": "d07700e776d5d86d0104998089b6d56ac930f2a752e5193a3f4c7019248dbe4c",
+  "source_sha256": "81ebb8e6c6c1a9819982a9e338ecc4e81150ee350014820474405d230be24516",
+  "advancement_passed": false,
+  "locked_at_utc": "2026-09-08T01:29:33.556219+00:00",
+  "new_transfer_calibration_scores_inspected": false
+}

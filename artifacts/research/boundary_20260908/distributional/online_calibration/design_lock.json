@@ -1,0 +1,13 @@
+{
+  "frozen_at_utc": "2026-09-08T01:20:59.112069+00:00",
+  "spec_sha256": "9099de60861c0c99a5c9f9d51a603ba495b3bf23e309eef4801e69e2a39d9a39",
+  "online_scores_inspected": false,
+  "inputs": {
+    "artifacts/research/boundary_20260908/distributional/execution/execution_lock.json": "1099f130137712f368d7cb48955175a9a776649f3ef63d6fbbd886991f005254",
+    "artifacts/research/boundary_20260908/distributional/execution/selection.json": "b631df4ca99289b962d823e470fefd5f0dd74679bdfd44a3e0e17ceea0a445a0",
+    "artifacts/research/boundary_20260908/distributional/execution/results.json": "219d4ed8b9001a076257111891953c8eda7daa8dc11d00497b3e1efd2a4b0095",
+    "artifacts/research/boundary_20260908/distributional/execution/selection_forecasts.pkl": "43e1743e60805c4e1cbfe3c633d6e0edcc47de5e696a16641040a3b8a9bb4c2c",
+    "artifacts/research/boundary_20260908/distributional/execution/transfer_forecasts.pkl": "94dcb28f77664420120b46ad1d1826130ebb867a4dc0d78aa5f45ee8ed24fdf4",
+    "artifacts/research/boundary_20260908/distributional/execution/verification.json": "1fff8f05b37285012d6f7d706f1fdc47f3bd7b02dc83d9b0e1f08ba4a02a9fd3"
+  }
+}

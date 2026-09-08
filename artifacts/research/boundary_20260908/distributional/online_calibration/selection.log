@@ -1,0 +1,28 @@
+replayed eta0p01_race_global
+replayed eta0p01_race_compound
+replayed eta0p03_race_global
+replayed eta0p03_race_compound
+{
+  "selected": "eta0p01_race_global",
+  "advanced": false,
+  "gains": {
+    "global_empirical": 0.06100562373892893,
+    "stratified_empirical": 0.045701913974879216,
+    "selected_quantile": 0.007887535388153788,
+    "conditional__eta0p01_race_global": 0.03744828284680923,
+    "conditional__eta0p03_race_global": 0.03680384971232187
+  },
+  "wis": {
+    "global_empirical": 0.35413373830413053,
+    "stratified_empirical": 0.3484546323433944,
+    "selected_quantile": 0.3351732798176134,
+    "quantile__eta0p01_race_global": 0.3325295887118884,
+    "conditional__eta0p01_race_global": 0.3454667243183216,
+    "quantile__eta0p01_race_compound": 0.332991865488096,
+    "conditional__eta0p01_race_compound": 0.3461343263128913,
+    "quantile__eta0p03_race_global": 0.33292532818776044,
+    "conditional__eta0p03_race_global": 0.34523558738536453,
+    "quantile__eta0p03_race_compound": 0.33327990215587994,
+    "conditional__eta0p03_race_compound": 0.34569899254453224
+  }
+}

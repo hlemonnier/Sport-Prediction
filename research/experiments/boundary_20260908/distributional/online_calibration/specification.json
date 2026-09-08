@@ -1,0 +1,54 @@
+{
+  "id": "delayed_asymmetric_quantile_calibration_20260908",
+  "status": "retrospective_reused_dates_research_only",
+  "objective": "Improve proper WIS with causally resolved outcome feedback, keeping the existing HGB median exactly. No point-MAE or conformal-coverage guarantee.",
+  "known_exposure": "2023selection and2024\u20132026 transfer dates and static distributional metrics previously examined. Freeze online design before its scores; no pristine/prospective claim.",
+  "static_base": "Frozen selected quantile_hgb_l7_i100 execution forecasts;2023staticdistribution trained2022OOF, transferstaticdistribution trained2022OOF+2023. Reuse exact originaleligiblepopulation and point.",
+  "variants": {
+    "eta0p01_race_global": {
+      "eta_seconds": 0.01,
+      "shrink_per_second": 0.2,
+      "context": "race_global"
+    },
+    "eta0p01_race_compound": {
+      "eta_seconds": 0.01,
+      "shrink_per_second": 0.2,
+      "context": "race_compound"
+    },
+    "eta0p03_race_global": {
+      "eta_seconds": 0.03,
+      "shrink_per_second": 0.2,
+      "context": "race_global"
+    },
+    "eta0p03_race_compound": {
+      "eta_seconds": 0.03,
+      "shrink_per_second": 0.2,
+      "context": "race_compound"
+    }
+  },
+  "objective_math": "Pinball gradient at actually issued quantile is 1{Y<=q_issued}-tau (valid subgradient including ties). On a resolved timestamp/context batch update eight nonmedian offsets theta<-(1-eta*lambda)*theta+eta*mean(tau-1{Y<=q_issued}). eta has unitsseconds, lambda reciprocalseconds. This is a delayed regularized quantile-feedback heuristic; after forecast projection it is not a guarantee of gradient descent in raw offsets or of conformal coverage.",
+  "forecast": "Apply current context offsets to static eightquantiles, preserve staticmedian, project loweroffsets<=0/sort and upperoffsets>=0/sort. Store these actually issued coherent quantiles immutably for later feedback. No gradient recomputed against updated quantiles.",
+  "timing": "Reset all state per race. Sort actions by actual raw issued_at_timestamp and target_timestamp. Issue ALLrows at timestamp before resolving ANYlabel at same timestamp, so all feedback is strictly prior for peers and owncar. Multiple labels resolving simultaneously in a context update atomically by mean gradient. Context uses compound known at originalissuance; resolved target cannot choosecontext. Never filter on target_same_stint,outcome value or futureavailability; every inherited scored issuance is retained. The inherited retrospectively matched originaleligiblepopulation remains its known limitation.",
+  "contexts": "race_global pools all currently available resolved forecasts in the same race; race_compound pools by compound recorded at issuance within the race. No driver/position/targetcontext tuning.",
+  "references": "Static globalempirical,static stratifiedempirical,static selectedquantile. Apply allfour identical calibration variants to stratifiedempirical.2023separately freezes its bestWIS variant; candidate is bestWIS calibratedquantile variant. Evaluate both the conditional-online reference matched to selectedcandidate settings and independently best2023conditional-online variant. These may coincide.",
+  "selection": "Select minimum2023eventbalancedWIS among four calibratedquantile candidates with name tiebreak. Advance only if at least1%WIS lower than ALLfive references (three static, matchedonlineconditional, best2023onlineconditional) and80/90/95coverage>=nominal\u2212.05. No newtransfer scores if rejected.",
+  "transfer_gate": "Same selectedupdate policy and same two conditionalonline comparator settings, no retuning. Require historical2024\u201325WIS>=10%better than BOTHstaticempirical refs with threeeventCIupper<0 against both; strictlylowerWIS and threeeventCIupper<0 against staticselectedquantile and bothconditionalonline references; each2024/2025/2026WIS lower than allfive. Originalcoverageconstraints unchanged:eachyear80/90/95>=nominal\u2212.05 and>=STATICconditionalempiricalcoverage\u2212.03. Allpointsexactlyunchanged. No productionpromotion.",
+  "metric": "Inherited ninelevel WIS=2/9sum pinball, fixedmedian. Averagewithin event thenequalacross events. Originalperyear/event coverage,width,pinball; paired20kseed20260908 eventandcircular3eventblocks stratifiedbyyear,LOO; recent2026R10\u201313nested sensitivity.",
+  "resources": {
+    "threads": 1,
+    "fits": 0,
+    "parallel_scoring": false
+  },
+  "sources": [
+    "https://proceedings.neurips.cc/paper/2021/hash/0d441de75945e5acbc865406fc9a2559-Abstract.html",
+    "https://jmlr.org/beta/papers/v25/22-1218.html"
+  ],
+  "source_interpretation": "ACI motivates adaptive updates under distribution shift. This custom delayed regularized quantile-offset rule is not the published ACI algorithm and inherits no stated conformal coverage guarantee.",
+  "limits": [
+    "Feedback available only after realized targettimestamp, not predictedlap end",
+    "Original raw provider flags/latency retrospective",
+    "Quantile sorting changes gradientmapping; no unconstrained objective/convergence guarantee",
+    "Research reuse and multiplecomparison uncertainty remain",
+    "No distributionparameter,eta,shrinkage orcontext tuned on transfer"
+  ]
+}

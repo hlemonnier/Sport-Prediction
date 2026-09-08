@@ -1,0 +1,642 @@
+{
+  "candidate_scores_computed": false,
+  "candidates": [
+    "past_market",
+    "past_market_shot50"
+  ],
+  "elo_odds_reference": {
+    "K": 175.0,
+    "all_classes_required": true,
+    "complete_paper_reproduction": false,
+    "expected_home_score": "1/(1+10**(-(rating_home-rating_away+80)/400))",
+    "final_probability_floor": 1e-12,
+    "home_advantage_points": 80.0,
+    "initial_rating": 1000.0,
+    "logistic_base": 10.0,
+    "logistic_scale_points": 400.0,
+    "new_team_entry": "Neutral1000 at first admitted appearance; returning teams keep prior rating. No future season roster/promotion result is inspected.",
+    "observed_soft_home_score": "q_home+0.5*q_draw",
+    "paper_difference": "Paper transfers relegated ratings to promoted clubs; this reference uses declared causal neutral entry, our leagues/dates/delays and atomic batching.",
+    "paper_update_exact": true,
+    "publication": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+    "readout_constraints": {
+      "beta_min": 0.0,
+      "threshold_gap_min": 1e-06
+    },
+    "readout_failure": "Fail before scoring; no replacement calibration or post-score tuning.",
+    "readout_input": "x=(rating_home-rating_away)/400 at original fixture forecast cutoff before its quote update",
+    "readout_objective": "Unweighted mean outcome negative log likelihood; no ridge, no league indicator, no recency weights.",
+    "readout_probabilities": {
+      "A": "sigmoid(t1-beta*x)",
+      "D": "sigmoid(t2-beta*x)-sigmoid(t1-beta*x)",
+      "H": "1-sigmoid(t2-beta*x)"
+    },
+    "readout_solver": {
+      "analytic_gradient": true,
+      "ftol": 1e-12,
+      "initial_beta": 1.0,
+      "initial_t1": -0.5,
+      "initial_t2": 0.5,
+      "maximum_kkt_residual": 1e-06,
+      "maxiter": 2000,
+      "name": "SLSQP",
+      "require_success": true
+    },
+    "readout_status": "Frozen through both selection seasons and all transfer dates; only earlier-quote ratings update. Separate fixed calibration under each delay.",
+    "readout_training": "One pooled three-league fit per delay, completed before first2022selection issuance, with original-midnight causal prequential rating differences and admitted quote-valid/resolved labels only.",
+    "readout_training_season_start_years": [
+      2019,
+      2020,
+      2021
+    ],
+    "reference_id": "elo_odds_reference",
+    "update": "delta=175*(soft_home_score-expected_home_score); home+=delta;away-=delta; all equal-clock deltas from pre-batch state",
+    "warmup_season_start_years": [
+      2017,
+      2018
+    ]
+  },
+  "execution_plan": {
+    "failure_policy": "Exclusive stage attempts and closures; preserve failure receipt; reject advancement from failed stages. No overwrites.",
+    "fit_audit": [
+      "accepted training IDs",
+      "accepted source row hashes and clocks",
+      "recency weights and normalization",
+      "serialized free and actual coefficients",
+      "optimizer gradient/KKT/objective",
+      "Elo update/source provenance",
+      "elapsedtime andRSS"
+    ],
+    "freeze": "Bind exact source, specification, runtime versions,27CSV bytes/manifests, reference probabilities and original verification/selection receipts before new fits.",
+    "independent_verification": "No refits: independently reconstruct accepted memberships and both delays; replay saved strength/readout coefficients and Elo updates; compare every forecast/reference and all gates/metrics/block intervals.",
+    "new_files_expected": [
+      "model.py",
+      "data.py",
+      "run.py",
+      "focused synthetic tests",
+      "separate independent verifier"
+    ],
+    "no_extra_registry_or_publisher": true,
+    "no_new_provider_data": true,
+    "no_production_integration": true,
+    "prediction_closure": "Every original fixture receives all candidates/controls/reference vectors before phase scoring labels attach.",
+    "prepare": "Extract immutable IDs/clocks/four reference vectors and xG selection safeguard; preserve all scored rows. Close source metadata and both availability ledgers before model fits.",
+    "required_tests": [
+      "analytic gradients and Hessian curvature versus finite differences",
+      "centered-coordinate norm and identity-prior behavior",
+      "power de-vig overround/underround/extreme inputs",
+      "Elo one-step and atomic-batch equations",
+      "future/current/equal-time poison invariance before payload inspection",
+      "DST calendar delay versus elapsed hours",
+      "same training populations and recency weights for soft/outcome controls",
+      "all original IDs and incumbent bits including fallbacks",
+      "xG exact ID/clock/vector reuse and no failed-family fitting",
+      "forecast closure before external label scoring",
+      "one fixed Elo readout per delay and no transfer reselection",
+      "every fixed gain and interval gate",
+      "Pure and blended outcome controls use the identical incumbent weights; selected blended gain must beat matched blended control"
+    ],
+    "stages": [
+      "freeze after review and tests",
+      "prepare target-free reference/quote metadata",
+      "primary selection",
+      "gated sensitivity",
+      "gated transfer"
+    ]
+  },
+  "historical_scope": {
+    "all_760_incumbent_and_xg_ids_and_clocks_verified_equal_before_this_protocol": true,
+    "prospective_validation": false,
+    "same_horizon_status": "Intended original local-midnight horizon under explicit retrospective quote-availability assumptions; original historical quote receipt remains uncertified.",
+    "selection_dates_already_exposed": true,
+    "transfer_dates_already_exposed": true,
+    "zero_shot_country_holdout": false
+  },
+  "hypothesis": "Prior fixture market distributions contain persistent opponent-adjusted team information that can improve the original local-midnight 1X2 forecast.",
+  "id": "football_past_market_strengths_20260908",
+  "incumbent": "shot_strength_90d_ridge0.1",
+  "input_season_start_years": [
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "inputs": {
+    "acquisition_manifests": [
+      {
+        "bytes": 4949,
+        "path": "data/football/performance_20260907/source_manifest.json",
+        "sha256": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b"
+      },
+      {
+        "bytes": 7936,
+        "path": "data/football/performance_20260907/transfer_source_manifest.json",
+        "sha256": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6"
+      }
+    ],
+    "cached_csv_files": [
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 100734,
+        "path": "data/football/performance_20260907/E0_2017_2018.csv",
+        "sha256": "4f3389365ef3f7ac966764ed8ba67cf3b79f5aebed18dd224099c4b2c98bc67b",
+        "url": "https://football-data.co.uk/mmz4281/1718/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 96144,
+        "path": "data/football/performance_20260907/E0_2018_2019.csv",
+        "sha256": "7c096b3c2ecd54c6993d22eeea73450c2bde11e3457238b226b8f43c62dfc35e",
+        "url": "https://football-data.co.uk/mmz4281/1819/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 175475,
+        "path": "data/football/performance_20260907/E0_2019_2020.csv",
+        "sha256": "100037618b94f94057400bb02bf6bac4ef74ddaa58cde4b38370839c39caee61",
+        "url": "https://football-data.co.uk/mmz4281/1920/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 175815,
+        "path": "data/football/performance_20260907/E0_2020_2021.csv",
+        "sha256": "5afe63f69401457b8354eaacee24f9a3e520b3c3af6329564a9783e20d789c62",
+        "url": "https://football-data.co.uk/mmz4281/2021/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 175363,
+        "path": "data/football/performance_20260907/E0_2021_2022.csv",
+        "sha256": "335afcbabeb2939fa10ab39ba3e8215072d0b577cb8d0705c1e44c56e934e703",
+        "url": "https://football-data.co.uk/mmz4281/2122/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 176180,
+        "path": "data/football/performance_20260907/E0_2022_2023.csv",
+        "sha256": "8442792d3b614c94ea3cf381bd2736805889cc1713169035368fff19c3d02380",
+        "url": "https://football-data.co.uk/mmz4281/2223/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 172196,
+        "path": "data/football/performance_20260907/E0_2023_2024.csv",
+        "sha256": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3",
+        "url": "https://football-data.co.uk/mmz4281/2324/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 197110,
+        "path": "data/football/performance_20260907/E0_2024_2025.csv",
+        "sha256": "d0c8ce4a96d886cf60cf101f570f4a3893844226f91c7bd769eb568c49edbfa4",
+        "url": "https://football-data.co.uk/mmz4281/2425/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/source_manifest.json",
+        "bytes": 203438,
+        "path": "data/football/performance_20260907/E0_2025_2026.csv",
+        "sha256": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
+        "url": "https://football-data.co.uk/mmz4281/2526/E0.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 95137,
+        "path": "data/football/performance_20260907/transfer_I1_2017_2018.csv",
+        "sha256": "664a8874d3a33923036120c4162e72f13887e0897b51effe27f89969c79c335d",
+        "url": "https://football-data.co.uk/mmz4281/1718/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 91392,
+        "path": "data/football/performance_20260907/transfer_I1_2018_2019.csv",
+        "sha256": "2baea8a1fb31096960b5f5797d31dbb6b454eb41b00845e6b0b79feb82a0e3d0",
+        "url": "https://football-data.co.uk/mmz4281/1819/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 170130,
+        "path": "data/football/performance_20260907/transfer_I1_2019_2020.csv",
+        "sha256": "f33233e0c428ebe4f7cb854c4a504e0b59c4e009ee8b679269486e26afdc575b",
+        "url": "https://football-data.co.uk/mmz4281/1920/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 170667,
+        "path": "data/football/performance_20260907/transfer_I1_2020_2021.csv",
+        "sha256": "c09196fa18877547442807d375317299947abdd6d51a5e0df044cc6026e13f36",
+        "url": "https://football-data.co.uk/mmz4281/2021/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 171204,
+        "path": "data/football/performance_20260907/transfer_I1_2021_2022.csv",
+        "sha256": "6a9555d5a90e652a883fd2862a52545c06e264016cd770347c067a6d7c993170",
+        "url": "https://football-data.co.uk/mmz4281/2122/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 171573,
+        "path": "data/football/performance_20260907/transfer_I1_2022_2023.csv",
+        "sha256": "9960837f37a97ae700f876c87b85a8b7a2f5a5d05a53077830c21b9db8880c45",
+        "url": "https://football-data.co.uk/mmz4281/2223/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 167015,
+        "path": "data/football/performance_20260907/transfer_I1_2023_2024.csv",
+        "sha256": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723",
+        "url": "https://football-data.co.uk/mmz4281/2324/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 191722,
+        "path": "data/football/performance_20260907/transfer_I1_2024_2025.csv",
+        "sha256": "79d87a5b18771e066ac7419b7876bfd9771a68ca117a9712375d6bc9685abee3",
+        "url": "https://football-data.co.uk/mmz4281/2425/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 196217,
+        "path": "data/football/performance_20260907/transfer_I1_2025_2026.csv",
+        "sha256": "709ae279617d16af226312bcceac941e71241745ddaf950bdac2b83afad4fcbb",
+        "url": "https://football-data.co.uk/mmz4281/2526/I1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 96801,
+        "path": "data/football/performance_20260907/transfer_SP1_2017_2018.csv",
+        "sha256": "5786719e06d1a5387cb90fac71597c890f496df19e8e1aa868bbc852f7e730fd",
+        "url": "https://football-data.co.uk/mmz4281/1718/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 92914,
+        "path": "data/football/performance_20260907/transfer_SP1_2018_2019.csv",
+        "sha256": "9b8cece2c85e90e382b30dc4fc5046534f12c6d2b0efa74cd7d1d52e90a0c201",
+        "url": "https://football-data.co.uk/mmz4281/1819/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 171484,
+        "path": "data/football/performance_20260907/transfer_SP1_2019_2020.csv",
+        "sha256": "a05d5d60eee0b1414c56d6d6817f860cdc620e206234069a1886c98a8cb318da",
+        "url": "https://football-data.co.uk/mmz4281/1920/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 171721,
+        "path": "data/football/performance_20260907/transfer_SP1_2020_2021.csv",
+        "sha256": "b4137db923101f464e8403c4973acbfaf7d71724ce93b4336fad580e894d9591",
+        "url": "https://football-data.co.uk/mmz4281/2021/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 172174,
+        "path": "data/football/performance_20260907/transfer_SP1_2021_2022.csv",
+        "sha256": "2d9e619700712823d15716c07715133f8c3b1a09046930dcfc785a38633dee2e",
+        "url": "https://football-data.co.uk/mmz4281/2122/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 172199,
+        "path": "data/football/performance_20260907/transfer_SP1_2022_2023.csv",
+        "sha256": "53348112526b5165539df240be350083989bb258f30c0ff7cacbc0165ca7e4b3",
+        "url": "https://football-data.co.uk/mmz4281/2223/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 168164,
+        "path": "data/football/performance_20260907/transfer_SP1_2023_2024.csv",
+        "sha256": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9",
+        "url": "https://football-data.co.uk/mmz4281/2324/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 192863,
+        "path": "data/football/performance_20260907/transfer_SP1_2024_2025.csv",
+        "sha256": "c086e96d6a53f6e6c0fce4e35db0d1728c773b4362323da0161a34769e315a36",
+        "url": "https://football-data.co.uk/mmz4281/2425/SP1.csv"
+      },
+      {
+        "acquisition_manifest": "data/football/performance_20260907/transfer_source_manifest.json",
+        "bytes": 197653,
+        "path": "data/football/performance_20260907/transfer_SP1_2025_2026.csv",
+        "sha256": "4ca2e285f3ee0702f6bc55fcaa4f5a15cb3aef6220735a1d15398131e21d63f5",
+        "url": "https://football-data.co.uk/mmz4281/2526/SP1.csv"
+      }
+    ],
+    "football_selection": {
+      "bytes": 4068733,
+      "path": "artifacts/research/boundary_20260908/football/selection.json",
+      "sha256": "e1db351c667da7ab438f8364e6ced76b06f3e34784efedafef7bcab18316e806"
+    },
+    "football_selection_lock": {
+      "bytes": 15061,
+      "path": "artifacts/research/boundary_20260908/football/selection_lock.json",
+      "sha256": "d5f743de01717bafc6e471e586ae5dd7c8e00c9428bde692a933b8bb517da450"
+    },
+    "football_transfer": {
+      "bytes": 10718400,
+      "path": "artifacts/research/boundary_20260908/football/evaluation.json",
+      "sha256": "1c1d037ffbdf00a693728254e630792315ee7db8d8f79cbdb3545d34df66a795"
+    },
+    "football_verification": {
+      "bytes": 986,
+      "path": "artifacts/research/boundary_20260908/football/verification.json",
+      "sha256": "3a6328942dd4fe0708aa3539d2f89464106f11fc727abbbf7c15bfbbef89356a"
+    },
+    "inherited_source_sha256": {
+      "packages/football/mrp/__init__.py": "022b1bec73bb3db9b88bbc871a1a9ecc5ec088181a1903ca6c6ae089abed3bb7",
+      "packages/football/mrp/config.py": "5c637788e5c44a0602521b777e9755c1d6cf5e743091b94c41de548cde4fee7b",
+      "packages/football/mrp/constants.py": "2c32ada9148c9fdf1a57844559ce77ba7530ed1d3cb5d58afa33335b7a4ea28b",
+      "packages/football/mrp/data.py": "c4742cd2744b46817e34d3e7767f175179ee4919d4a0d61ae5770b254138fb33",
+      "packages/football/mrp/joint.py": "cab06d09c0b827cf37de34b1ad89793a1f442aded2d72ca0d0eeb35027559b4b",
+      "packages/football/mrp/prediction.py": "c5085b32c8a33efa485cac87ce2c2b279a23cff97b0fe04fdeb10f383cb90918",
+      "packages/football/mrp/protocol.py": "61df7a8735bd523fece0e75a1558e41c94978b356515ad40b833d5a1c24c9906",
+      "packages/football/mrp/providers.py": "3b8cfb677df7b60a885f6faa2db49f5dc3756ec8655f2e38d548175c2512231a",
+      "packages/football/mrp/score_distribution.py": "904c747f36658050112600fa31ee2392f289fab96ec292a66a2552f9dcfb0bfa",
+      "packages/football/mrp/training.py": "08ed99dc3a47563379f7c6fb37561531b3d1d8cce7805363acb0c36131718443",
+      "packages/football/mrp/utils.py": "a721c82f2a773092bb174b05230e7c286a54b48a00984ae1af7c6c73fc84540e",
+      "packages/football/mrp/weather.py": "52a573771e9a2d07ecafa4b306f30d06b0fba2e4f43b40b43282af0da7c663b1",
+      "research/experiments/boundary_20260908/football/models.py": "fe66fd4d399efe8249d1887820884cd576541e06769d3289109e11d64d01c971",
+      "research/experiments/boundary_20260908/football/run.py": "d735042fb251e324012c625ab5e51ce265c3498bf53fc175eca43f45eca81083",
+      "research/experiments/boundary_20260908/football/specification.json": "74e11bdeeb2ec5951daef1ae97c55ea5ad852ab6133110c003edabf47fef58a8",
+      "research/experiments/boundary_20260908/football/test_math.py": "9f6a09d4562797bcdcd836bcac4ffa8e337bd430480e28029d835b3a7d24d474",
+      "research/experiments/boundary_20260908/football/verify.py": "ff58500eb50db8e7d121955dfc16e067d79fbd039c8c7a3e6d8553c9d6aeeed2",
+      "research/experiments/boundary_20260908/football_information/model.py": "2e3a6adf01035e71a7720ebfcdd97f4240a9d68bc02c75727d22bbf8cfcae142",
+      "research/experiments/performance_20260907/football/benchmark.py": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+      "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6"
+    },
+    "source_binding_policy": "Verify these current bytes against the original receipts before locking. Reuse only de-vig and scoring helpers; do not invoke old feature or model fitting. Reuse the four existing internal vectors and xG selection safeguard verbatim.",
+    "xg_selection_issued": {
+      "bytes": 487976,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/selection_issued_delay7.json",
+      "sha256": "9e548a20eafeb5bb8758e3250b229a87b7aab5ab7163b694e443fbb66faf0153"
+    },
+    "xg_selection_lock": {
+      "bytes": 3954,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/selection_lock.json",
+      "sha256": "629e592e721dd54fe6793a126aeb2ad1ef98b6d81c28962c492f4d8430a55661"
+    },
+    "xg_selection_result": {
+      "bytes": 2076842,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/selection_7day.json",
+      "sha256": "297891ba46c79c843ab40da9f7ec6df0d0df3a60f56b4d1a1a3c87c6f30a4c35"
+    },
+    "xg_verification": {
+      "bytes": 13147,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/verification.json",
+      "sha256": "0b2e26e59d465695cfc00e7dab53affbfacf463314fa106b92a1a9b4285e99a9"
+    }
+  },
+  "leagues": {
+    "E0": "Europe/London",
+    "I1": "Europe/Rome",
+    "SP1": "Europe/Madrid"
+  },
+  "metrics": {
+    "primary": "Mean natural-log 1X2 loss over all fixed matched fixtures",
+    "probability_order": [
+      "H",
+      "D",
+      "A"
+    ],
+    "secondary": [
+      "class-summed Brier",
+      "top1 accuracy",
+      "10-bin top-label ECE",
+      "class calibration bias",
+      "country-season NLL and Brier"
+    ],
+    "subset_selection": false
+  },
+  "mixture": {
+    "arithmetic": true,
+    "incumbent_weight": 0.5,
+    "learned": false,
+    "past_market_weight": 0.5
+  },
+  "new_candidate_fits": 0,
+  "production_changes": false,
+  "proposal": {
+    "bytes": 14378,
+    "path": "research/experiments/boundary_20260908/football_past_market/README.md",
+    "sha256": "b038744c108c429644229e15ba5ad54cf95db4a9eaec3bd243e6fc5150359365"
+  },
+  "quotes": {
+    "alternative_bookmaker_fallback": false,
+    "closing_columns_allowed": false,
+    "elo_de_vig": "Normalized reciprocal probabilities as in the paper; frozen devig normalized branch.",
+    "expected_selection_support": {
+      "primary": 758,
+      "sensitivity": 757,
+      "total": 760
+    },
+    "league_seasons_2017_2018_columns": [
+      "BbAvH",
+      "BbAvD",
+      "BbAvA"
+    ],
+    "league_seasons_2019_onward_columns": [
+      "AvgH",
+      "AvgD",
+      "AvgA"
+    ],
+    "main_de_vig": "Power root sum((1/odds)**k)=1, k>0; frozen football_information.model.devig, then probabilities floor1e-12 and renormalization.",
+    "missing_training_quote": "Exclude the observation identically from both main strength fits; skip its Elo rating update and exclude it from readout calibration. Preserve missing IDs and reasons.",
+    "odds_contract": "Exactly three finite decimal odds greater than one; booleans invalid.",
+    "support": "Both teams each have at least one quote-valid admitted observation in the rolling1095-calendar-day window. Same mask for both challengers and all three new controls.",
+    "unsupported": "Retain fixture and return the exact unchanged incumbent probability vector for both candidates and all three new controls; no scoring-row exclusion.",
+    "verified_missing_id": "I1:2021:Torino:Fiorentina",
+    "verified_rows": 10260,
+    "verified_valid_average_triples": 10259
+  },
+  "resources": {
+    "cost_status": "Fit counts and dimension bound are metadata-verified. Runtime unmeasured; synthetic-only speed/RSS preflight before historical lock. Slow execution cannot trigger altered scientific settings.",
+    "implementation": "Matrix-free indexed logits/gradient scatter, orthonormal per-league contrasts; do not create dense N-by3-byP tensors.",
+    "maximum_free_strength_coordinates": 188,
+    "maximum_peak_rss_bytes": 2147483648,
+    "maximum_stage_wall_seconds": 3600,
+    "maximum_total_optimizer_fits": 3150,
+    "new_dependencies": false,
+    "parallel_fits": 1,
+    "primary_selection_optimizer_fits": 475,
+    "sensitivity_selection_optimizer_fits_if_primary_passes": 475,
+    "threads": 1,
+    "transfer_optimizer_fits_each_delay_if_both_selection_pass": 1100,
+    "unique_cached_teams": {
+      "E0": 32,
+      "I1": 32,
+      "SP1": 30
+    }
+  },
+  "selection": {
+    "external_scoring_labels": "Attach only after the full corresponding probability ledger closes. Previously resolved earlier outcomes may inform later matched-control training.",
+    "league": "E0",
+    "minimum_relative_nll_gain_each_reference": 0.005,
+    "negative_95_28day_upper_endpoint_each_reference": true,
+    "ordered_original_match_ids_sha256": "9b08ba5633d917aa07a6f748cccfc5b3bd761a45704448fd34e1a73bf91dc036",
+    "primary_failure": "Stop the family with incumbent unchanged; do not score sensitivity or new transfer forecasts and do not change settings.",
+    "references": [
+      "production_default_dc_auto",
+      "dc365_elo50",
+      "dc_180",
+      "shot_strength_90d_ridge0.1",
+      "outcome_control",
+      "outcome_control_shot50",
+      "elo_odds_reference",
+      "xg_add90_selection_safeguard"
+    ],
+    "rows": 760,
+    "season_start_years": [
+      2022,
+      2023
+    ],
+    "sensitivity": "Only after primary passes, same selected configuration and newly computed controls at7extra-local-day availability; no reselection; identical gain and interval gates against all references.",
+    "unique_forecast_clocks": 237,
+    "winner": "Lowest pooled natural-log loss among listed candidates; listed-order ties.",
+    "xg_refit": false,
+    "xg_safeguard_key": "xg_add90"
+  },
+  "sources": [
+    "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+    "https://www.football-data.co.uk/notes.txt",
+    "https://football-data.co.uk/data.php"
+  ],
+  "status": "protocol_before_implementation_review_execution_lock_or_new_fits",
+  "strength_model": {
+    "centering": "Separate zero sums for s and v within each league; deterministic orthonormal contrast bases.",
+    "comparison_limit": "More frequent fitting than the old two-month DC/shot cadence; matched outcome control uses the new identical cadence.",
+    "convexity": "Fixed soft/one-hot targets with linear logits plus positive L2 give a strongly convex coercive objective in orthonormal free coordinates; unique finite penalized optimum.",
+    "fit_cadence": "One pooled three-league fit per distinct requested forecast_cutoff_utc, shared by simultaneous requests; two fits per clock, no per-fixture duplicate fitting.",
+    "fit_failure": "Fail and preserve the execution attempt; no alternate settings, favorable row dropping or silent fallback for optimizer failure.",
+    "history_local_calendar_days": 1095,
+    "incumbent_or_unsupported_vector_transformation": false,
+    "league_intercepts": {
+      "per_league": [
+        "h",
+        "d"
+      ],
+      "total": 6
+    },
+    "logits_H_D_A": [
+      "(h_league+s_home-s_away)/2",
+      "d_league+v_home+v_away",
+      "-(h_league+s_home-s_away)/2"
+    ],
+    "matched_outcome_blend": {
+      "additional_fits": 0,
+      "formula": "0.5*outcome_control+0.5*unchanged_shot_incumbent",
+      "name": "outcome_control_shot50",
+      "required_reference_for_either_selected_candidate": true
+    },
+    "objective": "(1/3)*sum_leagues(sum_i(w_i * CE(q_i,p_i))/sum_i(w_i)) + (penalty/2)*squared_norm(theta-theta0)",
+    "output_floor_renormalize": true,
+    "output_probability_floor": 1e-12,
+    "penalty": 0.002,
+    "penalty_coordinates": "All six league intercepts plus every free centered team coordinate penalized once; orthonormal basis makes team-coordinate norm equal actual-effect norm.",
+    "penalty_units": "Mean natural-log-loss objective, dimensionless logit coordinates: one coefficient displaced by1 costs0.001 nats. Fixed before scores; no optimality or cross-model penalty equivalence claim.",
+    "prior_center": {
+      "d": -0.40546510810816444,
+      "h": 0.0,
+      "s": 0.0,
+      "v": 0.0
+    },
+    "prior_neutral_H_D_A": [
+      0.375,
+      0.25,
+      0.375
+    ],
+    "recency_age": "(query_cutoff_utc - a0_utc).total_seconds()/86400",
+    "recency_half_life_elapsed_days": 365.0,
+    "solver": {
+      "analytic_gradient": true,
+      "ftol": 1e-13,
+      "gtol": 1e-09,
+      "initialization": "Prior center, no historical warm start",
+      "maximum_absolute_gradient": 1e-06,
+      "maxiter": 2000,
+      "name": "L-BFGS-B",
+      "require_success": true
+    },
+    "targets": {
+      "outcome_control": "One-hot actual outcome on identical admitted IDs, weights, parameters and prior",
+      "past_market": "Power-adjusted earlier market vector"
+    },
+    "team_variables": [
+      "strength_s",
+      "draw_propensity_v"
+    ],
+    "window": "Per training league local date D_current at query cutoff: canonical source days in[D_current-1095,D_current), intersect strict quote availability."
+  },
+  "suggested_commit": "research(football): specify causal strengths from past market forecasts",
+  "timing": {
+    "a0": "Local midnight after canonical completion day D in each row league timezone.",
+    "archive_json_limit": "Incumbent files physically contain previously exposed labels. Preparation extracts only metadata and fixed probabilities; semantic non-use of label fields is not absence of label bytes.",
+    "canonical_day": "Existing source/completion day, exact-joined to inherited fixture metadata; preserve known Fiorentina-Inter resumption convention.",
+    "forecast": "The unchanged original forecast_cutoff_utc of each fixture; legacy naive timestamps mean UTC; compare parsed aware datetimes.",
+    "historical_receipt_certified": false,
+    "numeric_payload_admission": "Filter metadata, window and availability before parsing, validating or transforming raw odds or outcome values. Never use current/future fixture odds for any feature, update, scaler, support rule or model.",
+    "primary_exact_day": "D+2 at local00:00, then UTC",
+    "primary_extra_local_calendar_days_after_a0": 1,
+    "quote_observed_at": null,
+    "result_availability": "Inherited next-local-midnight result proxy, strictly before the training cutoff; the additional quote delay is required for matched controls as well.",
+    "same_time_order": "All issuances at the same clock use one common preceding state. Elo updates at equal availability are atomic; events with availability equal to issuance are excluded.",
+    "sensitivity_exact_day": "D+8 at local00:00, then UTC; not primary+7days and not168elapsedUTC hours",
+    "sensitivity_extra_local_calendar_days_after_a0": 7,
+    "strict_admission": "quote_available_at_utc < forecast_cutoff_utc"
+  },
+  "transfer": {
+    "all_gates_required_at_both_quote_delays": true,
+    "brier_nonworse_pooled_and_each_country_season_each_reference": true,
+    "candidate_reselection": false,
+    "elo_readout_refitted": false,
+    "minimum_relative_nll_gain_each_reference": 0.02,
+    "negative_95_28day_upper_endpoint_each_reference": true,
+    "no_country_season_nll_deterioration_each_reference": true,
+    "ordered_original_match_ids_sha256": "13e5eb0e6763266167dc003d982756d933a873bec7a16017c2765256f03505ed",
+    "positive_each_country_each_reference": true,
+    "promotion": false,
+    "references": [
+      "production_default_dc_auto",
+      "dc365_elo50",
+      "dc_180",
+      "shot_strength_90d_ridge0.1",
+      "outcome_control",
+      "outcome_control_shot50",
+      "elo_odds_reference"
+    ],
+    "requires_both_selection_delays_passed": true,
+    "resumed_fixture_exclusion_sensitivity": "I1:2024:Fiorentina:Inter; report without changing the main2280population.",
+    "rows": 2280,
+    "rows_each_league_season": 380,
+    "season_start_years": [
+      2024,
+      2025
+    ],
+    "unique_forecast_clocks": 550,
+    "xg_transfer_fit_or_forecast": false
+  },
+  "uncertainty": {
+    "blocks_calendar_days": [
+      1,
+      7,
+      28
+    ],
+    "gate_block_days": 28,
+    "interval": "Paired fixed-calendar-block percentile95 using inherited benchmark.paired_uncertainty semantics",
+    "resamples": 4000,
+    "research_selection_adjustment": false,
+    "seed": 20260908,
+    "sign": "candidate minus reference",
+    "strata": [
+      "league",
+      "season"
+    ]
+  }
+}

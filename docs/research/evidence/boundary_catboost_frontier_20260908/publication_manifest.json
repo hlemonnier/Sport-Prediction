@@ -1,0 +1,152 @@
+{
+  "advances_to_later_evaluation": false,
+  "ci_limit": "Included receipt records local source-only tests; remote workflow status must be checked separately.",
+  "ci_receipt_sha256": "1576a3d17502771d4b3e65ef606ffbd203b5076026d86de41882a8093591f1ca",
+  "copy_helper": {
+    "bytes": 16688,
+    "path": "research/experiments/boundary_20260908/rival_gap_publication/publish.py",
+    "sha256": "32d77ffd3989a09c182b1aff46bfe75d39095446487f1a76ce6dabaf30c07fa9"
+  },
+  "design_sha256": "5bca91308a982c84e9343ef99eb0f5340ce53236da3a274db6f93515ce2e222f",
+  "evidence_copies": [
+    {
+      "bytes": 80,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/freeze_attempt.json",
+      "sha256": "ec1327e068ebc17fd600464146fe4c191bc396618e0f6c92807cf78f6082cf12",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/freeze_attempt.json"
+    },
+    {
+      "bytes": 5505,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/pre_fit_tests.json",
+      "sha256": "c37c9dab23de8c1c3b2749bda3500cf23db65ac871b45ff647f5200a50639580",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/pre_fit_tests.json"
+    },
+    {
+      "bytes": 55695,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/design_lock.json",
+      "sha256": "5bca91308a982c84e9343ef99eb0f5340ce53236da3a274db6f93515ce2e222f",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/design_lock.json"
+    },
+    {
+      "bytes": 83,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/selection_attempt.json",
+      "sha256": "23b545d94aca52eca26f9c6c163105fd94762b7e84b940fd35da29bca0731486",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/selection_attempt.json"
+    },
+    {
+      "bytes": 5405,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/fit_lock.json",
+      "sha256": "39e1576af8911a0d88b26b199048188407b6f61039fdf01552bd78f4ba410417",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/fit_lock.json"
+    },
+    {
+      "bytes": 695,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/forecast_lock.json",
+      "sha256": "8c1aa5ab8ac69b824a10ac9758d00992fe6145c58eb4e92c2c0f16999dfaeb26",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/forecast_lock.json"
+    },
+    {
+      "bytes": 9943,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/selection.json",
+      "sha256": "d7c2a837956b2108537af0810313e949a5bcb52cb7a40a49ef96908acb364b57",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/selection.json"
+    },
+    {
+      "bytes": 330,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/execution/selection_lock.json",
+      "sha256": "713d950a6139e0bb75a0842af5d4da5dd6838ed55c90be353eeba14192162375",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/selection_lock.json"
+    },
+    {
+      "bytes": 61141,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/verification/result.json",
+      "sha256": "4981fb09a74920564e49974b4a3a15464a17c8c9283ba2f1470d805597d4d0a1",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier/verification/result.json"
+    },
+    {
+      "bytes": 5458,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/protocol/specification.json",
+      "sha256": "a7bb5117023fedb52a9ffb0f71164ca441c751609829d670c12e09af77680823",
+      "source": "research/experiments/boundary_20260908/catboost_frontier/specification.json"
+    },
+    {
+      "bytes": 5854,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/reviews/execution_review.json",
+      "sha256": "1ffccb5ba46c84f319a574bea77a8db320bd280c7ac258eaa424dafcf802a2b5",
+      "source": "artifacts/research/boundary_20260908/catboost_frontier_review.json"
+    },
+    {
+      "bytes": 17030,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/runtime/manifest.json",
+      "sha256": "3f34f87b123124338cdcaa312a70fcb07e464a74391a85423a72b45117b547e7",
+      "source": "artifacts/research/boundary_20260908/catboost_runtime/runtime_manifest.json"
+    },
+    {
+      "bytes": 4183,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/runtime/synthetic_feasibility.json",
+      "sha256": "3991b87042d3f5c58c1c4d1e63cde0591807ecac92cbd2c382646c34da41e38e",
+      "source": "artifacts/research/boundary_20260908/catboost_runtime/synthetic_feasibility.json"
+    },
+    {
+      "bytes": 99647,
+      "published": "docs/research/evidence/boundary_catboost_frontier_20260908/reviews/ci_source_only.json",
+      "sha256": "1576a3d17502771d4b3e65ef606ffbd203b5076026d86de41882a8093591f1ca",
+      "source": "artifacts/research/boundary_20260908/catboost_publication/ci_source_only.json"
+    }
+  ],
+  "omitted": "Native/JSON model assets, original row ledgers, labels, forecast JSONL, package wheels and runtime binaries remain local and hash-bound.",
+  "promotion": false,
+  "publication_check": {
+    "bytes": 160,
+    "path": "docs/research/evidence/boundary_catboost_frontier_20260908/publication_check.json",
+    "sha256": "ae51495a237e4f92a12b553e0b1af63e740ea642c0ea928bba6644b8cd0e86da"
+  },
+  "published_at_utc": "2026-09-08T08:12:28.755697+00:00",
+  "publisher": {
+    "bytes": 5019,
+    "path": "research/experiments/boundary_20260908/catboost_publication/publish.py",
+    "sha256": "8eec4e37c5d7ea9ef52bbe3eb53e24f3c4448729d8203beafc202fe9644a799e"
+  },
+  "reproduction_limit": "Full independent prediction replay needs the omitted exported models and original row ledgers. No optimizer is rerun.",
+  "selection_sha256": "d7c2a837956b2108537af0810313e949a5bcb52cb7a40a49ef96908acb364b57",
+  "sources": {
+    "research/experiments/boundary_20260908/catboost_frontier/README.md": "9acf294f9e5e53e68945ef63d43d48fe0cb1405648ffb13d8a932c0310909c33",
+    "research/experiments/boundary_20260908/catboost_frontier/independent.py": "6fc2e60634d0bd77cb8293273b87bceaa905e24dc77a888e7e79b153532e0378",
+    "research/experiments/boundary_20260908/catboost_frontier/models.py": "401d9386d5586f5e53679a7e5adc20cafed45ac89275717b95f28f1d25de3c41",
+    "research/experiments/boundary_20260908/catboost_frontier/run.py": "99ddef2b0b8928af2061ea174cf9cab07132d349404d216ecfd9936bb1a22647",
+    "research/experiments/boundary_20260908/catboost_frontier/specification.json": "a7bb5117023fedb52a9ffb0f71164ca441c751609829d670c12e09af77680823",
+    "research/experiments/boundary_20260908/catboost_frontier/test_independent.py": "1da7efa083ce15c978f711ab88b81a531c355fb3a55894dbce3749c104819269",
+    "research/experiments/boundary_20260908/catboost_frontier/test_models.py": "d25e249be433af2ddf5504558ef52fb00af2da4b5c0b356463518bdf371b5048",
+    "research/experiments/boundary_20260908/catboost_frontier/test_run.py": "5ef121394c8ee1266554764fc6f840e6661bb2441fa54501f3793a062ca27ba2",
+    "research/experiments/boundary_20260908/catboost_frontier/verify.py": "ad01d271d631ba7f9ac1792dffec57770117d7d7ad60dc51c935abb12f4be3b8",
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4",
+    "research/experiments/boundary_20260908/telemetry/README.md": "2f7d61ddfc29cd289e30ea740f6eea4e93658a1581c8253fe5ce0f4f79d72249",
+    "research/experiments/boundary_20260908/telemetry/acquire.py": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5",
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+    "research/experiments/boundary_20260908/telemetry/data.py": "768f91cf810c531e9cb0d3d2ed7ab25742ddfbfd85a871c28cf0048e5c359e2b",
+    "research/experiments/boundary_20260908/telemetry/data_contract.md": "229c8c2dfc6c646cb62649a2b4047c227a730190cbf86b2e4b2b14f8e0aef3da",
+    "research/experiments/boundary_20260908/telemetry/evaluate.py": "a7744181e6f093c022d139f8bd7cd83542ea9244a2ea2d4d7d970e28d716d88c",
+    "research/experiments/boundary_20260908/telemetry/features.py": "7354b6675a4725d311c5bbf11f329e615118abf33fef5ef4bf4ee69474c1371f",
+    "research/experiments/boundary_20260908/telemetry/models.py": "3f52a84ee9cffc9a1c21b9730cb8c8d7770dca625b935fadc0df6adce1069e6b",
+    "research/experiments/boundary_20260908/telemetry/run.py": "050b574bc20db66cbf9105e78ee5d8d89dcbd30d7fe2879a60c906915ec011ba",
+    "research/experiments/boundary_20260908/telemetry/specification.json": "7f43632a7c0e75ad48fd82ccf33d328b106d08486fa6c026b01cb3be3e8bb8f5",
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1",
+    "research/experiments/boundary_20260908/telemetry/test_data.py": "aa98512fe7c2ebe6634cded626847156b4496e3502e0e639d141cfe303eeba3d",
+    "research/experiments/boundary_20260908/telemetry/test_evaluate.py": "a1ff6c67b3213180bb377fe86712778e4fd3f8272730bf65dfc16f72fef2a719",
+    "research/experiments/boundary_20260908/telemetry/test_features.py": "8c1410bcdef0d635b47e5e1870247ea7166861c8186d8d680702eb3999d3177e",
+    "research/experiments/boundary_20260908/telemetry/test_models.py": "b8c32ed66c473663b96e6f48d516a64f840d8a40a8d1a49bdd4bd8f84f548d44",
+    "research/experiments/boundary_20260908/telemetry/test_run.py": "352210a3e00a5a229aa44f31268614aeb6b236ef954077823317186d2b416edd",
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/boundary_20260908/telemetry_verification_v2/verify.py": "631115bdc2834f0c458e94cd18833f13d8c6bb0d9a190e76f7593d17da44c7b6",
+    "research/experiments/frontier_20260907/feature_encoder.py": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/frontier_20260907/specification.json": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+    "research/experiments/performance_20260907/live/spec.json": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a"
+  },
+  "status": "closed_verified_selection_failed",
+  "suggested_commit": "research(f1-live): publish verified CatBoost selection evidence",
+  "verification_sha256": "4981fb09a74920564e49974b4a3a15464a17c8c9283ba2f1470d805597d4d0a1",
+  "winner": "plain"
+}

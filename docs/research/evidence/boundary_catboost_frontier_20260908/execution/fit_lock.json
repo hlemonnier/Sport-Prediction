@@ -1,0 +1,150 @@
+{
+  "base_refits": 0,
+  "closed_at_utc": "2026-09-08T08:08:01.566117+00:00",
+  "design_lock": {
+    "path": "artifacts/research/boundary_20260908/catboost_frontier/design_lock.json",
+    "sha256": "5bca91308a982c84e9343ef99eb0f5340ce53236da3a274db6f93515ce2e222f"
+  },
+  "external_selection_labels_read": false,
+  "fit_receipts": [
+    {
+      "boosting_type": "Plain",
+      "completed_at_utc": "2026-09-08T08:07:05.806269+00:00",
+      "peak_rss_bytes": 649461760,
+      "seconds": 12.21962191601051,
+      "started_at_utc": "2026-09-08T08:06:53.586645+00:00"
+    },
+    {
+      "boosting_type": "Ordered",
+      "completed_at_utc": "2026-09-08T08:08:01.500218+00:00",
+      "peak_rss_bytes": 766148608,
+      "seconds": 55.692818583978806,
+      "started_at_utc": "2026-09-08T08:07:05.807374+00:00"
+    }
+  ],
+  "fits": 2,
+  "models": {
+    "ordered": {
+      "json": {
+        "path": "artifacts/research/boundary_20260908/catboost_frontier/ordered.json",
+        "sha256": "c2ad30133d760c5a70f64f38425c8da2a9f589dfac71ba7e5bd66d2cfa379587"
+      },
+      "native": {
+        "path": "artifacts/research/boundary_20260908/catboost_frontier/ordered.cbm",
+        "sha256": "aa0263da6cb60a0efd2588646fdee4e08068f7243b5d470c9a14fe5e3177cba4"
+      },
+      "parameters": {
+        "approx_on_full_history": false,
+        "auto_class_weights": "None",
+        "bayesian_matrix_reg": 0.10000000149011612,
+        "best_model_min_trees": 1,
+        "boost_from_average": true,
+        "boosting_type": "Ordered",
+        "bootstrap_type": "No",
+        "border_count": 254,
+        "classes_count": 0,
+        "depth": 6,
+        "eval_fraction": 0,
+        "eval_metric": "MAE",
+        "feature_border_type": "GreedyLogSum",
+        "fold_len_multiplier": 2,
+        "fold_permutation_block": 0,
+        "force_unit_auto_pair_weights": false,
+        "grow_policy": "SymmetricTree",
+        "has_time": false,
+        "iterations": 1000,
+        "l2_leaf_reg": 10,
+        "leaf_estimation_backtracking": "AnyImprovement",
+        "leaf_estimation_iterations": 1,
+        "leaf_estimation_method": "Exact",
+        "learning_rate": 0.029999999329447743,
+        "loss_function": "MAE",
+        "max_leaves": 64,
+        "min_data_in_leaf": 1,
+        "model_shrink_mode": "Constant",
+        "model_shrink_rate": 0,
+        "model_size_reg": 0.5,
+        "nan_mode": "Min",
+        "penalties_coefficient": 1,
+        "permutation_count": 4,
+        "pool_metainfo_options": {
+          "tags": {}
+        },
+        "posterior_sampling": false,
+        "random_score_type": "NormalWithModelSizeDecrease",
+        "random_seed": 20260908,
+        "random_strength": 0,
+        "rsm": 1,
+        "sampling_frequency": "PerTree",
+        "score_function": "Cosine",
+        "sparse_features_conflict_fraction": 0,
+        "task_type": "CPU",
+        "use_best_model": false
+      },
+      "trees": 1000
+    },
+    "plain": {
+      "json": {
+        "path": "artifacts/research/boundary_20260908/catboost_frontier/plain.json",
+        "sha256": "9400ccfc678fa9fd8f7c42126983d378c1b8bdd3aebd1b916bb24c93dc182e35"
+      },
+      "native": {
+        "path": "artifacts/research/boundary_20260908/catboost_frontier/plain.cbm",
+        "sha256": "5a8924f70d95887b39c7c3906c5f717d1b6c6cd78fa1f7bcdc959bb515ebe2e1"
+      },
+      "parameters": {
+        "auto_class_weights": "None",
+        "bayesian_matrix_reg": 0.10000000149011612,
+        "best_model_min_trees": 1,
+        "boost_from_average": true,
+        "boosting_type": "Plain",
+        "bootstrap_type": "No",
+        "border_count": 254,
+        "classes_count": 0,
+        "depth": 6,
+        "eval_fraction": 0,
+        "eval_metric": "MAE",
+        "feature_border_type": "GreedyLogSum",
+        "force_unit_auto_pair_weights": false,
+        "grow_policy": "SymmetricTree",
+        "iterations": 1000,
+        "l2_leaf_reg": 10,
+        "leaf_estimation_backtracking": "AnyImprovement",
+        "leaf_estimation_iterations": 1,
+        "leaf_estimation_method": "Exact",
+        "learning_rate": 0.029999999329447743,
+        "loss_function": "MAE",
+        "max_leaves": 64,
+        "min_data_in_leaf": 1,
+        "model_shrink_mode": "Constant",
+        "model_shrink_rate": 0,
+        "model_size_reg": 0.5,
+        "nan_mode": "Min",
+        "penalties_coefficient": 1,
+        "pool_metainfo_options": {
+          "tags": {}
+        },
+        "posterior_sampling": false,
+        "random_score_type": "NormalWithModelSizeDecrease",
+        "random_seed": 20260908,
+        "random_strength": 0,
+        "rsm": 1,
+        "sampling_frequency": "PerTree",
+        "score_function": "Cosine",
+        "sparse_features_conflict_fraction": 0,
+        "task_type": "CPU",
+        "use_best_model": false
+      },
+      "trees": 1000
+    }
+  },
+  "rows_per_fit": 18363,
+  "target_sha256": "988b3cb0e04cd8666f7cb2115d99c816e59c0bd9d181216a898437e48193e115",
+  "training_ids_sha256": "bd8e3106a0faef33030322e9f0fd328c701c093cd1b382944209ceb180418351",
+  "training_labels": {
+    "path": "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json",
+    "sha256": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9"
+  },
+  "training_matrix_sha256": "0dedb4713f941bd0c946ddf4cbcfd8489f2943e2a27b93d007c2eba9cc630e85",
+  "weights_sha256": "0674871503ce0db040e6ad10e67185925845e79449cbf953bf5ad6c8f830a0bc"
+}

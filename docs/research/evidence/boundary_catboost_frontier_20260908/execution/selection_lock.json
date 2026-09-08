@@ -1,0 +1,10 @@
+{
+  "advances_to_later_evaluation": false,
+  "closed_at_utc": "2026-09-08T08:08:06.585175+00:00",
+  "promotion": false,
+  "selection": {
+    "path": "artifacts/research/boundary_20260908/catboost_frontier/selection.json",
+    "sha256": "d7c2a837956b2108537af0810313e949a5bcb52cb7a40a49ef96908acb364b57"
+  },
+  "winner": "plain"
+}

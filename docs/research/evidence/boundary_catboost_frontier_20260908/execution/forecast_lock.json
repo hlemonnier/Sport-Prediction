@@ -1,0 +1,17 @@
+{
+  "closed_at_utc": "2026-09-08T08:08:05.948320+00:00",
+  "design_lock": {
+    "path": "artifacts/research/boundary_20260908/catboost_frontier/design_lock.json",
+    "sha256": "5bca91308a982c84e9343ef99eb0f5340ce53236da3a274db6f93515ce2e222f"
+  },
+  "external_selection_labels_read": false,
+  "fit_lock": {
+    "path": "artifacts/research/boundary_20260908/catboost_frontier/fit_lock.json",
+    "sha256": "39e1576af8911a0d88b26b199048188407b6f61039fdf01552bd78f4ba410417"
+  },
+  "forecasts": {
+    "path": "artifacts/research/boundary_20260908/catboost_frontier/selection_forecasts.jsonl",
+    "sha256": "21d387d02066dc0aeabde5517b7736a48af4dccf3f5f3eb7b73986c4243875e4"
+  },
+  "rows": 20432
+}

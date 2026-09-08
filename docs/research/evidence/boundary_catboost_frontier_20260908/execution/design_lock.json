@@ -1,0 +1,552 @@
+{
+  "closed_at_utc": "2026-09-08T08:06:31.096283+00:00",
+  "historical_candidate_fits_before_lock": 0,
+  "inputs": {
+    "artifacts/research/boundary_20260908/catboost_runtime/runtime_manifest.json": "3f34f87b123124338cdcaa312a70fcb07e464a74391a85423a72b45117b547e7",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost-1.2.10.dist-info/INSTALLER": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost-1.2.10.dist-info/METADATA": "cf728e1f4b651e2c843b6192b3586878fd9f0e6e8784719ff56bdc44bfa7c433",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost-1.2.10.dist-info/RECORD": "bd64d88f30e1123914b1e8260cb569244a1acc0f1a332230d63ce6750c82117c",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost-1.2.10.dist-info/REQUESTED": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost-1.2.10.dist-info/WHEEL": "6591844318aa4ff60a164246e6185b34cf72b75dc68bb5c3720d00dd723048b4",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost-1.2.10.dist-info/top_level.txt": "5d09613faa3a56b12ce9ff19fe38aea49511b8986b7fcf289df961c0cb6fa8b1",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/__init__.py": "563e2e122b69cf98a832a09d014277aa383ca570b3ce2abf6a292715fa29a4dd",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/_catboost.so": "5b0fffd2f3fd9aa3f9bfbf3b1c7e28bd067c475dd8247adce5cfdc50be60b6ec",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/carry.py": "f0c6551f75cdf422f4326a62defc09dc3bda0ebc87d53e10e2824a9a50e215d3",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/core.py": "9c478404e7e1957181c2bdd5bb67b19dd351de6623ee4f8f2fbe63a45b8eba55",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/datasets.py": "6fd89a4954005efd1d471957540c7af954509d9f6910e8f60385f09d5dea98cc",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/dev_utils.py": "4229f99d2ef7d87c945895b0322c504b9422899206b0ff5e8fa1a7daa0df5f84",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/__init__.py": "43d2b0d97e5677c7f1859332aa5c6cbf051667156edf6baa6166a614b6e7954b",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/_fold_model.py": "803e756fb3e34532f0b7a4982b29f0a0d7cef7aa28bb96b464ec56850c102c08",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/_fold_models_handler.py": "631b954e5b70e45284fb8d6f7199cdf3b54259096348151ab07ef89f6ab11e61",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/_fold_storage.py": "8611f12f4e6db1bffcf67f8123f21fba3abd863d6a20da4f03df0a17c8689c62",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/_readers.py": "149cb1410afd167c6ad10092e1677882e1f138d6ad5c878ac2fa2a3a3c4880c1",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/_splitter.py": "55e258ca46e2ccc5dd521323d4e57d19da24412bdb0507f1160cbb9e6607150d",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/catboost_evaluation.py": "1cf546dcf9ea9097f95578b6ee8dd1384f4b860061c172385f38d12591640ed2",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/evaluation_result.py": "67dfbbd07eb57e799ff9317fd9cb67716620e7d5932539438d3c7286c2faf5c8",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/execution_case.py": "b49d92b7a19e2c45eecde8ecbbdb466bc163e42b3f1c3a0c825b19c46ace68e2",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/factor_utils.py": "60fa15abd9e5eb7e3e3f272ed0d9c616c89cb29f47e6c3be86f6839633b8bb7d",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/log_config.py": "fb7a9adeb0eadd714d8c17318284ee13f4e0a86ed2af7d695895363dc3674fcb",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/eval/utils.py": "03b30d89025c97d80757eb014ae1f56a682e6d043e78af4f6f861fa2c05d35a9",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/hnsw/__init__.py": "b1370e8c16acc766e1c4477201951ce146e2cd5f1420904ecbfd4a372d8ebfc3",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/hnsw/_hnsw.so": "767a9c046cf7d62b61797e3aafc708d8132f638a9f75779d0d7fa7f5d21f55b3",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/hnsw/hnsw.py": "1c7afad3ddfea59427509c5458062b252dab6e141c3f87eaad335b444585b360",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/metrics.py": "abaf323686e697ecf06ac76c11e6cdc6576135d73304eab16acbe172d61e69f3",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/monoforest.py": "70a46024b6eb6749ba69216f1e9d8411829286e981a9e9af45b93a2407d0e57c",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/plot_helpers.py": "a5893271be4e3c60e0e6f60e71734703de46225ffbc38c531a0bb00f77d53f00",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/text_processing.py": "b4c5483250e725a1fcd6056052dd955f2d6499081baf33cae6c9243f880b2ed9",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/utils.py": "f73fef7c4b535f7af542e73d78ec7a6e50e9a732c6f37b41c323db84def1b701",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/version.py": "e3caee1fcdbb044b0b9e19827588ca6282a654341ba0a16303fef169cf7e640f",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/widget/__init__.py": "3b446ec8d15a4c673408d5da7eb2f29853a7c14f27ba76527d098fe656e3f2d6",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/widget/callbacks.py": "c5b9d7503d3c4d333e9d3c34fe4825c0a53b0abba610815ced9a93c21966bb4a",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/widget/ipythonwidget.py": "ad244674c5d37bf44a2151f5947e18289a8cface6bb63ffa3da9ef39a5670dc0",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/catboost/widget/metrics_plotter.py": "724d7154a5e11bae5da3a49a7917cdddf01c2dbfe6dc23fc7a1e82ea4a857cb5",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/etc/jupyter/nbconfig/notebook.d/catboost-widget.json": "aa9cf3b0e5b7d4a4fde796a08beecd4befbdd08d22362242c8b2509d108780a2",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz-0.21.dist-info/INSTALLER": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz-0.21.dist-info/METADATA": "f84c936649b5d3f67e5914dd8a37ef8d1aa682d46f0b8d107cd7486d386a6f56",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz-0.21.dist-info/RECORD": "a7d76c79d08f3d3f19e5345f7c1e7c62f10a55632a600f2a78dc2363d43d3770",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz-0.21.dist-info/REQUESTED": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz-0.21.dist-info/WHEEL": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz-0.21.dist-info/licenses/LICENSE.txt": "0cf7b80986633eb6eef661617c2a36eba56ec679b2193d28767706aeac33ed6d",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz-0.21.dist-info/top_level.txt": "11ef7447489c5045d2d00bc825ba95b8dbda8276a4ba13f95a2a6cd0b0e442ec",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/__init__.py": "bbb0f3ebe6b5521411867408a02386f1419611606957c97bafb9063701db855f",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/_compat.py": "cd84896db0085eeec4ae5a1c968825971d26d40990260d9fb1fea7ce2a91ae34",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/_defaults.py": "0756104c3cf27a9f00c3fc4d7de5baf579d67c7b8c7c09a782cee7f4a725b413",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/_tools.py": "131e0fb37a21b90d7aa5d4b7a484e5be7f9bad7e844c86e5bde59b5f7ca7e5dc",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/__init__.py": "8bde7cd80cb2a38e8537eeea306e20682f7fc1725af25a41dbb71b7f550c7591",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/dot_command.py": "c42706344980e3c7f231c2c46dbcaaf824a8d788f81f6fef67b45ac96a27e335",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/execute.py": "68ea645491996d676ef110cfca519cfa3e549afe0e54f272447d7970683391ed",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/mixins.py": "f3b7c662a478d211500a9edcfb59596be01bf8eccb15547a5bd5e98c534e6e30",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/piping.py": "fb52df138c0b42e644db9b8c882c0fd75602cb70b9788af0f2918a52cf77b156",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/rendering.py": "b07e6da91ce276e30d23bc5ac21a2248709a47cbb94a7758375b75660b1609b0",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/unflattening.py": "8693d290ade56ec658057097f3491c02207121f37edd0a164f9c3979005c5d84",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/upstream_version.py": "fdff7f2ec9536f23a3eaa74771931e27eee1e58bd80015c757350885fbe05338",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/backend/viewing.py": "b62b7d0f622c44c751774cec87750c9fed656d12bf1b5fa3127941a0596b66f1",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/base.py": "f1e73d702985e6a94570e2fc3cb881f97612c7cbb20e52f72ff4a5fe95e2fe14",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/copying.py": "4d5cf71940b8fb3fd3d1b114154370cd40ca5819e5723a646ebdc6a78c652e65",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/dot.py": "fb588dc962b4556977cc6a6d8eb72f4f7ec9e356440e222b0ca95330fef7d238",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/encoding.py": "2d5a7b5b9ac023ef1b81a5ff411722ecd7e8509e4f5cd29725bb8f2c86ac41fa",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/exceptions.py": "5e29e4a1987d3434f05584f8fb6aa9fa9e992a59959180a1a246ccf962e41f78",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/graphs.py": "dd5d090df9d2f17a9adcaa80d8712784383bea3f42d1a40f6ae981df90de6444",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/jupyter_integration.py": "e5a4f35a758d17e0b8d1cab6a21909f387fea6eb4dc830a467a0fc686becaac3",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/parameters/__init__.py": "c5013937614369330bd0c9993f527c1130f8c033124e2720c1f94bd394386083",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/parameters/base.py": "2beb78fe861b7abc40f29b3628cd8272ba1f925fc0b053f6e93d51f950411a36",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/parameters/engines.py": "adc8ae18514eed28c8c3d6246337ab847fa3e739c5d2c74b83449758709ff1c3",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/parameters/formats.py": "843a7dcf2fdd581f4cc44c675ec03afbd11b587df33a63465900d043fb80a654",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/parameters/formatters.py": "058852ef13ce3b268f0fb7cff597a77db7e30b7cd3375e4cf87ea1a93bdfc45b",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/parameters/mixins.py": "043bf9d04eebb08ab1c23d35a9203a18967208e6eeea6882874c3af6adeaf9aa",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/parameters/renderers.py": "ee6f291d35cda7fe995709a0389ceaa8288eae0d461ecdbd9e5b9a0bdb040345",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/piping.py": "7fdf68bc526cfc946cc5076740f821775f6748c42e691e4c3c02b6090a7f8211",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/quoting.py": "edd77568c2cd3fad9cb82daf56968731beb8f14208ddb3fdde5bc351cab6705b",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/rendering.py": "83aab1854f4f13842e2f472d511839e9ccc337397836490bb5692106888baf99",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/saving.py": "2a871a501f081afb87b38cf75524c670e574a256e844e45076158500bed4a54c",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/sources.py": "6507bb2837ff9447ae143109756d7cc035513d732772b86a5d3ad86da5290d2d",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/graphviz/unflattening.py": "db828a5ef023924367c4a1f77968d4b5d768a071d668a519675937dce28601c4",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/package.json": "608990502168a7c72bc38c17715ea3392d5c573b6e545da30e738a3ba7446176",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/408.dbc077a6cc7c217e368f.js": "8c97b77ce33cf59d50f7ab54c08d3fa5dab617d3879dfee8f878d9c46281a5f3",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/44.798fcbd57ed32bdf2022.js": "275e65e4c308b2c28e107d4238b8c618f58b5bac1c5991941a8ccfd679fd87c7",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/543.e8dd5ef129981f7df1b4.js": "a0612ab3bcbd07526ca4e4ee43f7de3dfb17ee83be3babba0b6c57b683d24861",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/543.e8dd5ef129981f7df1b4.js.LICENSE.txt": "d33efbdf4d309bfa4448199551371ff81d5f57661b781faf79d256554e038595",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/692.400b4d789438c01ed84d.js": "4d1e29cbb1a045df820a40351b5c7932c951a1a2714f2517f201dd00584a1c39",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/692.400b4d789438c01ed84d.js.LICENSE.txt": "90df5fb90a66efeeba4a18886bb6c62bdc1389f8ea14d8e1531acd42f160d344",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/708.97a415b7d9904d46a391.js": "28f88308473321c3946414cc1fce471c85410e132a3d5f64bba3a936141e7305",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/708.97a415b7d9904d46a391.js.LICENSE.txt": "99b8afca26f4f995419fd5646383cda95b92d0d5198974937e64935b0abb6c5b",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/remoteEntry.fe353bf30bf025bd596e.js": "6bbafd0fa5d72612036ffa2f98fc56f6960d970614c20611af408a861ec140d1",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/labextensions/catboost-widget/static/style.js": "f8242dd194cf6824efad188b7339f17e501b7ef20a94e5738cea2cfa6b9a5d0f",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/nbextensions/catboost-widget/extension.js": "31b637e46315f6f5f2e45d0334ab1331df7464ecee89211d33a2a9abab6caaf7",
+    "artifacts/research/boundary_20260908/catboost_runtime/site-packages/share/jupyter/nbextensions/catboost-widget/index.js": "4a6e5351993b2b10822e4fa86d48bb8b068426ae1779dc044f0f1e8061eba303",
+    "artifacts/research/boundary_20260908/catboost_runtime/synthetic_feasibility.json": "3991b87042d3f5c58c1c4d1e63cde0591807ecac92cbd2c382646c34da41e38e",
+    "artifacts/research/boundary_20260908/catboost_runtime/wheels/catboost-1.2.10-cp312-cp312-macosx_11_0_universal2.whl": "b27115d5b443048f710001c8ac666892dfe03498492310b00466203c91cc30a5",
+    "artifacts/research/boundary_20260908/catboost_runtime/wheels/graphviz-0.21-py3-none-any.whl": "54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42",
+    "artifacts/research/boundary_20260908/telemetry/execution/data_lock.json": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005",
+    "artifacts/research/boundary_20260908/telemetry/execution/design_lock.json": "d072bb145868ab03aaacaadbd8b9071890323c5f4f70b29561ea446cd9e347ae",
+    "artifacts/research/boundary_20260908/telemetry/execution/fit_lock.json": "ee59df50ddf2981f41118958a93cb9899a13e81acea96293a971e77fc99d44bf",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202201_labels.jsonl": "8042ae1b8b4a03420ab3830140faa160e9d16bf7c4b934cebf137572e4f83627",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202202_labels.jsonl": "23604030d098dfdc2fa0ac2ee12a6e824eb7f7694a5d3d7a30bc40eedf790ef6",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202203_labels.jsonl": "c92d8b4bd102c014eb0e77aa08813fe708d7af9891d7a34910b9bb756d739590",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202204_labels.jsonl": "d0821ef143b27a824d217261e1a18941690cf7cc6fc6a39c9f30664d4acb1b7c",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202205_labels.jsonl": "4ea28db619df4520ab6cc521b724bc56328a03a9ebe0d16caf6815accee1640a",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202206_labels.jsonl": "f1a76c3a43a1d633900e5bc5b9eabf723d898d1e879e114dacd4c5a20d21cf95",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202207_labels.jsonl": "e3012d33deeed868db41eee5550fc479b16308e2ab27b7e2b1c8c802dfd891ee",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202208_labels.jsonl": "bc4e8cf502fef151f75d1c89e16e769dfe9583f9411423d5a3293c220da90f46",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202209_labels.jsonl": "45445199e85203781bfb9990f43e40483f282bc7c876b6f3a2d15f3412104446",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202210_labels.jsonl": "0ba44b7f5b810c4df6d310334e15f57693399eaee52f098a6e25c715d6a28e62",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202211_labels.jsonl": "167c48bca830a9963f9ab3c45a4478560dcf0a65aad94bb4c2b2124c6575182c",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202212_labels.jsonl": "71f8dbb862a055246eaf34d1e823cf8148ca38e432b446dce58612bc9ec8a565",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202213_labels.jsonl": "66522085452c8431bea669c43be99035b6a68b27eed45fd0c3c952d502058388",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202214_labels.jsonl": "4fd9cce704b73b509cd32fe7935bfdb0d04a4af9c4d8ec506c646086c64c5dff",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202215_labels.jsonl": "656b27cae93ba8898d32ada16992b90539be80d0e668645f6867be6b3dbc7f46",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202216_labels.jsonl": "39c9d2b4bf88db32b1c469c2e6b60bf5e79182513570aef68c9d88eb104d031d",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202217_labels.jsonl": "8acc3a981f555fad4212d3935b9dfab6522d2272a453fbecf7cbfff75e6ebe41",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202218_labels.jsonl": "0aea487d1e8cbc01c7aff83bb0411300fa40632d307f31a77d97d324e69b216f",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202219_labels.jsonl": "64f2f8150f8cfd28511ced8e3467da0d52abb96d71875f09748181f718804e5f",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202220_labels.jsonl": "801d3dc91064b7c8074006400f6d750d3a810d37b3cc375fe478330b23d0d14a",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202221_labels.jsonl": "0fa7eba89b93f1319590fce08ae229509f0a40ef30cb1ff103e9f4cd685404c7",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202222_labels.jsonl": "d8fb98eb485a510fc8b6bcc3784d9db240ebd4bd821594fa7cba45a05af350f5",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202301_labels.jsonl": "f1e3c06a9a30d366c848baaa88a8320f6ee9a3e859ae4517b143f08376d1b0fd",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202302_labels.jsonl": "caf7c01b4aab3f75f0ee377a06a887b3ca214da3034987c9f1938010cacca71c",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202303_labels.jsonl": "6b65465b31b0abca2c8d613bdf310e8dc51d6ac9c18b8673bdf67d3be5794305",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202304_labels.jsonl": "f840cfce1273e7d82976ae7144c377818378b921139adb8556c4af883e7b0638",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202305_labels.jsonl": "0f2da201f38527b831ee19f0a2513a75256f76a5ae951b8a4648f1b7b1b9117f",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202306_labels.jsonl": "b4cd49bffe627f3dae345538c1b8866672d4aedee691f3ea17dd48b5bf99e835",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202307_labels.jsonl": "16c9745473152b082de6fe35976632f8c419740ae6d1653b3c25c3aba5b405b2",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202308_labels.jsonl": "9c47e790ddd5340fbd98086a6d7266678f3dd82593ba94047ee5099f128065ab",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202309_labels.jsonl": "e54bcc2ca8dadc8c385c30bb5da4d5d4b897355c13d0f505a1a61473186bfcfb",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202310_labels.jsonl": "9b62d4bbfb6bd6207052d57459d4ffa00be1a1c684bcbf91d3815226a0300acc",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202311_labels.jsonl": "5d17399f228aafe8f2f5b3a0396a6782bb25f865baf929715aa63a92f814d3eb",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202312_labels.jsonl": "d83fa66b13cad3c694ecfaec8c04cf15c016c444adcd195021e3e4b2330c7f2c",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202313_labels.jsonl": "e17caa959130b74c3cafa3bb5df96566c3e09159d0bca4868b4db716ef2dbe70",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202314_labels.jsonl": "022113910abc9f318755ccf6f0cb511f47560c454a49b86a865ca8070932dffd",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202315_labels.jsonl": "b005a295d9c6a35a1e905a3763514cabacdaf4ec86e59980c9f1e6c28054c3f2",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202316_labels.jsonl": "51c1a831efd41c7e08da2fd0ac216464e2782aac83f17471aff1eb6284a4719e",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202317_labels.jsonl": "9bf9f5c2341a9262d1fd66f927e6842a2137b32d43c00ade254172198c2fa71d",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202318_labels.jsonl": "fac1515bf347df1a02b49b40e51542d6fdfc8a8599715b7dcf077fc99f06de5f",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202319_labels.jsonl": "12d757fc3a254867a78887bc2d107d6f3a75bf57f791835adfe85df6bbc6a9a1",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202320_labels.jsonl": "e079b6a142b4e8f8942ebb517999781bd462f41c3d0d5cc66867b86a2756e7ae",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202321_labels.jsonl": "79addaf8e01ec39f88fb35497ae44cd3b640f662e1ba9099a28c1ee18c6d6224",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202322_labels.jsonl": "303b68ca1984dffff77de464e0be76d628e2fde086f35883ba9f481d3a0e4652",
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/label_closure.json": "cc83af4088025f3aeb932ca60af2809872740d2bfe1d4b1ba28b670e16764b50",
+    "artifacts/research/boundary_20260908/telemetry/execution/models.pkl": "900cc775d1349a529a18341ae8602fc555123b217f4c0aeace63c31385082a0b",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202202_issued.jsonl": "6cebd70dfe3b886fe4561e8ffe8c08b7abad4a389428183cd1fc2039d9f298a1",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202203_issued.jsonl": "0e3a6bbe90f388d4a14fd62afbaac1e32cea1a3c012c5662c26404617f044a4e",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202204_issued.jsonl": "874f50fffed64e25040b80d7015c8dec51221ec7f47cc850920d3d55220030e4",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202205_issued.jsonl": "530447694f877ef9946a308c6da32e3d55a0ee5b031929357068fd854c8fbe78",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202206_issued.jsonl": "d5fc729506b11947ea03a0c99808a7c86151d34ec79f27e3883f894a95966dee",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202207_issued.jsonl": "ae484d28e58a91b28072848d4c3c2cfc59e579c5576a7885a0c291b3868e1b5d",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202208_issued.jsonl": "e7131142d9bd8099700fd46b4878fee9ffbda8f021c096013bd16a0585788bd0",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202209_issued.jsonl": "f18d54a148067076af8b2a88383570b7abf64af0d260db9f3feae0ca25b07ee6",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202210_issued.jsonl": "30f174aeb2667dffff9e543e9fcf1fd45ecc908f32836054a843ff911fcadce6",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202211_issued.jsonl": "ba22fd31b3a88acb88e437359fb3a5b1aaaed03c0be6addf57a06d693b8942fb",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202212_issued.jsonl": "b529c33a4970aab2259abd86e8aae7ae0a5073794993a9041b7c22a13bc13952",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202213_issued.jsonl": "6bda642a21307c376cc3ac7c032eae2069f198720b916373b6e1847cfbe3efe5",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202214_issued.jsonl": "7f322c30f5f661302e7cc40dac8f0621013bb2ada23699adf117fa1f3c981159",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202215_issued.jsonl": "489051c053fc88953b64b7a3dbc24afc885aab5eda72eadf9dc741c453c44d59",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202216_issued.jsonl": "a188aafa656166957703efaa4df3b662bd7c708c5cb5617a4c61c59fc2da6826",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202217_issued.jsonl": "4fc536e6c1f137f50334003fd330f6930fff00cca288e3886a06dc43860d85a5",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202218_issued.jsonl": "b65d1dc2d5d666579bfe45befb1c1968e1c63f3f7cefae0aa16fb87db8d8e4e4",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202219_issued.jsonl": "7fbb0643fe821627b26efc6d156ad969447252836a97f972221a5e9c799fb17b",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202220_issued.jsonl": "f96365ac1264f25265468c341312bdee52850272f510b6e0c242327d64b2d83d",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202221_issued.jsonl": "437909a5389a15ca543457221894a714fc5e930f053d26ee7ccd80cc668db662",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202222_issued.jsonl": "54e7a4de0579cd4587b7daf61afbcdb41ed16700c8c40ca10e00d47af4af591c",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202302_issued.jsonl": "5bb165fc41f1cdf32c00c707d64aedc2d38b9cb2280d38ece97b02fabeb74320",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202303_issued.jsonl": "f01330f46346fe61170f79c4d9bb9c19cd15d663199230cee57fd0d38d26d6f0",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202304_issued.jsonl": "2729ba6907088a9512eb020dd81af7e48b37d89cba7f79c2a18836546fbb78b4",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202305_issued.jsonl": "467d39f550affeab708638da796861d6bab46dfe801c3f5d0873b106222522f3",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202306_issued.jsonl": "e2c4a2382c63a598cbf29bde0672459dbf438c80d0840b51959963995a81c01b",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202307_issued.jsonl": "34f2bc136e5b1592eb62917ede5cbedd1befd64696297ec84cb59169dc450af3",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202308_issued.jsonl": "f53b21605d16ce79cbfbf2e2c6b8bacbddaf6fad07076890811adfbb22c889c0",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202309_issued.jsonl": "40352ed47faab9faa3ec9b2a7b9c182672e9340951bb4081e0c525dde51e410a",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202310_issued.jsonl": "688c37e994b0adfbcf8ef38c812dc854361f719b5666d5f45365d2a5b9c2a1f5",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202311_issued.jsonl": "b3f31436706351c040c337fa5c26ede2c19231315b0a295f61d27747d404e0f4",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202312_issued.jsonl": "fc42044aebfa8d5d0598ebb4dc8097b90e1107dc92a6de6cbb3727c207a4cc5e",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202313_issued.jsonl": "c974468accdd65c600b8adaeb0590ea1e84f0dfd2de42f0aa1f323b37d73e0be",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202314_issued.jsonl": "941e4636618608303942c69bd45ae857024a7c5b4e46aaef7a6180ab60ada653",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202315_issued.jsonl": "654734de1d18e35b8235c649060f2e269e82ba3b681b498f579042396a64a96b",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202316_issued.jsonl": "2a7634d1d139313ec3ba9a892abc7da6ef690031d522361995bb34e6e2f1c87c",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202317_issued.jsonl": "085bacea39a4fee5942f07cb3a3dfd1bcc8ce581706e67ff8877946941b59aef",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202318_issued.jsonl": "e489ff5d160b32f52d8a57464593581d1aecb079b0f67b84a674279e942b325a",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202319_issued.jsonl": "7b30247b8e2986fcc24e9ed503bd35946c22ce63f7c7ae4932bc85567e4346ac",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202320_issued.jsonl": "e41072ec28fc451e37035e550093d6948961faaa6e2dd35e4f582ebf78a73949",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202321_issued.jsonl": "b825afed88ca0ea2d9ce214de03b9a048315c7f78eb164b5d476a6bc9fb7cc8f",
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202322_issued.jsonl": "6b8f652144ae03bfc81d1b84e1172467fb032150779e8cb46a6c569e131416c3",
+    "artifacts/research/boundary_20260908/telemetry/execution/selection_issuance_lock.json": "080c1b49bbd576afb795cd48989d67cbe6660b096e084273480709d2fb4cecb2",
+    "artifacts/research/boundary_20260908/telemetry/execution/selection_lag2_forecasts.jsonl": "fc53cc3d5cea03e9f90f68726cd004de862ac52c80cdb4b0743280c3b99cde1f",
+    "artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf"
+  },
+  "parent": {
+    "base_models": {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/models.pkl",
+      "sha256": "900cc775d1349a529a18341ae8602fc555123b217f4c0aeace63c31385082a0b"
+    },
+    "reference_forecasts": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_lag2_forecasts.jsonl",
+      "rows": 20432,
+      "sha256": "fc53cc3d5cea03e9f90f68726cd004de862ac52c80cdb4b0743280c3b99cde1f"
+    },
+    "runtime_manifest": {
+      "path": "artifacts/research/boundary_20260908/catboost_runtime/runtime_manifest.json",
+      "sha256": "3f34f87b123124338cdcaa312a70fcb07e464a74391a85423a72b45117b547e7"
+    },
+    "years": {
+      "2022": {
+        "labels": {
+          "path": "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json",
+          "sha256": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9"
+        },
+        "matched": 18363,
+        "original_references": [
+          {
+            "event_key": 202201,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl",
+            "rows": 853,
+            "sha256": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6"
+          },
+          {
+            "event_key": 202202,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202202_issued.jsonl",
+            "rows": 615,
+            "sha256": "6cebd70dfe3b886fe4561e8ffe8c08b7abad4a389428183cd1fc2039d9f298a1"
+          },
+          {
+            "event_key": 202203,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202203_issued.jsonl",
+            "rows": 775,
+            "sha256": "0e3a6bbe90f388d4a14fd62afbaac1e32cea1a3c012c5662c26404617f044a4e"
+          },
+          {
+            "event_key": 202204,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202204_issued.jsonl",
+            "rows": 969,
+            "sha256": "874f50fffed64e25040b80d7015c8dec51221ec7f47cc850920d3d55220030e4"
+          },
+          {
+            "event_key": 202205,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202205_issued.jsonl",
+            "rows": 838,
+            "sha256": "530447694f877ef9946a308c6da32e3d55a0ee5b031929357068fd854c8fbe78"
+          },
+          {
+            "event_key": 202206,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202206_issued.jsonl",
+            "rows": 1064,
+            "sha256": "d5fc729506b11947ea03a0c99808a7c86151d34ec79f27e3883f894a95966dee"
+          },
+          {
+            "event_key": 202207,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202207_issued.jsonl",
+            "rows": 927,
+            "sha256": "ae484d28e58a91b28072848d4c3c2cfc59e579c5576a7885a0c291b3868e1b5d"
+          },
+          {
+            "event_key": 202208,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202208_issued.jsonl",
+            "rows": 724,
+            "sha256": "e7131142d9bd8099700fd46b4878fee9ffbda8f021c096013bd16a0585788bd0"
+          },
+          {
+            "event_key": 202209,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202209_issued.jsonl",
+            "rows": 989,
+            "sha256": "f18d54a148067076af8b2a88383570b7abf64af0d260db9f3feae0ca25b07ee6"
+          },
+          {
+            "event_key": 202210,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202210_issued.jsonl",
+            "rows": 640,
+            "sha256": "30f174aeb2667dffff9e543e9fcf1fd45ecc908f32836054a843ff911fcadce6"
+          },
+          {
+            "event_key": 202211,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202211_issued.jsonl",
+            "rows": 1141,
+            "sha256": "ba22fd31b3a88acb88e437359fb3a5b1aaaed03c0be6addf57a06d693b8942fb"
+          },
+          {
+            "event_key": 202212,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202212_issued.jsonl",
+            "rows": 793,
+            "sha256": "b529c33a4970aab2259abd86e8aae7ae0a5073794993a9041b7c22a13bc13952"
+          },
+          {
+            "event_key": 202213,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202213_issued.jsonl",
+            "rows": 1163,
+            "sha256": "6bda642a21307c376cc3ac7c032eae2069f198720b916373b6e1847cfbe3efe5"
+          },
+          {
+            "event_key": 202214,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202214_issued.jsonl",
+            "rows": 609,
+            "sha256": "7f322c30f5f661302e7cc40dac8f0621013bb2ada23699adf117fa1f3c981159"
+          },
+          {
+            "event_key": 202215,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202215_issued.jsonl",
+            "rows": 1099,
+            "sha256": "489051c053fc88953b64b7a3dbc24afc885aab5eda72eadf9dc741c453c44d59"
+          },
+          {
+            "event_key": 202216,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202216_issued.jsonl",
+            "rows": 738,
+            "sha256": "a188aafa656166957703efaa4df3b662bd7c708c5cb5617a4c61c59fc2da6826"
+          },
+          {
+            "event_key": 202217,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202217_issued.jsonl",
+            "rows": 636,
+            "sha256": "4fc536e6c1f137f50334003fd330f6930fff00cca288e3886a06dc43860d85a5"
+          },
+          {
+            "event_key": 202218,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202218_issued.jsonl",
+            "rows": 334,
+            "sha256": "b65d1dc2d5d666579bfe45befb1c1968e1c63f3f7cefae0aa16fb87db8d8e4e4"
+          },
+          {
+            "event_key": 202219,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202219_issued.jsonl",
+            "rows": 740,
+            "sha256": "7fbb0643fe821627b26efc6d156ad969447252836a97f972221a5e9c799fb17b"
+          },
+          {
+            "event_key": 202220,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202220_issued.jsonl",
+            "rows": 1244,
+            "sha256": "f96365ac1264f25265468c341312bdee52850272f510b6e0c242327d64b2d83d"
+          },
+          {
+            "event_key": 202221,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202221_issued.jsonl",
+            "rows": 905,
+            "sha256": "437909a5389a15ca543457221894a714fc5e930f053d26ee7ccd80cc668db662"
+          },
+          {
+            "event_key": 202222,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202222_issued.jsonl",
+            "rows": 992,
+            "sha256": "54e7a4de0579cd4587b7daf61afbcdb41ed16700c8c40ca10e00d47af4af591c"
+          }
+        ],
+        "rows": 18788
+      },
+      "2023": {
+        "labels": {
+          "path": "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/label_closure.json",
+          "sha256": "cc83af4088025f3aeb932ca60af2809872740d2bfe1d4b1ba28b670e16764b50"
+        },
+        "matched": 20007,
+        "original_references": [
+          {
+            "event_key": 202301,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl",
+            "rows": 874,
+            "sha256": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be"
+          },
+          {
+            "event_key": 202302,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202302_issued.jsonl",
+            "rows": 789,
+            "sha256": "5bb165fc41f1cdf32c00c707d64aedc2d38b9cb2280d38ece97b02fabeb74320"
+          },
+          {
+            "event_key": 202303,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202303_issued.jsonl",
+            "rows": 731,
+            "sha256": "f01330f46346fe61170f79c4d9bb9c19cd15d663199230cee57fd0d38d26d6f0"
+          },
+          {
+            "event_key": 202304,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202304_issued.jsonl",
+            "rows": 806,
+            "sha256": "2729ba6907088a9512eb020dd81af7e48b37d89cba7f79c2a18836546fbb78b4"
+          },
+          {
+            "event_key": 202305,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202305_issued.jsonl",
+            "rows": 1038,
+            "sha256": "467d39f550affeab708638da796861d6bab46dfe801c3f5d0873b106222522f3"
+          },
+          {
+            "event_key": 202306,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202306_issued.jsonl",
+            "rows": 1383,
+            "sha256": "e2c4a2382c63a598cbf29bde0672459dbf438c80d0840b51959963995a81c01b"
+          },
+          {
+            "event_key": 202307,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202307_issued.jsonl",
+            "rows": 1167,
+            "sha256": "34f2bc136e5b1592eb62917ede5cbedd1befd64696297ec84cb59169dc450af3"
+          },
+          {
+            "event_key": 202308,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202308_issued.jsonl",
+            "rows": 1087,
+            "sha256": "f53b21605d16ce79cbfbf2e2c6b8bacbddaf6fad07076890811adfbb22c889c0"
+          },
+          {
+            "event_key": 202309,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202309_issued.jsonl",
+            "rows": 1146,
+            "sha256": "40352ed47faab9faa3ec9b2a7b9c182672e9340951bb4081e0c525dde51e410a"
+          },
+          {
+            "event_key": 202310,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202310_issued.jsonl",
+            "rows": 762,
+            "sha256": "688c37e994b0adfbcf8ef38c812dc854361f719b5666d5f45365d2a5b9c2a1f5"
+          },
+          {
+            "event_key": 202311,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202311_issued.jsonl",
+            "rows": 1122,
+            "sha256": "b3f31436706351c040c337fa5c26ede2c19231315b0a295f61d27747d404e0f4"
+          },
+          {
+            "event_key": 202312,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202312_issued.jsonl",
+            "rows": 683,
+            "sha256": "fc42044aebfa8d5d0598ebb4dc8097b90e1107dc92a6de6cbb3727c207a4cc5e"
+          },
+          {
+            "event_key": 202313,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202313_issued.jsonl",
+            "rows": 974,
+            "sha256": "c974468accdd65c600b8adaeb0590ea1e84f0dfd2de42f0aa1f323b37d73e0be"
+          },
+          {
+            "event_key": 202314,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202314_issued.jsonl",
+            "rows": 840,
+            "sha256": "941e4636618608303942c69bd45ae857024a7c5b4e46aaef7a6180ab60ada653"
+          },
+          {
+            "event_key": 202315,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202315_issued.jsonl",
+            "rows": 922,
+            "sha256": "654734de1d18e35b8235c649060f2e269e82ba3b681b498f579042396a64a96b"
+          },
+          {
+            "event_key": 202316,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202316_issued.jsonl",
+            "rows": 663,
+            "sha256": "2a7634d1d139313ec3ba9a892abc7da6ef690031d522361995bb34e6e2f1c87c"
+          },
+          {
+            "event_key": 202317,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202317_issued.jsonl",
+            "rows": 798,
+            "sha256": "085bacea39a4fee5942f07cb3a3dfd1bcc8ce581706e67ff8877946941b59aef"
+          },
+          {
+            "event_key": 202318,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202318_issued.jsonl",
+            "rows": 879,
+            "sha256": "e489ff5d160b32f52d8a57464593581d1aecb079b0f67b84a674279e942b325a"
+          },
+          {
+            "event_key": 202319,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202319_issued.jsonl",
+            "rows": 1093,
+            "sha256": "7b30247b8e2986fcc24e9ed503bd35946c22ce63f7c7ae4932bc85567e4346ac"
+          },
+          {
+            "event_key": 202320,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202320_issued.jsonl",
+            "rows": 952,
+            "sha256": "e41072ec28fc451e37035e550093d6948961faaa6e2dd35e4f582ebf78a73949"
+          },
+          {
+            "event_key": 202321,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202321_issued.jsonl",
+            "rows": 700,
+            "sha256": "b825afed88ca0ea2d9ce214de03b9a048315c7f78eb164b5d476a6bc9fb7cc8f"
+          },
+          {
+            "event_key": 202322,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202322_issued.jsonl",
+            "rows": 1023,
+            "sha256": "6b8f652144ae03bfc81d1b84e1172467fb032150779e8cb46a6c569e131416c3"
+          }
+        ],
+        "rows": 20432
+      }
+    }
+  },
+  "pre_fit_tests": {
+    "path": "artifacts/research/boundary_20260908/catboost_frontier/pre_fit_tests.json",
+    "sha256": "c37c9dab23de8c1c3b2749bda3500cf23db65ac871b45ff647f5200a50639580"
+  },
+  "review": {
+    "path": "artifacts/research/boundary_20260908/catboost_frontier_review.json",
+    "sha256": "1ffccb5ba46c84f319a574bea77a8db320bd280c7ac258eaa424dafcf802a2b5"
+  },
+  "runtime": {
+    "numpy": "2.5.3",
+    "pandas": "2.3.3",
+    "python": "3.12.14"
+  },
+  "sources": {
+    "research/experiments/boundary_20260908/catboost_frontier/README.md": "9acf294f9e5e53e68945ef63d43d48fe0cb1405648ffb13d8a932c0310909c33",
+    "research/experiments/boundary_20260908/catboost_frontier/independent.py": "6fc2e60634d0bd77cb8293273b87bceaa905e24dc77a888e7e79b153532e0378",
+    "research/experiments/boundary_20260908/catboost_frontier/models.py": "401d9386d5586f5e53679a7e5adc20cafed45ac89275717b95f28f1d25de3c41",
+    "research/experiments/boundary_20260908/catboost_frontier/run.py": "99ddef2b0b8928af2061ea174cf9cab07132d349404d216ecfd9936bb1a22647",
+    "research/experiments/boundary_20260908/catboost_frontier/specification.json": "a7bb5117023fedb52a9ffb0f71164ca441c751609829d670c12e09af77680823",
+    "research/experiments/boundary_20260908/catboost_frontier/test_independent.py": "1da7efa083ce15c978f711ab88b81a531c355fb3a55894dbce3749c104819269",
+    "research/experiments/boundary_20260908/catboost_frontier/test_models.py": "d25e249be433af2ddf5504558ef52fb00af2da4b5c0b356463518bdf371b5048",
+    "research/experiments/boundary_20260908/catboost_frontier/test_run.py": "5ef121394c8ee1266554764fc6f840e6661bb2441fa54501f3793a062ca27ba2",
+    "research/experiments/boundary_20260908/catboost_frontier/verify.py": "ad01d271d631ba7f9ac1792dffec57770117d7d7ad60dc51c935abb12f4be3b8",
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4",
+    "research/experiments/boundary_20260908/telemetry/README.md": "2f7d61ddfc29cd289e30ea740f6eea4e93658a1581c8253fe5ce0f4f79d72249",
+    "research/experiments/boundary_20260908/telemetry/acquire.py": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5",
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+    "research/experiments/boundary_20260908/telemetry/data.py": "768f91cf810c531e9cb0d3d2ed7ab25742ddfbfd85a871c28cf0048e5c359e2b",
+    "research/experiments/boundary_20260908/telemetry/data_contract.md": "229c8c2dfc6c646cb62649a2b4047c227a730190cbf86b2e4b2b14f8e0aef3da",
+    "research/experiments/boundary_20260908/telemetry/evaluate.py": "a7744181e6f093c022d139f8bd7cd83542ea9244a2ea2d4d7d970e28d716d88c",
+    "research/experiments/boundary_20260908/telemetry/features.py": "7354b6675a4725d311c5bbf11f329e615118abf33fef5ef4bf4ee69474c1371f",
+    "research/experiments/boundary_20260908/telemetry/models.py": "3f52a84ee9cffc9a1c21b9730cb8c8d7770dca625b935fadc0df6adce1069e6b",
+    "research/experiments/boundary_20260908/telemetry/run.py": "050b574bc20db66cbf9105e78ee5d8d89dcbd30d7fe2879a60c906915ec011ba",
+    "research/experiments/boundary_20260908/telemetry/specification.json": "7f43632a7c0e75ad48fd82ccf33d328b106d08486fa6c026b01cb3be3e8bb8f5",
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1",
+    "research/experiments/boundary_20260908/telemetry/test_data.py": "aa98512fe7c2ebe6634cded626847156b4496e3502e0e639d141cfe303eeba3d",
+    "research/experiments/boundary_20260908/telemetry/test_evaluate.py": "a1ff6c67b3213180bb377fe86712778e4fd3f8272730bf65dfc16f72fef2a719",
+    "research/experiments/boundary_20260908/telemetry/test_features.py": "8c1410bcdef0d635b47e5e1870247ea7166861c8186d8d680702eb3999d3177e",
+    "research/experiments/boundary_20260908/telemetry/test_models.py": "b8c32ed66c473663b96e6f48d516a64f840d8a40a8d1a49bdd4bd8f84f548d44",
+    "research/experiments/boundary_20260908/telemetry/test_run.py": "352210a3e00a5a229aa44f31268614aeb6b236ef954077823317186d2b416edd",
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/boundary_20260908/telemetry_verification_v2/verify.py": "631115bdc2834f0c458e94cd18833f13d8c6bb0d9a190e76f7593d17da44c7b6",
+    "research/experiments/frontier_20260907/feature_encoder.py": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/frontier_20260907/specification.json": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+    "research/experiments/performance_20260907/live/spec.json": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a"
+  },
+  "specification": {
+    "path": "research/experiments/boundary_20260908/catboost_frontier/specification.json",
+    "sha256": "a7bb5117023fedb52a9ffb0f71164ca441c751609829d670c12e09af77680823"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "hypothesis": "Symmetric-tree boosting and its ordered-gradient variant may generalize beyond the selected asymmetric HGB on the same observed inputs. This experiment changes the learning algorithm, not the information horizon.",
+  "id": "catboost_frontier_20260908",
+  "inputs": {
+    "data_lock_sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005",
+    "fit_lock_sha256": "ee59df50ddf2981f41118958a93cb9899a13e81acea96293a971e77fc99d44bf",
+    "issuance_lock_sha256": "080c1b49bbd576afb795cd48989d67cbe6660b096e084273480709d2fb4cecb2",
+    "parent_execution": "artifacts/research/boundary_20260908/telemetry/execution",
+    "parent_verification_sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf",
+    "runtime_manifest": {
+      "path": "artifacts/research/boundary_20260908/catboost_runtime/runtime_manifest.json",
+      "sha256": "3f34f87b123124338cdcaa312a70fcb07e464a74391a85423a72b45117b547e7"
+    }
+  },
+  "limits": [
+    "Both seasons and previous scores were exposed; no pristine holdout claim.",
+    "No new gap or telemetry features, stream latency variants or current-event odds are added.",
+    "MAE targets retain reference residual clipping; this is not unconstrained population-median estimation.",
+    "SymmetricTree has no equivalent to HGB minimum leaf count80; regularization and capacity differ.",
+    "has_time=False permutes within the training season only; no selection labels are supplied to fitting.",
+    "Selecting the best of two variants does not independently identify ordered-boosting causality.",
+    "No paid compute, provider acquisition, foundation-model checkpoint or policy-value claim."
+  ],
+  "models": {
+    "names": [
+      "plain",
+      "ordered"
+    ],
+    "new_fits": 2,
+    "parameters": {
+      "allow_writing_files": false,
+      "boost_from_average": true,
+      "bootstrap_type": "No",
+      "border_count": 254,
+      "depth": 6,
+      "grow_policy": "SymmetricTree",
+      "has_time": false,
+      "iterations": 1000,
+      "l2_leaf_reg": 10,
+      "leaf_estimation_iterations": 1,
+      "leaf_estimation_method": "Exact",
+      "learning_rate": 0.03,
+      "loss_function": "MAE",
+      "nan_mode": "Min",
+      "random_seed": 20260908,
+      "random_strength": 0,
+      "task_type": "CPU",
+      "thread_count": 1,
+      "use_best_model": false,
+      "verbose": false
+    },
+    "variant_parameters": {
+      "ordered": {
+        "boosting_type": "Ordered"
+      },
+      "plain": {
+        "boosting_type": "Plain"
+      }
+    }
+  },
+  "resources": {
+    "historical_fits_before_lock": 0,
+    "maximum_peak_rss_bytes": 4294967296,
+    "numerical_threads": 1,
+    "synthetic_only_preflight_iterations_each": 10
+  },
+  "selection": {
+    "all_candidate_results_retained": true,
+    "all_issuances": 20432,
+    "all_loo_negative": true,
+    "block3_ci_upper_negative": true,
+    "block_length": 3,
+    "event_ci_upper_negative": true,
+    "events": 22,
+    "failure_ends_family_without_transfer_or_retuning": true,
+    "matched_rows": 20007,
+    "minimum_relative_reduction": 0.01,
+    "reference": "exact saved 2022-only base_hgb forecasts",
+    "resamples": 20000,
+    "seed": 20260907,
+    "unmatched_retained": 425,
+    "winner": "minimum event-balanced MAE; listed-order ties",
+    "year": 2023
+  },
+  "sources": [
+    "https://arxiv.org/abs/1706.09516",
+    "https://catboost.ai/docs/en/references/training-parameters/common",
+    "https://catboost.ai/docs/en/concepts/loss-functions-regression",
+    "https://pypi.org/project/catboost/1.2.10/"
+  ],
+  "status": "declared_before_historical_candidate_fits",
+  "suggested_commit": "research(f1-live): test symmetric and ordered boosting on the original horizon",
+  "training": {
+    "categorical_features": [],
+    "events": 22,
+    "features": 80,
+    "forecast_correction_clip_seconds": 3,
+    "matched_rows": 18363,
+    "no_early_stopping": true,
+    "no_eval_set": true,
+    "no_row_subsampling": true,
+    "target": "next eligible clean completed lap residual against original naive anchor",
+    "target_clip_seconds": 5,
+    "weights": "N/(E*n_event)",
+    "year": 2022
+  },
+  "transfer_if_selection_passes": {
+    "current_events": 13,
+    "current_minimum_reduction": 0.05,
+    "current_year": 2026,
+    "global_integration": "Only after verified transfer and exact portable inference parity; historical evidence is not prospective confirmation.",
+    "historical_events": 48,
+    "historical_minimum_reduction": 0.1,
+    "historical_years": [
+      2024,
+      2025
+    ],
+    "negative_all_loo_each_block": true,
+    "negative_event_and_block3_upper_bounds_each_block": true,
+    "positive_each_historical_year": true,
+    "reference": "current portable HGB trained2022-2023",
+    "refit": "Only selected configuration on all38370 matched2022-2023 rows; no changes or new selection."
+  },
+  "verification": {
+    "prediction_atol": 1e-10,
+    "prediction_rtol": 1e-12,
+    "protocol_before_fits": true,
+    "replay": "Every saved candidate prediction through independent numeric exported-JSON inference, no CatBoost import or fitting. Recheck original population and baseline bits, matched/unmatched outcomes, objective weights, model metadata, all scores and gates.",
+    "statistical_implementation": "research/experiments/boundary_20260908/telemetry_verification_v2/verify.py",
+    "statistical_source_sha256": "631115bdc2834f0c458e94cd18833f13d8c6bb0d9a190e76f7593d17da44c7b6"
+  }
+}

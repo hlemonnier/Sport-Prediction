@@ -1,0 +1,98 @@
+{
+  "accepted_boolean": "True boolean or exact CSV text True only; numeric1 and text False must not be truthy acceptance",
+  "accepted_exact_rows": 10249,
+  "artifact_manifest": {
+    "artifacts/research/boundary_20260908/football_xg_data/extended_history/join_quality.json": "b2420287213b2d239d2eab6d260528979d0e9518b003241c7728ec87ed499ee3",
+    "artifacts/research/boundary_20260908/football_xg_data/extended_history/verification.json": "1dde653f2ac728c6cc215ad9e7ce44c64bf3b41d56e17d64dd67fa17487de60d",
+    "artifacts/research/boundary_20260908/football_xg_data/join_quality.json": "604c629eb9a5f95423b7c61cfc1d6430f78f400d656c6bfee4ef86534b9f1bde",
+    "artifacts/research/boundary_20260908/football_xg_data/verification.json": "560a258e0d303b5f9b4a310b9e090bfcebd93c02b619b5d795d135929a825123",
+    "data/football/boundary_20260908/understat/extended_history/joined_matches.csv": "daf37e223277265d3cd1bcc3dd04243437cce4231759e9bd29e79668cec07ced",
+    "data/football/boundary_20260908/understat/joined_matches.csv": "795d0a14dac04c0166ef9fc62ecfc9fa0c219b4945ee55b7af4577b27940051d",
+    "research/experiments/boundary_20260908/football_xg_data/availability.py": "65fa96fb81272060bb4110ea383aa3aa12cb0b23204d7b3077c00d6d787f0b28",
+    "research/experiments/boundary_20260908/football_xg_data/extended_history/test_extended.py": "289bf7b78645b287e50ee51b881f165fec1d807147b1b79e934896a503ac9b30",
+    "research/experiments/boundary_20260908/football_xg_data/finalize_data_contract.py": "aa5bdfb9d2f18eca2aaba253f5068c71f847039e696d3ca9f3a8909d47d80391",
+    "research/experiments/boundary_20260908/football_xg_data/test_quality.py": "7f748ec89f481fcc994bd31219e449dd2d50f07fd0080ff1bb18ba3e50dbb42d",
+    "research/experiments/boundary_20260908/football_xg_data/timing_review.json": "9b2d22d549bd4950ef23e0a79f3a2b7a1cae15408ff8a8fc55b96d7f3ffd91d5"
+  },
+  "availability_is_assumption": true,
+  "canonical_id": "{league}:{season_start_year}:{home}:{away}",
+  "columns": [
+    "league",
+    "season_start_year",
+    "understat_match_id",
+    "provider_home_id",
+    "provider_away_id",
+    "provider_home",
+    "provider_away",
+    "home",
+    "away",
+    "provider_datetime_naive",
+    "provider_date",
+    "home_goals",
+    "away_goals",
+    "home_xg",
+    "away_xg",
+    "provider_original_published_at",
+    "provider_last_revised_at",
+    "canonical_match_id",
+    "canonical_date",
+    "canonical_home_goals",
+    "canonical_away_goals",
+    "canonical_minus_provider_days",
+    "accepted_exact_join",
+    "join_status"
+  ],
+  "exact_join_key": [
+    "league",
+    "season_start_year",
+    "canonical_date",
+    "home",
+    "away"
+  ],
+  "excluded_match_ids": [
+    "I1:2017:Chievo:Juventus",
+    "I1:2017:Sassuolo:Atalanta",
+    "I1:2023:Cagliari:Fiorentina",
+    "I1:2023:Udinese:Roma",
+    "I1:2024:Genoa:Atalanta",
+    "SP1:2017:Barcelona:Sevilla",
+    "SP1:2017:Celta:Ath Madrid",
+    "SP1:2017:Eibar:Leganes",
+    "SP1:2021:Espanol:Valencia",
+    "SP1:2023:Granada:Ath Bilbao",
+    "SP1:2025:Valencia:Oviedo"
+  ],
+  "fitted_models": 0,
+  "joined_files": [
+    "data/football/boundary_20260908/understat/joined_matches.csv",
+    "data/football/boundary_20260908/understat/extended_history/joined_matches.csv"
+  ],
+  "league_timezones": {
+    "E0": "Europe/London",
+    "I1": "Europe/Rome",
+    "SP1": "Europe/Madrid"
+  },
+  "minimum_information_rule": "Only accepted previously completed matches whose proxy availability is at or before forecast cutoff. Never same-match xG. Keep the existing target population and use an explicitly frozen fallback for unavailable xG.",
+  "original_publication_times_known": false,
+  "predictive_performance_scores_computed": false,
+  "primary_delay_days": 7,
+  "proxy_formula": "validated completion day -> next local midnight -> convert to UTC -> add delay_days*24hours",
+  "resumption_marker": {
+    "canonical_match_id": "I1:2024:Fiorentina:Inter",
+    "completion_day": "2025-02-06",
+    "fourteen_day_proxy_utc": "2025-02-20T23:00:00+00:00",
+    "original_interruption_day": "2024-12-01",
+    "seven_day_proxy_utc": "2025-02-13T23:00:00+00:00",
+    "source": "research/experiments/boundary_20260908/football_xg_data/timing_review.json"
+  },
+  "revision_history_known": false,
+  "rows": 10260,
+  "same_raw_match_xg_and_team_history_mirrors_verified": 20520,
+  "schema_version": "understat_exact_join_with_unverified_availability_v1",
+  "sensitivity_delay_days": 14,
+  "tests_passed": 25,
+  "xg_fields": {
+    "away_xg": "nonnegative expected goals float",
+    "home_xg": "nonnegative expected goals float"
+  }
+}

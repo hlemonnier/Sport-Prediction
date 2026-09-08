@@ -1,0 +1,12 @@
+{
+  "failures": [
+    {
+      "error": "ValueError('Unexpected or oversized public league page')",
+      "league": "EPL",
+      "season_start_year": 2022
+    }
+  ],
+  "finished_at_utc": "2026-09-08T01:16:13.531531+00:00",
+  "lock_sha256": "db41e43f21ab05504b7a5ccf882750ab1efd6b2e54da66da72d21dc1e89574cd",
+  "pages": []
+}

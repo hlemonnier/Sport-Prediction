@@ -1,0 +1,31 @@
+EPL 2022 {'exact_date_teams_score': 380} parse_excluded 0
+EPL 2023 {'exact_date_teams_score': 380} parse_excluded 0
+EPL 2024 {'exact_date_teams_score': 380} parse_excluded 0
+EPL 2025 {'exact_date_teams_score': 380} parse_excluded 0
+La_liga 2022 {'exact_date_teams_score': 380} parse_excluded 0
+La_liga 2023 {'exact_date_teams_score': 379, 'fixture_score_match_date_mismatch_excluded': 1} parse_excluded 0
+La_liga 2024 {'exact_date_teams_score': 380} parse_excluded 0
+La_liga 2025 {'exact_date_teams_score': 379, 'fixture_score_match_date_mismatch_excluded': 1} parse_excluded 0
+Serie_A 2022 {'exact_date_teams_score': 380} parse_excluded 0
+Serie_A 2023 {'exact_date_teams_score': 378, 'fixture_score_match_date_mismatch_excluded': 2} parse_excluded 0
+Serie_A 2024 {'exact_date_teams_score': 379, 'fixture_score_match_date_mismatch_excluded': 1} parse_excluded 0
+Serie_A 2025 {'exact_date_teams_score': 380} parse_excluded 0
+{
+  "seasons": 12,
+  "canonical_matches": 4560,
+  "provider_listed_matches": 4560,
+  "parsed_completed_matches": 4560,
+  "exact_accepted": 4555,
+  "exact_fraction_of_canonical": 0.9989035087719298,
+  "excluded_join_rows": 5,
+  "parse_excluded_rows": 0,
+  "canonical_unmatched_rows": 0,
+  "status_counts": {
+    "exact_date_teams_score": 4555,
+    "fixture_score_match_date_mismatch_excluded": 5
+  },
+  "home_xg_min": 0.0203463,
+  "home_xg_max": 6.67151,
+  "away_xg_min": 0.0,
+  "away_xg_max": 7.11049
+}

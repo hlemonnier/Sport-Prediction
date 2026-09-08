@@ -1,0 +1,28 @@
+EPL 2017 {'exact_date_teams_score': 380} parse_excluded 0
+EPL 2018 {'exact_date_teams_score': 380} parse_excluded 0
+EPL 2019 {'exact_date_teams_score': 380} parse_excluded 0
+EPL 2020 {'exact_date_teams_score': 380} parse_excluded 0
+EPL 2021 {'exact_date_teams_score': 380} parse_excluded 0
+La_liga 2017 {'exact_date_teams_score': 377, 'fixture_score_match_date_mismatch_excluded': 3} parse_excluded 0
+La_liga 2018 {'exact_date_teams_score': 380} parse_excluded 0
+La_liga 2019 {'exact_date_teams_score': 380} parse_excluded 0
+La_liga 2020 {'exact_date_teams_score': 380} parse_excluded 0
+La_liga 2021 {'exact_date_teams_score': 379, 'fixture_score_match_date_mismatch_excluded': 1} parse_excluded 0
+Serie_A 2017 {'exact_date_teams_score': 378, 'fixture_score_match_date_mismatch_excluded': 2} parse_excluded 0
+Serie_A 2018 {'exact_date_teams_score': 380} parse_excluded 0
+Serie_A 2019 {'exact_date_teams_score': 380} parse_excluded 0
+Serie_A 2020 {'exact_date_teams_score': 380} parse_excluded 0
+Serie_A 2021 {'exact_date_teams_score': 380} parse_excluded 0
+{
+  "seasons": 15,
+  "canonical_matches": 5700,
+  "provider_listed": 5700,
+  "parsed_completed": 5700,
+  "exact_accepted": 5694,
+  "status_counts": {
+    "exact_date_teams_score": 5694,
+    "fixture_score_match_date_mismatch_excluded": 6
+  },
+  "parse_excluded": 0,
+  "canonical_unmatched": 0
+}

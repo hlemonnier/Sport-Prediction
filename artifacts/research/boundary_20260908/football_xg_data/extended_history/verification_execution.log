@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "source_sha256": "761fcec211f62d3bd97903157622bca0c1ab7890aa1a926c5443d24c7c926ec6",
+  "quality_sha256": "b2420287213b2d239d2eab6d260528979d0e9518b003241c7728ec87ed499ee3",
+  "raw_and_receipt_files_verified": 30,
+  "canonical_files_verified": 17,
+  "derived_csv_files_verified": 16,
+  "reconstructed_join_rows": 5700,
+  "provider_team_history_xg_goal_mirrors": 11400,
+  "exact_accepted": 5694,
+  "excluded": 6,
+  "schema_matches_frozen_first12": true,
+  "first12_frozen_artifacts_unchanged": true,
+  "no_provider_id_overlap_with_first12": true,
+  "fitted_models": 0,
+  "performance_scores_computed": false
+}

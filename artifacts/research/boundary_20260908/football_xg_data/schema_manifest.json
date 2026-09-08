@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "actual_url": "https://understat.com/league/EPL/2022",
+      "bytes": 18688,
+      "content_type": "text/html; charset=UTF-8",
+      "http_status": 200,
+      "path": "data/football/boundary_20260908/understat/schema_EPL_2022.html",
+      "requested_url": "https://understat.com/league/EPL/2022",
+      "retrieved_at_utc": "2026-09-08T01:17:37.333868+00:00",
+      "sha256": "b8291c197cf68c4cf4947f01dc29092700bf62ad245f9647d03d99aaf0bf83ed"
+    },
+    {
+      "actual_url": "https://understat.com/js/league.min.js?t=1765269520",
+      "bytes": 23961,
+      "content_type": "application/javascript",
+      "http_status": 200,
+      "path": "data/football/boundary_20260908/understat/schema_league.min.js",
+      "requested_url": "https://understat.com/js/league.min.js?t=1765269520",
+      "retrieved_at_utc": "2026-09-08T01:17:37.560704+00:00",
+      "sha256": "6ef9fabcf1b219958fa9dd29bc8bd38778c9f72c1be28557d1908b3521192d24"
+    }
+  ],
+  "source_sha256": "1506f952dacddfb0388366f9860273aa634767cc1355815498b62724ebb45cd1"
+}

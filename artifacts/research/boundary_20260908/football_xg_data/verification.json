@@ -1,0 +1,18 @@
+{
+  "accepted_exact_date_team_score_rows": 4555,
+  "derived_csv_files_verified": 13,
+  "exact_reconstructed_join_rows": 4560,
+  "explicit_date_mismatch_exclusions": 5,
+  "fitted_models": 0,
+  "original_canonical_files_unchanged": 14,
+  "performance_scores_computed": false,
+  "provider_team_history_xg_and_goal_mirrors_verified": 9120,
+  "quality_sha256": "604c629eb9a5f95423b7c61cfc1d6430f78f400d656c6bfee4ef86534b9f1bde",
+  "raw_and_receipt_files_verified": 24,
+  "season_pages": 12,
+  "status": "passed",
+  "tests_source_sha256": "7f748ec89f481fcc994bd31219e449dd2d50f07fd0080ff1bb18ba3e50dbb42d",
+  "timing_review_sha256": "9b2d22d549bd4950ef23e0a79f3a2b7a1cae15408ff8a8fc55b96d7f3ffd91d5",
+  "unknown_publication_and_revision_fields_retained": true,
+  "verifier_source_sha256": "29a8ea624e952a267a64e529821763b374e08eb15d6da06f0352292d481b6b42"
+}

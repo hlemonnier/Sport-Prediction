@@ -1,0 +1,12 @@
+{
+  "failures": [
+    {
+      "error": "HTTPError('404 Client Error: Not Found for url: https://understat.com/getLeagueData/EPL/2022')",
+      "league": "EPL",
+      "season_start_year": 2022
+    }
+  ],
+  "finished_at_utc": "2026-09-08T01:19:02.973942+00:00",
+  "lock_sha256": "e7637b59f4e925e3893bcb06bb6e9e98c9f6f7b5029af3d1334c98e663148c9c",
+  "pages": []
+}

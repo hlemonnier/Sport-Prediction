@@ -1,0 +1,72 @@
+{
+  "canonical_inputs": {
+    "data/football/performance_20260907/E0_2022_2023.csv": "8442792d3b614c94ea3cf381bd2736805889cc1713169035368fff19c3d02380",
+    "data/football/performance_20260907/E0_2023_2024.csv": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3",
+    "data/football/performance_20260907/E0_2024_2025.csv": "d0c8ce4a96d886cf60cf101f570f4a3893844226f91c7bd769eb568c49edbfa4",
+    "data/football/performance_20260907/E0_2025_2026.csv": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
+    "data/football/performance_20260907/source_manifest.json": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b",
+    "data/football/performance_20260907/transfer_I1_2022_2023.csv": "9960837f37a97ae700f876c87b85a8b7a2f5a5d05a53077830c21b9db8880c45",
+    "data/football/performance_20260907/transfer_I1_2023_2024.csv": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723",
+    "data/football/performance_20260907/transfer_I1_2024_2025.csv": "79d87a5b18771e066ac7419b7876bfd9771a68ca117a9712375d6bc9685abee3",
+    "data/football/performance_20260907/transfer_I1_2025_2026.csv": "709ae279617d16af226312bcceac941e71241745ddaf950bdac2b83afad4fcbb",
+    "data/football/performance_20260907/transfer_SP1_2022_2023.csv": "53348112526b5165539df240be350083989bb258f30c0ff7cacbc0165ca7e4b3",
+    "data/football/performance_20260907/transfer_SP1_2023_2024.csv": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9",
+    "data/football/performance_20260907/transfer_SP1_2024_2025.csv": "c086e96d6a53f6e6c0fce4e35db0d1728c773b4362323da0161a34769e315a36",
+    "data/football/performance_20260907/transfer_SP1_2025_2026.csv": "4ca2e285f3ee0702f6bc55fcaa4f5a15cb3aef6220735a1d15398131e21d63f5",
+    "data/football/performance_20260907/transfer_source_manifest.json": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6"
+  },
+  "frozen_at_utc": "2026-09-08T01:16:13.102226+00:00",
+  "pages": [
+    {
+      "league": "EPL",
+      "season_start_year": 2022
+    },
+    {
+      "league": "EPL",
+      "season_start_year": 2023
+    },
+    {
+      "league": "EPL",
+      "season_start_year": 2024
+    },
+    {
+      "league": "EPL",
+      "season_start_year": 2025
+    },
+    {
+      "league": "La_liga",
+      "season_start_year": 2022
+    },
+    {
+      "league": "La_liga",
+      "season_start_year": 2023
+    },
+    {
+      "league": "La_liga",
+      "season_start_year": 2024
+    },
+    {
+      "league": "La_liga",
+      "season_start_year": 2025
+    },
+    {
+      "league": "Serie_A",
+      "season_start_year": 2022
+    },
+    {
+      "league": "Serie_A",
+      "season_start_year": 2023
+    },
+    {
+      "league": "Serie_A",
+      "season_start_year": 2024
+    },
+    {
+      "league": "Serie_A",
+      "season_start_year": 2025
+    }
+  ],
+  "purpose": "Completed-match xG feasibility and exact date/team/score joins only; no fitting or predictive scores",
+  "source_sha256": "3bdf178ee2af37e8b38aa01340e1b437d56d63921ed6d1c8f5cc1e74d590ad44",
+  "timing_limit": "Historical publication and revision times are unverified; acquisition time is not original availability"
+}

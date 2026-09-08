@@ -1,0 +1,435 @@
+{
+  "availability": "Unverified original publication/revisions. Later modelling must use past matches only, seven full days after next local midnight following validated completion, fourteen-day sensitivity; never original interrupted kickoff.",
+  "canonical_input_manifest": {
+    "data/football/performance_20260907/E0_2017_2018.csv": "4f3389365ef3f7ac966764ed8ba67cf3b79f5aebed18dd224099c4b2c98bc67b",
+    "data/football/performance_20260907/E0_2018_2019.csv": "7c096b3c2ecd54c6993d22eeea73450c2bde11e3457238b226b8f43c62dfc35e",
+    "data/football/performance_20260907/E0_2019_2020.csv": "100037618b94f94057400bb02bf6bac4ef74ddaa58cde4b38370839c39caee61",
+    "data/football/performance_20260907/E0_2020_2021.csv": "5afe63f69401457b8354eaacee24f9a3e520b3c3af6329564a9783e20d789c62",
+    "data/football/performance_20260907/E0_2021_2022.csv": "335afcbabeb2939fa10ab39ba3e8215072d0b577cb8d0705c1e44c56e934e703",
+    "data/football/performance_20260907/source_manifest.json": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b",
+    "data/football/performance_20260907/transfer_I1_2017_2018.csv": "664a8874d3a33923036120c4162e72f13887e0897b51effe27f89969c79c335d",
+    "data/football/performance_20260907/transfer_I1_2018_2019.csv": "2baea8a1fb31096960b5f5797d31dbb6b454eb41b00845e6b0b79feb82a0e3d0",
+    "data/football/performance_20260907/transfer_I1_2019_2020.csv": "f33233e0c428ebe4f7cb854c4a504e0b59c4e009ee8b679269486e26afdc575b",
+    "data/football/performance_20260907/transfer_I1_2020_2021.csv": "c09196fa18877547442807d375317299947abdd6d51a5e0df044cc6026e13f36",
+    "data/football/performance_20260907/transfer_I1_2021_2022.csv": "6a9555d5a90e652a883fd2862a52545c06e264016cd770347c067a6d7c993170",
+    "data/football/performance_20260907/transfer_SP1_2017_2018.csv": "5786719e06d1a5387cb90fac71597c890f496df19e8e1aa868bbc852f7e730fd",
+    "data/football/performance_20260907/transfer_SP1_2018_2019.csv": "9b8cece2c85e90e382b30dc4fc5046534f12c6d2b0efa74cd7d1d52e90a0c201",
+    "data/football/performance_20260907/transfer_SP1_2019_2020.csv": "a05d5d60eee0b1414c56d6d6817f860cdc620e206234069a1886c98a8cb318da",
+    "data/football/performance_20260907/transfer_SP1_2020_2021.csv": "b4137db923101f464e8403c4973acbfaf7d71724ce93b4336fad580e894d9591",
+    "data/football/performance_20260907/transfer_SP1_2021_2022.csv": "2d9e619700712823d15716c07715133f8c3b1a09046930dcfc785a38633dee2e",
+    "data/football/performance_20260907/transfer_source_manifest.json": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6"
+  },
+  "canonical_unmatched": [],
+  "date_policy": "Unchanged first12 policy: exact mapped home/away, calendar date and goals required. No implicit date repair.",
+  "first_twelve_immutable": {
+    "artifacts/research/boundary_20260908/football_xg_data/join_quality.json": "604c629eb9a5f95423b7c61cfc1d6430f78f400d656c6bfee4ef86534b9f1bde",
+    "artifacts/research/boundary_20260908/football_xg_data/public_ajax_manifest.json": "eb3a90a2daf5079fb92df0c66012854c6dc01ca0175a50fe9efb8b202b9c999b",
+    "artifacts/research/boundary_20260908/football_xg_data/verification.json": "560a258e0d303b5f9b4a310b9e090bfcebd93c02b619b5d795d135929a825123",
+    "data/football/boundary_20260908/understat/joined_matches.csv": "795d0a14dac04c0166ef9fc62ecfc9fa0c219b4945ee55b7af4577b27940051d",
+    "research/experiments/boundary_20260908/football_xg_data/timing_review.json": "9b2d22d549bd4950ef23e0a79f3a2b7a1cae15408ff8a8fc55b96d7f3ffd91d5"
+  },
+  "fitted_models": 0,
+  "join_discrepancies": [
+    {
+      "accepted_exact_join": false,
+      "away": "Leganes",
+      "away_goals": 0,
+      "away_xg": 0.236029,
+      "canonical_away_goals": 0,
+      "canonical_date": "2017-09-15",
+      "canonical_home_goals": 1,
+      "canonical_match_id": "SP1:2017:Eibar:Leganes",
+      "canonical_minus_provider_days": -1,
+      "home": "Eibar",
+      "home_goals": 1,
+      "home_xg": 0.383513,
+      "join_status": "fixture_score_match_date_mismatch_excluded",
+      "league": "SP1",
+      "provider_away": "Leganes",
+      "provider_away_id": "159",
+      "provider_date": "2017-09-16",
+      "provider_datetime_naive": "2017-09-16 06:00:00",
+      "provider_home": "Eibar",
+      "provider_home_id": "156",
+      "provider_last_revised_at": null,
+      "provider_original_published_at": null,
+      "season_start_year": 2017,
+      "understat_match_id": "7915"
+    },
+    {
+      "accepted_exact_join": false,
+      "away": "Ath Madrid",
+      "away_goals": 1,
+      "away_xg": 1.14703,
+      "canonical_away_goals": 1,
+      "canonical_date": "2017-10-22",
+      "canonical_home_goals": 0,
+      "canonical_match_id": "SP1:2017:Celta:Ath Madrid",
+      "canonical_minus_provider_days": -1,
+      "home": "Celta",
+      "home_goals": 0,
+      "home_xg": 0.895385,
+      "join_status": "fixture_score_match_date_mismatch_excluded",
+      "league": "SP1",
+      "provider_away": "Atletico Madrid",
+      "provider_away_id": "143",
+      "provider_date": "2017-10-23",
+      "provider_datetime_naive": "2017-10-23 01:15:00",
+      "provider_home": "Celta Vigo",
+      "provider_home_id": "152",
+      "provider_last_revised_at": null,
+      "provider_original_published_at": null,
+      "season_start_year": 2017,
+      "understat_match_id": "7967"
+    },
+    {
+      "accepted_exact_join": false,
+      "away": "Sevilla",
+      "away_goals": 1,
+      "away_xg": 0.354156,
+      "canonical_away_goals": 1,
+      "canonical_date": "2017-11-04",
+      "canonical_home_goals": 2,
+      "canonical_match_id": "SP1:2017:Barcelona:Sevilla",
+      "canonical_minus_provider_days": -1,
+      "home": "Barcelona",
+      "home_goals": 2,
+      "home_xg": 1.95413,
+      "join_status": "fixture_score_match_date_mismatch_excluded",
+      "league": "SP1",
+      "provider_away": "Sevilla",
+      "provider_away_id": "138",
+      "provider_date": "2017-11-05",
+      "provider_datetime_naive": "2017-11-05 03:45:00",
+      "provider_home": "Barcelona",
+      "provider_home_id": "148",
+      "provider_last_revised_at": null,
+      "provider_original_published_at": null,
+      "season_start_year": 2017,
+      "understat_match_id": "7987"
+    },
+    {
+      "accepted_exact_join": false,
+      "away": "Valencia",
+      "away_goals": 1,
+      "away_xg": 2.2262,
+      "canonical_away_goals": 1,
+      "canonical_date": "2022-05-14",
+      "canonical_home_goals": 1,
+      "canonical_match_id": "SP1:2021:Espanol:Valencia",
+      "canonical_minus_provider_days": -1,
+      "home": "Espanol",
+      "home_goals": 1,
+      "home_xg": 0.59873,
+      "join_status": "fixture_score_match_date_mismatch_excluded",
+      "league": "SP1",
+      "provider_away": "Valencia",
+      "provider_away_id": "146",
+      "provider_date": "2022-05-15",
+      "provider_datetime_naive": "2022-05-15 17:30:00",
+      "provider_home": "Espanyol",
+      "provider_home_id": "141",
+      "provider_last_revised_at": null,
+      "provider_original_published_at": null,
+      "season_start_year": 2021,
+      "understat_match_id": "17503"
+    },
+    {
+      "accepted_exact_join": false,
+      "away": "Atalanta",
+      "away_goals": 3,
+      "away_xg": 2.23028,
+      "canonical_away_goals": 3,
+      "canonical_date": "2018-01-27",
+      "canonical_home_goals": 0,
+      "canonical_match_id": "I1:2017:Sassuolo:Atalanta",
+      "canonical_minus_provider_days": -1,
+      "home": "Sassuolo",
+      "home_goals": 0,
+      "home_xg": 0.944538,
+      "join_status": "fixture_score_match_date_mismatch_excluded",
+      "league": "I1",
+      "provider_away": "Atalanta",
+      "provider_away_id": "107",
+      "provider_date": "2018-01-28",
+      "provider_datetime_naive": "2018-01-28 14:00:00",
+      "provider_home": "Sassuolo",
+      "provider_home_id": "104",
+      "provider_last_revised_at": null,
+      "provider_original_published_at": null,
+      "season_start_year": 2017,
+      "understat_match_id": "7709"
+    },
+    {
+      "accepted_exact_join": false,
+      "away": "Juventus",
+      "away_goals": 2,
+      "away_xg": 1.14852,
+      "canonical_away_goals": 2,
+      "canonical_date": "2018-01-27",
+      "canonical_home_goals": 0,
+      "canonical_match_id": "I1:2017:Chievo:Juventus",
+      "canonical_minus_provider_days": -1,
+      "home": "Chievo",
+      "home_goals": 0,
+      "home_xg": 0.0518957,
+      "join_status": "fixture_score_match_date_mismatch_excluded",
+      "league": "I1",
+      "provider_away": "Juventus",
+      "provider_away_id": "98",
+      "provider_date": "2018-01-28",
+      "provider_datetime_naive": "2018-01-28 14:00:00",
+      "provider_home": "Chievo",
+      "provider_home_id": "109",
+      "provider_last_revised_at": null,
+      "provider_original_published_at": null,
+      "season_start_year": 2017,
+      "understat_match_id": "7715"
+    }
+  ],
+  "parse_exclusions": [],
+  "parsed_output_manifest": {
+    "data/football/boundary_20260908/understat/extended_history/EPL_2017_joined_matches.csv": "fa7578d7cd3fda982568842230dd24722cae98c2380d0875c03e8d1fcfa859e5",
+    "data/football/boundary_20260908/understat/extended_history/EPL_2018_joined_matches.csv": "5581b4bdff17b6767e50a85ac4c5d4929226e886d0ec8ac438ec7686dab5c63d",
+    "data/football/boundary_20260908/understat/extended_history/EPL_2019_joined_matches.csv": "29df0eee814ca64e6ae38e99024ed22baa38edc0915a2f2f61c8e86e8ca109ab",
+    "data/football/boundary_20260908/understat/extended_history/EPL_2020_joined_matches.csv": "71121122e3cda11ac72580f3caf3e05b17ca4f387e96f000d189eac368f06554",
+    "data/football/boundary_20260908/understat/extended_history/EPL_2021_joined_matches.csv": "2ebe7459e996eba928430b680cb71d0f1e2fa5455e6853c7bffb51e040b69c51",
+    "data/football/boundary_20260908/understat/extended_history/La_liga_2017_joined_matches.csv": "aec755aca031437555c460be2d346e33463d12ec2fb29d4311b3fb387ed7f2fc",
+    "data/football/boundary_20260908/understat/extended_history/La_liga_2018_joined_matches.csv": "d9a937d26cb7ff15ca0dd6f827f262b8fc671ed08e34061201e154ece7d3da29",
+    "data/football/boundary_20260908/understat/extended_history/La_liga_2019_joined_matches.csv": "6d8eb9528c5cf8e5f2eee0f463326fc91da7865259af3c5a478d13679f7ba9ea",
+    "data/football/boundary_20260908/understat/extended_history/La_liga_2020_joined_matches.csv": "e454fc8165f76c9c84cbbc6bdf6b1037f1fc1e83e2f3f926b96903e0e0759f24",
+    "data/football/boundary_20260908/understat/extended_history/La_liga_2021_joined_matches.csv": "6a4c3cb9220457e1f15eb428c8374ee980012601b0506525f26eee3a8326d172",
+    "data/football/boundary_20260908/understat/extended_history/Serie_A_2017_joined_matches.csv": "2221dd90b160613de64ecaac202f7a0449375a829ac5612aa8135a2a60888379",
+    "data/football/boundary_20260908/understat/extended_history/Serie_A_2018_joined_matches.csv": "b39a56ef166499f680bba32cb06258c53d639e7970816cfeffdb67e5559e1db1",
+    "data/football/boundary_20260908/understat/extended_history/Serie_A_2019_joined_matches.csv": "0062bce057eb2a6cdb9323b12e90c1365ee1cd5cd01e3cf1c078dbd6942dd34d",
+    "data/football/boundary_20260908/understat/extended_history/Serie_A_2020_joined_matches.csv": "7b5b19e34161fddc9e7ec517af8ce3dd6a8c4f028942edea067493dae2443985",
+    "data/football/boundary_20260908/understat/extended_history/Serie_A_2021_joined_matches.csv": "ac254f0e09ff9b05bc5efc67df88451bed458a3e49d668178c8acf57c2c992eb",
+    "data/football/boundary_20260908/understat/extended_history/joined_matches.csv": "daf37e223277265d3cd1bcc3dd04243437cce4231759e9bd29e79668cec07ced"
+  },
+  "performance_scores_computed": false,
+  "same_schema_as_first_twelve": true,
+  "seasons": [
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "E0",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2017,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "E0",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2018,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "E0",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2019,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "E0",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2020,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "E0",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2021,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 377,
+      "league": "SP1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2017,
+      "status_counts": {
+        "exact_date_teams_score": 377,
+        "fixture_score_match_date_mismatch_excluded": 3
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "SP1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2018,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "SP1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2019,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "SP1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2020,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 379,
+      "league": "SP1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2021,
+      "status_counts": {
+        "exact_date_teams_score": 379,
+        "fixture_score_match_date_mismatch_excluded": 1
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 378,
+      "league": "I1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2017,
+      "status_counts": {
+        "exact_date_teams_score": 378,
+        "fixture_score_match_date_mismatch_excluded": 2
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "I1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2018,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "I1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2019,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "I1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2020,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    },
+    {
+      "canonical_rows": 380,
+      "canonical_unmatched": 0,
+      "exact_accepted": 380,
+      "league": "I1",
+      "listed": 380,
+      "parse_excluded": 0,
+      "parsed_completed": 380,
+      "season_start_year": 2021,
+      "status_counts": {
+        "exact_date_teams_score": 380
+      }
+    }
+  ],
+  "source_manifest": {
+    "artifacts/research/boundary_20260908/football_xg_data/extended_history/acquisition_lock.json": "aed19afee4935b260d81362af9db4c4c70c75dc76eb657632d43cbb3abd440e9",
+    "artifacts/research/boundary_20260908/football_xg_data/extended_history/acquisition_manifest.json": "f7f6bdde2f805ac8d1942c3324e794973e986beb168355f76c3a7a8dd7da33c2",
+    "research/experiments/boundary_20260908/football_xg_data/extended_history/acquire.py": "adb46f71a285579708b7791ed511928ca76152910c26047ad1f9764bf0ed21f2",
+    "research/experiments/boundary_20260908/football_xg_data/extended_history/quality.py": "761fcec211f62d3bd97903157622bca0c1ab7890aa1a926c5443d24c7c926ec6",
+    "research/experiments/boundary_20260908/football_xg_data/extended_history/team_aliases.json": "068963dda3fe581296160926270d899609fb2eeade05a396e4a6620d2085a159",
+    "research/experiments/boundary_20260908/football_xg_data/join_quality.py": "0e3f507a97196b3d1a3758e251923f4b73478377cc130158efbd5fc8f23fcd5f",
+    "research/experiments/boundary_20260908/football_xg_data/team_aliases.json": "643109d96af9263efaeaf5160b3588ac1b2022a5b59bcdc5e5214cdc10fca278",
+    "research/experiments/boundary_20260908/football_xg_data/verify.py": "29a8ea624e952a267a64e529821763b374e08eb15d6da06f0352292d481b6b42"
+  },
+  "status": "quality_audited_no_model_fitted",
+  "totals": {
+    "canonical_matches": 5700,
+    "canonical_unmatched": 0,
+    "exact_accepted": 5694,
+    "parse_excluded": 0,
+    "parsed_completed": 5700,
+    "provider_listed": 5700,
+    "seasons": 15,
+    "status_counts": {
+      "exact_date_teams_score": 5694,
+      "fixture_score_match_date_mismatch_excluded": 6
+    }
+  }
+}

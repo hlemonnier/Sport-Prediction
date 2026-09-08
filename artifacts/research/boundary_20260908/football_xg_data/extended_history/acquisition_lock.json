@@ -1,0 +1,32 @@
+{
+  "canonical_inputs": {
+    "data/football/performance_20260907/E0_2017_2018.csv": "4f3389365ef3f7ac966764ed8ba67cf3b79f5aebed18dd224099c4b2c98bc67b",
+    "data/football/performance_20260907/E0_2018_2019.csv": "7c096b3c2ecd54c6993d22eeea73450c2bde11e3457238b226b8f43c62dfc35e",
+    "data/football/performance_20260907/E0_2019_2020.csv": "100037618b94f94057400bb02bf6bac4ef74ddaa58cde4b38370839c39caee61",
+    "data/football/performance_20260907/E0_2020_2021.csv": "5afe63f69401457b8354eaacee24f9a3e520b3c3af6329564a9783e20d789c62",
+    "data/football/performance_20260907/E0_2021_2022.csv": "335afcbabeb2939fa10ab39ba3e8215072d0b577cb8d0705c1e44c56e934e703",
+    "data/football/performance_20260907/source_manifest.json": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b",
+    "data/football/performance_20260907/transfer_I1_2017_2018.csv": "664a8874d3a33923036120c4162e72f13887e0897b51effe27f89969c79c335d",
+    "data/football/performance_20260907/transfer_I1_2018_2019.csv": "2baea8a1fb31096960b5f5797d31dbb6b454eb41b00845e6b0b79feb82a0e3d0",
+    "data/football/performance_20260907/transfer_I1_2019_2020.csv": "f33233e0c428ebe4f7cb854c4a504e0b59c4e009ee8b679269486e26afdc575b",
+    "data/football/performance_20260907/transfer_I1_2020_2021.csv": "c09196fa18877547442807d375317299947abdd6d51a5e0df044cc6026e13f36",
+    "data/football/performance_20260907/transfer_I1_2021_2022.csv": "6a9555d5a90e652a883fd2862a52545c06e264016cd770347c067a6d7c993170",
+    "data/football/performance_20260907/transfer_SP1_2017_2018.csv": "5786719e06d1a5387cb90fac71597c890f496df19e8e1aa868bbc852f7e730fd",
+    "data/football/performance_20260907/transfer_SP1_2018_2019.csv": "9b8cece2c85e90e382b30dc4fc5046534f12c6d2b0efa74cd7d1d52e90a0c201",
+    "data/football/performance_20260907/transfer_SP1_2019_2020.csv": "a05d5d60eee0b1414c56d6d6817f860cdc620e206234069a1886c98a8cb318da",
+    "data/football/performance_20260907/transfer_SP1_2020_2021.csv": "b4137db923101f464e8403c4973acbfaf7d71724ce93b4336fad580e894d9591",
+    "data/football/performance_20260907/transfer_SP1_2021_2022.csv": "2d9e619700712823d15716c07715133f8c3b1a09046930dcfc785a38633dee2e",
+    "data/football/performance_20260907/transfer_source_manifest.json": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6"
+  },
+  "first_twelve_immutable": {
+    "artifacts/research/boundary_20260908/football_xg_data/join_quality.json": "604c629eb9a5f95423b7c61cfc1d6430f78f400d656c6bfee4ef86534b9f1bde",
+    "artifacts/research/boundary_20260908/football_xg_data/public_ajax_manifest.json": "eb3a90a2daf5079fb92df0c66012854c6dc01ca0175a50fe9efb8b202b9c999b",
+    "artifacts/research/boundary_20260908/football_xg_data/verification.json": "560a258e0d303b5f9b4a310b9e090bfcebd93c02b619b5d795d135929a825123",
+    "data/football/boundary_20260908/understat/joined_matches.csv": "795d0a14dac04c0166ef9fc62ecfc9fa0c219b4945ee55b7af4577b27940051d",
+    "research/experiments/boundary_20260908/football_xg_data/timing_review.json": "9b2d22d549bd4950ef23e0a79f3a2b7a1cae15408ff8a8fc55b96d7f3ffd91d5"
+  },
+  "frozen_at_utc": "2026-09-08T01:30:55.035702+00:00",
+  "request_contract": "Same unauthenticated first-party jQuery XMLHttpRequest routing header as verified first12",
+  "scope": "Exactly15additional public league-season lists,2017-2021; no2026season, no model fits or predictive scores",
+  "source_sha256": "adb46f71a285579708b7791ed511928ca76152910c26047ad1f9764bf0ed21f2"
+}

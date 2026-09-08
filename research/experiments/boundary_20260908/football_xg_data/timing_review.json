@@ -1,0 +1,71 @@
+{
+  "reviewed_on": "2026-09-08",
+  "scope": "Primary club/league/federation documentation for all five observed date discrepancies plus the known exact-date Fiorentina-Inter resumption; no model evaluation or source-date repair",
+  "findings": [
+    {
+      "canonical_match_id": "SP1:2023:Granada:Ath Bilbao",
+      "provider_date": "2023-12-12",
+      "canonical_date": "2023-12-11",
+      "classification": "Provider date is one day later than documented completion; original game interrupted December10 and resumed December11",
+      "primary_sources": [
+        "https://www.athletic-club.eus/noticias/2023/12/11/asi-se-reiniciara-el-granada-athletic-de-laliga/",
+        "https://www.athletic-club.eus/equipos/athletic-club/2023-24/liga/partidos/granada-cf-vs-athletic-club/1_8394/"
+      ],
+      "accepted_exact_join": false
+    },
+    {
+      "canonical_match_id": "SP1:2025:Valencia:Oviedo",
+      "provider_date": "2025-09-29",
+      "canonical_date": "2025-09-30",
+      "classification": "Provider retains initially scheduled day; official federation postponement moved play to September30",
+      "primary_sources": [
+        "https://rfef.es/sites/default/files/sanciones/Resolucion_JUCP.pdf",
+        "https://www.valenciacf.com/cronica-derrota-del-valencia-cf-davant-el-real-oviedo-1-2"
+      ],
+      "accepted_exact_join": false
+    },
+    {
+      "canonical_match_id": "I1:2023:Udinese:Roma",
+      "provider_date": "2024-04-14",
+      "canonical_date": "2024-04-25",
+      "classification": "Provider retains original interrupted match day; official club confirms April25 resumption at minute72 with score1-1",
+      "primary_sources": [
+        "https://www.asroma.com/en/news/71046/team-news-starting-xi-for-rearranged-udinese-match"
+      ],
+      "accepted_exact_join": false
+    },
+    {
+      "canonical_match_id": "I1:2023:Cagliari:Fiorentina",
+      "provider_date": "2024-05-24",
+      "canonical_date": "2024-05-23",
+      "classification": "Provider date one day later than official club schedule; cause of provider discrepancy unverified",
+      "primary_sources": [
+        "https://cagliaricalcio.com/en/news/cagliari-fiorentina-to-be-played-on-thursday-23-may-at-20-45/",
+        "https://cagliaricalcio.com/wp-content/uploads/2024/05/19-FIORENTINA-web.pdf"
+      ],
+      "accepted_exact_join": false
+    },
+    {
+      "canonical_match_id": "I1:2024:Genoa:Atalanta",
+      "provider_date": "2025-05-18",
+      "canonical_date": "2025-05-17",
+      "classification": "Provider date one day later than official Serie A match report; cause of provider discrepancy unverified",
+      "primary_sources": [
+        "https://img.legaseriea.it/vimages/682c93da/2024-25_A_UNICO_UNI_37_GENATA_V2.pdf"
+      ],
+      "accepted_exact_join": false
+    },
+    {
+      "canonical_match_id": "I1:2024:Fiorentina:Inter",
+      "provider_date": "2025-02-06",
+      "canonical_date": "2025-02-06",
+      "classification": "Exact date agreement represents completion after December1 interruption, not original kickoff; full-match xG must never be available from the original December date",
+      "primary_sources": [
+        "https://www.inter.it/en/news/rescheduled-continuation-fiorentina-inter-6-february-2025"
+      ],
+      "accepted_exact_join": true
+    }
+  ],
+  "publication_revision_limit": "These sources establish match timing, not the original publication time or revision history of Understat xG. A seven-day lag is a conservative proposed assumption, not proof of prospective availability.",
+  "corrections_applied": false
+}

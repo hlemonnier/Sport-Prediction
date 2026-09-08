@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "--import-mode=importlib",
+    "-p",
+    "no:cacheprovider",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2"
+  ],
+  "exit_code": 0,
+  "scope": "synthetic_only",
+  "source_files": {
+    "research/experiments/boundary_20260908/football_deployment_policy/independent.py": "49828d10ef537eb0ce14735c6714023051f10671f141c3c5ae60dcfc331ec681",
+    "research/experiments/boundary_20260908/football_deployment_policy/verify.py": "a9a3766b10517ce7c7ad74e4f7e3e26e3c1ffe12ea307ff5ea024184ac425ff9",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/README.md": "ee0a8f0f5a824c56bda69c6a539cd5b52b8c2e01c1141ba45f709f81b1343c6f",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/specification.json": "8eaaf893bae779d3320f944e6aabc7007fbf42dfdcfb9fa2199d5dc1903f66fc",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/test_verify.py": "f85746c6c2c7524a0052b81436e0b959d1ecec84e700ad3bef0fd80772828fcd",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/verify.py": "d070631ca4a008d746518b0795477836cc7f5055dee91326f2ccfc27b55f1647"
+  },
+  "stderr": "",
+  "stdout": ".....................                                                    [100%]\n21 passed in 0.14s\n"
+}

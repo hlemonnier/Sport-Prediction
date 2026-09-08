@@ -1,0 +1,334 @@
+{
+  "branch_basis": "Complete source-bound state serialization and synthetic caller parity before external target attachment.",
+  "candidate_state_branch": "reuse_all_36_saved_full_history_states",
+  "historical_new_fits_before_lock": 0,
+  "inputs": {
+    "apps/api/src/index.js": "734e6275f414a7ef314b2a77d46a8db6c793afd27c9d26970b050cb8be55bb99",
+    "artifacts/research/boundary_20260908/football/design_lock.json": "331d94c08acdf5b2e390756019203b4bbc7680ac27f765e5a2279004ff18f980",
+    "artifacts/research/boundary_20260908/football/evaluation.json": "1c1d037ffbdf00a693728254e630792315ee7db8d8f79cbdb3545d34df66a795",
+    "artifacts/research/boundary_20260908/football/features_evaluation_E0.json": "d499ff3b88e6c3c1e6d71de5f817cf115c28814a177d27474b932f61eed986e0",
+    "artifacts/research/boundary_20260908/football/features_evaluation_I1.json": "12513263b09f03e77d35edf0b8741fbb05789acd8f5c623d8e4a0457ef623090",
+    "artifacts/research/boundary_20260908/football/features_evaluation_SP1.json": "2ca1b7efa0b22d0d67a080b9f200a09555de1542b849e2706977d8496aba0437",
+    "artifacts/research/boundary_20260908/football/verification.json": "3a6328942dd4fe0708aa3539d2f89464106f11fc727abbbf7c15bfbbef89356a",
+    "data/football/performance_20260907/E0_2017_2018.csv": "4f3389365ef3f7ac966764ed8ba67cf3b79f5aebed18dd224099c4b2c98bc67b",
+    "data/football/performance_20260907/E0_2018_2019.csv": "7c096b3c2ecd54c6993d22eeea73450c2bde11e3457238b226b8f43c62dfc35e",
+    "data/football/performance_20260907/E0_2019_2020.csv": "100037618b94f94057400bb02bf6bac4ef74ddaa58cde4b38370839c39caee61",
+    "data/football/performance_20260907/E0_2020_2021.csv": "5afe63f69401457b8354eaacee24f9a3e520b3c3af6329564a9783e20d789c62",
+    "data/football/performance_20260907/E0_2021_2022.csv": "335afcbabeb2939fa10ab39ba3e8215072d0b577cb8d0705c1e44c56e934e703",
+    "data/football/performance_20260907/E0_2022_2023.csv": "8442792d3b614c94ea3cf381bd2736805889cc1713169035368fff19c3d02380",
+    "data/football/performance_20260907/E0_2023_2024.csv": "b2e057b0ed959f198b0f63d2391c01239f3608e6de5db68edab3f88e04d07ff3",
+    "data/football/performance_20260907/E0_2024_2025.csv": "d0c8ce4a96d886cf60cf101f570f4a3893844226f91c7bd769eb568c49edbfa4",
+    "data/football/performance_20260907/E0_2025_2026.csv": "3e3a8352f9ada6789c508d6ca184424421fed56a30400904a4a327c583407e62",
+    "data/football/performance_20260907/source_manifest.json": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b",
+    "data/football/performance_20260907/transfer_I1_2017_2018.csv": "664a8874d3a33923036120c4162e72f13887e0897b51effe27f89969c79c335d",
+    "data/football/performance_20260907/transfer_I1_2018_2019.csv": "2baea8a1fb31096960b5f5797d31dbb6b454eb41b00845e6b0b79feb82a0e3d0",
+    "data/football/performance_20260907/transfer_I1_2019_2020.csv": "f33233e0c428ebe4f7cb854c4a504e0b59c4e009ee8b679269486e26afdc575b",
+    "data/football/performance_20260907/transfer_I1_2020_2021.csv": "c09196fa18877547442807d375317299947abdd6d51a5e0df044cc6026e13f36",
+    "data/football/performance_20260907/transfer_I1_2021_2022.csv": "6a9555d5a90e652a883fd2862a52545c06e264016cd770347c067a6d7c993170",
+    "data/football/performance_20260907/transfer_I1_2022_2023.csv": "9960837f37a97ae700f876c87b85a8b7a2f5a5d05a53077830c21b9db8880c45",
+    "data/football/performance_20260907/transfer_I1_2023_2024.csv": "343a89db026fe4204ebeabd663cdfee8d02a45457828fc1cb63fa630ca170723",
+    "data/football/performance_20260907/transfer_I1_2024_2025.csv": "79d87a5b18771e066ac7419b7876bfd9771a68ca117a9712375d6bc9685abee3",
+    "data/football/performance_20260907/transfer_I1_2025_2026.csv": "709ae279617d16af226312bcceac941e71241745ddaf950bdac2b83afad4fcbb",
+    "data/football/performance_20260907/transfer_SP1_2017_2018.csv": "5786719e06d1a5387cb90fac71597c890f496df19e8e1aa868bbc852f7e730fd",
+    "data/football/performance_20260907/transfer_SP1_2018_2019.csv": "9b8cece2c85e90e382b30dc4fc5046534f12c6d2b0efa74cd7d1d52e90a0c201",
+    "data/football/performance_20260907/transfer_SP1_2019_2020.csv": "a05d5d60eee0b1414c56d6d6817f860cdc620e206234069a1886c98a8cb318da",
+    "data/football/performance_20260907/transfer_SP1_2020_2021.csv": "b4137db923101f464e8403c4973acbfaf7d71724ce93b4336fad580e894d9591",
+    "data/football/performance_20260907/transfer_SP1_2021_2022.csv": "2d9e619700712823d15716c07715133f8c3b1a09046930dcfc785a38633dee2e",
+    "data/football/performance_20260907/transfer_SP1_2022_2023.csv": "53348112526b5165539df240be350083989bb258f30c0ff7cacbc0165ca7e4b3",
+    "data/football/performance_20260907/transfer_SP1_2023_2024.csv": "5323f596c7ed318e4bce95557a369d809d98501fa499ea5f41350cd45cf3c7d9",
+    "data/football/performance_20260907/transfer_SP1_2024_2025.csv": "c086e96d6a53f6e6c0fce4e35db0d1728c773b4362323da0161a34769e315a36",
+    "data/football/performance_20260907/transfer_SP1_2025_2026.csv": "4ca2e285f3ee0702f6bc55fcaa4f5a15cb3aef6220735a1d15398131e21d63f5",
+    "data/football/performance_20260907/transfer_source_manifest.json": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6",
+    "packages/football/mrp/__init__.py": "022b1bec73bb3db9b88bbc871a1a9ecc5ec088181a1903ca6c6ae089abed3bb7",
+    "packages/football/mrp/config.py": "5c637788e5c44a0602521b777e9755c1d6cf5e743091b94c41de548cde4fee7b",
+    "packages/football/mrp/constants.py": "2c32ada9148c9fdf1a57844559ce77ba7530ed1d3cb5d58afa33335b7a4ea28b",
+    "packages/football/mrp/data.py": "c4742cd2744b46817e34d3e7767f175179ee4919d4a0d61ae5770b254138fb33",
+    "packages/football/mrp/joint.py": "cab06d09c0b827cf37de34b1ad89793a1f442aded2d72ca0d0eeb35027559b4b",
+    "packages/football/mrp/prediction.py": "c5085b32c8a33efa485cac87ce2c2b279a23cff97b0fe04fdeb10f383cb90918",
+    "packages/football/mrp/protocol.py": "61df7a8735bd523fece0e75a1558e41c94978b356515ad40b833d5a1c24c9906",
+    "packages/football/mrp/providers.py": "3b8cfb677df7b60a885f6faa2db49f5dc3756ec8655f2e38d548175c2512231a",
+    "packages/football/mrp/score_distribution.py": "904c747f36658050112600fa31ee2392f289fab96ec292a66a2552f9dcfb0bfa",
+    "packages/football/mrp/training.py": "08ed99dc3a47563379f7c6fb37561531b3d1d8cce7805363acb0c36131718443",
+    "packages/football/mrp/utils.py": "a721c82f2a773092bb174b05230e7c286a54b48a00984ae1af7c6c73fc84540e",
+    "packages/football/mrp/weather.py": "52a573771e9a2d07ecafa4b306f30d06b0fba2e4f43b40b43282af0da7c663b1",
+    "research/experiments/boundary_20260908/football/models.py": "fe66fd4d399efe8249d1887820884cd576541e06769d3289109e11d64d01c971",
+    "research/experiments/boundary_20260908/football/run.py": "d735042fb251e324012c625ab5e51ce265c3498bf53fc175eca43f45eca81083",
+    "research/experiments/boundary_20260908/football/specification.json": "74e11bdeeb2ec5951daef1ae97c55ea5ad852ab6133110c003edabf47fef58a8",
+    "research/experiments/boundary_20260908/football/test_math.py": "9f6a09d4562797bcdcd836bcac4ffa8e337bd430480e28029d835b3a7d24d474",
+    "research/experiments/boundary_20260908/football/verify.py": "ff58500eb50db8e7d121955dfc16e067d79fbd039c8c7a3e6d8553c9d6aeeed2",
+    "research/experiments/boundary_20260908/football_deployment_policy/README.md": "e002b4b039f42a674446514780e641dc28fd46ed084d12c4cfebba08f9d93dda",
+    "research/experiments/boundary_20260908/football_runtime_gap.md": "f163df31cfce7e535dfb5e59402ee8d609c05e55ae5c26964c6946584826e2f6",
+    "research/experiments/boundary_20260908/football_runtime_scoreline_diagnostic.md": "1f7b5f7d31990c386338367cb0d9400d19dd48db47829c05530ea8f78b9c22b8",
+    "research/experiments/performance_20260907/football/benchmark.py": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+    "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6",
+    "research/projects/football/Match Result Prediction/Python/mrp/__init__.py": "bb67482296b5bf67bebe7b423d3670171d7821212e80189dcfeefbf9ebd6e117",
+    "research/projects/football/Match Result Prediction/Python/run_experiment.py": "41048a0fd60054708c3ac562b126b8aac5e0cf18dbad2d47e7d98e8df3806766"
+  },
+  "locked_at_utc": "2026-09-08T10:30:58.458310+00:00",
+  "new_scores_before_lock": false,
+  "pre_fit_tests": {
+    "bytes": 5991,
+    "path": "artifacts/research/boundary_20260908/football_deployment_policy/pre_fit_tests.json",
+    "sha256": "a8e705056ca809e9ae13419fabeb7a04cd578096ac9d89b083910543a0d69492"
+  },
+  "reference_sources": {
+    "apps/api/src/index.js": {
+      "bytes": 60906,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/apps/api/src/index.js",
+      "sha256": "734e6275f414a7ef314b2a77d46a8db6c793afd27c9d26970b050cb8be55bb99"
+    },
+    "packages/football/mrp/__init__.py": {
+      "bytes": 215,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/__init__.py",
+      "sha256": "022b1bec73bb3db9b88bbc871a1a9ecc5ec088181a1903ca6c6ae089abed3bb7"
+    },
+    "packages/football/mrp/config.py": {
+      "bytes": 1129,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/config.py",
+      "sha256": "5c637788e5c44a0602521b777e9755c1d6cf5e743091b94c41de548cde4fee7b"
+    },
+    "packages/football/mrp/constants.py": {
+      "bytes": 2139,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/constants.py",
+      "sha256": "2c32ada9148c9fdf1a57844559ce77ba7530ed1d3cb5d58afa33335b7a4ea28b"
+    },
+    "packages/football/mrp/data.py": {
+      "bytes": 19593,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/data.py",
+      "sha256": "c4742cd2744b46817e34d3e7767f175179ee4919d4a0d61ae5770b254138fb33"
+    },
+    "packages/football/mrp/deployment.py": {
+      "bytes": 17085,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/deployment.py",
+      "sha256": "66e2b5609e27704b523283ecb636713375be9ab95b89c6749f22403dd3424057"
+    },
+    "packages/football/mrp/joint.py": {
+      "bytes": 13137,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/joint.py",
+      "sha256": "cab06d09c0b827cf37de34b1ad89793a1f442aded2d72ca0d0eeb35027559b4b"
+    },
+    "packages/football/mrp/prediction.py": {
+      "bytes": 17750,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/prediction.py",
+      "sha256": "c5085b32c8a33efa485cac87ce2c2b279a23cff97b0fe04fdeb10f383cb90918"
+    },
+    "packages/football/mrp/protocol.py": {
+      "bytes": 4048,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/protocol.py",
+      "sha256": "61df7a8735bd523fece0e75a1558e41c94978b356515ad40b833d5a1c24c9906"
+    },
+    "packages/football/mrp/providers.py": {
+      "bytes": 129,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/providers.py",
+      "sha256": "3b8cfb677df7b60a885f6faa2db49f5dc3756ec8655f2e38d548175c2512231a"
+    },
+    "packages/football/mrp/score_distribution.py": {
+      "bytes": 5375,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/score_distribution.py",
+      "sha256": "904c747f36658050112600fa31ee2392f289fab96ec292a66a2552f9dcfb0bfa"
+    },
+    "packages/football/mrp/training.py": {
+      "bytes": 30289,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/training.py",
+      "sha256": "08ed99dc3a47563379f7c6fb37561531b3d1d8cce7805363acb0c36131718443"
+    },
+    "packages/football/mrp/utils.py": {
+      "bytes": 6320,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/utils.py",
+      "sha256": "a721c82f2a773092bb174b05230e7c286a54b48a00984ae1af7c6c73fc84540e"
+    },
+    "packages/football/mrp/weather.py": {
+      "bytes": 4245,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/mrp/weather.py",
+      "sha256": "52a573771e9a2d07ecafa4b306f30d06b0fba2e4f43b40b43282af0da7c663b1"
+    },
+    "packages/football/tests/test_deployment.py": {
+      "bytes": 8911,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/packages/football/tests/test_deployment.py",
+      "sha256": "2916380d5bdd0cf0851d394d7f33f60dfb1b8585261f6cb5a8c09d7081295e7a"
+    },
+    "research/experiments/boundary_20260908/football/models.py": {
+      "bytes": 7104,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football/models.py",
+      "sha256": "fe66fd4d399efe8249d1887820884cd576541e06769d3289109e11d64d01c971"
+    },
+    "research/experiments/boundary_20260908/football/run.py": {
+      "bytes": 14170,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football/run.py",
+      "sha256": "d735042fb251e324012c625ab5e51ce265c3498bf53fc175eca43f45eca81083"
+    },
+    "research/experiments/boundary_20260908/football/specification.json": {
+      "bytes": 5101,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football/specification.json",
+      "sha256": "74e11bdeeb2ec5951daef1ae97c55ea5ad852ab6133110c003edabf47fef58a8"
+    },
+    "research/experiments/boundary_20260908/football/test_math.py": {
+      "bytes": 6944,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football/test_math.py",
+      "sha256": "9f6a09d4562797bcdcd836bcac4ffa8e337bd430480e28029d835b3a7d24d474"
+    },
+    "research/experiments/boundary_20260908/football/verify.py": {
+      "bytes": 8770,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football/verify.py",
+      "sha256": "ff58500eb50db8e7d121955dfc16e067d79fbd039c8c7a3e6d8553c9d6aeeed2"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/EXECUTION.md": {
+      "bytes": 2694,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/EXECUTION.md",
+      "sha256": "1cfa564d0802bb02dbfc63fd6ca81f9e3eabd6a6b74eafa675436c4548883b71"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/README.md": {
+      "bytes": 7481,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/README.md",
+      "sha256": "e002b4b039f42a674446514780e641dc28fd46ed084d12c4cfebba08f9d93dda"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/data.py": {
+      "bytes": 21354,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/data.py",
+      "sha256": "deb1b4e7bfec4679a2c3147551ff9ccb3be157872a906effee032deed583f2d0"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/independent.py": {
+      "bytes": 22750,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/independent.py",
+      "sha256": "49828d10ef537eb0ce14735c6714023051f10671f141c3c5ae60dcfc331ec681"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/run.py": {
+      "bytes": 14247,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/run.py",
+      "sha256": "271d95ad996e5a73b0ec04e44e5e9dea8a8f16dc7e05d06811db2e99bcb5653e"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/runtime.py": {
+      "bytes": 14434,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/runtime.py",
+      "sha256": "a116fbc304742ddc0124d77a9709e87c16c60f00fb5b6df40fb8b6720072f790"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/scoring.py": {
+      "bytes": 9783,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/scoring.py",
+      "sha256": "80c30a6feb8b1022a86a58268a40ea687c196024dc10dec6440fc70bff781b0d"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/specification.json": {
+      "bytes": 20047,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/specification.json",
+      "sha256": "be7a070f743004b8a58b521ac292cfc8a17b19f8821f1f5624651694a1b8d621"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/test_data.py": {
+      "bytes": 18376,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/test_data.py",
+      "sha256": "dddef59983993fb128e2ce7b69ee9b76854123a0461337588b9fa37fd7255f2c"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/test_independent.py": {
+      "bytes": 11559,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/test_independent.py",
+      "sha256": "76ee1f459f2d6760a0ed1a6e6e12e6192818c076c979c2a4f5bfb8a0777767f2"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/test_run.py": {
+      "bytes": 3791,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/test_run.py",
+      "sha256": "ae96711a2bd10212984229e4079f761db08c36ba08969d684f42cba40e18d1d1"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/test_runtime.py": {
+      "bytes": 8988,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/test_runtime.py",
+      "sha256": "396713a7afd51511776b3b4a511e9764c67bb8aad478d7c0ac74f9bcff548853"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/test_scoring.py": {
+      "bytes": 3500,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/test_scoring.py",
+      "sha256": "5d1e5876c879a3b9fdfb1f18b8fd69e2b85324650e086ef02b41af71a7ae30e0"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/test_verify.py": {
+      "bytes": 15895,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/test_verify.py",
+      "sha256": "7f3cfe0b48a29ae5fe80b8632839d5b0fc5ab2ae2e92b1e6222d051e61b433e7"
+    },
+    "research/experiments/boundary_20260908/football_deployment_policy/verify.py": {
+      "bytes": 36583,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/boundary_20260908/football_deployment_policy/verify.py",
+      "sha256": "a9a3766b10517ce7c7ad74e4f7e3e26e3c1ffe12ea307ff5ea024184ac425ff9"
+    },
+    "research/experiments/performance_20260907/football/benchmark.py": {
+      "bytes": 20056,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/performance_20260907/football/benchmark.py",
+      "sha256": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb"
+    },
+    "research/experiments/performance_20260907/football/transfer_run.py": {
+      "bytes": 10869,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/experiments/performance_20260907/football/transfer_run.py",
+      "sha256": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6"
+    },
+    "research/projects/football/Match Result Prediction/Python/mrp/__init__.py": {
+      "bytes": 938,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/projects/football/Match Result Prediction/Python/mrp/__init__.py",
+      "sha256": "bb67482296b5bf67bebe7b423d3670171d7821212e80189dcfeefbf9ebd6e117"
+    },
+    "research/projects/football/Match Result Prediction/Python/run_experiment.py": {
+      "bytes": 6678,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/reference_sources/research/projects/football/Match Result Prediction/Python/run_experiment.py",
+      "sha256": "41048a0fd60054708c3ac562b126b8aac5e0cf18dbad2d47e7d98e8df3806766"
+    }
+  },
+  "resources": {
+    "elapsed_seconds": 6.365814958990086,
+    "peak_rss_bytes": 342884352
+  },
+  "review": {
+    "bytes": 8636,
+    "path": "artifacts/research/boundary_20260908/football_deployment_policy_review.json",
+    "sha256": "7cc7b2a4bb7d3f1409cd0006bff86c7a8e2a020ae3bedcda66b99777c2a47c78"
+  },
+  "runtime": {
+    "executable_sha256": "ac60cfe0268614638d0ffa35f3b0284fc7b3a11482723793455e17eeb278509e",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.9.0",
+      "scipy": "1.18.1",
+      "threadpoolctl": "3.6.0"
+    },
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.14",
+    "threads": 1
+  },
+  "sources": {
+    "apps/api/src/index.js": "734e6275f414a7ef314b2a77d46a8db6c793afd27c9d26970b050cb8be55bb99",
+    "packages/football/mrp/__init__.py": "022b1bec73bb3db9b88bbc871a1a9ecc5ec088181a1903ca6c6ae089abed3bb7",
+    "packages/football/mrp/config.py": "5c637788e5c44a0602521b777e9755c1d6cf5e743091b94c41de548cde4fee7b",
+    "packages/football/mrp/constants.py": "2c32ada9148c9fdf1a57844559ce77ba7530ed1d3cb5d58afa33335b7a4ea28b",
+    "packages/football/mrp/data.py": "c4742cd2744b46817e34d3e7767f175179ee4919d4a0d61ae5770b254138fb33",
+    "packages/football/mrp/deployment.py": "66e2b5609e27704b523283ecb636713375be9ab95b89c6749f22403dd3424057",
+    "packages/football/mrp/joint.py": "cab06d09c0b827cf37de34b1ad89793a1f442aded2d72ca0d0eeb35027559b4b",
+    "packages/football/mrp/prediction.py": "c5085b32c8a33efa485cac87ce2c2b279a23cff97b0fe04fdeb10f383cb90918",
+    "packages/football/mrp/protocol.py": "61df7a8735bd523fece0e75a1558e41c94978b356515ad40b833d5a1c24c9906",
+    "packages/football/mrp/providers.py": "3b8cfb677df7b60a885f6faa2db49f5dc3756ec8655f2e38d548175c2512231a",
+    "packages/football/mrp/score_distribution.py": "904c747f36658050112600fa31ee2392f289fab96ec292a66a2552f9dcfb0bfa",
+    "packages/football/mrp/training.py": "08ed99dc3a47563379f7c6fb37561531b3d1d8cce7805363acb0c36131718443",
+    "packages/football/mrp/utils.py": "a721c82f2a773092bb174b05230e7c286a54b48a00984ae1af7c6c73fc84540e",
+    "packages/football/mrp/weather.py": "52a573771e9a2d07ecafa4b306f30d06b0fba2e4f43b40b43282af0da7c663b1",
+    "packages/football/tests/test_deployment.py": "2916380d5bdd0cf0851d394d7f33f60dfb1b8585261f6cb5a8c09d7081295e7a",
+    "research/experiments/boundary_20260908/football/models.py": "fe66fd4d399efe8249d1887820884cd576541e06769d3289109e11d64d01c971",
+    "research/experiments/boundary_20260908/football/run.py": "d735042fb251e324012c625ab5e51ce265c3498bf53fc175eca43f45eca81083",
+    "research/experiments/boundary_20260908/football/specification.json": "74e11bdeeb2ec5951daef1ae97c55ea5ad852ab6133110c003edabf47fef58a8",
+    "research/experiments/boundary_20260908/football/test_math.py": "9f6a09d4562797bcdcd836bcac4ffa8e337bd430480e28029d835b3a7d24d474",
+    "research/experiments/boundary_20260908/football/verify.py": "ff58500eb50db8e7d121955dfc16e067d79fbd039c8c7a3e6d8553c9d6aeeed2",
+    "research/experiments/boundary_20260908/football_deployment_policy/EXECUTION.md": "1cfa564d0802bb02dbfc63fd6ca81f9e3eabd6a6b74eafa675436c4548883b71",
+    "research/experiments/boundary_20260908/football_deployment_policy/README.md": "e002b4b039f42a674446514780e641dc28fd46ed084d12c4cfebba08f9d93dda",
+    "research/experiments/boundary_20260908/football_deployment_policy/data.py": "deb1b4e7bfec4679a2c3147551ff9ccb3be157872a906effee032deed583f2d0",
+    "research/experiments/boundary_20260908/football_deployment_policy/independent.py": "49828d10ef537eb0ce14735c6714023051f10671f141c3c5ae60dcfc331ec681",
+    "research/experiments/boundary_20260908/football_deployment_policy/run.py": "271d95ad996e5a73b0ec04e44e5e9dea8a8f16dc7e05d06811db2e99bcb5653e",
+    "research/experiments/boundary_20260908/football_deployment_policy/runtime.py": "a116fbc304742ddc0124d77a9709e87c16c60f00fb5b6df40fb8b6720072f790",
+    "research/experiments/boundary_20260908/football_deployment_policy/scoring.py": "80c30a6feb8b1022a86a58268a40ea687c196024dc10dec6440fc70bff781b0d",
+    "research/experiments/boundary_20260908/football_deployment_policy/specification.json": "be7a070f743004b8a58b521ac292cfc8a17b19f8821f1f5624651694a1b8d621",
+    "research/experiments/boundary_20260908/football_deployment_policy/test_data.py": "dddef59983993fb128e2ce7b69ee9b76854123a0461337588b9fa37fd7255f2c",
+    "research/experiments/boundary_20260908/football_deployment_policy/test_independent.py": "76ee1f459f2d6760a0ed1a6e6e12e6192818c076c979c2a4f5bfb8a0777767f2",
+    "research/experiments/boundary_20260908/football_deployment_policy/test_run.py": "ae96711a2bd10212984229e4079f761db08c36ba08969d684f42cba40e18d1d1",
+    "research/experiments/boundary_20260908/football_deployment_policy/test_runtime.py": "396713a7afd51511776b3b4a511e9764c67bb8aad478d7c0ac74f9bcff548853",
+    "research/experiments/boundary_20260908/football_deployment_policy/test_scoring.py": "5d1e5876c879a3b9fdfb1f18b8fd69e2b85324650e086ef02b41af71a7ae30e0",
+    "research/experiments/boundary_20260908/football_deployment_policy/test_verify.py": "7f3cfe0b48a29ae5fe80b8632839d5b0fc5ab2ae2e92b1e6222d051e61b433e7",
+    "research/experiments/boundary_20260908/football_deployment_policy/verify.py": "a9a3766b10517ce7c7ad74e4f7e3e26e3c1ffe12ea307ff5ea024184ac425ff9",
+    "research/experiments/performance_20260907/football/benchmark.py": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+    "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6",
+    "research/projects/football/Match Result Prediction/Python/mrp/__init__.py": "bb67482296b5bf67bebe7b423d3670171d7821212e80189dcfeefbf9ebd6e117",
+    "research/projects/football/Match Result Prediction/Python/run_experiment.py": "41048a0fd60054708c3ac562b126b8aac5e0cf18dbad2d47e7d98e8df3806766"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "locked_at_utc": "2026-09-08T10:40:07.993905+00:00",
+  "new_fits": 0,
+  "new_forecasts": 0,
+  "pre_fit_tests": {
+    "bytes": 1429,
+    "path": "artifacts/research/boundary_20260908/football_deployment_replay_v2/pre_fit_tests.json",
+    "sha256": "b8412288f9eae4642592068d44477284bb25a7d48001df01f287a206258b9064"
+  },
+  "review": {
+    "approved_for_replay": true,
+    "findings": "Only three independently derived provenance fields added; one exact pinned historical bookkeeping failure allowed. Original arithmetic, data, matrices and gates remain unchanged. All other failures remain fatal.",
+    "reviewer": "root independent source review",
+    "source_files": {
+      "research/experiments/boundary_20260908/football_deployment_policy/independent.py": "49828d10ef537eb0ce14735c6714023051f10671f141c3c5ae60dcfc331ec681",
+      "research/experiments/boundary_20260908/football_deployment_policy/verify.py": "a9a3766b10517ce7c7ad74e4f7e3e26e3c1ffe12ea307ff5ea024184ac425ff9",
+      "research/experiments/boundary_20260908/football_deployment_replay_v2/README.md": "ee0a8f0f5a824c56bda69c6a539cd5b52b8c2e01c1141ba45f709f81b1343c6f",
+      "research/experiments/boundary_20260908/football_deployment_replay_v2/specification.json": "8eaaf893bae779d3320f944e6aabc7007fbf42dfdcfb9fa2199d5dc1903f66fc",
+      "research/experiments/boundary_20260908/football_deployment_replay_v2/test_verify.py": "f85746c6c2c7524a0052b81436e0b959d1ecec84e700ad3bef0fd80772828fcd",
+      "research/experiments/boundary_20260908/football_deployment_replay_v2/verify.py": "d070631ca4a008d746518b0795477836cc7f5055dee91326f2ccfc27b55f1647"
+    }
+  },
+  "sources": {
+    "research/experiments/boundary_20260908/football_deployment_policy/independent.py": "49828d10ef537eb0ce14735c6714023051f10671f141c3c5ae60dcfc331ec681",
+    "research/experiments/boundary_20260908/football_deployment_policy/verify.py": "a9a3766b10517ce7c7ad74e4f7e3e26e3c1ffe12ea307ff5ea024184ac425ff9",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/README.md": "ee0a8f0f5a824c56bda69c6a539cd5b52b8c2e01c1141ba45f709f81b1343c6f",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/specification.json": "8eaaf893bae779d3320f944e6aabc7007fbf42dfdcfb9fa2199d5dc1903f66fc",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/test_verify.py": "f85746c6c2c7524a0052b81436e0b959d1ecec84e700ad3bef0fd80772828fcd",
+    "research/experiments/boundary_20260908/football_deployment_replay_v2/verify.py": "d070631ca4a008d746518b0795477836cc7f5055dee91326f2ccfc27b55f1647"
+  }
+}

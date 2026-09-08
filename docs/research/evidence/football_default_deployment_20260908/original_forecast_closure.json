@@ -1,0 +1,205 @@
+{
+  "blocks": [
+    {
+      "bytes": 3056473,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/00.json",
+      "sha256": "30f48f491a8aefd3e89b608b5fb47ad6970e9b3cb187b5b316af9ad131dbe690"
+    },
+    {
+      "bytes": 2780995,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/01.json",
+      "sha256": "2af5394c5650c0ed3a1c93d32854d0f715af0f0201f1940295cb722a2c41fc68"
+    },
+    {
+      "bytes": 2648162,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/02.json",
+      "sha256": "0fd6f5ff01f7308c0176f0c53877fec18531263dfab82d95186b3504568956fd"
+    },
+    {
+      "bytes": 5400447,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/03.json",
+      "sha256": "09b28ff0ad321fc535feca4b38aeeb470e98e76478f855d63268cb485fb03ef7"
+    },
+    {
+      "bytes": 5337999,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/04.json",
+      "sha256": "60d57b2811bb63b9a3da73bdbee56e26325ec0c6860e0c021b994c7b65c18373"
+    },
+    {
+      "bytes": 5069592,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/05.json",
+      "sha256": "9c40a2f67d172f0b23171b0bba372a8565a1af94ca75c555a4a186c0bf497b3d"
+    },
+    {
+      "bytes": 5189070,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/06.json",
+      "sha256": "8aabf953433dd6bf248d4e9a76a892d7c88fa5c6aa18ff519df1008384718344"
+    },
+    {
+      "bytes": 5647193,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/07.json",
+      "sha256": "7518c47f8c1e51eabe582d7381497140aba2810f6400e2aaade95d6b182dd807"
+    },
+    {
+      "bytes": 7232965,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/08.json",
+      "sha256": "2cb5b7d9f94587e6abf10268dc1af0207a3149fd8decba7a2965ed8de1061b2d"
+    },
+    {
+      "bytes": 6299208,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/09.json",
+      "sha256": "88a7481e395d4010f1f2f7d0a244b6223e3760ddd72e7fc8839191fc3aa17646"
+    },
+    {
+      "bytes": 5198161,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/10.json",
+      "sha256": "b3699ed04c9f4476c08f94635c33e0858099c83d9b05dcc24a9a4e7273d370e5"
+    },
+    {
+      "bytes": 5794901,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/11.json",
+      "sha256": "43128a900ee5e5c33ecb488f9fbaaf4ff47b9530436abde3a238faa96d7d6ade"
+    },
+    {
+      "bytes": 5637780,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/12.json",
+      "sha256": "82ec974c08ac90dd0ca1ff72b6ed358fa0c7bb01be112801c63d62f5437cf8c8"
+    },
+    {
+      "bytes": 5673516,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/13.json",
+      "sha256": "b556ac77ad4b4ecf1d7b96d926a01b132453b51006a1335bd681bce2e36d9a0e"
+    },
+    {
+      "bytes": 5537619,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/14.json",
+      "sha256": "4bc253716da0f7e3b3654b8f431e89455050237c0306639f5c49f2b6c0ce6dda"
+    },
+    {
+      "bytes": 3720369,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/15.json",
+      "sha256": "63a4c78c9f50b55260c55789b04a69bd83bf6f500faf1ee27851b6e8c8044d03"
+    },
+    {
+      "bytes": 3337744,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/16.json",
+      "sha256": "2b5bd52e420f8728d14bd5f7fe5f3f788f02029a00cce169016e69bad3c41d26"
+    },
+    {
+      "bytes": 3962092,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/17.json",
+      "sha256": "923eb76b85379bf977ba014ba68483090707d9f18c68208748208e4ce51d322b"
+    },
+    {
+      "bytes": 2915849,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/18.json",
+      "sha256": "d4184878b491904033aa07c268c84b5138ea175fda9f911161086286527a0e50"
+    },
+    {
+      "bytes": 2992064,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/19.json",
+      "sha256": "181f2c910688c05f9a322d8a995cb4059cf8160261aed6faf9b679e056b1cda9"
+    },
+    {
+      "bytes": 2260727,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/20.json",
+      "sha256": "6091f79e9cbd1c22ebc89f7c35ed6bd2fdd9b0509b6e2587f4951337a86e4f38"
+    },
+    {
+      "bytes": 5153639,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/21.json",
+      "sha256": "1180eca05e3c094baac3454ff4a15ad7f035489ae28098ea77b950980c26a2ac"
+    },
+    {
+      "bytes": 4993789,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/22.json",
+      "sha256": "b51d8e71c6655030c8f5d80a8533ecc2cf91aa0c52057c56f4e1269b5a49525a"
+    },
+    {
+      "bytes": 4836485,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/23.json",
+      "sha256": "283b367b8b7c8ff1a46efbcfb3884d4a23a7b91daf88034a1b6c72681afb4d9d"
+    },
+    {
+      "bytes": 5456535,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/24.json",
+      "sha256": "2dd189aaa039087293ef6d5462ed3348cc29650feda4c93b8f3059d796183411"
+    },
+    {
+      "bytes": 5167631,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/25.json",
+      "sha256": "9a77715a0fcf2c988ec07212b7fa444a44c3fef0b572e843e81690440c924495"
+    },
+    {
+      "bytes": 7215947,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/26.json",
+      "sha256": "3de779838188d5c975d2277a7576a015c6ea0dfbfd3e7eb838e4d413397ddefa"
+    },
+    {
+      "bytes": 6954936,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/27.json",
+      "sha256": "7b7677b09fdfd8a54e6d239512a3cf8b9964a9e1f5dd08841ad80433edd79824"
+    },
+    {
+      "bytes": 6756643,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/28.json",
+      "sha256": "1b4144835b8dbbe1cbce261be4317ca5821c334efd83fb9738d8f269590086e5"
+    },
+    {
+      "bytes": 5986653,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/29.json",
+      "sha256": "83cb07e3215f12dcca579fd764dd1dc21a400633639023f6e2688637aa476f72"
+    },
+    {
+      "bytes": 5601030,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/30.json",
+      "sha256": "fea04ad859b7cd53c7065d704163276f598b6bbccf51f8ffb8c0fe914f618e56"
+    },
+    {
+      "bytes": 5578578,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/31.json",
+      "sha256": "4c71d7771b79e2791d907565077e6b45bd2b8590d995bfc44768f1184717ccd6"
+    },
+    {
+      "bytes": 5143269,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/32.json",
+      "sha256": "555ef802509eb804f84d64a68bac320c939fc5ed9b16453815f9bb1115184595"
+    },
+    {
+      "bytes": 3490941,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/33.json",
+      "sha256": "aff5d4f2ba3d3ed1380ac19c0b185a5bc1b87dec84bb9558e4e5ff377d106bbd"
+    },
+    {
+      "bytes": 4031045,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/34.json",
+      "sha256": "f9a14621e0c6ca286961be8cf097085f2a8d843c412954557538c9e3ab93ee63"
+    },
+    {
+      "bytes": 3739508,
+      "path": "artifacts/research/boundary_20260908/football_deployment_policy/blocks/35.json",
+      "sha256": "aa49403c92139c88fb906333dfb1cd6356bfdc94c7355cf8402b3c79ed46ef2f"
+    }
+  ],
+  "closed_at_utc": "2026-09-08T10:32:03.026664+00:00",
+  "data_lock_sha256": "eb9f414572ed1d707708d2bcbecd7b7a7840cc6fb0b66f92a5bfc7679f33e915",
+  "design_lock_sha256": "c1124e01cf338d44d7260436423d9f520a6cbd717157911d839b31c52923c1c5",
+  "fit_counts": {
+    "candidate_learned_calibration_fits": 0,
+    "candidate_parity_goal_fits": 0,
+    "full_history_goal_fits": 0,
+    "prefix_goal_fits": 36,
+    "reference_calibration_policy_calls": 36
+  },
+  "forecasts": {
+    "bytes": 64304141,
+    "path": "artifacts/research/boundary_20260908/football_deployment_policy/forecasts.json",
+    "sha256": "f2bb51b36edc77fa3736156e2510e684c4da453b3b01f1987c9edbd8f42464f8"
+  },
+  "labels_attached": false,
+  "resources": {
+    "elapsed_seconds": 24.4470544999931,
+    "peak_rss_bytes": 530726912
+  },
+  "rows": 2280
+}

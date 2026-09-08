@@ -1,0 +1,4 @@
+{
+  "error": "Goal fit returned different fitted match identities.",
+  "exception_type": "RuntimeError"
+}

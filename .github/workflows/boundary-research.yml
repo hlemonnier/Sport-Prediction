@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   contracts:
-    name: xG and raw-sector mathematical contracts
+    name: Forecast mathematics and causal data contracts
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -50,3 +50,5 @@ jobs:
           research/experiments/boundary_20260908/football_xg/execution/test_run.py
           research/experiments/boundary_20260908/sector_pilot
           research/experiments/boundary_20260908/sector_forecast
+          research/experiments/boundary_20260908/telemetry_pilot
+          research/experiments/boundary_20260908/football_information

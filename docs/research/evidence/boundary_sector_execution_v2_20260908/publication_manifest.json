@@ -1,0 +1,122 @@
+{
+  "published_at_utc": "2026-09-08T03:54:51.790187+00:00",
+  "status": "selection_complete_independently_verified_advancement_failed",
+  "selected": "sector_hgb_l15",
+  "selection_passed": false,
+  "new_substantial_gain_established": false,
+  "sector_production_activation": false,
+  "transfer_acquired_or_evaluated": false,
+  "design_lock_sha256": "c716d217b15bd797e219b5f0a10503cb9bce0811b5438545847bcd58c03e993e",
+  "data_lock_sha256": "256f866083846b955e8bc66771006797622d8fc0af67fba6e3ca868273062fb5",
+  "selection_sha256": "dfe4f6f4d15fc47750a49e8bf3d55eadb3c5f66d6feaa14a1a7ead172bab4adc",
+  "verification_sha256": "3d3e1d06701409c6f32d11676cc91cab98f3d3d1ff6c5fa463fae1591c157702",
+  "copies": [
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/design_lock.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/design_lock.json",
+      "sha256": "c716d217b15bd797e219b5f0a10503cb9bce0811b5438545847bcd58c03e993e",
+      "bytes": 37024
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/pre_fit_tests.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/pre_fit_tests.json",
+      "sha256": "be93037cde7b66c01a412f20ba3baca0c14bd2ed114f44cd63c6f894fe2a8a1a",
+      "bytes": 4381
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/data_lock.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/data_lock.json",
+      "sha256": "256f866083846b955e8bc66771006797622d8fc0af67fba6e3ca868273062fb5",
+      "bytes": 408233
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/selection_attempt.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/selection_attempt.json",
+      "sha256": "9afa754f766fe66a43b3806c591a8729f42454ad076775d7799fb9a97b6bb94c",
+      "bytes": 343
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/selection_issuance_lock.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/selection_issuance_lock.json",
+      "sha256": "0f7548da9a2baa4709de6f70a4420ea0f12ddb259f599cb529638efb78986752",
+      "bytes": 858
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/selection.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/selection.json",
+      "sha256": "dfe4f6f4d15fc47750a49e8bf3d55eadb3c5f66d6feaa14a1a7ead172bab4adc",
+      "bytes": 80632
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/selection_lock.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/selection_lock.json",
+      "sha256": "3ef339177700a0500cb09d02ce6e543664d6a00cf4ab8af1ea9bd84e9a2110e9",
+      "bytes": 295
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/verification.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/verification.json",
+      "sha256": "3d3e1d06701409c6f32d11676cc91cab98f3d3d1ff6c5fa463fae1591c157702",
+      "bytes": 150794
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/assembly_comparison.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/assembly_comparison.json",
+      "sha256": "33f4c62fe2b12d541bb7cad2300722c3c9e0b5942e5ae1d2c0341563fdccd2db",
+      "bytes": 20315
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/assembly_comparison_attempt1.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/execution_v2/assembly_comparison_attempt1.json",
+      "sha256": "85dcd6b79d6fd11943d97f06c15055da2bfadbf546471c09d32e9aebda361992",
+      "bytes": 854
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/publication_preflight/global_integration_verification.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/publication_preflight/global_integration_verification.json",
+      "sha256": "d1d6144f53fc9f79d142dc70dfffa9a39f80bcf145f87c52c2f46a93848c298d",
+      "bytes": 6180
+    },
+    {
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/publication_preflight/research_ci_verification.json",
+      "published_path": "docs/research/evidence/boundary_sector_execution_v2_20260908/publication_preflight/research_ci_verification.json",
+      "sha256": "1287ba4ea91ccc65aee28062611e3a76a16c115c5087e171af83ad6aea7b97aa",
+      "bytes": 5015
+    }
+  ],
+  "source_files": {
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/README.md": "fa94a7fe6a7ad9fa94605e283d9d8837cd4c7dc0431c30bd0afe8eaddaf4ff89",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/data.py": "d65014adf1e2f3c7c465de33435fc24aced3d2790882e656e39e887712103ef1",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/data_contract.json": "36716ea96c5d8eb9a51a569af5fd509390ff7c9ae161600e334eb298a9dc0457",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/data_contract_before_feature_nan_amendment.json": "2e33b818a064b6bc2b95ddf00e6603aad4b861401a0d8e2aec12f89e6b8122c1",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/data_contract_initial_draft.json": "31e010713b2d074cddefab27a67b6c9636661d43beb508d4a69fee1065b87190",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/evaluate.py": "6be893a852495df15b4d3222d8e1ffcd27d73c171f8d95c4e4cf1b15ba9821e5",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/feature_contract.json": "b3398db61b856cf2f564c43ab6ebc7713ffc4c870b0b5b6c4f49801c92b9e53f",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/features.py": "4052f16e67e842286171ffe2df1124babf8bfca9cc442d253d8bd1e144593cef",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/mathematical_review.md": "5c32d71c7efaba27d4d36afa38f6f920ef42198efbbfc2a8b46324f2d5723014",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/run.py": "e76c40ad96b556159faeb7aedaa85b90e2ad8c3fefaab1d8c5ecfc5d53146aa7",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/specification.json": "5eb7f4829567e264c8f5b22ea5c65cd731544b25650f7ed4bce038c285ee9180",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/test_data.py": "ac3baf4a2de9cdb2f0a90ed1564064542e14d3ad38eaf6363ba73198c2f17a5d",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/test_evaluate.py": "a5f6e998977bbe98c3fbb115f1b2296f858dac2b8f91124b61f811886cf06a5f",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/test_features.py": "6199b63e51ecfcbb53614d81300d212dc13236fc44fafd3b0a21cc212c63757e",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/test_run.py": "16cd9bc7989637f77c89cfc5063deb969fdefb37efc9f091d8ebb6f3be3f199c",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/verification/compare_assembly.py": "89ab92d252e5ea92309a0a9a881807d5d3310f82d9209d85f717d8af133c1d08",
+    "research/experiments/boundary_20260908/sector_forecast/execution_v2/verification/compare_assembly_attempt1.py": "9c41d27619136e74fc51e762bcf3df54c288c6969778712a2bb78ffa045214b8",
+    "research/experiments/boundary_20260908/sector_forecast/execution/verification/verify.py": "5916defed6dde8306b2a953eb9e2f56a782c4ae087ce33411f5396aeaa8a3fdc"
+  },
+  "report": {
+    "path": "docs/research/boundary_sector_execution_v2_20260908.md",
+    "sha256": "4aaa9e9092e007e38f5a348268080680eb0ef39be23f5c99bdb065c41ac6bb65"
+  },
+  "fresh_tests": {
+    "production_integration_passed": 55,
+    "complete_research_ci_passed": 454,
+    "v2_pre_fit_passed": 231,
+    "counts_overlap_do_not_sum": true
+  },
+  "production_model": {
+    "id": "frontier_live_hgb_l15_i150_20260907",
+    "sha256": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36"
+  },
+  "suggested_commit": "docs(research): publish verified sector selection and global integration status"
+}

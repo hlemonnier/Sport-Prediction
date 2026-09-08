@@ -1,0 +1,18 @@
+{
+  "closed_at_utc": "2026-09-08T03:50:40.622882+00:00",
+  "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/selection_issued.jsonl",
+  "sha256": "762b7d928e275d9bfa9b2e8349b0897f5060610cbf85c4a0509882e6970c2947",
+  "issued_rows": 43974,
+  "models": {
+    "sector_hgb_l7": {
+      "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/models/sector_hgb_l7.pkl",
+      "sha256": "d0a41cbbfd0ca14bb808011f638c2642db072a443333bba553c40ca73c218987"
+    },
+    "sector_hgb_l15": {
+      "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/models/sector_hgb_l15.pkl",
+      "sha256": "08a226ace9c7437c73881c5c4206d6dec29389b07833395229c3679f02710734"
+    }
+  },
+  "training_labeled_sha256": "399e87c93d5658bd505a1c6dff75946a524679b94445eb1e8f46680da2eb35d7",
+  "selection_targets_read": false
+}

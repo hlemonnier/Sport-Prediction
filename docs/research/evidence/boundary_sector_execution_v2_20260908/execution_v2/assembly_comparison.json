@@ -1,0 +1,471 @@
+{
+  "all_read_bindings_unchanged_after": true,
+  "comparison_rule": "Exact recursive values and types, with explicit NaN equal to explicit NaN; issuance order must also agree.",
+  "created_at_utc": "2026-09-08T03:50:43.287113+00:00",
+  "events": [
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202201.json",
+        "metadata_sha256": "3cf21f6eaf990cb5ee73d3e9fc13c40dee2b1f3df3a4d52e68187f0f9e20ff3f",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202201.jsonl",
+        "sha256": "ce8b09f0ee6882ce6954e0a623c6a50161f01fa13625001e7defabee42a383c0"
+      },
+      "amended_rows": 2224,
+      "amended_status_counts": {
+        "insufficient_history": 120,
+        "issued": 2075,
+        "pilot_excluded": 29
+      },
+      "event_key": 202201,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 1034,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202201.json",
+        "metadata_sha256": "7aee76495a155bbd4835f9756d8550af8bad79ccbce60654205b8771cc73bfea",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202201.jsonl",
+        "sha256": "95341fb6cc6d208a7e9983a1528f07a736669cd8d583a1ccd201ccd99ee14e8a"
+      },
+      "original_rows": 2224,
+      "original_status_counts": {
+        "insufficient_history": 120,
+        "issued": 2075,
+        "pilot_excluded": 29
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202202.json",
+        "metadata_sha256": "8bf147d9e826b455901fdf6ee89fd5611a9d2e854b839f29043a12bcaa7946b3",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202202.jsonl",
+        "sha256": "217aa28ff1665dd74069cd8aef55ab139386db3a8dd2fe97bc73262754c06d0a"
+      },
+      "amended_rows": 1620,
+      "amended_status_counts": {
+        "insufficient_history": 108,
+        "issued": 1481,
+        "pilot_excluded": 31
+      },
+      "event_key": 202202,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 739,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202202.json",
+        "metadata_sha256": "96c316dbdc82c3de1ededdb46b9609c645e0566e9b102ce2398a889ce06c4e01",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202202.jsonl",
+        "sha256": "28e0a0632cd476015333edd0c353e105d2f794af065eb27edbfa74effc4838d0"
+      },
+      "original_rows": 1620,
+      "original_status_counts": {
+        "insufficient_history": 108,
+        "issued": 1481,
+        "pilot_excluded": 31
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202203.json",
+        "metadata_sha256": "d399d6cc7d9bc8993fc771507b7efa00545863813e63826dea13b9bcaa384f53",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202203.jsonl",
+        "sha256": "ef8151293e9c752c68450a6c78d2e794d8a16d2e152f2f8221629f2315ac0f04"
+      },
+      "amended_rows": 2064,
+      "amended_status_counts": {
+        "insufficient_history": 270,
+        "issued": 1756,
+        "pilot_excluded": 38
+      },
+      "event_key": 202203,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 877,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202203.json",
+        "metadata_sha256": "1841acb420a6c614613d14df82e72f07d4aaf9059e7de81a914369b282b83785",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202203.jsonl",
+        "sha256": "736704839de5f0c0b415416043dd99fa033c99510747e6bd58a6b28a695b9f4e"
+      },
+      "original_rows": 2064,
+      "original_status_counts": {
+        "insufficient_history": 270,
+        "issued": 1756,
+        "pilot_excluded": 38
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202204.json",
+        "metadata_sha256": "02714d6f648037a83a5d8b258cb411f484d6e913cb9b52557e61213420d3d40b",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202204.jsonl",
+        "sha256": "2c7e7bbe2ad84c178724ca42c264d3275c8386f6b6e97baae9a38653da859555"
+      },
+      "amended_rows": 2242,
+      "amended_status_counts": {
+        "insufficient_history": 226,
+        "issued": 1982,
+        "pilot_excluded": 34
+      },
+      "event_key": 202204,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 989,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202204.json",
+        "metadata_sha256": "358b6c4fb6b692428afad6885b9f945bb523f70b2e5bb8f2788918b98de5b781",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202204.jsonl",
+        "sha256": "de4ca2f9382f3942bf59202e34c76c9b2d49a1284f8e5f530a3eba6bf55af197"
+      },
+      "original_rows": 2242,
+      "original_status_counts": {
+        "insufficient_history": 226,
+        "issued": 1982,
+        "pilot_excluded": 34
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202205.json",
+        "metadata_sha256": "37a15a7e76ee614c5c341b5cb5ad50d4bb82375b86079620cd712dbcdd0b823f",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202205.jsonl",
+        "sha256": "6f692aa2c8b53594b8d3286bb487c6dae0779a58a9e0ad4719782c9b66152830"
+      },
+      "amended_rows": 2085,
+      "amended_status_counts": {
+        "insufficient_history": 120,
+        "issued": 1928,
+        "pilot_excluded": 37
+      },
+      "event_key": 202205,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 960,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202205.json",
+        "metadata_sha256": "9d814749cd654de8023b7f81e97ff11ef360fa4935d689844608229604ac2f00",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202205.jsonl",
+        "sha256": "65e5575a19e715065cabc07169ec88a92eac22edd705e35dabf96ca60dcdc44d"
+      },
+      "original_rows": 2085,
+      "original_status_counts": {
+        "insufficient_history": 120,
+        "issued": 1928,
+        "pilot_excluded": 37
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202206.json",
+        "metadata_sha256": "cef2edcf9f8eac910e5fde4e2173595d074e6e9be83dc7b94714e62b28481ce5",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202206.jsonl",
+        "sha256": "6b4f594a7be668562dccb569b9700580244c7288d3b3b2e3ef8d02ce7c14981b"
+      },
+      "amended_rows": 2440,
+      "amended_status_counts": {
+        "insufficient_history": 126,
+        "issued": 2281,
+        "pilot_excluded": 33
+      },
+      "event_key": 202206,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 1136,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202206.json",
+        "metadata_sha256": "c23688c94f90d8c245d05e930bb0c4d90bf62a237046621f5ce5212b9cc45dad",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202206.jsonl",
+        "sha256": "3c60f825e2e27f3a162ee66116b7c668e76adcf60ec177673d9442ab97016220"
+      },
+      "original_rows": 2440,
+      "original_status_counts": {
+        "insufficient_history": 126,
+        "issued": 2281,
+        "pilot_excluded": 33
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202207.json",
+        "metadata_sha256": "005b45a7f85ba6dedbccd5176c14c5d0c2a8471bb090e0c38660381df746e261",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202207.jsonl",
+        "sha256": "56380dd05e59fb63075eea2fbf319b7a90a189992de1143639839d7893e59279"
+      },
+      "amended_rows": 2338,
+      "amended_status_counts": {
+        "insufficient_history": 170,
+        "issued": 2117,
+        "pilot_excluded": 51
+      },
+      "event_key": 202207,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 1047,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202207.json",
+        "metadata_sha256": "4fa58cdc022ac6f86f5fb09abe684663c0afe7bc47b67c5c1202165d91ed5b94",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202207.jsonl",
+        "sha256": "1e305b71952c7e6513ca002605a744c00a239cf9361dd00c7e2ad858ac5628b6"
+      },
+      "original_rows": 2338,
+      "original_status_counts": {
+        "insufficient_history": 170,
+        "issued": 2117,
+        "pilot_excluded": 51
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202208.json",
+        "metadata_sha256": "393ded8c5991779c15ed507afac7a0e37b37e9c8de9dd27cf99a89990d305026",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202208.jsonl",
+        "sha256": "9202d27c902420c73339b0dde37a9c4e7d1bb4773671313a401c69329d13bd60"
+      },
+      "amended_rows": 1755,
+      "amended_status_counts": {
+        "insufficient_history": 124,
+        "issued": 1591,
+        "pilot_excluded": 40
+      },
+      "event_key": 202208,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 794,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202208.json",
+        "metadata_sha256": "7923deb86e70dd2ef0b3e995e971f27256332bcd5155be774d676686e5491242",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202208.jsonl",
+        "sha256": "b3ede949ada6b589b02dc78f2b1f500191f9f6b018a1d32a3bcf433b8b08285c"
+      },
+      "original_rows": 1755,
+      "original_status_counts": {
+        "insufficient_history": 124,
+        "issued": 1591,
+        "pilot_excluded": 40
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202209.json",
+        "metadata_sha256": "f5f6ab6afa40e4f6fb194e1d946414a47d9de0c7ccf62887439c0a61957848f8",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202209.jsonl",
+        "sha256": "0a91a6a53c4c489e38628cb18ce9484ba0c7f33baa0a2bcc6f9068a5d8e3a501"
+      },
+      "amended_rows": 2503,
+      "amended_status_counts": {
+        "insufficient_history": 120,
+        "issued": 2350,
+        "pilot_excluded": 33
+      },
+      "event_key": 202209,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 1171,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202209.json",
+        "metadata_sha256": "1ca03a3cf5511b193fd92144c3c097b3a3929d4a4c755958607d274786a7cda1",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202209.jsonl",
+        "sha256": "ee4a66c5110cea91438b24a9dff63652ab7d54b36ebbdab780a3057314033532"
+      },
+      "original_rows": 2503,
+      "original_status_counts": {
+        "insufficient_history": 120,
+        "issued": 2350,
+        "pilot_excluded": 33
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202210.json",
+        "metadata_sha256": "6132910716765ce166d9b33a376989ddbd7d4119957935a7e415439021a41541",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202210.jsonl",
+        "sha256": "4167b6cef560f0d5d01fe9cde7d35a4e65bbed0d5623b930b7bcc6cb36adc96a"
+      },
+      "amended_rows": 1580,
+      "amended_status_counts": {
+        "insufficient_history": 106,
+        "issued": 1439,
+        "pilot_excluded": 35
+      },
+      "event_key": 202210,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 717,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202210.json",
+        "metadata_sha256": "057ee434a10a4f2cd3607db2bb339d7dffbb4866b2fb21625926311bd24c34ed",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202210.jsonl",
+        "sha256": "ad56bb28e35fe69e0d50d809d934fb4a06b117d9a10aacd02cfe88e383684d76"
+      },
+      "original_rows": 1580,
+      "original_status_counts": {
+        "insufficient_history": 106,
+        "issued": 1439,
+        "pilot_excluded": 35
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202211.json",
+        "metadata_sha256": "6f09554b02739488c0fc060b29de9671056f8b8807db2933204d1e7af18d5e44",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202211.jsonl",
+        "sha256": "69690ecd0629e991668b5df6c95ce02bf46e48c087caa8e3ae701dd858864c7b"
+      },
+      "amended_rows": 2618,
+      "amended_status_counts": {
+        "insufficient_history": 122,
+        "issued": 2456,
+        "pilot_excluded": 40
+      },
+      "event_key": 202211,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 1224,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202211.json",
+        "metadata_sha256": "dfd761880bc66f1cd5cd2c33144183ca46551b608e0718b4185889c42634d05c",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202211.jsonl",
+        "sha256": "3c3804ed33af3fb5d4d5efab4bfd6a80b00b64c3dacfa0e6cb5d7a83cf3e450d"
+      },
+      "original_rows": 2618,
+      "original_status_counts": {
+        "insufficient_history": 122,
+        "issued": 2456,
+        "pilot_excluded": 40
+      }
+    },
+    {
+      "all_original_record_values_unchanged": true,
+      "amended_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202212.json",
+        "metadata_sha256": "8d9619f7d6be1256b23db84ebb0bb1c7579fa6d1fe2f6761b030e2948274d3e4",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202212.jsonl",
+        "sha256": "52b04ab7b6fe11bc1b67f6a7ce1a06c1a198f798ccc9b16758488c5e04dbf51e"
+      },
+      "amended_rows": 1891,
+      "amended_status_counts": {
+        "insufficient_history": 120,
+        "issued": 1736,
+        "pilot_excluded": 35
+      },
+      "event_key": 202212,
+      "extra_issuance_ids": [],
+      "issuance_order_identical": true,
+      "mismatch_categories": {},
+      "mismatch_count": 0,
+      "mismatch_examples": [],
+      "missing_issuance_ids": [],
+      "new_s1_provenance_rows": 864,
+      "original_input": {
+        "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202212.json",
+        "metadata_sha256": "53ea769e7e2f8b8364bfe95c0e09bdd7b8fc862f2fb9b070c4183d4dcec10140",
+        "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202212.jsonl",
+        "sha256": "ef9cf51af16d01df51c5d054aa526422d424958baa7f6e74b5df13b558064871"
+      },
+      "original_rows": 1891,
+      "original_status_counts": {
+        "insufficient_history": 120,
+        "issued": 1736,
+        "pilot_excluded": 35
+      }
+    }
+  ],
+  "hungary_correction": {
+    "checkpoint_ms": 5977490,
+    "corrected_prefix_and_actual_source_clock_verified": true,
+    "current_value_source": {
+      "available_ms": 5977490,
+      "sequence": 24357,
+      "value": 30.486
+    },
+    "earlier_s1_value_preserved": true,
+    "encoded_prefix_seconds": [
+      30.486,
+      31.233
+    ],
+    "event_key": 202213,
+    "history_count": 20,
+    "input": {
+      "metadata_path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202213.json",
+      "metadata_sha256": "0125ecaed9fa6afb6cd6cec182847576fd8cf2595041f8f19e946cb20b3ae639",
+      "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/target_free/202213.jsonl",
+      "sha256": "497639a4f67295767a2456bb709c03b3ce8bdef2780022ba96b60c13f8516ad2"
+    },
+    "issuance_id": "202213:47:24357:S2",
+    "prior_support": {
+      "available_ms": 5977489,
+      "driver": "47",
+      "event_key": 202213,
+      "local_epoch": 25,
+      "packet_sequence": 24356,
+      "value": 30.526
+    }
+  },
+  "ignored_difference": "Only the new source_provenance.s1_prefix field is excluded from original-row equality.",
+  "original_rows_compared": 25360,
+  "passed": true,
+  "schema_version": 1,
+  "scope": "Read-only target-free assembly comparison; no CSV, labels, fits or scores.",
+  "v2_data_lock": {
+    "path": "artifacts/research/boundary_20260908/sector_forecast/execution_v2/data_lock.json",
+    "sha256": "256f866083846b955e8bc66771006797622d8fc0af67fba6e3ca868273062fb5"
+  },
+  "verifier": {
+    "path": "research/experiments/boundary_20260908/sector_forecast/execution_v2/verification/compare_assembly.py",
+    "sha256": "89ab92d252e5ea92309a0a9a881807d5d3310f82d9209d85f717d8af133c1d08"
+  }
+}

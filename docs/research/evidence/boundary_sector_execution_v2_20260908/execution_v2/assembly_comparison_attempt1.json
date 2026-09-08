@@ -1,0 +1,14 @@
+{
+  "failed_at_utc": "2026-09-08T03:50:42.969997+00:00",
+  "exit_code": 1,
+  "stage": "target_free_input_validation_before_row_comparison",
+  "error": "ValueError: Invalid feature value",
+  "source_snapshot": {
+    "path": "research/experiments/boundary_20260908/sector_forecast/execution_v2/verification/compare_assembly_attempt1.py",
+    "sha256": "9c41d27619136e74fc51e762bcf3df54c288c6969778712a2bb78ffa045214b8"
+  },
+  "diagnosis": "Frozen run.safe_json serializes unavailable NaN features as JSON null. The initial verifier incorrectly rejected null optional features. No assembly data discrepancy was established by this attempt.",
+  "correction": "Allow null alongside finite numeric feature values in target-free JSON, retaining exact null-versus-value comparisons.",
+  "root_source_or_artifact_edits": false,
+  "labels_or_scores_read": false
+}

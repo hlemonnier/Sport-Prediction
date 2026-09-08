@@ -1,0 +1,7 @@
+{
+  "locked_at_utc": "2026-09-08T03:50:54.827128+00:00",
+  "selected": "sector_hgb_l15",
+  "selection_passed": false,
+  "selection_sha256": "dfe4f6f4d15fc47750a49e8bf3d55eadb3c5f66d6feaa14a1a7ead172bab4adc",
+  "next_action": "Stop this candidate family; no transfer acquisition or evaluation"
+}

@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "created_at_utc": "2026-09-08T03:43:23.259018+00:00",
+  "review_kind": "independent_read_only_global_live_next_lap_integration_verification",
+  "repository_root": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction",
+  "reviewed_head": "965db026c1d47d8f388c4079f7d8f318379d4bd2",
+  "model": {
+    "model_id": "frontier_live_hgb_l15_i150_20260907",
+    "asset_path": "packages/f1/models/live_race/assets/frontier_live_hgb_l15_i150_20260907.json",
+    "sha256": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36",
+    "bytes": 217803,
+    "trees": 150,
+    "features": 80,
+    "hash_matches_runtime_constant": true
+  },
+  "original_integration_publication": {
+    "path": "docs/research/evidence/frontier_live_integration_20260907_publication.json",
+    "sha256": "34de1506e0733c7c9fcb8a27cadc06c78c12993fdff958b2679272b9b6e650b3",
+    "expected_files": 66,
+    "checked_files": 66,
+    "mismatched_files": [],
+    "verification": "Every entry exists and its current bytes and SHA256 equal the original manifest. This binds the complete 66-entry source/asset/publication set without duplicating it."
+  },
+  "closed_test_run": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=.:research/projects/F1/rising_qualification_prediction/Python:services/f1-platform:services/f1-prediction-service .venv-f1/bin/python -m pytest -q -p no:cacheprovider --import-mode=importlib research/projects/F1/rising_qualification_prediction/Python/tests/test_live_next_lap_frontier.py services/f1-platform/tests/test_frontier_integration.py services/f1-prediction-service/tests/test_model.py",
+    "cwd": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction",
+    "exit_code": 0,
+    "stdout": ".......................................................                  [100%]\n55 passed in 5.54s\n",
+    "stdout_sha256": "8adcae846447672b97e27e31eac787aad6001c9de797602b9a3667a001e9d8f2",
+    "passed": 55,
+    "failed": 0,
+    "reported_seconds": 5.54,
+    "capture": "Completed exec_command output c9d1c0; no test rerun for receipt creation."
+  },
+  "canonical_paths": [
+    {
+      "role": "default live point configuration",
+      "path": "packages/f1/data/schemas/session.py",
+      "line": 47,
+      "finding": "f1_live_next_lap_point_model defaults to frontier_hgb"
+    },
+    {
+      "role": "global live dispatcher",
+      "path": "packages/f1/orchestration/prediction.py",
+      "line": 2411,
+      "finding": "Live mode dispatches to run_live_race_prediction"
+    },
+    {
+      "role": "canonical predictor activation",
+      "path": "packages/f1/models/live_race/predict.py",
+      "line": 1133,
+      "finding": "Calls the shared forecast_laps implementation; the pending eligible-issuance point is carried forward"
+    },
+    {
+      "role": "hash-pinned numeric inference and snapshot adapter",
+      "path": "packages/f1/models/live_race/next_lap.py",
+      "line": 23,
+      "finding": "The frozen asset identity is pinned; absent required observed columns cause explicit fallback"
+    },
+    {
+      "role": "observed-history transport",
+      "path": "services/f1-platform/f1_platform/reducer.py",
+      "line": 163,
+      "finding": "Stores raw FastF1 observed lap columns and source times without reconstructing past tyre state from current values"
+    },
+    {
+      "role": "prediction service",
+      "path": "services/f1-prediction-service/f1_prediction_service/model.py",
+      "line": 77,
+      "finding": "Race and next-lap payloads use the shared snapshot_lap_forecasts adapter"
+    },
+    {
+      "role": "platform local path",
+      "path": "services/f1-platform/f1_platform/predictions.py",
+      "line": 267,
+      "finding": "Local predictions attach the shared lap-time point payload"
+    },
+    {
+      "role": "platform remote boundary",
+      "path": "services/f1-platform/f1_platform/predictions.py",
+      "line": 886,
+      "finding": "Validates target, model hash, point validity, driver status and supplied-observation issuance cutoff"
+    },
+    {
+      "role": "dashboard",
+      "path": "apps/web/components/F1LivePlatformDashboard.tsx",
+      "line": 3204,
+      "finding": "Renders Next clean with fallback/unavailable state and explicit no-calibrated-interval tooltip"
+    },
+    {
+      "role": "platform packaging",
+      "path": "services/f1-platform/Dockerfile",
+      "line": 7,
+      "finding": "COPY packages includes the numeric model asset"
+    },
+    {
+      "role": "prediction-service packaging",
+      "path": "services/f1-prediction-service/Dockerfile",
+      "line": 6,
+      "finding": "COPY packages includes the numeric model asset"
+    },
+    {
+      "role": "continuous integration",
+      "path": ".github/workflows/ci.yml",
+      "line": 130,
+      "finding": "Dedicated frozen lap-time model and API integration job runs the same three test modules"
+    }
+  ],
+  "conclusion": {
+    "no_production_integration_gap_found": true,
+    "additional_production_wiring_required": false,
+    "production_source_modified_by_this_review": false,
+    "sector_models_promoted_or_activated": false,
+    "hosted_deployment_verified": false,
+    "scope": "The already integrated live next-eligible-clean-lap point model. This receipt is not a whole-system model validation or a deployment receipt."
+  },
+  "material_limitations": [
+    "Activation requires the frozen observed-input contract; sparse OpenF1/snapshot inputs fall back explicitly.",
+    "The point predicts the next eligible clean completed lap and may skip numbered laps; it is carried unchanged until another eligible issuance.",
+    "Evidence is retrospective historical transfer, not prospective live delivery or receipt-latency validation.",
+    "No calibrated interval, race-order probability improvement or strategy-value certification follows from this point model.",
+    "The bounded review included local source, numeric asset and integration tests; it did not verify a running hosted deployment or promote sector research."
+  ],
+  "suggested_commit": "docs(research): record verified global live-model integration"
+}

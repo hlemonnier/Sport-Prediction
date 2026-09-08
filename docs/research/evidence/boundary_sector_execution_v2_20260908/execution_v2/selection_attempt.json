@@ -1,0 +1,10 @@
+{
+  "started_at_utc": "2026-09-08T03:50:03.736945+00:00",
+  "data_lock_sha256": "256f866083846b955e8bc66771006797622d8fc0af67fba6e3ca868273062fb5",
+  "design_lock_sha256": "c716d217b15bd797e219b5f0a10503cb9bce0811b5438545847bcd58c03e993e",
+  "candidates": [
+    "sector_gaussian_conditional10",
+    "sector_hgb_l7",
+    "sector_hgb_l15"
+  ]
+}

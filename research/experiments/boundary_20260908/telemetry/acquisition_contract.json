@@ -1,0 +1,509 @@
+{
+  "base_urls": [
+    "https://livetiming-mirror.fastf1.dev",
+    "https://livetiming.formula1.com"
+  ],
+  "bindings": [
+    {
+      "path": "artifacts/research/boundary_20260908/telemetry_pilot/acquisition.json",
+      "sha256": "9d39fc16e23db3a3c9066b94e2add265d6a68e639d73417b3d3a813c348ca0e4"
+    },
+    {
+      "path": "artifacts/research/boundary_20260908/telemetry_pilot/diagnostics.json",
+      "sha256": "9f1650bd43d6868874835398debebe12a1727c7bc18df8ae6aa1ceaa5ea92a4f"
+    },
+    {
+      "path": "artifacts/research/boundary_20260908/telemetry_pilot/independent_verification.json",
+      "sha256": "234df766302dd27b4d8e4b48f9491967b982d9bd718c96640c5946c5713e7e33"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/telemetry_pilot/acquire.py",
+      "sha256": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/telemetry_pilot/test_acquire.py",
+      "sha256": "6be583352b51110b0a327403ec66cb70d8c80628e7cafb7429c578ef13e0224b"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/telemetry_pilot/packets.py",
+      "sha256": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md",
+      "sha256": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/telemetry_pilot/specification.json",
+      "sha256": "3f3d8876a997705cdb75dba34edeb3179d2c3d1d7e4a8364f6d884a2bedb2ad7"
+    }
+  ],
+  "elapsed_deadline_limitations": "A blocked body read can overrun the acceptance deadline by one socket read timeout (30 seconds); connection/DNS/TLS/library scheduling are not a hard wall-clock cancellation guarantee. Late response bytes are never accepted as a completed body.",
+  "elapsed_deadline_semantics": "response_acceptance_checked_before_and_after_each_read1_not_hard_transport_cancellation",
+  "expected_sessions": 44,
+  "follow_redirects": false,
+  "malformed_download_policy": "stop feature build before fitting; preserve already-written ledgers",
+  "max_decoded_body_bytes": 67108864,
+  "max_http_body_bytes": 67108864,
+  "max_parallel_requests": 2,
+  "max_request_elapsed_seconds": 150,
+  "max_requests_per_event": 2,
+  "maximum_new_http_requests": 84,
+  "minimum_free_disk_bytes": 12884901888,
+  "parent_manifest": {
+    "path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+    "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+  },
+  "purpose": "Acquire only CarData.z for the44 original2022-2023 discovery races; reuse two independently validated pilots; no model fitting or outcome scoring",
+  "request_timeout_connect_seconds": 15,
+  "request_timeout_read_seconds": 30,
+  "reuse_event_keys": [
+    202201,
+    202301
+  ],
+  "schema_version": 1,
+  "sessions": [
+    {
+      "event_key": 202201,
+      "meeting_name": "Bahrain Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 6993,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "session_start_local": "2022-03-20T18:00:00"
+    },
+    {
+      "event_key": 202202,
+      "meeting_name": "Saudi Arabian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_02_saudi_arabian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "8b72b1b605d24207e7a6d5a6fa278b6bd81406e9b53507db410053a3f994022a",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 6994,
+      "session_path": "2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/",
+      "session_start_local": "2022-03-27T20:00:00"
+    },
+    {
+      "event_key": 202203,
+      "meeting_name": "Australian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_03_australian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "b01e7ff6c5db6b379335c248ebd20f4e48bfa26fdaf45c750062653f8b4d7f81",
+      "session_gmt_offset": "10:00:00",
+      "session_key": 7018,
+      "session_path": "2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/",
+      "session_start_local": "2022-04-10T15:00:00"
+    },
+    {
+      "event_key": 202204,
+      "meeting_name": "Emilia Romagna Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "83a389df0970599615fbae76767d19b0d28461c4167f7ec3191708c98dd58b66",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7019,
+      "session_path": "2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/",
+      "session_start_local": "2022-04-24T15:00:00"
+    },
+    {
+      "event_key": 202205,
+      "meeting_name": "Miami Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_05_miami_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7130f761046d2bd6315a86915abb5a96da65664d8823ab0e17e6c68ac36420ec",
+      "session_gmt_offset": "-04:00:00",
+      "session_key": 7027,
+      "session_path": "2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/",
+      "session_start_local": "2022-05-08T15:30:00"
+    },
+    {
+      "event_key": 202206,
+      "meeting_name": "Spanish Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "8442a453e481554d2bb85cd102fcc6a45f244a80c7c71d48bf8fd1ba299213b0",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7042,
+      "session_path": "2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/",
+      "session_start_local": "2022-05-22T15:00:00"
+    },
+    {
+      "event_key": 202207,
+      "meeting_name": "Monaco Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "ee0b75956ec73b262f1f973951f3918221c9124c9f40c802f2e423e0f22e2deb",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7051,
+      "session_path": "2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/",
+      "session_start_local": "2022-05-29T15:00:00"
+    },
+    {
+      "event_key": 202208,
+      "meeting_name": "Azerbaijan Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "a72b8cfceb34613d06665062b26b21c9defb070e92f166bf75f04ab36fc72562",
+      "session_gmt_offset": "04:00:00",
+      "session_key": 7066,
+      "session_path": "2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/",
+      "session_start_local": "2022-06-12T15:00:00"
+    },
+    {
+      "event_key": 202209,
+      "meeting_name": "Canadian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "d766eaaafb7d505807312d1fbbfcdf1244068429a75c3a360e7a987fd6b952f9",
+      "session_gmt_offset": "-04:00:00",
+      "session_key": 7090,
+      "session_path": "2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/",
+      "session_start_local": "2022-06-19T14:00:00"
+    },
+    {
+      "event_key": 202210,
+      "meeting_name": "British Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_10_british_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "2903341be31d8b79edfff7b494e8b5e2972e36b6b296f2201126ab8e09781b43",
+      "session_gmt_offset": "01:00:00",
+      "session_key": 7105,
+      "session_path": "2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/",
+      "session_start_local": "2022-07-03T15:00:00"
+    },
+    {
+      "event_key": 202211,
+      "meeting_name": "Austrian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "80e84ff951ec297417a5886cedc1d2fd3896c7e224fc3c807644c5d389dcc498",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7115,
+      "session_path": "2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/",
+      "session_start_local": "2022-07-10T15:00:00"
+    },
+    {
+      "event_key": 202212,
+      "meeting_name": "French Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_12_french_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "07995f3e32ddc4f3abcecb1423e8e571436ec7fe3631f9d46bb364adf887d6a9",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7139,
+      "session_path": "2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/",
+      "session_start_local": "2022-07-24T15:00:00"
+    },
+    {
+      "event_key": 202213,
+      "meeting_name": "Hungarian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f0c60ec41b6ad09f31fe34699f9f9f7951342723da274bd62fb06c93f1ab4dbf",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7149,
+      "session_path": "2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/",
+      "session_start_local": "2022-07-31T15:00:00"
+    },
+    {
+      "event_key": 202214,
+      "meeting_name": "Belgian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "53cbd5e0cf9fdabe70c662233dd980e92f783310266f71285aadd2931400fdae",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7159,
+      "session_path": "2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/",
+      "session_start_local": "2022-08-28T15:00:00"
+    },
+    {
+      "event_key": 202215,
+      "meeting_name": "Dutch Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f31a1c2f02e108f2146582ef47196dc0ca56a6aaf4bab8952f5402f899c258e3",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7137,
+      "session_path": "2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/",
+      "session_start_local": "2022-09-04T15:00:00"
+    },
+    {
+      "event_key": 202216,
+      "meeting_name": "Italian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_16_italian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "798d795b8d8c12fbf028246adf01b95c32bc5081e91c0bf281fdbf4cf4b004c8",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 7128,
+      "session_path": "2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/",
+      "session_start_local": "2022-09-11T15:00:00"
+    },
+    {
+      "event_key": 202217,
+      "meeting_name": "Singapore Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "b954db0afd6721ed0f3bc926618f4543d8f99f34abae1055cd30460fa0841c12",
+      "session_gmt_offset": "08:00:00",
+      "session_key": 7236,
+      "session_path": "2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/",
+      "session_start_local": "2022-10-02T20:00:00"
+    },
+    {
+      "event_key": 202218,
+      "meeting_name": "Japanese Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "3b727ad57371b90c6f4ece4a65394d21d14ffdd6efbd9262c52b188689b47c05",
+      "session_gmt_offset": "09:00:00",
+      "session_key": 7244,
+      "session_path": "2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/",
+      "session_start_local": "2022-10-09T14:00:00"
+    },
+    {
+      "event_key": 202219,
+      "meeting_name": "United States Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "d373455350d9ec8c4227dcab000c0cd0a89808c4b8d23b899e7743cd43d9d9e9",
+      "session_gmt_offset": "-05:00:00",
+      "session_key": 7252,
+      "session_path": "2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/",
+      "session_start_local": "2022-10-23T14:00:00"
+    },
+    {
+      "event_key": 202220,
+      "meeting_name": "Mexico City Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "b36737a3bb217f85c394de99c61f1f12b884e8c0d3ded8aa64659859a46d995e",
+      "session_gmt_offset": "-06:00:00",
+      "session_key": 7260,
+      "session_path": "2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/",
+      "session_start_local": "2022-10-30T14:00:00"
+    },
+    {
+      "event_key": 202221,
+      "meeting_name": "S\u00e3o Paulo Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "729624203adedba0769a0c8891b2935fc3b8ae242460b7ab5809771dc7ab0c38",
+      "session_gmt_offset": "-03:00:00",
+      "session_key": 7268,
+      "session_path": "2022/2022-11-13_S\u00e3o_Paulo_Grand_Prix/2022-11-13_Race/",
+      "session_start_local": "2022-11-13T15:00:00"
+    },
+    {
+      "event_key": 202222,
+      "meeting_name": "Abu Dhabi Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "e82eace8d2bf82bf657981bae146011cfec6d5e4c957a9fd6664294d3c20bbac",
+      "session_gmt_offset": "04:00:00",
+      "session_key": 7276,
+      "session_path": "2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/",
+      "session_start_local": "2022-11-20T17:00:00"
+    },
+    {
+      "event_key": 202301,
+      "meeting_name": "Bahrain Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 7953,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "session_start_local": "2023-03-05T18:00:00"
+    },
+    {
+      "event_key": 202302,
+      "meeting_name": "Saudi Arabian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "af633b65add8b8380a2999fda5bb1f192a2e1b0c655f0208530534a08c423c39",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 7779,
+      "session_path": "2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/",
+      "session_start_local": "2023-03-19T20:00:00"
+    },
+    {
+      "event_key": 202303,
+      "meeting_name": "Australian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_03_australian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "e880a2913a6b7f265904e86773dbd2be38f3ed1cfaaf645e30203692d8e2422d",
+      "session_gmt_offset": "10:00:00",
+      "session_key": 7787,
+      "session_path": "2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/",
+      "session_start_local": "2023-04-02T15:00:00"
+    },
+    {
+      "event_key": 202304,
+      "meeting_name": "Azerbaijan Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "501866e1a63c68a77d9633137d14e15807a9869cee9281d75b3224fdfe928b20",
+      "session_gmt_offset": "04:00:00",
+      "session_key": 9070,
+      "session_path": "2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/",
+      "session_start_local": "2023-04-30T15:00:00"
+    },
+    {
+      "event_key": 202305,
+      "meeting_name": "Miami Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_05_miami_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "042f0dfd5db204526bf4e72842c458e3bc56ac973ccdcf69bf7627a807902be5",
+      "session_gmt_offset": "-04:00:00",
+      "session_key": 9078,
+      "session_path": "2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/",
+      "session_start_local": "2023-05-07T15:30:00"
+    },
+    {
+      "event_key": 202306,
+      "meeting_name": "Monaco Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "9a288256235e712e87108a17343faa8cecd2ae5ea377a14b3e11075a67162559",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 9094,
+      "session_path": "2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/",
+      "session_start_local": "2023-05-28T15:00:00"
+    },
+    {
+      "event_key": 202307,
+      "meeting_name": "Spanish Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "a58a9f7c81047587522819e028511a357566b6a6d6dfdd0d881320c245616176",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 9102,
+      "session_path": "2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/",
+      "session_start_local": "2023-06-04T15:00:00"
+    },
+    {
+      "event_key": 202308,
+      "meeting_name": "Canadian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "8fabdddcf78ccd7271d8c5fd4bdaa8d046ae3efd27a8210b7f109237fdb81f51",
+      "session_gmt_offset": "-04:00:00",
+      "session_key": 9110,
+      "session_path": "2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/",
+      "session_start_local": "2023-06-18T14:00:00"
+    },
+    {
+      "event_key": 202309,
+      "meeting_name": "Austrian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "e7d6285842753c04a7afe5bbae8294cd0f931ddf0bb49409e7bca03e8dea648c",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 9118,
+      "session_path": "2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/",
+      "session_start_local": "2023-07-02T15:00:00"
+    },
+    {
+      "event_key": 202310,
+      "meeting_name": "British Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_10_british_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "3070d8185936137ee666c6897ad1d5bc1e96767283aa2f74297f7bf42842d804",
+      "session_gmt_offset": "01:00:00",
+      "session_key": 9126,
+      "session_path": "2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/",
+      "session_start_local": "2023-07-09T15:00:00"
+    },
+    {
+      "event_key": 202311,
+      "meeting_name": "Hungarian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "785604227b4dd73b3b814dc1203e266c6d2e057ad3f5480be2d2140aaa6a7d33",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 9133,
+      "session_path": "2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/",
+      "session_start_local": "2023-07-23T15:00:00"
+    },
+    {
+      "event_key": 202312,
+      "meeting_name": "Belgian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "b15e74b797f7c1163f3f66105d2aab33415bde02eb6cfb3fd4aeaf96fa12fd77",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 9141,
+      "session_path": "2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/",
+      "session_start_local": "2023-07-30T15:00:00"
+    },
+    {
+      "event_key": 202313,
+      "meeting_name": "Dutch Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "dc814e2635575a563da7ae84d0b10a2bf2567cc428a3526f890cc9b57de6e4d0",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 9149,
+      "session_path": "2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/",
+      "session_start_local": "2023-08-27T15:00:00"
+    },
+    {
+      "event_key": 202314,
+      "meeting_name": "Italian Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_14_italian_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "a69bd539061371ef57c97887d1306527c3abeecae2627acb0000bdf92e10526a",
+      "session_gmt_offset": "02:00:00",
+      "session_key": 9157,
+      "session_path": "2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/",
+      "session_start_local": "2023-09-03T15:00:00"
+    },
+    {
+      "event_key": 202315,
+      "meeting_name": "Singapore Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_15_singapore_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "091975e87ddd75c550215bd204648c7c19a5fd5ec43c72d818200b0ffc6336c0",
+      "session_gmt_offset": "08:00:00",
+      "session_key": 9165,
+      "session_path": "2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/",
+      "session_start_local": "2023-09-17T20:00:00"
+    },
+    {
+      "event_key": 202316,
+      "meeting_name": "Japanese Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "c5f1dec7fc7082914e6eba98cb2383c4b8bbb65a74e7cf27fe5ecde5e4e2664b",
+      "session_gmt_offset": "09:00:00",
+      "session_key": 9173,
+      "session_path": "2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/",
+      "session_start_local": "2023-09-24T14:00:00"
+    },
+    {
+      "event_key": 202317,
+      "meeting_name": "Qatar Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "716c5dbf0274ad90a3719ee73776c50d3a2ac2e8092cc7a8fedc078d154ff014",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 9221,
+      "session_path": "2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/",
+      "session_start_local": "2023-10-08T20:00:00"
+    },
+    {
+      "event_key": 202318,
+      "meeting_name": "United States Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "d5097ed759158691a3efa6ffa4e5c00c87dc30a02f2b19fe6b2437f1118d638f",
+      "session_gmt_offset": "-05:00:00",
+      "session_key": 9213,
+      "session_path": "2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/",
+      "session_start_local": "2023-10-22T14:00:00"
+    },
+    {
+      "event_key": 202319,
+      "meeting_name": "Mexico City Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "8ccd24708295f43e92823103822c3ff9233734cd6fb46c115b8fbf3c68613d57",
+      "session_gmt_offset": "-06:00:00",
+      "session_key": 9181,
+      "session_path": "2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/",
+      "session_start_local": "2023-10-29T14:00:00"
+    },
+    {
+      "event_key": 202320,
+      "meeting_name": "S\u00e3o Paulo Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "2c9834e4bc5bf394ae670245ea6171ee9b78e71027dd6a4867b685dc8e362c18",
+      "session_gmt_offset": "-03:00:00",
+      "session_key": 9205,
+      "session_path": "2023/2023-11-05_S\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/",
+      "session_start_local": "2023-11-05T14:00:00"
+    },
+    {
+      "event_key": 202321,
+      "meeting_name": "Las Vegas Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "af472152470e2995671c371aa17b872fdaec257511f14b7e732b8f4415419da5",
+      "session_gmt_offset": "-08:00:00",
+      "session_key": 9189,
+      "session_path": "2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/",
+      "session_start_local": "2023-11-18T22:00:00"
+    },
+    {
+      "event_key": 202322,
+      "meeting_name": "Abu Dhabi Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "8dcf0d4c00b6b918b74effa253309625d79d02a17ba19178b5ba743bc9d1c2e5",
+      "session_gmt_offset": "04:00:00",
+      "session_key": 9197,
+      "session_path": "2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/",
+      "session_start_local": "2023-11-26T17:00:00"
+    }
+  ],
+  "source_clock": "Physical cumulative-max archive prefix, not certified live receipt",
+  "stream": "CarData.z",
+  "unavailable_stream_policy": "retain original issuances with empty telemetry and exact incumbent fallback; no event deletion"
+}

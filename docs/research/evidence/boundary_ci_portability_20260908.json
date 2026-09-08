@@ -1,0 +1,60 @@
+{
+  "created_at_utc": "2026-09-08T02:59:37.041062+00:00",
+  "corrects_commit": "cc995ca3110cf4a6b3846a6572febaa58b14f4d8",
+  "preserved_initial_research_ci_run": 34181664260,
+  "initial_research_ci_result": {
+    "passed": 198,
+    "failed": 3,
+    "skipped_optional_raw_tests": 2,
+    "maximum_reported_probability_difference": 1.1102230246251565e-16
+  },
+  "existing_ci_run": 34181664195,
+  "existing_ci_jobs_passed": 8,
+  "changed_assertion": "Only the one-row versus two-row batch comparison allows eight float64 epsilons with relative tolerance zero.",
+  "frozen_experiment_test_sha256": "89fa364c5f9157a82f1df27b072d23e45ef6e4c301bb179dce8cf2f5dce9f6fe",
+  "production_or_frozen_experiment_files_changed": false,
+  "historical_models_refitted": 0,
+  "historical_predictions_or_selection_gates_changed": false,
+  "superseded_workflow": {
+    "path": ".github/workflows/boundary-research.yml",
+    "previous_sha256": "84e5e1da8d415aa0c1982dd19676402b8c188f20af67a4127a8e62919f74865b",
+    "corrected_sha256": "7386a27c0719eef3181f735de5e129a7dcd11082e5d4c8048330d57a3650b508"
+  },
+  "unchanged_checkpoint_file_bindings": 63,
+  "unchanged_previous_publication_file_bindings": 351,
+  "corrected_ci_result": "Pending; this manifest records the verified correction before commit and execution on Linux.",
+  "files": [
+    {
+      "path": ".github/workflows/boundary-research.yml",
+      "sha256": "7386a27c0719eef3181f735de5e129a7dcd11082e5d4c8048330d57a3650b508",
+      "bytes": 1807
+    },
+    {
+      "path": "docs/research/boundary_ci_portability_20260908.md",
+      "sha256": "62eb7c2f99290496beb70112279d255fe52bf2387fe6ad72cf67108b4ea031cb",
+      "bytes": 2396
+    },
+    {
+      "path": "research/experiments/boundary_20260908/football_xg/ci_contracts/README.md",
+      "sha256": "0c87261de39e879d08a92f47eb65f96dd846f7354b0cdcc4d1f73b4014bb132a",
+      "bytes": 1971
+    },
+    {
+      "path": "research/experiments/boundary_20260908/football_xg/ci_contracts/test_model.py",
+      "sha256": "2ed52741f78fa70baadb2b274ed3fa6abfea2c8d15b80a496ae65319e396fd7e",
+      "bytes": 18211
+    },
+    {
+      "path": "research/experiments/boundary_20260908/football_xg/ci_contracts/test_source_contract.py",
+      "sha256": "d445b1f156e6acfad2cab3edb97d9c2b90780752f1fd3894b3d7e8d6722728c3",
+      "bytes": 830
+    }
+  ],
+  "suggested_commit": "fix(ci): allow floating-point roundoff across prediction batch sizes",
+  "corrected_local_research_tests": {
+    "passed": 204,
+    "failed": 0,
+    "seconds": 3.76,
+    "includes_source_integrity_guard": true
+  }
+}

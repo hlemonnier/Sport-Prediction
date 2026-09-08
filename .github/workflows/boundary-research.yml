@@ -46,6 +46,7 @@ jobs:
         # archives. Synthetic contracts need no provider access or historical fits.
         run: >-
           python -m pytest -q --import-mode=importlib -p no:cacheprovider
-          research/experiments/boundary_20260908/football_xg/execution
+          research/experiments/boundary_20260908/football_xg/ci_contracts
+          research/experiments/boundary_20260908/football_xg/execution/test_run.py
           research/experiments/boundary_20260908/sector_pilot
           research/experiments/boundary_20260908/sector_forecast

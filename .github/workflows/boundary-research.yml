@@ -1,0 +1,51 @@
+name: Boundary research contracts
+
+on:
+  push:
+    paths:
+      - "research/experiments/boundary_20260908/**"
+      - "research/experiments/performance_20260907/**"
+      - "packages/football/**"
+      - "packages/sports_core/**"
+      - ".github/workflows/boundary-research.yml"
+  pull_request:
+    paths:
+      - "research/experiments/boundary_20260908/**"
+      - "research/experiments/performance_20260907/**"
+      - "packages/football/**"
+      - "packages/sports_core/**"
+      - ".github/workflows/boundary-research.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: boundary-research-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: xG and raw-sector mathematical contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONPATH: .
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install research test dependencies
+        run: python -m pip install pytest numpy pandas scipy scikit-learn requests
+      - name: Verify model mathematics and causal stream contracts
+        # The two optional exact-pilot replay tests skip without the local raw
+        # archives. Synthetic contracts need no provider access or historical fits.
+        run: >-
+          python -m pytest -q --import-mode=importlib -p no:cacheprovider
+          research/experiments/boundary_20260908/football_xg/execution
+          research/experiments/boundary_20260908/sector_pilot
+          research/experiments/boundary_20260908/sector_forecast

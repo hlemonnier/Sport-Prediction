@@ -5,6 +5,7 @@ on:
     paths:
       - "research/experiments/boundary_20260908/**"
       - "research/experiments/performance_20260907/**"
+      - "research/experiments/frontier_20260907/**"
       - "packages/football/**"
       - "packages/sports_core/**"
       - ".github/workflows/boundary-research.yml"
@@ -12,6 +13,7 @@ on:
     paths:
       - "research/experiments/boundary_20260908/**"
       - "research/experiments/performance_20260907/**"
+      - "research/experiments/frontier_20260907/**"
       - "packages/football/**"
       - "packages/sports_core/**"
       - ".github/workflows/boundary-research.yml"
@@ -52,3 +54,9 @@ jobs:
           research/experiments/boundary_20260908/sector_forecast
           research/experiments/boundary_20260908/telemetry_pilot
           research/experiments/boundary_20260908/football_information
+          research/experiments/boundary_20260908/telemetry/test_acquire.py
+          research/experiments/boundary_20260908/telemetry/test_features.py
+          research/experiments/boundary_20260908/telemetry/test_data.py
+          research/experiments/boundary_20260908/telemetry/test_models.py
+          research/experiments/boundary_20260908/telemetry/test_evaluate.py
+          research/experiments/boundary_20260908/telemetry/test_run.py

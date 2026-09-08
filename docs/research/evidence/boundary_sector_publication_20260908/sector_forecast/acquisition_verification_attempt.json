@@ -1,0 +1,6 @@
+{
+  "acquisition_sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d",
+  "checked_at_utc": "2026-09-08T02:34:36.179327+00:00",
+  "reason": "Literal requested_url==actual_url assertion rejected standard UTF8percent-encoding of S\u00e3oPaulo in9HTTPattempts. No body,source,contract oracquisition changes; corrected independent comparison percent-decodes actualURL before equality.",
+  "status": "verification_assertion_failed_before_output"
+}

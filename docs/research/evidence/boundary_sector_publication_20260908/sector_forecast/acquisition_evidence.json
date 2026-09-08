@@ -1,0 +1,48 @@
+{
+  "created_at_utc": "2026-09-08T02:35:27.685246+00:00",
+  "files": {
+    "artifacts/research/boundary_20260908/sector_forecast/acquisition.json": {
+      "bytes": 518927,
+      "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+    },
+    "artifacts/research/boundary_20260908/sector_forecast/acquisition_checks.json": {
+      "bytes": 765,
+      "sha256": "fb555ab26641ffe6b8dd4a79c7527046fa0bf941f91c314ff4576e4ccc095304"
+    },
+    "artifacts/research/boundary_20260908/sector_forecast/acquisition_lock.json": {
+      "bytes": 1130,
+      "sha256": "2a50a5e12a67143bef22b5d10421df69df1c615c4d9e52834bfa02019201f4ad"
+    },
+    "artifacts/research/boundary_20260908/sector_forecast/acquisition_verification.json": {
+      "bytes": 3245,
+      "sha256": "b78a61152161feedb495aff81a290adf6ef482dc3b99b0e102197fce6a214ef9"
+    },
+    "artifacts/research/boundary_20260908/sector_forecast/acquisition_verification_attempt.json": {
+      "bytes": 465,
+      "sha256": "87313e1d9450123e82fc119a37da19877ba57816185fe584dfba68d9a79a195d"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/acquire.py": {
+      "bytes": 11195,
+      "sha256": "7e8453251ba632aa21c157a30128fe823fe3e0edde6e67b793c2bf772ee4f4a0"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/acquisition_contract.json": {
+      "bytes": 45023,
+      "sha256": "87f9a155fb40ad5c4926142cc936cf6986afc648cbf42e130c3984569d68eace"
+    }
+  },
+  "models_fitted": 0,
+  "new_saved_body_bytes": 248272574,
+  "predictive_scores_computed": 0,
+  "publication": "Publish listedsource andstructuredJSON evidence; omitrawproviderHTTPbodies, perstreamduplicate receipts andmutableprogresssnapshot. AlloriginalURLs/statuses/receipts/bodyhashes retained incompactmanifest.",
+  "source_and_data_scope": "44namedRace2022/2023sessions,TimingData+SessionStatus+TimingAppData;6pilotstreamreuses and44existingTrackStatusreuses; no2024+newinputs",
+  "status": "completed_verified_discovery_acquisition_only",
+  "suggested_commit": "research(f1-live): preserve 44-race raw sector discovery inputs",
+  "validation": {
+    "new_downloaded_streams": 126,
+    "observed_peak_parallel_requests": 2,
+    "offline_mock_checks_passed": 5,
+    "reused_pilot_streams": 6,
+    "unavailable_streams": 0,
+    "verified_hash_bindings": 297
+  }
+}

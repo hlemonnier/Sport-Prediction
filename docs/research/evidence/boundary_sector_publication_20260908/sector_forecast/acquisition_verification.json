@@ -1,0 +1,79 @@
+{
+  "acquisition_sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d",
+  "all_new_request_urls_match_frozen_named_session_paths_after_standard_percent_decoding": true,
+  "all_new_requests_started_after_source_lock": true,
+  "errors": [],
+  "input_and_body_hashes_checked": 297,
+  "max_observed_concurrent_requests": 2,
+  "models_fitted": 0,
+  "new_http_status_counts": {
+    "200": 126,
+    "404": 63
+  },
+  "new_saved_body_bytes": 248272574,
+  "pilot_gold_evidence_sha256": "26486b2a71f9657540db399658a0b931af2ddc16879d8a1d736f58b31d2a5d06",
+  "predictive_scores_computed": 0,
+  "sessions": 44,
+  "source_files": {
+    "research/experiments/boundary_20260908/sector_forecast/acquire.py": "7e8453251ba632aa21c157a30128fe823fe3e0edde6e67b793c2bf772ee4f4a0",
+    "research/experiments/boundary_20260908/sector_forecast/acquisition_contract.json": "87f9a155fb40ad5c4926142cc936cf6986afc648cbf42e130c3984569d68eace"
+  },
+  "standard_percent_encoded_sao_paulo_urls": [
+    {
+      "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-11-13_S%C3%A3o_Paulo_Grand_Prix/2022-11-13_Race/SessionStatus.jsonStream",
+      "event_key": 202221,
+      "stream": "SessionStatus"
+    },
+    {
+      "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-11-13_S%C3%A3o_Paulo_Grand_Prix/2022-11-13_Race/TimingAppData.jsonStream",
+      "event_key": 202221,
+      "stream": "TimingAppData"
+    },
+    {
+      "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-11-13_S%C3%A3o_Paulo_Grand_Prix/2022-11-13_Race/TimingData.jsonStream",
+      "event_key": 202221,
+      "stream": "TimingData"
+    },
+    {
+      "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/SessionStatus.jsonStream",
+      "event_key": 202320,
+      "stream": "SessionStatus"
+    },
+    {
+      "actual_url": "https://livetiming.formula1.com/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/SessionStatus.jsonStream",
+      "event_key": 202320,
+      "stream": "SessionStatus"
+    },
+    {
+      "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/TimingAppData.jsonStream",
+      "event_key": 202320,
+      "stream": "TimingAppData"
+    },
+    {
+      "actual_url": "https://livetiming.formula1.com/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/TimingAppData.jsonStream",
+      "event_key": 202320,
+      "stream": "TimingAppData"
+    },
+    {
+      "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/TimingData.jsonStream",
+      "event_key": 202320,
+      "stream": "TimingData"
+    },
+    {
+      "actual_url": "https://livetiming.formula1.com/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/TimingData.jsonStream",
+      "event_key": 202320,
+      "stream": "TimingData"
+    }
+  ],
+  "status": "passed",
+  "stream_status_counts": {
+    "downloaded": 126,
+    "reused_verified_pilot": 6
+  },
+  "total_success_decoded_bytes_including_reused_pilot": 260696700,
+  "verified_at_utc": "2026-09-08T02:34:36.490572+00:00",
+  "year_counts": {
+    "2022": 22,
+    "2023": 22
+  }
+}

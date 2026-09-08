@@ -1,0 +1,300 @@
+{
+  "acquisition_year_scope": [
+    2022,
+    2023
+  ],
+  "artifact_copies": [
+    {
+      "byte_identical": true,
+      "bytes": 518927,
+      "copy_sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d",
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+      "original_sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_forecast/acquisition.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 765,
+      "copy_sha256": "fb555ab26641ffe6b8dd4a79c7527046fa0bf941f91c314ff4576e4ccc095304",
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/acquisition_checks.json",
+      "original_sha256": "fb555ab26641ffe6b8dd4a79c7527046fa0bf941f91c314ff4576e4ccc095304",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_forecast/acquisition_checks.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 2328,
+      "copy_sha256": "3ef6db198c4eecfc62d7e341fe1b2cd4a7c919abf142faa482b6da84e58dabaa",
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/acquisition_evidence.json",
+      "original_sha256": "3ef6db198c4eecfc62d7e341fe1b2cd4a7c919abf142faa482b6da84e58dabaa",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_forecast/acquisition_evidence.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 1130,
+      "copy_sha256": "2a50a5e12a67143bef22b5d10421df69df1c615c4d9e52834bfa02019201f4ad",
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/acquisition_lock.json",
+      "original_sha256": "2a50a5e12a67143bef22b5d10421df69df1c615c4d9e52834bfa02019201f4ad",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_forecast/acquisition_lock.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 3245,
+      "copy_sha256": "b78a61152161feedb495aff81a290adf6ef482dc3b99b0e102197fce6a214ef9",
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/acquisition_verification.json",
+      "original_sha256": "b78a61152161feedb495aff81a290adf6ef482dc3b99b0e102197fce6a214ef9",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_forecast/acquisition_verification.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 465,
+      "copy_sha256": "87313e1d9450123e82fc119a37da19877ba57816185fe584dfba68d9a79a195d",
+      "original_path": "artifacts/research/boundary_20260908/sector_forecast/acquisition_verification_attempt.json",
+      "original_sha256": "87313e1d9450123e82fc119a37da19877ba57816185fe584dfba68d9a79a195d",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_forecast/acquisition_verification_attempt.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 11481,
+      "copy_sha256": "f7ee8b48ef46eddca82dc19dbe1cd8a47f51dbbb9bf1b9b375cc6a470d65a921",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/acquisition.json",
+      "original_sha256": "f7ee8b48ef46eddca82dc19dbe1cd8a47f51dbbb9bf1b9b375cc6a470d65a921",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/acquisition.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 1321,
+      "copy_sha256": "da0c8f9010fa338d4d073078030dc3cd18279ac4bbd7063109c1722a400923e1",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/acquisition_attempt.json",
+      "original_sha256": "da0c8f9010fa338d4d073078030dc3cd18279ac4bbd7063109c1722a400923e1",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/acquisition_attempt.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 2289,
+      "copy_sha256": "bb4ea6fe16db39ed4a33e03605c543a7f0111e999a5ec38a41b902a29e7b3e09",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/design_lock.json",
+      "original_sha256": "bb4ea6fe16db39ed4a33e03605c543a7f0111e999a5ec38a41b902a29e7b3e09",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/design_lock.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 4509,
+      "copy_sha256": "26486b2a71f9657540db399658a0b931af2ddc16879d8a1d736f58b31d2a5d06",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/evidence.json",
+      "original_sha256": "26486b2a71f9657540db399658a0b931af2ddc16879d8a1d736f58b31d2a5d06",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/evidence.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 5735,
+      "copy_sha256": "adf9fe98bedf12ad22bf69424c2a2631f85e41923a66cee0d4937148b3a72e36",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/execution_lock.json",
+      "original_sha256": "adf9fe98bedf12ad22bf69424c2a2631f85e41923a66cee0d4937148b3a72e36",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/execution_lock.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 649,
+      "copy_sha256": "51575a546774555571f7308319d2f7dea8713f21849cdbad321a7e599177c6e2",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/ledger_lock.json",
+      "original_sha256": "51575a546774555571f7308319d2f7dea8713f21849cdbad321a7e599177c6e2",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/ledger_lock.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 21386,
+      "copy_sha256": "a6b3e5cd2a19f632b15e2e94ce9a8012438b3c8d9655a6c4b89269bda909ac46",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/network_retry/acquisition.json",
+      "original_sha256": "a6b3e5cd2a19f632b15e2e94ce9a8012438b3c8d9655a6c4b89269bda909ac46",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/network_retry/acquisition.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 1321,
+      "copy_sha256": "e7c0c4675dbb1c07e6ca125433b84b48ae072e8c53e7d0a0be5af5031939af2d",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/network_retry/acquisition_attempt.json",
+      "original_sha256": "e7c0c4675dbb1c07e6ca125433b84b48ae072e8c53e7d0a0be5af5031939af2d",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/network_retry/acquisition_attempt.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 2289,
+      "copy_sha256": "bb4ea6fe16db39ed4a33e03605c543a7f0111e999a5ec38a41b902a29e7b3e09",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/network_retry/design_lock.json",
+      "original_sha256": "bb4ea6fe16db39ed4a33e03605c543a7f0111e999a5ec38a41b902a29e7b3e09",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/network_retry/design_lock.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 9894,
+      "copy_sha256": "1272a6f004dea9583b31996b0fce8d350a15f39b24a4c2e5e77a6bebfbd6bf7e",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/results.json",
+      "original_sha256": "1272a6f004dea9583b31996b0fce8d350a15f39b24a4c2e5e77a6bebfbd6bf7e",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/results.json"
+    },
+    {
+      "byte_identical": true,
+      "bytes": 1372,
+      "copy_sha256": "1e57ca5f088947096adc9a07dc32a452452c416426eae6053baa5c20de4b94fa",
+      "original_path": "artifacts/research/boundary_20260908/sector_pilot/verification.json",
+      "original_sha256": "1e57ca5f088947096adc9a07dc32a452452c416426eae6053baa5c20de4b94fa",
+      "published_copy_path": "docs/research/evidence/boundary_sector_publication_20260908/sector_pilot/verification.json"
+    }
+  ],
+  "checkpoint_tests_reported_by_coordinating_task": {
+    "interpretation": "Software/math/causality regressions; no empirical sector forecasting gain.",
+    "new_research_tests_failed": 0,
+    "new_research_tests_passed": 203,
+    "scope": "Combined new research suite, including football xG and sector components. These are not 203 sector-model performance tests.",
+    "temporary_source_only_checkout": {
+      "failed": 0,
+      "passed": 201,
+      "skipped_optional_real_pilot_tests": 2,
+      "wall_seconds": 2.47
+    },
+    "wall_seconds": 4.15
+  },
+  "copied_artifact_bytes": 589106,
+  "copied_artifact_count": 17,
+  "created_at_utc": "2026-09-08T02:50:17.241814+00:00",
+  "excluded_from_publication": [
+    "Raw provider HTTP bodies and decoded feed streams",
+    "Original canonical lap CSVs",
+    "Large immutable sector ledger and completed-CSV outcome JSONLs",
+    "Duplicate per-stream receipt files",
+    "Mutable acquisition progress/log snapshots"
+  ],
+  "publication_document": {
+    "bytes": 4742,
+    "path": "docs/research/boundary_sector_publication_20260908.md",
+    "sha256": "f8588b29889094838b4c1d4e265f66a814ff449e6f7bfe2ef2376cd6fe8f5376"
+  },
+  "publication_id": "boundary_sector_publication_20260908",
+  "publication_scope": {
+    "causal_issuance_target_join_complete": false,
+    "orchestrator_complete": false,
+    "real_sector_models_fitted": 0,
+    "real_sector_predictive_scores_computed": 0,
+    "sector_forecast_acquisition": "completed_and_verified_44_discovery_races_only",
+    "sector_forecasting": "unfitted_prototype_with_no_measured_predictive_gains",
+    "sector_model_selected": false,
+    "sector_pilot": "completed_and_verified_two_race_recorded_stream_feasibility",
+    "sector_serving_integration": false
+  },
+  "publication_validation": {
+    "every_copy_byte_identical": true,
+    "final_context_source_and_test_hashes_checked": true,
+    "original_evidence_file_bindings_checked": true,
+    "prior_frozen_source_or_artifact_edits": false,
+    "scope": "Source bindings and exact compact copies only; not a claim that all transitive raw inputs are included in a fresh clone.",
+    "strict_json_parsing": "passed_for_all_original_and_copied_artifacts"
+  },
+  "reproduction_contract": {
+    "corrected_pilot_verifier_command": "PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 .venv-f1/bin/python -m research.experiments.boundary_20260908.sector_pilot.verify",
+    "fresh_clone": "Source review and synthetic tests; optional real-input tests skip when local pilot inputs are missing.",
+    "frozen_readme_note": "Corrects a slash in the old README module invocation here; the hash-bound original README is unchanged.",
+    "historical_replay": "Requires exact original artifact/data paths with matching pinned hashes; published copies preserve original references without rewriting them.",
+    "raw_data_integrity": "Original URLs, receipts, byte counts and hashes remain in the copied acquisition manifests. New downloads are not assumed byte-identical."
+  },
+  "schema_version": 1,
+  "source_files": {
+    "research/experiments/boundary_20260908/sector_forecast/BASELINE_REVIEW.md": {
+      "bytes": 12218,
+      "sha256": "abcc58f00e38a38dca422f6e2f713e0121dc3c7b2e52f16137f4dcb45a33f184"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/README.md": {
+      "bytes": 6331,
+      "sha256": "488252673c24f97270b5e619202775c0d7d2eb2f6674d60a257b5ce03ef2a7da"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/acquire.py": {
+      "bytes": 11195,
+      "sha256": "7e8453251ba632aa21c157a30128fe823fe3e0edde6e67b793c2bf772ee4f4a0"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/acquisition_contract.json": {
+      "bytes": 45023,
+      "sha256": "87f9a155fb40ad5c4926142cc936cf6986afc648cbf42e130c3984569d68eace"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/baselines.py": {
+      "bytes": 9420,
+      "sha256": "2a8dfffb21ab4c098d5445bad6ee293d3917075dc1779f92e684d821486c4a47"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/completed.py": {
+      "bytes": 21613,
+      "sha256": "3d6b88f0d7678ff542f08478b62ca766e7fbd2f4b559b855c78f9443c2e32917"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/completed_contract.json": {
+      "bytes": 5681,
+      "sha256": "3d6ddb35030411c488bbfbe03206695542b103207a98ac3ac1e16a5e3230509f"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/context.py": {
+      "bytes": 13212,
+      "sha256": "8a717e68b2caff4870aef7349cd3832bdc73ce251728a56dff6eaacc2c461d2a"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/models.py": {
+      "bytes": 6823,
+      "sha256": "0886c52b2416b55382c359342056991d5492a210534507f3470d7d7942b8d24d"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/test_baselines.py": {
+      "bytes": 8235,
+      "sha256": "0627b45be94743fa1db8d114579c359c1e083ebf4e799d6adac78afbe1de6deb"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/test_completed.py": {
+      "bytes": 15952,
+      "sha256": "749cae1665bae364b25de0c758625ec74ca2abe31fa5cea7c65bc90e6d1e7ca8"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/test_context.py": {
+      "bytes": 8391,
+      "sha256": "49fdce0e58a2d1be6b748c2da8a7c0af80ac6d77994c26f66de98dac4292f488"
+    },
+    "research/experiments/boundary_20260908/sector_forecast/test_models.py": {
+      "bytes": 2317,
+      "sha256": "72215f7a6be5fa344cd0f9007ec69c73504afeff970013241a91802b4cf166cb"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/README.md": {
+      "bytes": 13761,
+      "sha256": "4b063805ecc4f3ec4065ca54db442850164266039bfe485a1dd4e9ae1f0952e3"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/acquire.py": {
+      "bytes": 4670,
+      "sha256": "727f16ddcc519f226394242b8a04e81301cb8e6a8637124738675200fad84c55"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/ledger.py": {
+      "bytes": 14066,
+      "sha256": "74efc6f80e2264613c35f9c1924d29447d84233786e74076bf1dd9b6da709139"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/run.py": {
+      "bytes": 8569,
+      "sha256": "220b5608092e8fea36738abbb42af16ada9942d269052a1ee199ed1bce8993f6"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/specification.json": {
+      "bytes": 5505,
+      "sha256": "1c20ed83127c46ac756bcd133b04431a41a0e4c633e313878695e293100b2e72"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/test_ledger.py": {
+      "bytes": 7833,
+      "sha256": "149dbfde746b40706e6dc39e79371d9edc2ab31a2e4a3b2ac256f42283f67495"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/verify.py": {
+      "bytes": 6596,
+      "sha256": "bb02afa172ba1bf3fa21201539a1940bd0171ad92763a65b2fb8a367d6d51546"
+    }
+  },
+  "status": "published_evidence_package_prepared_for_review_not_commit_or_push_confirmation",
+  "suggested_commit": "research(f1): publish sector feasibility evidence and unfitted forecasting components",
+  "verified_acquisition_counts": {
+    "downloaded": 126,
+    "expected_streams": 132,
+    "new_http_attempts": 189,
+    "new_saved_body_bytes": 248272574,
+    "reused_track_status": 44,
+    "reused_verified_pilot": 6,
+    "unavailable": 0
+  },
+  "verified_feasibility_counts": {
+    "candidate_checkpoints": 4245,
+    "canonical_hgb_certified_candidate_rows": 0,
+    "matched_candidate_outcomes": 4231,
+    "positive_s1_s2_updates": 4312,
+    "unmatched_candidate_outcomes": 14
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "checked_at_utc": "2026-09-08T02:32:01.211796+00:00",
+  "contract_sha256": "87f9a155fb40ad5c4926142cc936cf6986afc648cbf42e130c3984569d68eace",
+  "network_requests": 0,
+  "passed": 5,
+  "preflight": {
+    "max_parallel_requests": 2,
+    "new_stream_jobs": 126,
+    "pilot_streams_reused": 6,
+    "sessions": 44,
+    "track_status_streams_reused": 44
+  },
+  "source_sha256": "7e8453251ba632aa21c157a30128fe823fe3e0edde6e67b793c2bf772ee4f4a0",
+  "status": "passed",
+  "tests": [
+    "mirror404_then_official_success_with_exact_failed_body",
+    "identity_decoding_single_body_and_hash_parity",
+    "verified_resume_makes_no_new_request",
+    "partial_transport_body_retained_and_not_complete",
+    "oversize_downloads_fail_closed_with_bounded_partial_bytes"
+  ]
+}

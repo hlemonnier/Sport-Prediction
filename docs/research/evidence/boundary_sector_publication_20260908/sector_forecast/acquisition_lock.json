@@ -1,0 +1,22 @@
+{
+  "contract_sha256": "87f9a155fb40ad5c4926142cc936cf6986afc648cbf42e130c3984569d68eace",
+  "frozen_at_utc": "2026-09-08T02:32:23.294878+00:00",
+  "preflight": {
+    "estimated_raw_disk_bytes": 310000000,
+    "existing_pilot_streams": 6,
+    "existing_track_status_streams": 44,
+    "free_disk_bytes": 599316365312,
+    "max_simultaneous_http_requests": 2,
+    "new_stream_jobs": 126,
+    "sessions": 44,
+    "source_files": {
+      "research/experiments/boundary_20260908/sector_forecast/acquire.py": "7e8453251ba632aa21c157a30128fe823fe3e0edde6e67b793c2bf772ee4f4a0",
+      "research/experiments/boundary_20260908/sector_forecast/acquisition_contract.json": "87f9a155fb40ad5c4926142cc936cf6986afc648cbf42e130c3984569d68eace"
+    }
+  },
+  "scope": "Acquisition only; zero fits and zero predictive scores",
+  "source_files": {
+    "research/experiments/boundary_20260908/sector_forecast/acquire.py": "7e8453251ba632aa21c157a30128fe823fe3e0edde6e67b793c2bf772ee4f4a0",
+    "research/experiments/boundary_20260908/sector_forecast/acquisition_contract.json": "87f9a155fb40ad5c4926142cc936cf6986afc648cbf42e130c3984569d68eace"
+  }
+}

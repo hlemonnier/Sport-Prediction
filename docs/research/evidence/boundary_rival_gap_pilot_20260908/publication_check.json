@@ -1,0 +1,244 @@
+{
+  "byte_identical_copies": [
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 2997,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot/design_lock.json",
+        "sha256": "d971396caf8ed98cd9c11ef99965677457fd9239e34b8e8f7b14f9ac86f3e7c9"
+      },
+      "published": {
+        "bytes": 2997,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v1_design_lock.json",
+        "sha256": "d971396caf8ed98cd9c11ef99965677457fd9239e34b8e8f7b14f9ac86f3e7c9"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 10073,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot/result.json",
+        "sha256": "ab5469a6ab51f4754c282579f6be2af29828df6df1967de257ecdd6054b22fb7"
+      },
+      "published": {
+        "bytes": 10073,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v1_result.json",
+        "sha256": "ab5469a6ab51f4754c282579f6be2af29828df6df1967de257ecdd6054b22fb7"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 1255,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot/pre_fit_tests.json",
+        "sha256": "6743327b47b0965ac78bfd7467cb3f89f3adc53db587dd51964473c5ab896141"
+      },
+      "published": {
+        "bytes": 1255,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v1_pre_fit_tests.json",
+        "sha256": "6743327b47b0965ac78bfd7467cb3f89f3adc53db587dd51964473c5ab896141"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 332,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot/attempt.json",
+        "sha256": "ec92e804c59602320f02cce201375074ff1af59246ce2ad8c9987de2b65242dd"
+      },
+      "published": {
+        "bytes": 332,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v1_attempt.json",
+        "sha256": "ec92e804c59602320f02cce201375074ff1af59246ce2ad8c9987de2b65242dd"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 3769,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot_review.json",
+        "sha256": "7e15ff5858343dcab93b336b5575b64ac13e2ebb66ba8cb81342cd9b003d4263"
+      },
+      "published": {
+        "bytes": 3769,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v1_review.json",
+        "sha256": "7e15ff5858343dcab93b336b5575b64ac13e2ebb66ba8cb81342cd9b003d4263"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 4867,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/design_lock.json",
+        "sha256": "c71ad48ee4c1c4088a02fd5d38f575a83248fe0dd5114602e302ec494a015bca"
+      },
+      "published": {
+        "bytes": 4867,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v2_design_lock.json",
+        "sha256": "c71ad48ee4c1c4088a02fd5d38f575a83248fe0dd5114602e302ec494a015bca"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 9678,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/result.json",
+        "sha256": "8c97a723aa649f41c79bd49e63d2bb17b4d3f804bd74e777db9c75d2eb4b4696"
+      },
+      "published": {
+        "bytes": 9678,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v2_result.json",
+        "sha256": "8c97a723aa649f41c79bd49e63d2bb17b4d3f804bd74e777db9c75d2eb4b4696"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 1354,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/pre_fit_tests.json",
+        "sha256": "482da44920ff6cadfb0e227b8ee57d9e7b6eae66d435958aa15591320f95bca5"
+      },
+      "published": {
+        "bytes": 1354,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v2_pre_fit_tests.json",
+        "sha256": "482da44920ff6cadfb0e227b8ee57d9e7b6eae66d435958aa15591320f95bca5"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 335,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/attempt.json",
+        "sha256": "e6e527c823a31cff29950c8259e62ba980ed1270276cc6dfc95a8301c18bf5ed"
+      },
+      "published": {
+        "bytes": 335,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v2_attempt.json",
+        "sha256": "e6e527c823a31cff29950c8259e62ba980ed1270276cc6dfc95a8301c18bf5ed"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 4092,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2_review.json",
+        "sha256": "f58e0a10a504fa6f8ff18efeabcb60b7965fa19293fecfccf9f963ca4f6b20a8"
+      },
+      "published": {
+        "bytes": 4092,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v2_review.json",
+        "sha256": "f58e0a10a504fa6f8ff18efeabcb60b7965fa19293fecfccf9f963ca4f6b20a8"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 8735,
+        "path": "research/experiments/boundary_20260908/rival_gap_pilot/specification.json",
+        "sha256": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671"
+      },
+      "published": {
+        "bytes": 8735,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v1_specification.json",
+        "sha256": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 11575,
+        "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification.json",
+        "sha256": "41ca0b9c77bf87e94ce23ba92ab1e0f385e99976ab882e10e1da6979c4b02bdc"
+      },
+      "published": {
+        "bytes": 11575,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v2_amendment_specification.json",
+        "sha256": "41ca0b9c77bf87e94ce23ba92ab1e0f385e99976ab882e10e1da6979c4b02bdc"
+      }
+    },
+    {
+      "byte_identical": true,
+      "original": {
+        "bytes": 9746,
+        "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/verification.json",
+        "sha256": "5a6e3655d73bbb75d25a7fbcbf0f86ba505b08f85aec626c0fe6ebfb3998ae6b"
+      },
+      "published": {
+        "bytes": 9746,
+        "path": "docs/research/evidence/boundary_rival_gap_pilot_20260908/v2_snapshot_verification.json",
+        "sha256": "5a6e3655d73bbb75d25a7fbcbf0f86ba505b08f85aec626c0fe6ebfb3998ae6b"
+      }
+    }
+  ],
+  "checked_at_utc": "2026-09-08T06:59:17.962720+00:00",
+  "copy_bytes": 68808,
+  "copy_count": 13,
+  "method": "Read-only byte comparison of compact copies, frozen source maps and original input hash bindings. Snapshot arithmetic verification is separately preserved.",
+  "model_fits_or_prediction_scores_performed": false,
+  "original_v1_preserved": true,
+  "original_v2_preserved": true,
+  "raw_streams_or_jsonl_copied": false,
+  "report": {
+    "bytes": 6153,
+    "path": "docs/research/boundary_rival_gap_pilot_20260908.md",
+    "sha256": "7ef9bbf0b172b57f27a7736b2f67a316ae411050acd3dd4cbddebbe175bd2405"
+  },
+  "source_bindings": [
+    {
+      "bytes": 4015,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/README.md",
+      "sha256": "141d7963bd31475fb7de11342e6c72944a7931638682365df93ca7dd3dcba44f"
+    },
+    {
+      "bytes": 21568,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/pilot.py",
+      "sha256": "b45b9b745ac2ed9e5797ed20861bbe360e649c074d95be1c966dfd84bcd0f6f7"
+    },
+    {
+      "bytes": 8735,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/specification.json",
+      "sha256": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671"
+    },
+    {
+      "bytes": 6891,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/specification_before_header_cursor.json",
+      "sha256": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c"
+    },
+    {
+      "bytes": 13241,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/test_pilot.py",
+      "sha256": "af9c293f3bd632a327748fb3bb03c25e20756ef5541bf2aa1ef0c6aeadc17285"
+    },
+    {
+      "bytes": 4520,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/README.md",
+      "sha256": "ec28a9219165841486580cc85f3e91ae7259c8beee1fc18a5bebcb8f52a2f08e"
+    },
+    {
+      "bytes": 21913,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/pilot.py",
+      "sha256": "a05834853b2c588fccd851e91cb300044c46b6b50a49f8a560e261fced59fb34"
+    },
+    {
+      "bytes": 11575,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification.json",
+      "sha256": "41ca0b9c77bf87e94ce23ba92ab1e0f385e99976ab882e10e1da6979c4b02bdc"
+    },
+    {
+      "bytes": 6891,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification_before_header_cursor.json",
+      "sha256": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c"
+    },
+    {
+      "bytes": 16618,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/test_pilot.py",
+      "sha256": "b2f5f7679afbf97aa83a28558674623a4224c4dd879763457a36d55ddbf3cdd7"
+    },
+    {
+      "bytes": 6498,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/verification/verify.py",
+      "sha256": "9d92b74e37e3ffd78bb792dad2ec522fbc5e3c9b5f86e78206a37f584a2ffd96"
+    }
+  ],
+  "status": "passed"
+}

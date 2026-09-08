@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "--import-mode=importlib",
+    "-p",
+    "no:cacheprovider",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/rival_gap_pilot"
+  ],
+  "exit_code": 0,
+  "source_files": {
+    "research/experiments/boundary_20260908/rival_gap_pilot/README.md": "141d7963bd31475fb7de11342e6c72944a7931638682365df93ca7dd3dcba44f",
+    "research/experiments/boundary_20260908/rival_gap_pilot/pilot.py": "b45b9b745ac2ed9e5797ed20861bbe360e649c074d95be1c966dfd84bcd0f6f7",
+    "research/experiments/boundary_20260908/rival_gap_pilot/specification.json": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671",
+    "research/experiments/boundary_20260908/rival_gap_pilot/specification_before_header_cursor.json": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c",
+    "research/experiments/boundary_20260908/rival_gap_pilot/test_pilot.py": "af9c293f3bd632a327748fb3bb03c25e20756ef5541bf2aa1ef0c6aeadc17285"
+  },
+  "stderr": "",
+  "stdout": ".....................................................................    [100%]\n69 passed in 0.08s\n"
+}

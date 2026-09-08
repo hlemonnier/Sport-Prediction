@@ -1,0 +1,59 @@
+{
+  "closed_at_utc": "2026-09-08T06:48:55.643911+00:00",
+  "historical_payload_analysis_before_lock": false,
+  "inputs": [
+    {
+      "path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+      "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+    },
+    {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/data_lock.json",
+      "sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005"
+    },
+    {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json",
+      "sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf"
+    },
+    {
+      "bytes": 7192208,
+      "path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingData.jsonStream",
+      "sha256": "ca688ed48f657e2ed82fae017f934a35128d94658a7c58e5e5d178e158cee262"
+    },
+    {
+      "event_key": 202201,
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl",
+      "rows": 853,
+      "sha256": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6"
+    },
+    {
+      "bytes": 6748486,
+      "path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.jsonStream",
+      "sha256": "9f50e19cc13f4b45d60ef5c194c1e45f3d193883faf77d506078f2a6c429408a"
+    },
+    {
+      "event_key": 202301,
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl",
+      "rows": 874,
+      "sha256": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be"
+    }
+  ],
+  "model_fits": 0,
+  "prediction_scores": 0,
+  "review": {
+    "bytes": 3769,
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_pilot_review.json",
+    "sha256": "7e15ff5858343dcab93b336b5575b64ac13e2ebb66ba8cb81342cd9b003d4263"
+  },
+  "source_files": {
+    "research/experiments/boundary_20260908/rival_gap_pilot/README.md": "141d7963bd31475fb7de11342e6c72944a7931638682365df93ca7dd3dcba44f",
+    "research/experiments/boundary_20260908/rival_gap_pilot/pilot.py": "b45b9b745ac2ed9e5797ed20861bbe360e649c074d95be1c966dfd84bcd0f6f7",
+    "research/experiments/boundary_20260908/rival_gap_pilot/specification.json": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671",
+    "research/experiments/boundary_20260908/rival_gap_pilot/specification_before_header_cursor.json": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c",
+    "research/experiments/boundary_20260908/rival_gap_pilot/test_pilot.py": "af9c293f3bd632a327748fb3bb03c25e20756ef5541bf2aa1ef0c6aeadc17285"
+  },
+  "specification": {
+    "bytes": 8735,
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/rival_gap_pilot/specification.json",
+    "sha256": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671"
+  }
+}

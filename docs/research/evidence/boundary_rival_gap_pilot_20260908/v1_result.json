@@ -1,0 +1,280 @@
+{
+  "closed_at_utc": "2026-09-08T06:49:04.124447+00:00",
+  "design_lock": {
+    "bytes": 2997,
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_pilot/design_lock.json",
+    "sha256": "d971396caf8ed98cd9c11ef99965677457fd9239e34b8e8f7b14f9ac86f3e7c9"
+  },
+  "entries": [
+    {
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 853,
+        "ready_10s": 0,
+        "ready_2s": 0,
+        "ready_30s": 0,
+        "ready_5s": 0,
+        "source_parse_gap_or_unknown_clock": 853,
+        "unknown_or_invalid_rank": 853
+      },
+      "event_key": 202201,
+      "field_age_missing": {
+        "GapToLeader": 853,
+        "IntervalToPositionAhead": 853,
+        "Position": 853
+      },
+      "field_categories": {
+        "GapToLeader/never_observed": 853,
+        "IntervalToPositionAhead/never_observed": 853,
+        "Position/never_observed": 853
+      },
+      "forecast_consumption": {
+        "processed": {},
+        "source_ambiguous": true,
+        "unplaceable_timestamp_boundary": {
+          "available_ms": null,
+          "header_valid": false,
+          "prefix_ended_line": false,
+          "prefix_hex": "efbbbf30303a30303a30332e",
+          "recorded_ms": null,
+          "regressed": null,
+          "sequence": 0
+        }
+      },
+      "full_stream_inventory": {
+        "counts": {
+          "invalid_timestamp_headers": 1,
+          "packets": 69772,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 31,
+          "GapToLeader/string/string/invalid": 20,
+          "GapToLeader/string/string/leader_lap_counter": 65,
+          "GapToLeader/string/string/seconds": 26493,
+          "IntervalToPositionAhead/object/None/metadata_only": 82,
+          "IntervalToPositionAhead/object/string/clear_blank": 523,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 65,
+          "IntervalToPositionAhead/object/string/seconds": 29104,
+          "Position/string/string/rank": 861
+        }
+      },
+      "lag_seconds": 2,
+      "rows": 853,
+      "snapshot_file": {
+        "bytes": 1149158,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_pilot/202201_lag2.jsonl",
+        "sha256": "204aa430fe93e6cfc0747603f10c91c45c372bf933fa9440f72f3d244591ea4e"
+      }
+    },
+    {
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 853,
+        "ready_10s": 0,
+        "ready_2s": 0,
+        "ready_30s": 0,
+        "ready_5s": 0,
+        "source_parse_gap_or_unknown_clock": 853,
+        "unknown_or_invalid_rank": 853
+      },
+      "event_key": 202201,
+      "field_age_missing": {
+        "GapToLeader": 853,
+        "IntervalToPositionAhead": 853,
+        "Position": 853
+      },
+      "field_categories": {
+        "GapToLeader/never_observed": 853,
+        "IntervalToPositionAhead/never_observed": 853,
+        "Position/never_observed": 853
+      },
+      "forecast_consumption": {
+        "processed": {},
+        "source_ambiguous": true,
+        "unplaceable_timestamp_boundary": {
+          "available_ms": null,
+          "header_valid": false,
+          "prefix_ended_line": false,
+          "prefix_hex": "efbbbf30303a30303a30332e",
+          "recorded_ms": null,
+          "regressed": null,
+          "sequence": 0
+        }
+      },
+      "full_stream_inventory": {
+        "counts": {
+          "invalid_timestamp_headers": 1,
+          "packets": 69772,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 31,
+          "GapToLeader/string/string/invalid": 20,
+          "GapToLeader/string/string/leader_lap_counter": 65,
+          "GapToLeader/string/string/seconds": 26493,
+          "IntervalToPositionAhead/object/None/metadata_only": 82,
+          "IntervalToPositionAhead/object/string/clear_blank": 523,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 65,
+          "IntervalToPositionAhead/object/string/seconds": 29104,
+          "Position/string/string/rank": 861
+        }
+      },
+      "lag_seconds": 0,
+      "rows": 853,
+      "snapshot_file": {
+        "bytes": 1149158,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_pilot/202201_lag0.jsonl",
+        "sha256": "f63113047f6810b425698dd2e5f60c67e211898b7cc4911044c8d23e17f7c300"
+      }
+    },
+    {
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 874,
+        "ready_10s": 0,
+        "ready_2s": 0,
+        "ready_30s": 0,
+        "ready_5s": 0,
+        "source_parse_gap_or_unknown_clock": 874,
+        "unknown_or_invalid_rank": 874
+      },
+      "event_key": 202301,
+      "field_age_missing": {
+        "GapToLeader": 874,
+        "IntervalToPositionAhead": 874,
+        "Position": 874
+      },
+      "field_categories": {
+        "GapToLeader/never_observed": 874,
+        "IntervalToPositionAhead/never_observed": 874,
+        "Position/never_observed": 874
+      },
+      "forecast_consumption": {
+        "processed": {},
+        "source_ambiguous": true,
+        "unplaceable_timestamp_boundary": {
+          "available_ms": null,
+          "header_valid": false,
+          "prefix_ended_line": false,
+          "prefix_hex": "efbbbf30303a30303a30322e",
+          "recorded_ms": null,
+          "regressed": null,
+          "sequence": 0
+        }
+      },
+      "full_stream_inventory": {
+        "counts": {
+          "invalid_timestamp_headers": 1,
+          "packets": 65627,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 27,
+          "GapToLeader/string/string/invalid": 23,
+          "GapToLeader/string/string/leader_lap_counter": 61,
+          "GapToLeader/string/string/seconds": 24682,
+          "IntervalToPositionAhead/object/None/metadata_only": 61,
+          "IntervalToPositionAhead/object/string/clear_blank": 382,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 61,
+          "IntervalToPositionAhead/object/string/seconds": 27321,
+          "Position/string/string/rank": 670
+        }
+      },
+      "lag_seconds": 2,
+      "rows": 874,
+      "snapshot_file": {
+        "bytes": 1177528,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_pilot/202301_lag2.jsonl",
+        "sha256": "f1229135cd3c14a0bddbe5244dee1e4992150f81ab38206d313f7b0d71c81647"
+      }
+    },
+    {
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 874,
+        "ready_10s": 0,
+        "ready_2s": 0,
+        "ready_30s": 0,
+        "ready_5s": 0,
+        "source_parse_gap_or_unknown_clock": 874,
+        "unknown_or_invalid_rank": 874
+      },
+      "event_key": 202301,
+      "field_age_missing": {
+        "GapToLeader": 874,
+        "IntervalToPositionAhead": 874,
+        "Position": 874
+      },
+      "field_categories": {
+        "GapToLeader/never_observed": 874,
+        "IntervalToPositionAhead/never_observed": 874,
+        "Position/never_observed": 874
+      },
+      "forecast_consumption": {
+        "processed": {},
+        "source_ambiguous": true,
+        "unplaceable_timestamp_boundary": {
+          "available_ms": null,
+          "header_valid": false,
+          "prefix_ended_line": false,
+          "prefix_hex": "efbbbf30303a30303a30322e",
+          "recorded_ms": null,
+          "regressed": null,
+          "sequence": 0
+        }
+      },
+      "full_stream_inventory": {
+        "counts": {
+          "invalid_timestamp_headers": 1,
+          "packets": 65627,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 27,
+          "GapToLeader/string/string/invalid": 23,
+          "GapToLeader/string/string/leader_lap_counter": 61,
+          "GapToLeader/string/string/seconds": 24682,
+          "IntervalToPositionAhead/object/None/metadata_only": 61,
+          "IntervalToPositionAhead/object/string/clear_blank": 382,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 61,
+          "IntervalToPositionAhead/object/string/seconds": 27321,
+          "Position/string/string/rank": 670
+        }
+      },
+      "lag_seconds": 0,
+      "rows": 874,
+      "snapshot_file": {
+        "bytes": 1177528,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_pilot/202301_lag0.jsonl",
+        "sha256": "4948d5b156d10346959d5cd3c6e2779d2c9a1177b4c2fca89dc00e7d050dbb24"
+      }
+    }
+  ],
+  "model_fits": 0,
+  "new_downloads": 0,
+  "physical_nearest_car_claim": false,
+  "prediction_scores": 0,
+  "rows_both_lags": 3454,
+  "status": "closed_target_free_feasibility_not_model_validation"
+}

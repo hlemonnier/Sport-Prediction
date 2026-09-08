@@ -1,0 +1,256 @@
+{
+  "checked_at_utc": "2026-09-08T06:56:17.259874+00:00",
+  "design_lock": {
+    "bytes": 4867,
+    "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/design_lock.json",
+    "sha256": "c71ad48ee4c1c4088a02fd5d38f575a83248fe0dd5114602e302ec494a015bca"
+  },
+  "method": "Independent JSONL identity, hash, strict-clock, age arithmetic, readiness and aggregation checks. Raw streams were hashed only, never parsed by this verifier.",
+  "raw_feed_payload_reads": 0,
+  "result": {
+    "bytes": 9678,
+    "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/result.json",
+    "sha256": "8c97a723aa649f41c79bd49e63d2bb17b4d3f804bd74e777db9c75d2eb4b4696"
+  },
+  "rows_checked": 3454,
+  "selection_or_model_evaluation": false,
+  "source": {
+    "bytes": 6498,
+    "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/verification/verify.py",
+    "sha256": "9d92b74e37e3ffd78bb792dad2ec522fbc5e3c9b5f86e78206a37f584a2ffd96"
+  },
+  "source_and_input_bindings_checked": [
+    {
+      "bytes": 4520,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/README.md",
+      "sha256": "ec28a9219165841486580cc85f3e91ae7259c8beee1fc18a5bebcb8f52a2f08e"
+    },
+    {
+      "bytes": 21913,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/pilot.py",
+      "sha256": "a05834853b2c588fccd851e91cb300044c46b6b50a49f8a560e261fced59fb34"
+    },
+    {
+      "bytes": 11575,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification.json",
+      "sha256": "41ca0b9c77bf87e94ce23ba92ab1e0f385e99976ab882e10e1da6979c4b02bdc"
+    },
+    {
+      "bytes": 6891,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification_before_header_cursor.json",
+      "sha256": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c"
+    },
+    {
+      "bytes": 16618,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/test_pilot.py",
+      "sha256": "b2f5f7679afbf97aa83a28558674623a4224c4dd879763457a36d55ddbf3cdd7"
+    },
+    {
+      "bytes": 518927,
+      "path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+      "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+    },
+    {
+      "bytes": 16865,
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/data_lock.json",
+      "sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005"
+    },
+    {
+      "bytes": 126468,
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json",
+      "sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf"
+    },
+    {
+      "bytes": 4015,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/README.md",
+      "sha256": "141d7963bd31475fb7de11342e6c72944a7931638682365df93ca7dd3dcba44f"
+    },
+    {
+      "bytes": 21568,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/pilot.py",
+      "sha256": "b45b9b745ac2ed9e5797ed20861bbe360e649c074d95be1c966dfd84bcd0f6f7"
+    },
+    {
+      "bytes": 8735,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/specification.json",
+      "sha256": "073a7a31c5718399d47907f610d5603f555c5837d617e6c60c1d1fc4fda24671"
+    },
+    {
+      "bytes": 6891,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/specification_before_header_cursor.json",
+      "sha256": "f92ac55e002f9768d1738ce0c6fa8c257bd32cf824499d28e142e705d685a95c"
+    },
+    {
+      "bytes": 13241,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot/test_pilot.py",
+      "sha256": "af9c293f3bd632a327748fb3bb03c25e20756ef5541bf2aa1ef0c6aeadc17285"
+    },
+    {
+      "bytes": 2997,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot/design_lock.json",
+      "sha256": "d971396caf8ed98cd9c11ef99965677457fd9239e34b8e8f7b14f9ac86f3e7c9"
+    },
+    {
+      "bytes": 1255,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot/pre_fit_tests.json",
+      "sha256": "6743327b47b0965ac78bfd7467cb3f89f3adc53db587dd51964473c5ab896141"
+    },
+    {
+      "bytes": 332,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot/attempt.json",
+      "sha256": "ec92e804c59602320f02cce201375074ff1af59246ce2ad8c9987de2b65242dd"
+    },
+    {
+      "bytes": 10073,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot/result.json",
+      "sha256": "ab5469a6ab51f4754c282579f6be2af29828df6df1967de257ecdd6054b22fb7"
+    },
+    {
+      "bytes": 7192208,
+      "path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingData.jsonStream",
+      "sha256": "ca688ed48f657e2ed82fae017f934a35128d94658a7c58e5e5d178e158cee262"
+    },
+    {
+      "bytes": 2965664,
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl",
+      "sha256": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6"
+    },
+    {
+      "bytes": 6748486,
+      "path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.jsonStream",
+      "sha256": "9f50e19cc13f4b45d60ef5c194c1e45f3d193883faf77d506078f2a6c429408a"
+    },
+    {
+      "bytes": 3052314,
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl",
+      "sha256": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be"
+    },
+    {
+      "bytes": 4092,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2_review.json",
+      "sha256": "f58e0a10a504fa6f8ff18efeabcb60b7965fa19293fecfccf9f963ca4f6b20a8"
+    },
+    {
+      "bytes": 11575,
+      "path": "research/experiments/boundary_20260908/rival_gap_pilot_v2/specification.json",
+      "sha256": "41ca0b9c77bf87e94ce23ba92ab1e0f385e99976ab882e10e1da6979c4b02bdc"
+    },
+    {
+      "bytes": 4867,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/design_lock.json",
+      "sha256": "c71ad48ee4c1c4088a02fd5d38f575a83248fe0dd5114602e302ec494a015bca"
+    },
+    {
+      "bytes": 1406028,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/202201_lag2.jsonl",
+      "sha256": "908c09d6963088ff47863d128bf76fe8b8f3e2d9a5add97b921f2b4ffdabf32d"
+    },
+    {
+      "bytes": 1405180,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/202201_lag0.jsonl",
+      "sha256": "fff5068ea75f58cd0d680ed1f731706605b0dbfcf8edbff7e0f1a852330d22f0"
+    },
+    {
+      "bytes": 1441180,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/202301_lag2.jsonl",
+      "sha256": "5e4b0741d04718328d76657b7aa08ee0b5b8a04798882df926bb034df3a4330b"
+    },
+    {
+      "bytes": 1440321,
+      "path": "artifacts/research/boundary_20260908/rival_gap_pilot_v2/202301_lag0.jsonl",
+      "sha256": "fb47249dc99e82e8a70994da2080b891acf5a07b1ff88bc319f23e10ad93f804"
+    }
+  ],
+  "status": "passed",
+  "summaries": [
+    {
+      "clock_identity_count_checks_passed": true,
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 46,
+        "ready_10s": 807,
+        "ready_2s": 0,
+        "ready_30s": 807,
+        "ready_5s": 806,
+        "source_parse_gap_or_unknown_clock": 0,
+        "unknown_or_invalid_rank": 0
+      },
+      "event_key": 202201,
+      "lag_seconds": 2,
+      "leader_gap_category_ready": 742,
+      "ready_10s": 807,
+      "ready_10s_percent": 94.60726846424384,
+      "rows": 853
+    },
+    {
+      "clock_identity_count_checks_passed": true,
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 51,
+        "ready_10s": 802,
+        "ready_2s": 798,
+        "ready_30s": 802,
+        "ready_5s": 798,
+        "source_parse_gap_or_unknown_clock": 0,
+        "unknown_or_invalid_rank": 0
+      },
+      "event_key": 202201,
+      "lag_seconds": 0,
+      "leader_gap_category_ready": 742,
+      "ready_10s": 802,
+      "ready_10s_percent": 94.021101992966,
+      "rows": 853
+    },
+    {
+      "clock_identity_count_checks_passed": true,
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 48,
+        "ready_10s": 826,
+        "ready_2s": 1,
+        "ready_30s": 826,
+        "ready_5s": 823,
+        "source_parse_gap_or_unknown_clock": 0,
+        "unknown_or_invalid_rank": 0
+      },
+      "event_key": 202301,
+      "lag_seconds": 2,
+      "leader_gap_category_ready": 737,
+      "ready_10s": 826,
+      "ready_10s_percent": 94.50800915331808,
+      "rows": 874
+    },
+    {
+      "clock_identity_count_checks_passed": true,
+      "coverage": {
+        "duplicate_reported_rank": 0,
+        "interval_predates_last_rank_change": 0,
+        "latest_field_timestamp_regressed": 0,
+        "leader_rank_category_inconsistent": 0,
+        "missing_clear_invalid_or_stale_gap": 43,
+        "ready_10s": 831,
+        "ready_2s": 826,
+        "ready_30s": 831,
+        "ready_5s": 826,
+        "source_parse_gap_or_unknown_clock": 0,
+        "unknown_or_invalid_rank": 0
+      },
+      "event_key": 202301,
+      "lag_seconds": 0,
+      "leader_gap_category_ready": 745,
+      "ready_10s": 831,
+      "ready_10s_percent": 95.08009153318078,
+      "rows": 874
+    }
+  ],
+  "unique_original_issuances": 1727
+}

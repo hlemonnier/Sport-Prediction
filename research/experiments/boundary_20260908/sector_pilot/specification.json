@@ -1,0 +1,44 @@
+{
+  "id": "raw_sector_prefix_pilot_20260908",
+  "status": "causal_recorded_stream_feasibility_not_prediction_research",
+  "sessions": [
+    {
+      "event_key": 202201,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 6993,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "session_start_local": "2022-03-20T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345"
+    },
+    {
+      "event_key": 202301,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 7953,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "session_start_local": "2023-03-05T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8"
+    }
+  ],
+  "selection_reason": "Earliest namedRace in each discoveryyear2022/2023; no raw-stream outcome selection. Same venue limits generalization.",
+  "acquisition": "Only these two Race sessions;TimingData,SessionStatus,TimingAppData. Use installedFastF1 configuredmirror thenofficialfallback. ExistingTrackStatus reused withhashes. Preserve HTTPentityrawbytes,actualURL,UTCrequeststart/headers/end,HTTPstatus,responseheaders andSHA. Currentdownloadreceipt is not historicalliveclientreceipt. NoSession.load or car/positiontelemetry.",
+  "receipt_contract": "Archive packet file order is the receipt-order proxy within each stream. Preserve raw12char sessiontime and physicalline ordinal. Effective replayclock is cumulative max(rawtimestamp), preventing late timestamps backdating an already-issued event. No claim this recovers historicalclientnetworklatency. AuxiliarySessionStatus/TrackStatus/TimingAppData records must have effectiveclock strictlyearlier than TimingData checkpoint; equal-time auxiliaries are not used. SameTimingData packet driver patches atomic for driver ownfields; counter+sector collision explicitlyambiguous.",
+  "ledger": "Emit an immutable row for EVERYpositiveS1/S2 update, not only usable candidates. Keep rawsequence/timestamp/effectiveclock, observedcompletedcounter, localepochgeneration, updatekind(first/repeat/revision), sectorvalue, knownfields, latestsource times and allambiguityflags. Emptyvalues/resets remainstateevents and counts. Neither futurecounter events nor finalCSV may repair, move, remove or overwrite a savedrow.",
+  "epochs": "Observedcounter is not certifiedcanonicalLapNumber. Initialize localepoch at firstcounter. Anycounteradvance starts a newepoch; jumps>1markambiguity. Counterreversal quarantines attribution untilcounterexceeds previoushighwater. S1 after a seenS2 withoutcounteradvance plus observedsectorclear starts an explicitlyambiguous localcycle. Positiveupdate\u22645safter knowncounterboundary and counter/sector samepacket are ambiguous, following the installedparser documented late-sector window as an ambiguityflag only. Repeats/revisions within sameepoch/sector are retained without newfirstcheckpoint. Rawtimestampregression marksattributionambiguous. Never usefuturetimes to decidepreviouslap ownership.",
+  "candidate_definition": "FirstpositiveS1/S2 in a locallyunambiguous observedepoch,knowncounter,strictlypriorSessionStatus=Started,and knownInPit=False. S2requires priorS1inthatobservedepoch. Allotherledger rows retained with explicit exclusionreasons. Candidate is recorded-input eligibility, not proof currentlap will be clean.",
+  "tyre_contract": "Replay TimingAppData partialstintrecords strictlyprior. Highest observedstintindex and its sparsefields are candidatecurrenttyre facts, not certified active-stint or canonicalTyreLife. Carry only received fieldvalues with source times; do not join futurecompletedlapCSV to currentstate.",
+  "hgb_audit": "Count rawasof presence/missingness of priorLastLapTime,counter,position,sectors/speeds,pitstate,TrackStatus,tyrestint/Compound/New/StartLaps/TotalLaps. Presence is not correctcompletedlap alignment. IsAccurate,processedlapTime and canonicalTyreLife are not rawreceipt-certified; all strictcanonicalHGB parity cases remain unresolved unless independently proven. Do not manufacture HGB80featurevectors or modeloutputs.",
+  "separate_outcome_diagnostics": "Afterledgerwrittenandhashed only, useexistinghashedcanonicalcompletedlapCSV to count first subsequent same-driver recordedeligiblecleanlap withTime>checkpoint, applying originalnumericpositiveLapTime,IsAccurate,noPitIn/PitOut,noTrackStatus4567. Preserveallissuedledgerrows with left/censored/unmatched statuses; do not scoremodels or substitute time-to-counter target. Report countsconditional on recordedCSV\u2014not end-to-end receiptcausality.",
+  "completion": "SessionStatus ended/finished and archive coverage are evidenceabout observedstreamtail; absent terminalstatus remains incomplete, not proven nofuturecompletion. No new MAE,WIS ormodelgain.",
+  "tests": [
+    "Prefix invariance underfuture appends/outcome mutations",
+    "Revisions cannotoverwrite priorissuedrows",
+    "Countercollision/reversal/jump and emptyresetambiguity",
+    "Equal-time auxnotavailable; no packetbackdating",
+    "Partialtyre updates neverjoinfutureCSV",
+    "AllpositiveS1/S2rowsretained regardless eventualtarget"
+  ]
+}

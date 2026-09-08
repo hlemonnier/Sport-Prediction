@@ -1,0 +1,162 @@
+{
+  "completed_at_utc": "2026-09-08T02:07:24.262087+00:00",
+  "source_sha256": "727f16ddcc519f226394242b8a04e81301cb8e6a8637124738675200fad84c55",
+  "spec_sha256": "1c20ed83127c46ac756bcd133b04431a41a0e4c633e313878695e293100b2e72",
+  "sessions": [
+    {
+      "event_key": 202201,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 6993,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "session_start_local": "2022-03-20T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345"
+    },
+    {
+      "event_key": 202301,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 7953,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "session_start_local": "2023-03-05T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8"
+    }
+  ],
+  "streams": [
+    {
+      "event_key": 202201,
+      "stream": "TimingData",
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "unavailable",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.247556+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.254909+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming-mirror.fastf1.dev', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming-mirror.fastf1.dev', port=443): Failed to resolve 'livetiming-mirror.fastf1.dev' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.254923+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.255567+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming.formula1.com', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming.formula1.com', port=443): Failed to resolve 'livetiming.formula1.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        }
+      ]
+    },
+    {
+      "event_key": 202201,
+      "stream": "SessionStatus",
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "unavailable",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.255940+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.256616+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming-mirror.fastf1.dev', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming-mirror.fastf1.dev', port=443): Failed to resolve 'livetiming-mirror.fastf1.dev' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.256620+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.257219+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming.formula1.com', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming.formula1.com', port=443): Failed to resolve 'livetiming.formula1.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        }
+      ]
+    },
+    {
+      "event_key": 202201,
+      "stream": "TimingAppData",
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "unavailable",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.257497+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.258210+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming-mirror.fastf1.dev', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming-mirror.fastf1.dev', port=443): Failed to resolve 'livetiming-mirror.fastf1.dev' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.258215+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.258683+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming.formula1.com', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming.formula1.com', port=443): Failed to resolve 'livetiming.formula1.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        }
+      ]
+    },
+    {
+      "event_key": 202301,
+      "stream": "TimingData",
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "unavailable",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.258914+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.259378+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming-mirror.fastf1.dev', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming-mirror.fastf1.dev', port=443): Failed to resolve 'livetiming-mirror.fastf1.dev' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.259382+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.259934+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming.formula1.com', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming.formula1.com', port=443): Failed to resolve 'livetiming.formula1.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        }
+      ]
+    },
+    {
+      "event_key": 202301,
+      "stream": "SessionStatus",
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "unavailable",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.260133+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.260557+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming-mirror.fastf1.dev', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming-mirror.fastf1.dev', port=443): Failed to resolve 'livetiming-mirror.fastf1.dev' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.260560+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.260958+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming.formula1.com', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming.formula1.com', port=443): Failed to resolve 'livetiming.formula1.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        }
+      ]
+    },
+    {
+      "event_key": 202301,
+      "stream": "TimingAppData",
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "unavailable",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.261131+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.261525+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming-mirror.fastf1.dev', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming-mirror.fastf1.dev', port=443): Failed to resolve 'livetiming-mirror.fastf1.dev' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+          "request_started_at_utc": "2026-09-08T02:07:24.261528+00:00",
+          "failed_at_utc": "2026-09-08T02:07:24.261921+00:00",
+          "error_type": "ConnectionError",
+          "error": "HTTPSConnectionPool(host='livetiming.formula1.com', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream (Caused by NameResolutionError(\"HTTPSConnection(host='livetiming.formula1.com', port=443): Failed to resolve 'livetiming.formula1.com' ([Errno 8] nodename nor servname provided, or not known)\"))"
+        }
+      ]
+    }
+  ],
+  "no_fitting_or_scoring": true
+}

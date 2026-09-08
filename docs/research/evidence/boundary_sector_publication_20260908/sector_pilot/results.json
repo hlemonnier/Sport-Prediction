@@ -1,0 +1,336 @@
+{
+  "created_at_utc": "2026-09-08T02:22:32.864854+00:00",
+  "execution_lock_sha256": "adf9fe98bedf12ad22bf69424c2a2631f85e41923a66cee0d4937148b3a72e36",
+  "ledger_lock_sha256": "51575a546774555571f7308319d2f7dea8713f21849cdbad321a7e599177c6e2",
+  "sessions": {
+    "202201": {
+      "ambiguity_counts": {
+        "no_strictly_prior_s1_in_epoch": 22,
+        "unknown_counter": 20
+      },
+      "auxiliary": {
+        "SessionStatus": {
+          "blocked_by_unknown_timestamp": false,
+          "final_status": "Ends",
+          "final_status_time_ms": 9811107,
+          "packets": {
+            "packets": 5,
+            "timestamp_regressions": 0
+          }
+        },
+        "TimingAppData": {
+          "blocked_by_unknown_timestamp": false,
+          "final_status": null,
+          "final_status_time_ms": null,
+          "packets": {
+            "packets": 1074,
+            "timestamp_regressions": 0
+          }
+        },
+        "TrackStatus": {
+          "blocked_by_unknown_timestamp": false,
+          "final_status": "2",
+          "final_status_time_ms": 9533199,
+          "packets": {
+            "packets": 7,
+            "timestamp_regressions": 0
+          }
+        }
+      },
+      "candidate_first_clock_ms": 3885871,
+      "candidate_last_clock_ms": 9607704,
+      "candidate_raw_field_missing_rows": {
+        "InPit": 0,
+        "IsAccurateRaw": 2195,
+        "LastLapTime": 40,
+        "ObservedCounter": 0,
+        "Position": 0,
+        "Sector1": 0,
+        "Sector2": 1101,
+        "Sector3": 2195,
+        "SpeedFL": 2195,
+        "SpeedI1": 0,
+        "SpeedI2": 1101,
+        "SpeedST": 0,
+        "TrackStatus": 0,
+        "TyreCompound": 0,
+        "TyreNew": 0,
+        "TyreStartLaps": 0,
+        "TyreTotalLaps": 0
+      },
+      "candidate_raw_field_present_rows": {
+        "InPit": 2195,
+        "IsAccurateRaw": 0,
+        "LastLapTime": 2155,
+        "ObservedCounter": 2195,
+        "Position": 2195,
+        "Sector1": 2195,
+        "Sector2": 1094,
+        "Sector3": 0,
+        "SpeedFL": 0,
+        "SpeedI1": 2195,
+        "SpeedI2": 1094,
+        "SpeedST": 2195,
+        "TrackStatus": 2195,
+        "TyreCompound": 2195,
+        "TyreNew": 2195,
+        "TyreStartLaps": 2195,
+        "TyreTotalLaps": 2195
+      },
+      "candidate_sector_rows": {
+        "1": 1101,
+        "2": 1094
+      },
+      "canonical_hgb_exact_reconstruction_certified_rows": 0,
+      "canonical_hgb_unresolved_candidate_rows": 2195,
+      "completed_csv_diagnostics": {
+        "all_ledger_outcomes": {
+          "matched_recorded_future_eligible_lap": 2222,
+          "unmatched_in_terminal_recorded_archive": 2
+        },
+        "candidate_outcomes": {
+          "matched_recorded_future_eligible_lap": 2193,
+          "unmatched_in_terminal_recorded_archive": 2
+        },
+        "canonical_completed_rows": 1125,
+        "csv_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+        "csv_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345",
+        "output": "artifacts/research/boundary_20260908/sector_pilot/202201_outcome_diagnostics.jsonl",
+        "output_sha256": "137ae2dbe94701c4eda5e518b9045a441becb26d5e91222e71be5eed82fab3d4",
+        "recorded_eligible_rows": 893,
+        "terminal_status_observed": true
+      },
+      "drivers": 20,
+      "exclusion_reason_rows": {
+        "no_strictly_prior_s1_in_epoch": 22,
+        "running_state_unknown_or_not_started": 7,
+        "unknown_counter": 20
+      },
+      "ledger_rows": 2224,
+      "raw_asof_field_present_rows": {
+        "InPit": 2224,
+        "LastLapTime": 2164,
+        "ObservedCounter": 2204,
+        "Position": 2224,
+        "Sector1": 2204,
+        "Sector2": 1123,
+        "SpeedI1": 2224,
+        "SpeedI2": 1123,
+        "SpeedST": 2224,
+        "TrackStatus": 2224,
+        "TyreCompound": 2224,
+        "TyreNew": 2224,
+        "TyreStartLaps": 2224,
+        "TyreTotalLaps": 2224
+      },
+      "raw_driver_patch_keys": {
+        "BestLapTime": 151,
+        "GapToLeader": 26609,
+        "InPit": 209,
+        "IntervalToPositionAhead": 29777,
+        "LastLapTime": 1123,
+        "Line": 861,
+        "NumberOfLaps": 1123,
+        "NumberOfPitStops": 59,
+        "PitOut": 136,
+        "Position": 861,
+        "RacingNumber": 20,
+        "Retired": 21,
+        "Sectors": 40795,
+        "ShowPosition": 21,
+        "Speeds": 4402,
+        "Status": 404,
+        "Stopped": 23
+      },
+      "rows_with_any_epoch_ambiguity": 22,
+      "sector_positive_updates": {
+        "1": 1101,
+        "2": 1123,
+        "3": 1123
+      },
+      "sector_rows": {
+        "1": 1101,
+        "2": 1123
+      },
+      "session_states_at_updates": {
+        "Finished": 7,
+        "Started": 2217
+      },
+      "timing": {
+        "candidate_checkpoints": 2195,
+        "counter_boundaries": 1123,
+        "packets": 69772,
+        "sector_clear_updates": 2330,
+        "timestamp_regressions": 0
+      },
+      "update_kinds": {
+        "first": 2224
+      }
+    },
+    "202301": {
+      "ambiguity_counts": {
+        "no_strictly_prior_s1_in_epoch": 24,
+        "unknown_counter": 20
+      },
+      "auxiliary": {
+        "SessionStatus": {
+          "blocked_by_unknown_timestamp": false,
+          "final_status": "Ends",
+          "final_status_time_ms": 9710826,
+          "packets": {
+            "packets": 5,
+            "timestamp_regressions": 0
+          }
+        },
+        "TimingAppData": {
+          "blocked_by_unknown_timestamp": false,
+          "final_status": null,
+          "final_status_time_ms": null,
+          "packets": {
+            "packets": 928,
+            "timestamp_regressions": 0
+          }
+        },
+        "TrackStatus": {
+          "blocked_by_unknown_timestamp": false,
+          "final_status": "1",
+          "final_status_time_ms": 7866437,
+          "packets": {
+            "packets": 11,
+            "timestamp_regressions": 0
+          }
+        }
+      },
+      "candidate_first_clock_ms": 3887337,
+      "candidate_last_clock_ms": 9393050,
+      "candidate_raw_field_missing_rows": {
+        "InPit": 0,
+        "IsAccurateRaw": 2050,
+        "LastLapTime": 40,
+        "ObservedCounter": 0,
+        "Position": 0,
+        "Sector1": 0,
+        "Sector2": 1028,
+        "Sector3": 2050,
+        "SpeedFL": 2050,
+        "SpeedI1": 0,
+        "SpeedI2": 1028,
+        "SpeedST": 0,
+        "TrackStatus": 0,
+        "TyreCompound": 0,
+        "TyreNew": 0,
+        "TyreStartLaps": 0,
+        "TyreTotalLaps": 0
+      },
+      "candidate_raw_field_present_rows": {
+        "InPit": 2050,
+        "IsAccurateRaw": 0,
+        "LastLapTime": 2010,
+        "ObservedCounter": 2050,
+        "Position": 2050,
+        "Sector1": 2050,
+        "Sector2": 1022,
+        "Sector3": 0,
+        "SpeedFL": 0,
+        "SpeedI1": 2050,
+        "SpeedI2": 1022,
+        "SpeedST": 2050,
+        "TrackStatus": 2050,
+        "TyreCompound": 2050,
+        "TyreNew": 2050,
+        "TyreStartLaps": 2050,
+        "TyreTotalLaps": 2050
+      },
+      "candidate_sector_rows": {
+        "1": 1028,
+        "2": 1022
+      },
+      "canonical_hgb_exact_reconstruction_certified_rows": 0,
+      "canonical_hgb_unresolved_candidate_rows": 2050,
+      "completed_csv_diagnostics": {
+        "all_ledger_outcomes": {
+          "matched_recorded_future_eligible_lap": 2076,
+          "unmatched_in_terminal_recorded_archive": 12
+        },
+        "candidate_outcomes": {
+          "matched_recorded_future_eligible_lap": 2038,
+          "unmatched_in_terminal_recorded_archive": 12
+        },
+        "canonical_completed_rows": 1056,
+        "csv_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+        "csv_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8",
+        "output": "artifacts/research/boundary_20260908/sector_pilot/202301_outcome_diagnostics.jsonl",
+        "output_sha256": "a776b01f6594a35228aed84bf6a2dc3fe4e74657032b1db9236067cdf4dc10e2",
+        "recorded_eligible_rows": 914,
+        "terminal_status_observed": true
+      },
+      "drivers": 20,
+      "exclusion_reason_rows": {
+        "no_strictly_prior_s1_in_epoch": 24,
+        "running_state_unknown_or_not_started": 14,
+        "unknown_counter": 20
+      },
+      "ledger_rows": 2088,
+      "raw_asof_field_present_rows": {
+        "InPit": 2088,
+        "LastLapTime": 2028,
+        "ObservedCounter": 2068,
+        "Position": 2088,
+        "Sector1": 2068,
+        "Sector2": 1056,
+        "SpeedI1": 2088,
+        "SpeedI2": 1056,
+        "SpeedST": 2088,
+        "TrackStatus": 2088,
+        "TyreCompound": 2088,
+        "TyreNew": 2088,
+        "TyreStartLaps": 2088,
+        "TyreTotalLaps": 2088
+      },
+      "raw_driver_patch_keys": {
+        "BestLapTime": 159,
+        "GapToLeader": 24793,
+        "InPit": 208,
+        "IntervalToPositionAhead": 27828,
+        "LastLapTime": 1056,
+        "Line": 670,
+        "NumberOfLaps": 1055,
+        "NumberOfPitStops": 52,
+        "PitOut": 120,
+        "Position": 670,
+        "RacingNumber": 20,
+        "Retired": 22,
+        "Sectors": 38526,
+        "ShowPosition": 23,
+        "Speeds": 4118,
+        "Status": 380,
+        "Stopped": 23
+      },
+      "rows_with_any_epoch_ambiguity": 24,
+      "sector_positive_updates": {
+        "1": 1032,
+        "2": 1056,
+        "3": 1055
+      },
+      "sector_rows": {
+        "1": 1032,
+        "2": 1056
+      },
+      "session_states_at_updates": {
+        "Finished": 14,
+        "Started": 2074
+      },
+      "timing": {
+        "candidate_checkpoints": 2050,
+        "counter_boundaries": 1055,
+        "packets": 65627,
+        "sector_clear_updates": 2182,
+        "timestamp_regressions": 0
+      },
+      "update_kinds": {
+        "first": 2088
+      }
+    }
+  },
+  "status": "causal_archive_feasibility_only_no_model_fitting_or_scores"
+}

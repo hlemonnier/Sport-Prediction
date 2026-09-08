@@ -1,0 +1,372 @@
+{
+  "completed_at_utc": "2026-09-08T02:08:13.947711+00:00",
+  "source_sha256": "727f16ddcc519f226394242b8a04e81301cb8e6a8637124738675200fad84c55",
+  "spec_sha256": "1c20ed83127c46ac756bcd133b04431a41a0e4c633e313878695e293100b2e72",
+  "sessions": [
+    {
+      "event_key": 202201,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 6993,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "session_start_local": "2022-03-20T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345"
+    },
+    {
+      "event_key": 202301,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 7953,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "session_start_local": "2023-03-05T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8"
+    }
+  ],
+  "streams": [
+    {
+      "event_key": 202201,
+      "stream": "TimingData",
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "downloaded",
+      "successful_request": {
+        "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream",
+        "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream",
+        "http_status": 200,
+        "request_started_at_utc": "2026-09-08T02:08:10.972647+00:00",
+        "headers_received_at_utc": "2026-09-08T02:08:11.160129+00:00",
+        "body_received_at_utc": "2026-09-08T02:08:11.689650+00:00",
+        "wall_seconds": 0.71849425000255,
+        "response_headers": {
+          "Date": "Tue, 08 Sep 2026 02:08:11 GMT",
+          "Content-Length": "7192208",
+          "ETag": "\"e56cb5fa3da9e17616452b9ed3a0fa85\"",
+          "Last-Modified": "Sat, 04 Jul 2026 17:51:48 GMT"
+        },
+        "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingData.attempt1.httpbody",
+        "wire_body_bytes": 7192208,
+        "wire_body_sha256": "ca688ed48f657e2ed82fae017f934a35128d94658a7c58e5e5d178e158cee262"
+      },
+      "decoded_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingData.jsonStream",
+      "decoded_body_bytes": 7192208,
+      "decoded_body_sha256": "ca688ed48f657e2ed82fae017f934a35128d94658a7c58e5e5d178e158cee262",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream",
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingData.jsonStream",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T02:08:10.972647+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:11.160129+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:11.689650+00:00",
+          "wall_seconds": 0.71849425000255,
+          "response_headers": {
+            "Date": "Tue, 08 Sep 2026 02:08:11 GMT",
+            "Content-Length": "7192208",
+            "ETag": "\"e56cb5fa3da9e17616452b9ed3a0fa85\"",
+            "Last-Modified": "Sat, 04 Jul 2026 17:51:48 GMT"
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingData.attempt1.httpbody",
+          "wire_body_bytes": 7192208,
+          "wire_body_sha256": "ca688ed48f657e2ed82fae017f934a35128d94658a7c58e5e5d178e158cee262"
+        }
+      ],
+      "provenance_limit": "UTCacquisition receipts are currentdownload receipts, not historicalliveclient packetreceipt times."
+    },
+    {
+      "event_key": 202201,
+      "stream": "SessionStatus",
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "downloaded",
+      "successful_request": {
+        "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream",
+        "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream",
+        "http_status": 200,
+        "request_started_at_utc": "2026-09-08T02:08:11.713502+00:00",
+        "headers_received_at_utc": "2026-09-08T02:08:11.915228+00:00",
+        "body_received_at_utc": "2026-09-08T02:08:11.915579+00:00",
+        "wall_seconds": 0.20267100000637583,
+        "response_headers": {
+          "Date": "Tue, 08 Sep 2026 02:08:11 GMT",
+          "Content-Length": "174",
+          "ETag": "\"ff201b8a6d11a044c9e2df7d323869b9\"",
+          "Last-Modified": "Sat, 04 Jul 2026 17:51:49 GMT"
+        },
+        "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_SessionStatus.attempt1.httpbody",
+        "wire_body_bytes": 174,
+        "wire_body_sha256": "bc4b0c585ca6d925a91b394056ad6c5d347574285e6ae09b03f73cd40cdc0151"
+      },
+      "decoded_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_SessionStatus.jsonStream",
+      "decoded_body_bytes": 174,
+      "decoded_body_sha256": "bc4b0c585ca6d925a91b394056ad6c5d347574285e6ae09b03f73cd40cdc0151",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream",
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/SessionStatus.jsonStream",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T02:08:11.713502+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:11.915228+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:11.915579+00:00",
+          "wall_seconds": 0.20267100000637583,
+          "response_headers": {
+            "Date": "Tue, 08 Sep 2026 02:08:11 GMT",
+            "Content-Length": "174",
+            "ETag": "\"ff201b8a6d11a044c9e2df7d323869b9\"",
+            "Last-Modified": "Sat, 04 Jul 2026 17:51:49 GMT"
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_SessionStatus.attempt1.httpbody",
+          "wire_body_bytes": 174,
+          "wire_body_sha256": "bc4b0c585ca6d925a91b394056ad6c5d347574285e6ae09b03f73cd40cdc0151"
+        }
+      ],
+      "provenance_limit": "UTCacquisition receipts are currentdownload receipts, not historicalliveclient packetreceipt times."
+    },
+    {
+      "event_key": 202201,
+      "stream": "TimingAppData",
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "downloaded",
+      "successful_request": {
+        "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream",
+        "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream",
+        "http_status": 200,
+        "request_started_at_utc": "2026-09-08T02:08:11.917532+00:00",
+        "headers_received_at_utc": "2026-09-08T02:08:12.049216+00:00",
+        "body_received_at_utc": "2026-09-08T02:08:12.057810+00:00",
+        "wall_seconds": 0.14081108299433254,
+        "response_headers": {
+          "Date": "Tue, 08 Sep 2026 02:08:12 GMT",
+          "Content-Length": "103536",
+          "ETag": "\"4d3e7e02fbede2005d161557a3bed927\"",
+          "Last-Modified": "Sat, 04 Jul 2026 17:51:43 GMT"
+        },
+        "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingAppData.attempt1.httpbody",
+        "wire_body_bytes": 103536,
+        "wire_body_sha256": "b911a99b122baafc89b4590af9046ed2ede9b4314de2486edc5e5a7ae2ee5fb4"
+      },
+      "decoded_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingAppData.jsonStream",
+      "decoded_body_bytes": 103536,
+      "decoded_body_sha256": "b911a99b122baafc89b4590af9046ed2ede9b4314de2486edc5e5a7ae2ee5fb4",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream",
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TimingAppData.jsonStream",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T02:08:11.917532+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:12.049216+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:12.057810+00:00",
+          "wall_seconds": 0.14081108299433254,
+          "response_headers": {
+            "Date": "Tue, 08 Sep 2026 02:08:12 GMT",
+            "Content-Length": "103536",
+            "ETag": "\"4d3e7e02fbede2005d161557a3bed927\"",
+            "Last-Modified": "Sat, 04 Jul 2026 17:51:43 GMT"
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingAppData.attempt1.httpbody",
+          "wire_body_bytes": 103536,
+          "wire_body_sha256": "b911a99b122baafc89b4590af9046ed2ede9b4314de2486edc5e5a7ae2ee5fb4"
+        }
+      ],
+      "provenance_limit": "UTCacquisition receipts are currentdownload receipts, not historicalliveclient packetreceipt times."
+    },
+    {
+      "event_key": 202301,
+      "stream": "TimingData",
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "downloaded",
+      "successful_request": {
+        "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+        "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+        "http_status": 200,
+        "request_started_at_utc": "2026-09-08T02:08:12.188966+00:00",
+        "headers_received_at_utc": "2026-09-08T02:08:12.407807+00:00",
+        "body_received_at_utc": "2026-09-08T02:08:12.733560+00:00",
+        "wall_seconds": 0.5462953329843003,
+        "response_headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": "6748486",
+          "Date": "Tue, 08 Sep 2026 02:08:13 GMT",
+          "Last-Modified": "Wed, 19 Jun 2024 11:33:22 GMT",
+          "ETag": "\"fe08bd19cb5986fe5811797082f37863\""
+        },
+        "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.attempt2.httpbody",
+        "wire_body_bytes": 6748486,
+        "wire_body_sha256": "9f50e19cc13f4b45d60ef5c194c1e45f3d193883faf77d506078f2a6c429408a"
+      },
+      "decoded_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.jsonStream",
+      "decoded_body_bytes": 6748486,
+      "decoded_body_sha256": "9f50e19cc13f4b45d60ef5c194c1e45f3d193883faf77d506078f2a6c429408a",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+          "http_status": 404,
+          "request_started_at_utc": "2026-09-08T02:08:12.060009+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:12.186006+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:12.187592+00:00",
+          "wall_seconds": 0.1282353749847971,
+          "response_headers": {
+            "Date": "Tue, 08 Sep 2026 02:08:12 GMT",
+            "Content-Type": "text/html"
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.attempt1.httpbody",
+          "wire_body_bytes": 27150,
+          "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+          "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingData.jsonStream",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T02:08:12.188966+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:12.407807+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:12.733560+00:00",
+          "wall_seconds": 0.5462953329843003,
+          "response_headers": {
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "6748486",
+            "Date": "Tue, 08 Sep 2026 02:08:13 GMT",
+            "Last-Modified": "Wed, 19 Jun 2024 11:33:22 GMT",
+            "ETag": "\"fe08bd19cb5986fe5811797082f37863\""
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.attempt2.httpbody",
+          "wire_body_bytes": 6748486,
+          "wire_body_sha256": "9f50e19cc13f4b45d60ef5c194c1e45f3d193883faf77d506078f2a6c429408a"
+        }
+      ],
+      "provenance_limit": "UTCacquisition receipts are currentdownload receipts, not historicalliveclient packetreceipt times."
+    },
+    {
+      "event_key": 202301,
+      "stream": "SessionStatus",
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "downloaded",
+      "successful_request": {
+        "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+        "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+        "http_status": 200,
+        "request_started_at_utc": "2026-09-08T02:08:13.024884+00:00",
+        "headers_received_at_utc": "2026-09-08T02:08:13.434701+00:00",
+        "body_received_at_utc": "2026-09-08T02:08:13.434981+00:00",
+        "wall_seconds": 0.41058550000889227,
+        "response_headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": "174",
+          "Date": "Tue, 08 Sep 2026 02:08:14 GMT",
+          "Last-Modified": "Wed, 19 Jun 2024 11:32:59 GMT",
+          "ETag": "\"26a1a933a2872fe79c4aa8397f2124fb\""
+        },
+        "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_SessionStatus.attempt2.httpbody",
+        "wire_body_bytes": 174,
+        "wire_body_sha256": "6f43df599ba5a2509687511a6079b4b041758a7d489836727c5e3624970368f6"
+      },
+      "decoded_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_SessionStatus.jsonStream",
+      "decoded_body_bytes": 174,
+      "decoded_body_sha256": "6f43df599ba5a2509687511a6079b4b041758a7d489836727c5e3624970368f6",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+          "http_status": 404,
+          "request_started_at_utc": "2026-09-08T02:08:12.760382+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:13.015640+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:13.023850+00:00",
+          "wall_seconds": 0.26389074997860007,
+          "response_headers": {
+            "Date": "Tue, 08 Sep 2026 02:08:13 GMT",
+            "Content-Type": "text/html"
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_SessionStatus.attempt1.httpbody",
+          "wire_body_bytes": 27150,
+          "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+          "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/SessionStatus.jsonStream",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T02:08:13.024884+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:13.434701+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:13.434981+00:00",
+          "wall_seconds": 0.41058550000889227,
+          "response_headers": {
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "174",
+            "Date": "Tue, 08 Sep 2026 02:08:14 GMT",
+            "Last-Modified": "Wed, 19 Jun 2024 11:32:59 GMT",
+            "ETag": "\"26a1a933a2872fe79c4aa8397f2124fb\""
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_SessionStatus.attempt2.httpbody",
+          "wire_body_bytes": 174,
+          "wire_body_sha256": "6f43df599ba5a2509687511a6079b4b041758a7d489836727c5e3624970368f6"
+        }
+      ],
+      "provenance_limit": "UTCacquisition receipts are currentdownload receipts, not historicalliveclient packetreceipt times."
+    },
+    {
+      "event_key": 202301,
+      "stream": "TimingAppData",
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "downloaded",
+      "successful_request": {
+        "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+        "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+        "http_status": 200,
+        "request_started_at_utc": "2026-09-08T02:08:13.669780+00:00",
+        "headers_received_at_utc": "2026-09-08T02:08:13.930265+00:00",
+        "body_received_at_utc": "2026-09-08T02:08:13.944666+00:00",
+        "wall_seconds": 0.27589566601091065,
+        "response_headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": "89998",
+          "Date": "Tue, 08 Sep 2026 02:08:14 GMT",
+          "Last-Modified": "Wed, 19 Jun 2024 11:33:21 GMT",
+          "ETag": "\"4c13422d253cf57804e675f0cafc0a3f\""
+        },
+        "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingAppData.attempt2.httpbody",
+        "wire_body_bytes": 89998,
+        "wire_body_sha256": "15f2c82ff0df740b85febb6210835f09c51d0d06fad07854c1dfd563d5570113"
+      },
+      "decoded_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingAppData.jsonStream",
+      "decoded_body_bytes": 89998,
+      "decoded_body_sha256": "15f2c82ff0df740b85febb6210835f09c51d0d06fad07854c1dfd563d5570113",
+      "attempts": [
+        {
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+          "http_status": 404,
+          "request_started_at_utc": "2026-09-08T02:08:13.436939+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:13.668218+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:13.668475+00:00",
+          "wall_seconds": 0.23198450001655146,
+          "response_headers": {
+            "Date": "Tue, 08 Sep 2026 02:08:13 GMT",
+            "Content-Type": "text/html"
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingAppData.attempt1.httpbody",
+          "wire_body_bytes": 27150,
+          "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+        },
+        {
+          "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+          "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TimingAppData.jsonStream",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T02:08:13.669780+00:00",
+          "headers_received_at_utc": "2026-09-08T02:08:13.930265+00:00",
+          "body_received_at_utc": "2026-09-08T02:08:13.944666+00:00",
+          "wall_seconds": 0.27589566601091065,
+          "response_headers": {
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "89998",
+            "Date": "Tue, 08 Sep 2026 02:08:14 GMT",
+            "Last-Modified": "Wed, 19 Jun 2024 11:33:21 GMT",
+            "ETag": "\"4c13422d253cf57804e675f0cafc0a3f\""
+          },
+          "wire_body_path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingAppData.attempt2.httpbody",
+          "wire_body_bytes": 89998,
+          "wire_body_sha256": "15f2c82ff0df740b85febb6210835f09c51d0d06fad07854c1dfd563d5570113"
+        }
+      ],
+      "provenance_limit": "UTCacquisition receipts are currentdownload receipts, not historicalliveclient packetreceipt times."
+    }
+  ],
+  "no_fitting_or_scoring": true
+}

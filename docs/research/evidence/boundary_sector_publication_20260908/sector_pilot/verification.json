@@ -1,0 +1,50 @@
+{
+  "errors": [],
+  "execution_lock_sha256": "adf9fe98bedf12ad22bf69424c2a2631f85e41923a66cee0d4937148b3a72e36",
+  "ledger_lock_sha256": "51575a546774555571f7308319d2f7dea8713f21849cdbad321a7e599177c6e2",
+  "models_fitted_or_scored": 0,
+  "results_sha256": "1272a6f004dea9583b31996b0fce8d350a15f39b24a4c2e5e77a6bebfbd6bf7e",
+  "sessions": {
+    "202201": {
+      "all_positive_s1_s2_rows": 2224,
+      "independent_outcome_matches_checked_rows": 2224,
+      "prefix_checks": [
+        {
+          "immutable_rows": 689,
+          "physical_lines": 23257
+        },
+        {
+          "immutable_rows": 1464,
+          "physical_lines": 46514
+        },
+        {
+          "immutable_rows": 2224,
+          "physical_lines": 69771
+        }
+      ],
+      "source_time_checked_rows": 2224
+    },
+    "202301": {
+      "all_positive_s1_s2_rows": 2088,
+      "independent_outcome_matches_checked_rows": 2088,
+      "prefix_checks": [
+        {
+          "immutable_rows": 640,
+          "physical_lines": 21875
+        },
+        {
+          "immutable_rows": 1369,
+          "physical_lines": 43751
+        },
+        {
+          "immutable_rows": 2088,
+          "physical_lines": 65626
+        }
+      ],
+      "source_time_checked_rows": 2088
+    }
+  },
+  "status": "passed",
+  "verified_at_utc": "2026-09-08T02:22:40.828229+00:00",
+  "verified_input_hash_count": 29
+}

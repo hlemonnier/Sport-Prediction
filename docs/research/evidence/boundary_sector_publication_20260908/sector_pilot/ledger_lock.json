@@ -1,0 +1,17 @@
+{
+  "canonical_outcome_diagnostics_started": false,
+  "created_at_utc": "2026-09-08T02:22:32.864424+00:00",
+  "execution_lock_sha256": "adf9fe98bedf12ad22bf69424c2a2631f85e41923a66cee0d4937148b3a72e36",
+  "ledgers": {
+    "artifacts/research/boundary_20260908/sector_pilot/202201_ledger.jsonl": {
+      "bytes": 6506349,
+      "rows": 2224,
+      "sha256": "dc61626d9a9760ab573ff941f54f63c0cd68db867dcfc418e1bbed2324ff8346"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/202301_ledger.jsonl": {
+      "bytes": 6107871,
+      "rows": 2088,
+      "sha256": "0334044a0d51c52af1d0d6e1fe63224e99d16db0b1b339d2a811479b242dea94"
+    }
+  }
+}

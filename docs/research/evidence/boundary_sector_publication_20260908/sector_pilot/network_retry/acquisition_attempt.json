@@ -1,0 +1,33 @@
+{
+  "started_at_utc": "2026-09-08T02:08:10.972238+00:00",
+  "source_sha256": "727f16ddcc519f226394242b8a04e81301cb8e6a8637124738675200fad84c55",
+  "spec_sha256": "1c20ed83127c46ac756bcd133b04431a41a0e4c633e313878695e293100b2e72",
+  "streams": [
+    "TimingData",
+    "SessionStatus",
+    "TimingAppData"
+  ],
+  "sessions": [
+    {
+      "event_key": 202201,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 6993,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "session_start_local": "2022-03-20T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345"
+    },
+    {
+      "event_key": 202301,
+      "meeting_name": "Bahrain Grand Prix",
+      "session_key": 7953,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "session_start_local": "2023-03-05T18:00:00",
+      "session_gmt_offset": "03:00:00",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8"
+    }
+  ],
+  "no_fitting_or_scoring": true
+}

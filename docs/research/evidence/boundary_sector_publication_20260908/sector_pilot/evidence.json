@@ -1,0 +1,94 @@
+{
+  "created_at_utc": "2026-09-08T02:27:45.505814+00:00",
+  "files": {
+    "artifacts/research/boundary_20260908/sector_pilot/acquisition.json": {
+      "bytes": 11481,
+      "sha256": "f7ee8b48ef46eddca82dc19dbe1cd8a47f51dbbb9bf1b9b375cc6a470d65a921"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/acquisition_attempt.json": {
+      "bytes": 1321,
+      "sha256": "da0c8f9010fa338d4d073078030dc3cd18279ac4bbd7063109c1722a400923e1"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/design_lock.json": {
+      "bytes": 2289,
+      "sha256": "bb4ea6fe16db39ed4a33e03605c543a7f0111e999a5ec38a41b902a29e7b3e09"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/execution_lock.json": {
+      "bytes": 5735,
+      "sha256": "adf9fe98bedf12ad22bf69424c2a2631f85e41923a66cee0d4937148b3a72e36"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/ledger_lock.json": {
+      "bytes": 649,
+      "sha256": "51575a546774555571f7308319d2f7dea8713f21849cdbad321a7e599177c6e2"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/network_retry/acquisition.json": {
+      "bytes": 21386,
+      "sha256": "a6b3e5cd2a19f632b15e2e94ce9a8012438b3c8d9655a6c4b89269bda909ac46"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/network_retry/acquisition_attempt.json": {
+      "bytes": 1321,
+      "sha256": "e7c0c4675dbb1c07e6ca125433b84b48ae072e8c53e7d0a0be5af5031939af2d"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/network_retry/design_lock.json": {
+      "bytes": 2289,
+      "sha256": "bb4ea6fe16db39ed4a33e03605c543a7f0111e999a5ec38a41b902a29e7b3e09"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/results.json": {
+      "bytes": 9894,
+      "sha256": "1272a6f004dea9583b31996b0fce8d350a15f39b24a4c2e5e77a6bebfbd6bf7e"
+    },
+    "artifacts/research/boundary_20260908/sector_pilot/verification.json": {
+      "bytes": 1372,
+      "sha256": "1e57ca5f088947096adc9a07dc32a452452c416426eae6053baa5c20de4b94fa"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/README.md": {
+      "bytes": 13761,
+      "sha256": "4b063805ecc4f3ec4065ca54db442850164266039bfe485a1dd4e9ae1f0952e3"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/acquire.py": {
+      "bytes": 4670,
+      "sha256": "727f16ddcc519f226394242b8a04e81301cb8e6a8637124738675200fad84c55"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/ledger.py": {
+      "bytes": 14066,
+      "sha256": "74efc6f80e2264613c35f9c1924d29447d84233786e74076bf1dd9b6da709139"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/run.py": {
+      "bytes": 8569,
+      "sha256": "220b5608092e8fea36738abbb42af16ada9942d269052a1ee199ed1bce8993f6"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/specification.json": {
+      "bytes": 5505,
+      "sha256": "1c20ed83127c46ac756bcd133b04431a41a0e4c633e313878695e293100b2e72"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/test_ledger.py": {
+      "bytes": 7833,
+      "sha256": "149dbfde746b40706e6dc39e79371d9edc2ab31a2e4a3b2ac256f42283f67495"
+    },
+    "research/experiments/boundary_20260908/sector_pilot/verify.py": {
+      "bytes": 6596,
+      "sha256": "bb02afa172ba1bf3fa21201539a1940bd0171ad92763a65b2fb8a367d6d51546"
+    }
+  },
+  "independent_source_review": "Premodes reviewer independently reran14tests and reviewed final ledger/spec/run/verify; no remaining blocker in bounded scope. Actual input/output replay verified by verify.py, not claimed as reviewers independent rerun.",
+  "omitted_from_source_publication": [
+    "HTTP bodies and decoded raw streams; hashes/URLs/receipts preserved in acquisition manifests",
+    "ledger and outcome JSONLs; hashes preserved in ledger lock and results",
+    "original provider lap CSVs and existing TrackStatus; design lock pins hashes"
+  ],
+  "status": "completed_feasibility_only_no_models_fitted_or_scored",
+  "suggested_commit": "research(f1-live): audit raw sector prefix availability on two discovery races",
+  "summary": {
+    "candidate_checkpoints": 4245,
+    "canonical_hgb_certified_candidate_rows": 0,
+    "matched_candidate_outcomes": 4231,
+    "positive_s1_s2_updates": 4312,
+    "unmatched_candidate_outcomes": 14
+  },
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv-f1/bin/python -m pytest -q -p no:cacheprovider research/experiments/boundary_20260908/sector_pilot/test_ledger.py",
+    "failed": 0,
+    "passed": 14,
+    "wall_seconds_reported": 0.06
+  }
+}

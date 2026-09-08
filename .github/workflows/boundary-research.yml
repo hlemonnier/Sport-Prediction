@@ -61,3 +61,31 @@ jobs:
           research/experiments/boundary_20260908/telemetry/test_evaluate.py
           research/experiments/boundary_20260908/telemetry/test_run.py
           research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py
+
+  sequence-contracts:
+    name: Causal telemetry sequence contracts (CPU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONPATH: .
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      VECLIB_MAXIMUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install CPU PyTorch
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install research test dependencies
+        run: python -m pip install pytest numpy pandas scipy scikit-learn requests
+      - name: Verify causal sequence and independent replay contracts
+        # Synthetic fixtures only: no provider downloads, historical corpus,
+        # pretrained assets, or historical model fitting are required.
+        run: >-
+          python -m pytest -q --import-mode=importlib -p no:cacheprovider
+          research/experiments/boundary_20260908/telemetry_sequence
+          research/experiments/boundary_20260908/telemetry_sequence_verification

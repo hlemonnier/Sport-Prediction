@@ -1,0 +1,32 @@
+{
+  "closed_at_utc": "2026-09-08T09:41:18.354117+00:00",
+  "design_lock_sha256": "dc0714b708b07b62649cf6a19c1148a8c438bb96a5f08842ac4ac57ebf6f8939",
+  "files": {
+    "archive_metadata": {
+      "bytes": 6887757,
+      "path": "artifacts/research/boundary_20260908/football_elo_followup/archive_metadata.json",
+      "sha256": "dcea1faedb7b502e9dadaafd9a690f0675abf680f30f7edcf17823b105dae57f"
+    },
+    "references_selection": {
+      "bytes": 1343994,
+      "path": "artifacts/research/boundary_20260908/football_elo_followup/references_selection.json",
+      "sha256": "18f0ca99c7a46fb52964d43aa4aba2a713b56fdb2c51c1dd45421ec97e69158b"
+    },
+    "references_transfer": {
+      "bytes": 2541068,
+      "path": "artifacts/research/boundary_20260908/football_elo_followup/references_transfer.json",
+      "sha256": "0c7de84ed4093a14c09f094e0b26bbf678aa03aa37bcfde08a8c55f34f8a0063"
+    }
+  },
+  "new_fits": 0,
+  "new_scores": false,
+  "references_labels_attached": false,
+  "resources": {
+    "elapsed_seconds": 39.200539999990724,
+    "peak_rss_bytes": 254640128
+  },
+  "selection_support": {
+    "1": 758,
+    "7": 757
+  }
+}

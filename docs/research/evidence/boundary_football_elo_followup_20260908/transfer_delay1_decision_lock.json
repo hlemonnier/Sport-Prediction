@@ -1,0 +1,7 @@
+{
+  "closed_at_utc": "2026-09-08T09:46:16.788910+00:00",
+  "design_lock_sha256": "dc0714b708b07b62649cf6a19c1148a8c438bb96a5f08842ac4ac57ebf6f8939",
+  "passes_all_gates": false,
+  "result_sha256": "5140df38f27bab140154748ce6a0ebbcde77479633149dd97c10d69584658856",
+  "selected_candidate": "elo_odds_reference"
+}

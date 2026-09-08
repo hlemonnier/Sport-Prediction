@@ -1,0 +1,119 @@
+{
+  "calibration_ids_digest": "2279de1e6cb95a1314a5a8eb84616d381985ef1c6f796ae3252a23c51ddc311b",
+  "calibration_input_digest": "3565c7b913e2b8e58d2c9262f8b6bb3ed20f92cc3758f2d07a71937e91424840",
+  "completed_at_utc": "2026-09-08T09:31:13.719805+00:00",
+  "cursor_audits": {
+    "odds": {
+      "admitted_ids_sha256": "aa20671f5140dbbf60619b18f3ed1857151b9ce2581d5fe8f7fede769e504ec3",
+      "admitted_rows": 5700,
+      "example_x": [
+        -0.2595893035129822
+      ],
+      "update_batches": 2800,
+      "updates_sha256": "36e7f52d766ac7b55c34bbe66cd3637a10afb6d0dd8cbd93268a80a14edb96b7"
+    },
+    "result": {
+      "admitted_ids_sha256": "aa20671f5140dbbf60619b18f3ed1857151b9ce2581d5fe8f7fede769e504ec3",
+      "admitted_rows": 5700,
+      "example_x": [
+        -0.07786614093694652
+      ],
+      "update_batches": 2800,
+      "updates_sha256": "5888f9a4a67b744da5ab6aca1de98e22a3236197f76d01c8d1ba641c51286a99"
+    }
+  },
+  "historical_inputs_read": false,
+  "historical_models_fitted": false,
+  "limits": {
+    "maximum_peak_rss_bytes": 2147483648,
+    "maximum_stage_wall_seconds": 3600,
+    "observed_peak_rss_bytes": 127991808,
+    "observed_wall_seconds": 32.74779608298559,
+    "result": "passed"
+  },
+  "optimizer_fits": 1,
+  "result_readout": {
+    "beta": 2.366258555852314,
+    "diagnostics": {
+      "function_evaluations": 14,
+      "gradient": [
+        9.876750156655722e-09,
+        -3.4263725912203904e-07,
+        -3.3044629124422415e-07
+      ],
+      "initial": [
+        1.0,
+        -0.5,
+        1.0
+      ],
+      "iterations": 14,
+      "kkt_residual": 3.426372591208704e-07,
+      "message": "Optimization terminated successfully",
+      "objective": 1.018410796891172,
+      "rows": 3420,
+      "solver": "SLSQP",
+      "solver_success": true
+    },
+    "floor": 1e-12,
+    "gap": 0.9656310025619864,
+    "kind": "ordered_logit_v1",
+    "t1": -0.7095410625515977,
+    "t2": 0.25608994001038876,
+    "theta": [
+      2.366258555852314,
+      -0.7095410625515977,
+      0.9656310025619864
+    ],
+    "training_digest": "3565c7b913e2b8e58d2c9262f8b6bb3ed20f92cc3758f2d07a71937e91424840"
+  },
+  "runtime": {
+    "executable": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/bin/python",
+    "numpy": "2.5.3",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+    "scipy": "1.18.1",
+    "thread_environment": {
+      "MKL_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    }
+  },
+  "scope": "synthetic_only_no_historical_inputs",
+  "script": {
+    "path": "/private/tmp/football-elo-followup-synthetic-20260908.py",
+    "sha256": "ed8b773addc23885e7df4fdc4e00ac514f8f28cd2e3c8e5bc0ae914a4ba2a872"
+  },
+  "source_files": {
+    "research/experiments/boundary_20260908/football_elo_followup/elo.py": "dc0e6ee5dc663f22ba7c59310e4fb4271cf11fd82ebf9ad1079d5d193d81fb8e",
+    "research/experiments/boundary_20260908/football_past_market/data.py": "34ccf63e1c5dc7bdd73d4f1c173373e7f0b66b121b0f9595f7f5c6a2421bcd91",
+    "research/experiments/boundary_20260908/football_past_market/model.py": "5ce852070675beff5fcd9efd7fdcab3cfd4422bcc52bdfbd1c2838cf71bd1234"
+  },
+  "source_files_unchanged": true,
+  "started_at_utc": "2026-09-08T09:30:40.969229+00:00",
+  "suggested_commit": "research(football): add causal matched result-Elo reference",
+  "synthetic_generation": {
+    "league_count": 3,
+    "outcome_counts": [
+      1502,
+      749,
+      1169
+    ],
+    "readout_rows": 3420,
+    "rows": 5700,
+    "season_labels": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021
+    ],
+    "seed": 20260908,
+    "teams": 96
+  },
+  "timings": {
+    "odds_cursor_seconds": 2.218563499976881,
+    "result_calibration_seconds": 30.176846666028723,
+    "result_cursor_seconds": 0.11003179202089086,
+    "result_readout_seconds": 0.09069391601951793
+  }
+}

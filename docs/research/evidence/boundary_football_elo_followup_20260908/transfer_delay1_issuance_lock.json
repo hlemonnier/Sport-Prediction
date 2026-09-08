@@ -1,0 +1,33 @@
+{
+  "closed_at_utc": "2026-09-08T09:46:15.884795+00:00",
+  "data_lock_sha256": "d9ba8bb79e161f9b312eba8eb818cc099695e13863ba83d50f88247710e11d53",
+  "forecasts": {
+    "bytes": 3205633,
+    "path": "artifacts/research/boundary_20260908/football_elo_followup/transfer_delay1_issued.json",
+    "sha256": "d6c3efc4c8a08a312ef7ac65e6ce972523ae3da0ac26661d5f3783c70ef9b3c0"
+  },
+  "labels_attached": false,
+  "optimizer_fits": 0,
+  "readouts": {
+    "odds": {
+      "bytes": 8726744,
+      "path": "artifacts/research/boundary_20260908/football_elo_followup/elo_odds_readout_delay1.json",
+      "sha256": "b6b32e919462cfbe436acdfe6d27022b1a10dc75c0984e14c53f137a0e4b0dc3"
+    },
+    "result": {
+      "bytes": 9930361,
+      "path": "artifacts/research/boundary_20260908/football_elo_followup/elo_result_readout_delay1.json",
+      "sha256": "b978f8fded5aa657739e751a3dc89c5689850747eb480c8d70a6ed7e9e535693"
+    }
+  },
+  "resources": {
+    "elapsed_seconds": 68.69381441600854,
+    "peak_rss_bytes": 418643968
+  },
+  "rows": 2280,
+  "states": {
+    "bytes": 67663306,
+    "path": "artifacts/research/boundary_20260908/football_elo_followup/transfer_delay1_states.json",
+    "sha256": "7251d3b680d67726358f0e608c2cc325a7bd2208171c4782a4563bfa0b5c1ad1"
+  }
+}

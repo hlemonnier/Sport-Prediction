@@ -1,0 +1,126 @@
+{
+  "copy_count": 18,
+  "created_at_utc": "2026-09-08T09:50:32.788327+00:00",
+  "exact_copies": [
+    {
+      "bytes": 58013,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/design_lock.json",
+      "sha256": "dc0714b708b07b62649cf6a19c1148a8c438bb96a5f08842ac4ac57ebf6f8939",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/design_lock.json"
+    },
+    {
+      "bytes": 1128,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/data_lock.json",
+      "sha256": "d9ba8bb79e161f9b312eba8eb818cc099695e13863ba83d50f88247710e11d53",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/data_lock.json"
+    },
+    {
+      "bytes": 6494,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/pre_fit_tests.json",
+      "sha256": "95228c9228595d85e145a7e66a8c520c204ddf15700246d21e4c04541a46624b",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/pre_fit_tests.json"
+    },
+    {
+      "bytes": 82393,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay1.json",
+      "sha256": "82aef83d574127c882a8404825aa81916aad7d44a0c79bb87a13f4f6a64046af",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay1.json"
+    },
+    {
+      "bytes": 1254,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay1_issuance_lock.json",
+      "sha256": "32c64926a8e29b52d4148cb0da02ef7293510d6f0b567e480a17fabc35bb76b1",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay1_issuance_lock.json"
+    },
+    {
+      "bytes": 311,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay1_decision_lock.json",
+      "sha256": "1be47507f1509f7ec643c421f210417baf94492ed4432d619b545e7e4bec0b22",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay1_decision_lock.json"
+    },
+    {
+      "bytes": 56207,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay1_verification.json",
+      "sha256": "542cb68ebf4eec367ce833ed789ae39bcddb7b732d6442d3c79f567b18c0afe0",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay1_verification.json"
+    },
+    {
+      "bytes": 81830,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay7.json",
+      "sha256": "2251009b5d8d772dc1b949a16d67c50f201a1851915bf8a8bf265a0c65ff2716",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay7.json"
+    },
+    {
+      "bytes": 1254,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay7_issuance_lock.json",
+      "sha256": "70eefba1c25eef691448daf9c2484834334d4419e153213b851cf33b1bfc9c27",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay7_issuance_lock.json"
+    },
+    {
+      "bytes": 311,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay7_decision_lock.json",
+      "sha256": "9b24a714f69ce862b3b62131b56b4c32f4196de7bd8ab04c07a07f5cce2d94af",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay7_decision_lock.json"
+    },
+    {
+      "bytes": 57689,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/selection_delay7_verification.json",
+      "sha256": "353686d187e17354d8b2d83af2c7fdcef6d6e9d72ee8474ee5605412b1d692ee",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/selection_delay7_verification.json"
+    },
+    {
+      "bytes": 136268,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/transfer_delay1.json",
+      "sha256": "5140df38f27bab140154748ce6a0ebbcde77479633149dd97c10d69584658856",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/transfer_delay1.json"
+    },
+    {
+      "bytes": 1253,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/transfer_delay1_issuance_lock.json",
+      "sha256": "f0bf4d9d50246a930d4e140c0b810a6d48bf75a628496d2567d680d6569d22c4",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/transfer_delay1_issuance_lock.json"
+    },
+    {
+      "bytes": 312,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/transfer_delay1_decision_lock.json",
+      "sha256": "ab5725748f8db6c0a5436be6fcc4ea2befc6117b4e7438795743e21ec4916d4d",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/transfer_delay1_decision_lock.json"
+    },
+    {
+      "bytes": 58842,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/transfer_delay1_verification.json",
+      "sha256": "eb7421f4aa0234d5ab55614e1ac2bbe8d63a23d72f37dbd68103efc153847e96",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup/transfer_delay1_verification.json"
+    },
+    {
+      "bytes": 10055,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/independent_review.json",
+      "sha256": "05a9ade962357c557302b90817dbe6be8fe981b7ae793423fdc2acc791adc4c0",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup_review.json"
+    },
+    {
+      "bytes": 3906,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/synthetic_feasibility.json",
+      "sha256": "dd1cc9dda02b658dffaeecf00ede5024d9a94500ab615009640e1c0b72187c0a",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup_synthetic.json"
+    },
+    {
+      "bytes": 104551,
+      "copy": "docs/research/evidence/boundary_football_elo_followup_20260908/source_only_ci.json",
+      "sha256": "0ae1e496606a37684ba4bd4ddafdb41e262d0fb3d1a548b0ef3cd20620cfdc58",
+      "source": "artifacts/research/boundary_20260908/football_elo_followup_ci.json"
+    }
+  ],
+  "historical_new_readout_fits": 3,
+  "historical_new_strength_fits": 0,
+  "new_production_model": false,
+  "omitted_local_hash_bound_artifacts": [
+    "raw provider CSVs",
+    "row-level references and forecast ledgers",
+    "rating-state and support ledgers",
+    "readout coefficients and calibration history"
+  ],
+  "status": "verified_selection_pass_transfer_failed_no_promotion",
+  "total_bytes": 662071,
+  "transfer_delay7_executed": false
+}

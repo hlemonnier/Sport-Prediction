@@ -1,0 +1,399 @@
+{
+  "candidate": "elo_odds_reference",
+  "candidates": [
+    "elo_odds_reference"
+  ],
+  "execution": {
+    "exclusive_attempts_and_closures": true,
+    "labels": "Close full corresponding probability ledgers before external scoring labels attach. Earlier resolved outcomes may update result-Elo after strict admission.",
+    "no_automatic_promotion": true,
+    "no_new_blends": true,
+    "no_strength_fits": true,
+    "preserve_failures": true,
+    "reject_failed_predecessors": true,
+    "required_checks": [
+      "K14 result update and K175 odds update equations",
+      "Equal-clock atomicity and future/current/equal-time poison invariance",
+      "Matched quote-valid populations and DST calendar delays",
+      "Prequential readout x values and frozen pre2022 training",
+      "Primary candidate and readout bits exactly equal verified parent",
+      "All760 and2280 IDs preserved with exact unsupported fallback",
+      "Saved old controls reused without failed-family fitting",
+      "All eight selection/five transfer reference gates and conditional stage order",
+      "Independent rating/coefficients/metrics/uncertainty replay without fits"
+    ],
+    "stages": [
+      "review and freeze executable source/runtime/full inherited input graph",
+      "prepare exact reference populations and both metadata availability ledgers",
+      "primary fixed candidate versus new result-Elo and saved controls",
+      "D+8 selection only after primary passes",
+      "both-delay transfer only after both selection gates pass",
+      "independent replay and factual report"
+    ]
+  },
+  "exposure": {
+    "candidate_was_previously_reference": true,
+    "fresh_holdout": false,
+    "meaning": "Separate fixed follow-up motivated by a post hoc reference diagnostic; does not revise the failed past-market strength family.",
+    "prospective_validation": false,
+    "selection_dates_already_exposed": true,
+    "selection_lead_post_hoc": true,
+    "transfer_dates_already_exposed": true
+  },
+  "id": "football_fixed_elo_followup_20260908",
+  "input_closure": {
+    "cached_csv_files": 27,
+    "cached_rows": 10260,
+    "inherit_exact_cached_csv_records_from": "inputs.parent_specification -> inputs.cached_csv_files",
+    "inherit_source_and_input_hashes_from": "inputs.parent_design_lock -> sources and inputs; verify their current bytes and parent verification before execution.",
+    "leagues": {
+      "E0": "Europe/London",
+      "I1": "Europe/Rome",
+      "SP1": "Europe/Madrid"
+    },
+    "no_provider_downloads": true,
+    "reference_extraction": "Reuse existing target-free references_selection and references_transfer. Only selection extracts old outcome-control vectors from the verified primary issuance ledger.",
+    "season_start_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "inputs": {
+    "parent_data_lock": {
+      "bytes": 1292,
+      "path": "artifacts/research/boundary_20260908/football_past_market/data_lock.json",
+      "sha256": "595519d95844dfa2acb27d791bb1219ba0a374aceb6bef3d2b8c1ab9f4ea6908"
+    },
+    "parent_design_lock": {
+      "bytes": 12943,
+      "path": "artifacts/research/boundary_20260908/football_past_market/design_lock.json",
+      "sha256": "e9a05b1988bb619a59dc815e00fe46b8c6d1f6f9daf30dfb4fe563210f9f6d41"
+    },
+    "parent_primary_decision": {
+      "bytes": 312,
+      "path": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_decision_lock.json",
+      "sha256": "6940464df2d48f005857afaeb6018a214200a9a1e77abf72afa642646d96634c"
+    },
+    "parent_primary_issuance_lock": {
+      "bytes": 991,
+      "path": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_issuance_lock.json",
+      "sha256": "abf3a8684ceeb30edc6eae47da018c8c8ae0dfe2c71518c5ce5fad1edb0298d3"
+    },
+    "parent_primary_result": {
+      "bytes": 105038,
+      "path": "artifacts/research/boundary_20260908/football_past_market/selection_delay1.json",
+      "sha256": "0591f1b13c0e0e12497e18b45d2c56114b0b1cf5e02b2ee018fc3e6cde30555e"
+    },
+    "parent_primary_verification": {
+      "bytes": 51283,
+      "path": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_verification.json",
+      "sha256": "776eed85649217734bc243dc539cb4ccb955187c0c9eac1c9e6b5131ec172eaf"
+    },
+    "parent_specification": {
+      "bytes": 32176,
+      "path": "research/experiments/boundary_20260908/football_past_market/specification.json",
+      "sha256": "3960bedf1518294a871b8eabcd1c9d35943a41cb06b25abd61982c016072d09d"
+    },
+    "post_hoc_diagnostic": {
+      "bytes": 68091,
+      "path": "artifacts/research/boundary_20260908/football_past_market_elo_diagnostic.json",
+      "sha256": "7a556f6e84a44b5ce9a70d559c71b6d9324c4dd4f623ee45d8c02ae05e75139f"
+    },
+    "primary_forecasts": {
+      "bytes": 1661512,
+      "path": "artifacts/research/boundary_20260908/football_past_market/selection_delay1_issued.json",
+      "sha256": "5e5395bb779688089e6c687eab4fc51dd4c1dc61a61dd999480a01be6726530f"
+    },
+    "primary_market_readout": {
+      "bytes": 8726744,
+      "path": "artifacts/research/boundary_20260908/football_past_market/elo_readout_delay1.json",
+      "sha256": "b6b32e919462cfbe436acdfe6d27022b1a10dc75c0984e14c53f137a0e4b0dc3"
+    },
+    "references_selection": {
+      "bytes": 1155859,
+      "path": "artifacts/research/boundary_20260908/football_past_market/references_selection.json",
+      "sha256": "30eb165e70fd5a450188f98613d8daf79d4dad66ba55b618e734c60c13386fc9"
+    },
+    "references_transfer": {
+      "bytes": 2541068,
+      "path": "artifacts/research/boundary_20260908/football_past_market/references_transfer.json",
+      "sha256": "0c7de84ed4093a14c09f094e0b26bbf678aa03aa37bcfde08a8c55f34f8a0063"
+    }
+  },
+  "metrics": {
+    "primary": "Mean natural-log 1X2 loss over all fixed matched fixtures",
+    "probability_order": [
+      "H",
+      "D",
+      "A"
+    ],
+    "secondary": [
+      "class-summed Brier",
+      "top1 accuracy",
+      "10-bin top-label ECE",
+      "class calibration bias",
+      "country-season NLL and Brier"
+    ],
+    "subset_selection": false
+  },
+  "new_fits_performed": 0,
+  "new_scores_computed": false,
+  "no_tuning": true,
+  "old_family_advances": false,
+  "paper": {
+    "adaptations": [
+      "Neutral new-team entry instead of the paper promotion-rating transfer",
+      "Different leagues/years and no international matches",
+      "Explicit delayed quote availability and atomic equal-clock updates",
+      "Frozen repository ordered-logit constraints and uncertainty gates"
+    ],
+    "authors": [
+      "Fabian Wunderlich",
+      "Daniel Memmert"
+    ],
+    "checked_at_utc_date": "2026-09-08",
+    "doi": "10.1371/journal.pone.0198668",
+    "full_paper_reproduction": false,
+    "parameter_locator": "Results / Parameter calibration, paragraph after the introduction of Table 2; Table 2 DOI 10.1371/journal.pone.0198668.t002",
+    "parameter_selection_on_current_data": false,
+    "source_supported_constants": {
+      "ELO-Odds_k": 175,
+      "ELO-Result_k": 14
+    },
+    "title": "The Betting Odds Rating System: Using soccer forecasts to forecast soccer",
+    "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0198668",
+    "year": 2018
+  },
+  "primary_reuse": {
+    "candidate_probability_key": "elo_odds_reference",
+    "candidate_vectors_bit_exact": true,
+    "market_readout_bit_exact": true,
+    "market_readout_refits": 0,
+    "reconstruct_only_for_independent_verification": true,
+    "rows": 760,
+    "unsupported_return_exact_incumbent": true
+  },
+  "production_changes": false,
+  "proposal": {
+    "bytes": 7665,
+    "path": "research/experiments/boundary_20260908/football_elo_followup/README.md",
+    "sha256": "798e73fbc3ac9582a73acca484e57358f0dd3f2190305c03569a1283248c3090"
+  },
+  "quotes": {
+    "alternative_bookmaker_fallback": false,
+    "closing_columns_allowed": false,
+    "columns_before_2019": [
+      "BbAvH",
+      "BbAvD",
+      "BbAvA"
+    ],
+    "columns_from_2019": [
+      "AvgH",
+      "AvgD",
+      "AvgA"
+    ],
+    "current_fixture_odds_forbidden": true,
+    "invalid_row_policy": "Skip identically for both rating updates and both readout training populations; retain ID/reason.",
+    "normalization": "q_i=(1/decimal_odds_i)/sum_j(1/decimal_odds_j), frozen normalized branch; no power method",
+    "valid": "Exactly three finite decimal odds greater than one; booleans invalid."
+  },
+  "rating": {
+    "accumulate_from_season_start_year": 2017,
+    "base": 10.0,
+    "candidate_K": 175.0,
+    "candidate_observed_score": "q_home+0.5*q_draw from normalized reciprocal average odds",
+    "equal_availability_atomic": true,
+    "expected_home_score": "1/(1+10**(-(rating_home-rating_away+80)/400))",
+    "future_rosters_forbidden": true,
+    "home_advantage": 80.0,
+    "initial_rating": 1000.0,
+    "league_team_key": true,
+    "matched_updates": "Both methods use exactly the same quote-valid, strictly available raw fixture IDs at each delay. Result values additionally require resolved A0 before cutoff.",
+    "neutral_first_admitted_entry": true,
+    "new_recency_parameter": false,
+    "result_observed_score": "1 for H, 0.5 for D, 0 for A, after matched quote-valid temporal admission",
+    "result_reference_K": 14.0,
+    "returning_teams_keep_rating": true,
+    "rolling_rating_expiration": false,
+    "scale": 400.0,
+    "update": "home += K*(observed-expected); away -= K*(observed-expected)"
+  },
+  "readout": {
+    "constraints": {
+      "beta_min": 0.0,
+      "threshold_gap_min": 1e-06
+    },
+    "failure_policy": "Abort with immutable failure receipt; no alternate calibration or settings.",
+    "frozen_through_selection_and_transfer": true,
+    "maximum_new_optimizer_fits": 3,
+    "method": "Identical inherited ordered-logit objective, solver and parameter constraints",
+    "objective": "Unweighted mean natural-log outcome loss; no ridge, league indicator or recency weighting",
+    "output_floor": 1e-12,
+    "per_rating_process_separate_coefficients": true,
+    "probabilities_H_D_A": [
+      "1-sigmoid(t2-beta*x)",
+      "sigmoid(t2-beta*x)-sigmoid(t1-beta*x)",
+      "sigmoid(t1-beta*x)"
+    ],
+    "refit_counts": {
+      "primary_market": 0,
+      "primary_result": 1,
+      "sensitivity_market_if_primary_passes": 1,
+      "sensitivity_result_if_primary_passes": 1,
+      "transfer": 0
+    },
+    "renormalize_after_floor": true,
+    "separate_per_delay": true,
+    "solver": {
+      "analytic_gradient": true,
+      "ftol": 1e-12,
+      "initial_beta": 1.0,
+      "initial_t1": -0.5,
+      "initial_t2": 0.5,
+      "maximum_kkt_residual": 1e-06,
+      "maxiter": 2000,
+      "name": "SLSQP",
+      "require_success": true
+    },
+    "training_rows": "Pooled three leagues, quote-valid and resolved by first 2022 selection cutoff; explanatory variables strictly prequential at original issuance.",
+    "training_season_start_years": [
+      2019,
+      2020,
+      2021
+    ],
+    "warmup_season_start_years": [
+      2017,
+      2018
+    ],
+    "x": "(rating_home-rating_away)/400 at the historical fixture original local-midnight cutoff"
+  },
+  "resources": {
+    "maximum_peak_rss_bytes": 2147483648,
+    "maximum_stage_wall_seconds": 3600,
+    "new_dependencies": false,
+    "parallel_fits": 1,
+    "threads": 1
+  },
+  "selection": {
+    "fixed_candidate_no_reselection": true,
+    "frozen_control_availability": "Old outcome_control and outcome_control_shot50 remain their saved D+2 vectors under both selection delays; no newly D+8-matched strength fit.",
+    "league": "E0",
+    "legacy_and_xg_vectors_unchanged_at_both_delays": true,
+    "minimum_relative_nll_gain_each_reference": 0.005,
+    "negative_95_28day_upper_endpoint_each_reference": true,
+    "ordered_original_match_ids_sha256": "9b08ba5633d917aa07a6f748cccfc5b3bd761a45704448fd34e1a73bf91dc036",
+    "primary_market_vectors_reused": true,
+    "primary_or_sensitivity_failure": "Stop later stages; keep all outcomes and the old family failed.",
+    "references": [
+      "production_default_dc_auto",
+      "dc365_elo50",
+      "dc_180",
+      "shot_strength_90d_ridge0.1",
+      "xg_add90_selection_safeguard",
+      "outcome_control",
+      "outcome_control_shot50",
+      "elo_result_k14"
+    ],
+    "rows": 760,
+    "season_start_years": [
+      2022,
+      2023
+    ],
+    "sensitivity_extra_local_days": 7,
+    "sensitivity_only_after_primary_passes": true,
+    "sensitivity_same_candidate_and_gates": true
+  },
+  "status": "protocol_only_before_new_execution_source_lock_or_fits",
+  "suggested_commit": "research(football): specify fixed Elo-Odds transfer follow-up",
+  "support": {
+    "expected_selection_supported_primary": 758,
+    "expected_selection_supported_sensitivity": 757,
+    "fallback_bit_exact": true,
+    "history_local_calendar_days": 1095,
+    "incumbent": "shot_strength_90d_ridge0.1",
+    "minimum_admitted_quote_valid_observations_per_team": 1,
+    "population_filtering": false,
+    "rating_history_unwindowed": true,
+    "same_mask_both_elo_methods": true,
+    "window": "[current local league date minus 1095 days, current local league date), intersect strict quote availability"
+  },
+  "timing": {
+    "a0": "Local midnight after canonical completion day D in each row league timezone.",
+    "archive_json_limit": "Parent issuance and reference vectors are reused. Underlying original archives contain already exposed outcomes; semantic non-use before the forecast closure is not absence of outcome bytes.",
+    "canonical_day": "Existing source/completion day, exact-joined to inherited fixture metadata; preserve known Fiorentina-Inter resumption convention.",
+    "forecast": "The unchanged original forecast_cutoff_utc of each fixture; legacy naive timestamps mean UTC; compare parsed aware datetimes.",
+    "historical_receipt_certified": false,
+    "numeric_payload_admission": "Filter metadata, window and availability before parsing, validating or transforming raw odds or outcome values. Never use current/future fixture odds for any feature, update, scaler, support rule or model.",
+    "primary_exact_day": "D+2 at local00:00, then UTC",
+    "primary_extra_local_calendar_days_after_a0": 1,
+    "quote_observed_at": null,
+    "result_availability": "A0 strictly before cutoff; result-Elo is additionally restricted to the same delayed quote-valid membership as market-Elo.",
+    "same_time_order": "All issuances at the same clock use one common preceding state. Elo updates at equal availability are atomic; events with availability equal to issuance are excluded.",
+    "sensitivity_exact_day": "D+8 at local00:00, then UTC; not primary+7days and not168elapsedUTC hours",
+    "sensitivity_extra_local_calendar_days_after_a0": 7,
+    "strict_admission": "quote_available_at_utc < forecast_cutoff_utc"
+  },
+  "transfer": {
+    "all_gates_required_at_both_delays": true,
+    "brier_nonworse_pooled_and_each_country_season_each_reference": true,
+    "delays": [
+      1,
+      7
+    ],
+    "failed_family_fits": 0,
+    "leagues": [
+      "E0",
+      "I1",
+      "SP1"
+    ],
+    "minimum_relative_nll_gain_each_reference": 0.02,
+    "negative_95_28day_upper_endpoint_each_reference": true,
+    "no_country_season_nll_deterioration_each_reference": true,
+    "old_outcome_strength_transfer_forecasts": false,
+    "ordered_original_match_ids_sha256": "13e5eb0e6763266167dc003d982756d933a873bec7a16017c2765256f03505ed",
+    "positive_each_country_each_reference": true,
+    "promotion": false,
+    "readout_refits": 0,
+    "references": [
+      "production_default_dc_auto",
+      "dc365_elo50",
+      "dc_180",
+      "shot_strength_90d_ridge0.1",
+      "elo_result_k14"
+    ],
+    "requires_both_selection_delays_passed": true,
+    "resumed_fixture_exclusion_sensitivity": "I1:2024:Fiorentina:Inter; retain the main2280population.",
+    "rows": 2280,
+    "rows_each_league_season": 380,
+    "same_fixed_candidate_at_both_delays": true,
+    "season_start_years": [
+      2024,
+      2025
+    ],
+    "xg_transfer_forecasts": false
+  },
+  "uncertainty": {
+    "blocks_calendar_days": [
+      1,
+      7,
+      28
+    ],
+    "gate_block_days": 28,
+    "interval": "Paired fixed-calendar-block percentile95 using inherited benchmark.paired_uncertainty semantics",
+    "resamples": 4000,
+    "research_selection_adjustment": false,
+    "seed": 20260908,
+    "sign": "candidate minus reference",
+    "strata": [
+      "league",
+      "season"
+    ]
+  }
+}

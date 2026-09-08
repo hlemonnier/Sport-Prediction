@@ -1,0 +1,32 @@
+{
+  "evidence": {
+    "bytes": 8191,
+    "original_path": "artifacts/research/boundary_20260908/telemetry_pilot/code_diagnostics.json",
+    "published_path": "docs/research/evidence/boundary_telemetry_pilot_20260908/code_diagnostics.json",
+    "sha256": "3cccc650cbc48768882ed246bdafe241a9ebbc9ef07eca7a6c49f9db4f78e066"
+  },
+  "new_model_fits": 0,
+  "new_predictive_scores": 0,
+  "original_acquisition_source_files_unchanged": true,
+  "purpose": "Supplemental observed-code diagnostics and unexecuted future model proposals",
+  "schema_version": 1,
+  "source_files": {
+    "research/experiments/boundary_20260908/next_mechanisms.md": {
+      "bytes": 14792,
+      "sha256": "96d1fa8124aa5dc47dea4ebe79b2cad25b229480db10d32b80d781e8a06754f4"
+    },
+    "research/experiments/boundary_20260908/sector_peer/README.md": {
+      "bytes": 13148,
+      "sha256": "83a95da385bac23d1b8f28c401e4b7c9040829dc2741a1495bf4c2d6b34b2a74"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": {
+      "bytes": 12502,
+      "sha256": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/verification/inspect_codes.py": {
+      "bytes": 3853,
+      "sha256": "0a6052ee45eb47192baaf93cd08edd5195634cc5243e57c2fe04d4cb9fbc9523"
+    }
+  },
+  "suggested_commit": "docs(research): define next tests from telemetry code diagnostics"
+}

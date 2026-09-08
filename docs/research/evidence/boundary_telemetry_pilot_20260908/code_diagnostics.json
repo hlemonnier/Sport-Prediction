@@ -1,0 +1,246 @@
+{
+  "acquisition_sha256": "9d39fc16e23db3a3c9066b94e2add265d6a68e639d73417b3d3a813c348ca0e4",
+  "completed_at_utc": "2026-09-08T04:31:12.314493+00:00",
+  "interpretation": "Co-occurrence is observed code behavior, not proof of sentinel semantics or physical pressure/throttle percent. No raw value was changed or discarded.",
+  "lap_tables_opened": 0,
+  "models_fitted": 0,
+  "network_calls": 0,
+  "predictive_scores_computed": 0,
+  "source_sha256": "0a6052ee45eb47192baaf93cd08edd5195634cc5243e57c2fe04d4cb9fbc9523",
+  "status": "passed",
+  "streams": [
+    {
+      "cooccurrence_counts": {
+        "brake104": 72282,
+        "brake104_and_speed_above_30": 5974,
+        "rows": 733120,
+        "throttle104": 72279,
+        "throttle104_and_brake104": 72279,
+        "throttle104_and_rpm_above_3000": 5974,
+        "throttle104_and_rpm_zero": 23306,
+        "throttle104_and_speed_above_30": 5974,
+        "throttle104_and_speed_zero": 66305
+      },
+      "event_key": 202201,
+      "raw_sha256": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a",
+      "throttle104_by_driver": {
+        "1": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "02:43:08.308",
+          "throttle104": 4554
+        },
+        "10": {
+          "first_recorded_clock": "02:16:47.104",
+          "last_recorded_clock": "02:43:08.308",
+          "throttle104": 5974
+        },
+        "11": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "02:43:08.308",
+          "throttle104": 4135
+        },
+        "14": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:19:45.924",
+          "throttle104": 4245
+        },
+        "16": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:44:20.329",
+          "throttle104": 5126
+        },
+        "18": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:18:22.925",
+          "throttle104": 4166
+        },
+        "20": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:28:21.086",
+          "throttle104": 4063
+        },
+        "22": {
+          "first_recorded_clock": "00:26:33.645",
+          "last_recorded_clock": "00:28:27.246",
+          "throttle104": 428
+        },
+        "23": {
+          "first_recorded_clock": "00:01:24.962",
+          "last_recorded_clock": "00:20:15.285",
+          "throttle104": 4278
+        },
+        "24": {
+          "first_recorded_clock": "00:28:45.726",
+          "last_recorded_clock": "00:43:15.528",
+          "throttle104": 1699
+        },
+        "27": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:18:21.685",
+          "throttle104": 4164
+        },
+        "3": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:18:08.685",
+          "throttle104": 4116
+        },
+        "31": {
+          "first_recorded_clock": "00:11:01.044",
+          "last_recorded_clock": "00:20:11.245",
+          "throttle104": 2086
+        },
+        "4": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:18:56.125",
+          "throttle104": 4291
+        },
+        "44": {
+          "first_recorded_clock": "00:04:29.762",
+          "last_recorded_clock": "00:19:49.765",
+          "throttle104": 3492
+        },
+        "47": {
+          "first_recorded_clock": "00:06:53.923",
+          "last_recorded_clock": "00:28:33.166",
+          "throttle104": 3088
+        },
+        "55": {
+          "first_recorded_clock": "00:00:04.162",
+          "last_recorded_clock": "00:32:30.607",
+          "throttle104": 4651
+        },
+        "6": {
+          "first_recorded_clock": "00:02:32.122",
+          "last_recorded_clock": "00:18:18.804",
+          "throttle104": 3594
+        },
+        "63": {
+          "first_recorded_clock": "00:04:15.602",
+          "last_recorded_clock": "00:18:37.964",
+          "throttle104": 3278
+        },
+        "77": {
+          "first_recorded_clock": "00:28:08.046",
+          "last_recorded_clock": "00:45:18.008",
+          "throttle104": 851
+        }
+      }
+    },
+    {
+      "cooccurrence_counts": {
+        "brake104": 101058,
+        "brake104_and_speed_above_30": 72,
+        "gear_outside_0_to_8": 63,
+        "invalid_gear_and_speed_above_30": 0,
+        "invalid_gear_and_throttle104": 0,
+        "rows": 721300,
+        "throttle104": 100975,
+        "throttle104_and_brake104": 100974,
+        "throttle104_and_rpm_above_3000": 86,
+        "throttle104_and_rpm_zero": 71584,
+        "throttle104_and_speed_above_30": 16,
+        "throttle104_and_speed_zero": 100889
+      },
+      "event_key": 202301,
+      "raw_sha256": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18",
+      "throttle104_by_driver": {
+        "1": {
+          "first_recorded_clock": "00:00:01.431",
+          "last_recorded_clock": "00:15:37.033",
+          "throttle104": 3522
+        },
+        "11": {
+          "first_recorded_clock": "00:00:43.031",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 3540
+        },
+        "14": {
+          "first_recorded_clock": "00:00:01.431",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 4551
+        },
+        "16": {
+          "first_recorded_clock": "00:11:25.993",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 9231
+        },
+        "18": {
+          "first_recorded_clock": "00:00:01.431",
+          "last_recorded_clock": "01:18:38.486",
+          "throttle104": 5235
+        },
+        "2": {
+          "first_recorded_clock": "00:00:15.751",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 4950
+        },
+        "20": {
+          "first_recorded_clock": "00:03:46.231",
+          "last_recorded_clock": "00:35:23.478",
+          "throttle104": 3401
+        },
+        "21": {
+          "first_recorded_clock": "00:02:12.311",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 3821
+        },
+        "22": {
+          "first_recorded_clock": "00:00:27.831",
+          "last_recorded_clock": "00:19:14.394",
+          "throttle104": 4259
+        },
+        "23": {
+          "first_recorded_clock": "00:00:45.991",
+          "last_recorded_clock": "00:20:24.275",
+          "throttle104": 4459
+        },
+        "24": {
+          "first_recorded_clock": "00:23:11.515",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 3237
+        },
+        "27": {
+          "first_recorded_clock": "00:06:19.192",
+          "last_recorded_clock": "00:31:32.677",
+          "throttle104": 3545
+        },
+        "31": {
+          "first_recorded_clock": "00:00:28.951",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 9921
+        },
+        "4": {
+          "first_recorded_clock": "00:02:29.391",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 4155
+        },
+        "44": {
+          "first_recorded_clock": "00:06:22.312",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 3147
+        },
+        "55": {
+          "first_recorded_clock": "00:00:01.431",
+          "last_recorded_clock": "00:31:15.517",
+          "throttle104": 4490
+        },
+        "63": {
+          "first_recorded_clock": "00:07:58.913",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 2768
+        },
+        "77": {
+          "first_recorded_clock": "00:26:57.236",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 2833
+        },
+        "81": {
+          "first_recorded_clock": "00:00:40.031",
+          "last_recorded_clock": "02:41:02.101",
+          "throttle104": 19910
+        }
+      }
+    }
+  ],
+  "supplemental_preflight_fix": "The first supplemental reader attempt failed at the first BOM-prefixed record before producing counts. Its text reader was corrected to utf-8-sig. The frozen parser and completed independent verifier already handled the BOM correctly; raw inputs and their hashes are unchanged."
+}

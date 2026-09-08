@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "review_status": "no_concrete_blocker_found",
+  "reviewer": "independent sibling research agent; not the parser author",
+  "review_date": "2026-09-08",
+  "sources": [
+    {
+      "path": "research/experiments/boundary_20260908/telemetry_pilot/packets.py",
+      "sha256": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/telemetry_pilot/test_packets.py",
+      "sha256": "79f273bfa5b780d4862a9d5608b63d5636b5cc81ee05266c37f6884f608e7899"
+    }
+  ],
+  "supplied_tests": {
+    "command": "PYTHONPATH=\"$PWD\" PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv-f1/bin/python -m pytest -q -p no:cacheprovider research/experiments/boundary_20260908/telemetry_pilot/test_packets.py",
+    "exit_code": 0,
+    "passed": 72,
+    "reported_seconds": 0.12,
+    "stdout_summary": "72 passed in 0.12s"
+  },
+  "independent_transient_probe": {
+    "status": "PASS",
+    "exact_decompression_cap_and_installed_fastf1_equivalence_cases": 8,
+    "strict_cutoff_replay_cases": 55,
+    "oversized_future_payload_exclusion": true,
+    "details": "Independently constructed raw-DEFLATE JSON-string envelopes at eight payload sizes, checked exact output-cap acceptance and one-byte-too-small rejection, and compared decoding to installed FastF1 _api.parse. Independently replayed a stream with repeated and regressing clocks at 55 integer cutoffs, then verified that an oversized future payload was excluded before decoding.",
+    "persistence": "The inline probe and stdout were transient tool execution, not saved artifacts. No probe source hash or stdout hash is claimed."
+  },
+  "reviewed_properties": [
+    "Bounded physical record reads and decompressed output before JSON parsing",
+    "Strict quoted JSON/base64/raw-DEFLATE envelope and decoded structure validation",
+    "Physical order and cumulative-maximum availability prevent regression backdating",
+    "Equal-clock and future payloads excluded before payload validation",
+    "Atomic bundle provenance retained",
+    "Missing, null, zero and false remain distinguishable in raw packets",
+    "Full stream validity requires exhaustion; cutoff validity is separate"
+  ],
+  "limitations": [
+    "No actual downloaded pilot packet had been reviewed at this stage; the acquisition diagnostic must establish real envelope compatibility.",
+    "Archive-prefix availability does not prove historical client receipt time or source-sample alignment.",
+    "This is a parser review with synthetic checks, not evidence of predictive performance."
+  ],
+  "suggested_commit": "research(f1-live): record independent telemetry parser review"
+}

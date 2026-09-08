@@ -1,0 +1,129 @@
+{
+  "acquisition_lock_sha256": "d2946327d297248feaf4e3da409c7f1ecde6c68ed0352a46359bd050281d4ad6",
+  "completed_at_utc": "2026-09-08T04:25:21.417243+00:00",
+  "downloaded": 2,
+  "event_keys": [
+    202201,
+    202301
+  ],
+  "max_http_requests": 4,
+  "max_parallel_http_requests": 2,
+  "models_fitted": 0,
+  "predictive_scores_computed": 0,
+  "scope": "Raw CarData.z availability and quality pilot only; no lap tables, labels, model features or predictive scores",
+  "sessions": [
+    {
+      "event_key": 202201,
+      "meeting_name": "Bahrain Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 6993,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "session_start_local": "2022-03-20T18:00:00"
+    },
+    {
+      "event_key": 202301,
+      "meeting_name": "Bahrain Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 7953,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "session_start_local": "2023-03-05T18:00:00"
+    }
+  ],
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry_pilot/README.md": "5f68cf9835b41eaaafc2600c13efe7835c3497f898ea199872ff49bdb914c7d7",
+    "research/experiments/boundary_20260908/telemetry_pilot/acquire.py": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/boundary_20260908/telemetry_pilot/specification.json": "3f3d8876a997705cdb75dba34edeb3179d2c3d1d7e4a8364f6d884a2bedb2ad7",
+    "research/experiments/boundary_20260908/telemetry_pilot/test_acquire.py": "6be583352b51110b0a327403ec66cb70d8c80628e7cafb7429c578ef13e0224b",
+    "research/experiments/boundary_20260908/telemetry_pilot/test_packets.py": "79f273bfa5b780d4862a9d5608b63d5636b5cc81ee05266c37f6884f608e7899"
+  },
+  "status": "all_stream_attempts_recorded",
+  "streams": [
+    {
+      "attempts": [
+        {
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/CarData.z.jsonStream",
+          "body_finished_at_utc": "2026-09-08T04:25:20.970332+00:00",
+          "headers_received_at_utc": "2026-09-08T04:25:20.635023+00:00",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T04:25:20.385222+00:00",
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/CarData.z.jsonStream",
+          "response_headers": {
+            "Content-Length": "8476579",
+            "Date": "Tue, 08 Sep 2026 04:25:20 GMT",
+            "ETag": "\"869a6884e8f9288a92f7a72d04989602\"",
+            "Last-Modified": "Sat, 04 Jul 2026 17:52:08 GMT"
+          },
+          "wall_seconds": 0.5851124170003459,
+          "wire_body_bytes": 8476579,
+          "wire_body_complete": true,
+          "wire_body_path": "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody",
+          "wire_body_sha256": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a"
+        }
+      ],
+      "completed_at_utc": "2026-09-08T04:25:20.975442+00:00",
+      "decoded_body_bytes": 8476579,
+      "decoded_body_path": "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody",
+      "decoded_body_sha256": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a",
+      "event_key": 202201,
+      "historical_client_receipt_certified": false,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "downloaded_unparsed",
+      "stream": "CarData.z"
+    },
+    {
+      "attempts": [
+        {
+          "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+          "body_finished_at_utc": "2026-09-08T04:25:20.625039+00:00",
+          "headers_received_at_utc": "2026-09-08T04:25:20.623863+00:00",
+          "http_status": 404,
+          "request_started_at_utc": "2026-09-08T04:25:20.385078+00:00",
+          "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+          "response_headers": {
+            "Content-Type": "text/html",
+            "Date": "Tue, 08 Sep 2026 04:25:20 GMT"
+          },
+          "wall_seconds": 0.23996729200007394,
+          "wire_body_bytes": 27150,
+          "wire_body_complete": true,
+          "wire_body_path": "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt1.httpbody",
+          "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+        },
+        {
+          "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+          "body_finished_at_utc": "2026-09-08T04:25:21.411997+00:00",
+          "headers_received_at_utc": "2026-09-08T04:25:20.965474+00:00",
+          "http_status": 200,
+          "request_started_at_utc": "2026-09-08T04:25:20.625767+00:00",
+          "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+          "response_headers": {
+            "Content-Length": "8107479",
+            "Content-Type": "application/octet-stream",
+            "Date": "Tue, 08 Sep 2026 04:25:21 GMT",
+            "ETag": "\"934e7313a12689428ab2e98783865457\"",
+            "Last-Modified": "Wed, 19 Jun 2024 11:24:38 GMT"
+          },
+          "wall_seconds": 0.7862359170103446,
+          "wire_body_bytes": 8107479,
+          "wire_body_complete": true,
+          "wire_body_path": "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody",
+          "wire_body_sha256": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18"
+        }
+      ],
+      "completed_at_utc": "2026-09-08T04:25:21.416489+00:00",
+      "decoded_body_bytes": 8107479,
+      "decoded_body_path": "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody",
+      "decoded_body_sha256": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18",
+      "event_key": 202301,
+      "historical_client_receipt_certified": false,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "downloaded_unparsed",
+      "stream": "CarData.z"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "acquisition_sha256": "9d39fc16e23db3a3c9066b94e2add265d6a68e639d73417b3d3a813c348ca0e4",
+  "created_at_utc": "2026-09-08T04:25:28.738431+00:00",
+  "inputs": {
+    "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a",
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18"
+  },
+  "models_fitted": 0,
+  "predictive_scores_computed": 0,
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry_pilot/diagnose.py": "24576e2cf1420ea6ca2969d76f9725a23d697bc1199b4bc7093f91e5ef83f961",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680"
+  }
+}

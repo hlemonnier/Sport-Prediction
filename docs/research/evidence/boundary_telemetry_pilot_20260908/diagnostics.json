@@ -1,0 +1,640 @@
+{
+  "acquisition_sha256": "9d39fc16e23db3a3c9066b94e2add265d6a68e639d73417b3d3a813c348ca0e4",
+  "completed_at_utc": "2026-09-08T04:25:48.961081+00:00",
+  "created_at_utc": "2026-09-08T04:25:28.738431+00:00",
+  "inputs": {
+    "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a",
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18"
+  },
+  "models_fitted": 0,
+  "predictive_scores_computed": 0,
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry_pilot/diagnose.py": "24576e2cf1420ea6ca2969d76f9725a23d697bc1199b4bc7093f91e5ef83f961",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680"
+  },
+  "status": "passed",
+  "streams": [
+    {
+      "before_ms": null,
+      "channels": {
+        "0": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "RPM",
+          "maximum": 13293,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 733120,
+          "zero": 181070
+        },
+        "2": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "Speed",
+          "maximum": 329,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 733120,
+          "zero": 246445
+        },
+        "3": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "nGear",
+          "maximum": 8,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 733120,
+          "zero": 243406
+        },
+        "4": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "Throttle",
+          "maximum": 104,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 733120,
+          "zero": 301150
+        },
+        "45": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "DRS",
+          "maximum": 14,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 733120,
+          "zero": 426415
+        },
+        "5": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "Brake",
+          "maximum": 104,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 733120,
+          "zero": 551710
+        }
+      },
+      "clock_contract": "physical archive order; cummax recorded prefix milliseconds; strict before cutoff",
+      "counts": {
+        "bundled_packets": 9564,
+        "car_rows": 733120,
+        "car_rows_missing_channels": 0,
+        "empty_packets": 0,
+        "entries": 36656,
+        "entries_invalid_utc": 0,
+        "entries_missing_cars": 0,
+        "entries_missing_utc": 0,
+        "max_entries_per_packet": 14
+      },
+      "drivers": {
+        "1": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "10": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "11": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "14": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "16": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "18": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "20": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "22": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "23": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "24": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "27": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "3": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "31": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "4": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "44": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "47": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "55": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "6": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "63": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        },
+        "77": {
+          "car_rows": 36656,
+          "first_available_ms": 4162,
+          "last_available_ms": 9788308,
+          "max_availability_gap_ms": 3200,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36656
+        }
+      },
+      "event_key": 202201,
+      "limitations": [
+        "archive clock is not historical client receipt or precise sample time",
+        "Utc is diagnostic only; no full-session t0_date or lap alignment",
+        "bundled rows are not independent or evenly spaced observations",
+        "missing channels including DRS stay missing; unknown DRS meanings are not inferred"
+      ],
+      "packet_validation": {
+        "adjacent_duplicate_recorded_clocks": 0,
+        "blank_lines": 0,
+        "complete": true,
+        "duplicate_availability_clocks": 0,
+        "first_available_ms": 4162,
+        "first_recorded_ms": 4162,
+        "last_available_ms": 9788308,
+        "last_recorded_ms": 9788308,
+        "max_availability_gap_ms": 3200,
+        "physical_lines_examined": 9626,
+        "prefix_input_valid": true,
+        "records": 9626,
+        "stopped_at_cutoff": false,
+        "stream_input_valid": true,
+        "timestamp_regressions": 0
+      },
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody",
+      "schema": "raw_car_data_prefix_diagnostics_v1"
+    },
+    {
+      "before_ms": null,
+      "channels": {
+        "0": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "RPM",
+          "maximum": 13144,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 721300,
+          "zero": 219482
+        },
+        "2": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "Speed",
+          "maximum": 335,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 721300,
+          "zero": 274628
+        },
+        "3": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "nGear",
+          "maximum": 49,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 721300,
+          "zero": 265269
+        },
+        "4": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "Throttle",
+          "maximum": 104,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 721300,
+          "zero": 291788
+        },
+        "45": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "DRS",
+          "maximum": 14,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 721300,
+          "zero": 464641
+        },
+        "5": {
+          "absent": 0,
+          "boolean": 0,
+          "known_name": "Brake",
+          "maximum": 104,
+          "minimum": 0,
+          "nonnumeric": 0,
+          "null": 0,
+          "present": 721300,
+          "zero": 519485
+        }
+      },
+      "clock_contract": "physical archive order; cummax recorded prefix milliseconds; strict before cutoff",
+      "counts": {
+        "bundled_packets": 9354,
+        "car_rows": 721300,
+        "car_rows_missing_channels": 0,
+        "empty_packets": 0,
+        "entries": 36065,
+        "entries_invalid_utc": 0,
+        "entries_missing_cars": 0,
+        "entries_missing_utc": 0,
+        "max_entries_per_packet": 17
+      },
+      "drivers": {
+        "1": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "10": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "11": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "14": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "16": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "18": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "2": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "20": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "21": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "22": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "23": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "24": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "27": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "31": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "4": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "44": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "55": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "63": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "77": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        },
+        "81": {
+          "car_rows": 36065,
+          "first_available_ms": 1431,
+          "last_available_ms": 9662101,
+          "max_availability_gap_ms": 12480,
+          "source_utc_duplicates": 0,
+          "source_utc_missing_or_invalid": 0,
+          "source_utc_regressions": 0,
+          "source_utc_valid": 36065
+        }
+      },
+      "event_key": 202301,
+      "limitations": [
+        "archive clock is not historical client receipt or precise sample time",
+        "Utc is diagnostic only; no full-session t0_date or lap alignment",
+        "bundled rows are not independent or evenly spaced observations",
+        "missing channels including DRS stay missing; unknown DRS meanings are not inferred"
+      ],
+      "packet_validation": {
+        "adjacent_duplicate_recorded_clocks": 0,
+        "blank_lines": 0,
+        "complete": true,
+        "duplicate_availability_clocks": 0,
+        "first_available_ms": 1431,
+        "first_recorded_ms": 1431,
+        "last_available_ms": 9662101,
+        "last_recorded_ms": 9662101,
+        "max_availability_gap_ms": 12480,
+        "physical_lines_examined": 9486,
+        "prefix_input_valid": true,
+        "records": 9486,
+        "stopped_at_cutoff": false,
+        "stream_input_valid": true,
+        "timestamp_regressions": 0
+      },
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody",
+      "schema": "raw_car_data_prefix_diagnostics_v1"
+    }
+  ]
+}

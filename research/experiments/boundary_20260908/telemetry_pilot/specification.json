@@ -1,0 +1,54 @@
+{
+  "base_urls": [
+    "https://livetiming-mirror.fastf1.dev",
+    "https://livetiming.formula1.com"
+  ],
+  "follow_redirects": false,
+  "elapsed_deadline_semantics": "response_acceptance_checked_before_and_after_each_read1_not_hard_transport_cancellation",
+  "elapsed_deadline_limitations": "A blocked body read can overrun the acceptance deadline by one socket read timeout (30 seconds); connection/DNS/TLS/library scheduling are not a hard wall-clock cancellation guarantee. Late response bytes are never accepted as a completed body.",
+  "historical_client_receipt_certified": false,
+  "later_forecast_sensitivity_delivery_lag_seconds": [
+    0,
+    2
+  ],
+  "max_decoded_body_bytes": 67108864,
+  "max_http_body_bytes": 67108864,
+  "max_parallel_requests": 2,
+  "max_request_elapsed_seconds": 150,
+  "max_requests_per_event": 2,
+  "minimum_free_disk_bytes": 536870912,
+  "parent_session_manifest": {
+    "path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+    "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+  },
+  "purpose": "Raw CarData.z availability and quality pilot only; no lap tables, labels, model features or predictive scores",
+  "request_timeout_connect_seconds": 15,
+  "request_timeout_read_seconds": 30,
+  "schema_version": 1,
+  "selection_data_access_authorized_by_this_spec": false,
+  "sessions": [
+    {
+      "event_key": 202201,
+      "meeting_name": "Bahrain Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 6993,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "session_start_local": "2022-03-20T18:00:00"
+    },
+    {
+      "event_key": 202301,
+      "meeting_name": "Bahrain Grand Prix",
+      "original_laps_path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "original_laps_sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8",
+      "session_gmt_offset": "03:00:00",
+      "session_key": 7953,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "session_start_local": "2023-03-05T18:00:00"
+    }
+  ],
+  "source_clock": "physical archive prefix milliseconds; cumulative maximum for availability; strict prior to issuance",
+  "source_utc_usage": "diagnostics only; never compute session t0 or use to select model information",
+  "stream": "CarData.z"
+}

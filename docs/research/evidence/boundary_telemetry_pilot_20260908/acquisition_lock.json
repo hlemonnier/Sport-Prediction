@@ -1,0 +1,21 @@
+{
+  "event_keys": [
+    202201,
+    202301
+  ],
+  "frozen_at_utc": "2026-09-08T04:25:20.384105+00:00",
+  "max_http_requests": 4,
+  "max_parallel_http_requests": 2,
+  "models_fitted": 0,
+  "predictive_scores_computed": 0,
+  "scope": "Raw CarData.z availability and quality pilot only; no lap tables, labels, model features or predictive scores",
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry_pilot/README.md": "5f68cf9835b41eaaafc2600c13efe7835c3497f898ea199872ff49bdb914c7d7",
+    "research/experiments/boundary_20260908/telemetry_pilot/acquire.py": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/boundary_20260908/telemetry_pilot/specification.json": "3f3d8876a997705cdb75dba34edeb3179d2c3d1d7e4a8364f6d884a2bedb2ad7",
+    "research/experiments/boundary_20260908/telemetry_pilot/test_acquire.py": "6be583352b51110b0a327403ec66cb70d8c80628e7cafb7429c578ef13e0224b",
+    "research/experiments/boundary_20260908/telemetry_pilot/test_packets.py": "79f273bfa5b780d4862a9d5608b63d5636b5cc81ee05266c37f6884f608e7899"
+  },
+  "specification_sha256": "3f3d8876a997705cdb75dba34edeb3179d2c3d1d7e4a8364f6d884a2bedb2ad7"
+}

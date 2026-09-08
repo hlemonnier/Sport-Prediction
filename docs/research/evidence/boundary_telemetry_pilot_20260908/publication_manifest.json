@@ -1,0 +1,87 @@
+{
+  "evidence_files": [
+    {
+      "bytes": 4053,
+      "original_path": "artifacts/research/boundary_20260908/telemetry_pilot/acquisition_review.json",
+      "published_path": "docs/research/evidence/boundary_telemetry_pilot_20260908/acquisition_review.json",
+      "sha256": "810084cb827e6977b263e73bf483def145f749008526d993c9422c28a06d6074"
+    },
+    {
+      "bytes": 1327,
+      "original_path": "artifacts/research/boundary_20260908/telemetry_pilot/acquisition_lock.json",
+      "published_path": "docs/research/evidence/boundary_telemetry_pilot_20260908/acquisition_lock.json",
+      "sha256": "d2946327d297248feaf4e3da409c7f1ecde6c68ed0352a46359bd050281d4ad6"
+    },
+    {
+      "bytes": 6876,
+      "original_path": "artifacts/research/boundary_20260908/telemetry_pilot/acquisition.json",
+      "published_path": "docs/research/evidence/boundary_telemetry_pilot_20260908/acquisition.json",
+      "sha256": "9d39fc16e23db3a3c9066b94e2add265d6a68e639d73417b3d3a813c348ca0e4"
+    },
+    {
+      "bytes": 837,
+      "original_path": "artifacts/research/boundary_20260908/telemetry_pilot/diagnostics_lock.json",
+      "published_path": "docs/research/evidence/boundary_telemetry_pilot_20260908/diagnostics_lock.json",
+      "sha256": "6480a324100f32badd33b7f774c887ec8529b5b463364789c468c91557d6e1d8"
+    },
+    {
+      "bytes": 20879,
+      "original_path": "artifacts/research/boundary_20260908/telemetry_pilot/diagnostics.json",
+      "published_path": "docs/research/evidence/boundary_telemetry_pilot_20260908/diagnostics.json",
+      "sha256": "9f1650bd43d6868874835398debebe12a1727c7bc18df8ae6aa1ceaa5ea92a4f"
+    },
+    {
+      "bytes": 498618,
+      "original_path": "artifacts/research/boundary_20260908/telemetry_pilot/independent_verification.json",
+      "published_path": "docs/research/evidence/boundary_telemetry_pilot_20260908/independent_verification.json",
+      "sha256": "234df766302dd27b4d8e4b48f9491967b982d9bd718c96640c5946c5713e7e33"
+    }
+  ],
+  "production_model_changed": false,
+  "raw_data_published": false,
+  "report": {
+    "path": "docs/research/boundary_telemetry_pilot_20260908.md",
+    "sha256": "805735a2320865c873cd7a8729f3982df223802aa046e9c3790157d51c9f5624"
+  },
+  "schema_version": 1,
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry_pilot/README.md": {
+      "bytes": 4376,
+      "sha256": "5f68cf9835b41eaaafc2600c13efe7835c3497f898ea199872ff49bdb914c7d7"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/acquire.py": {
+      "bytes": 10074,
+      "sha256": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/diagnose.py": {
+      "bytes": 3129,
+      "sha256": "24576e2cf1420ea6ca2969d76f9725a23d697bc1199b4bc7093f91e5ef83f961"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": {
+      "bytes": 14667,
+      "sha256": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/parser_review.json": {
+      "bytes": 2723,
+      "sha256": "8eea3ccc7cea9511cfe32b4987e631f29cf10329dc3913d939e5e4028dbabe62"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/specification.json": {
+      "bytes": 2589,
+      "sha256": "3f3d8876a997705cdb75dba34edeb3179d2c3d1d7e4a8364f6d884a2bedb2ad7"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/test_acquire.py": {
+      "bytes": 13033,
+      "sha256": "6be583352b51110b0a327403ec66cb70d8c80628e7cafb7429c578ef13e0224b"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/test_packets.py": {
+      "bytes": 10291,
+      "sha256": "79f273bfa5b780d4862a9d5608b63d5636b5cc81ee05266c37f6884f608e7899"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/verification/verify.py": {
+      "bytes": 12940,
+      "sha256": "d72c2d107d146c89cf6b67853a8b46fa66bb321e58dec4c7f093bd53045ea269"
+    }
+  },
+  "status": "closed_pilot_data_quality_only_no_candidate_fit",
+  "suggested_commit": "research(f1-live): validate raw telemetry availability on two races"
+}

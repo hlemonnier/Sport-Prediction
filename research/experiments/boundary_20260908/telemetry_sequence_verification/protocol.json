@@ -1,0 +1,61 @@
+{
+  "full_checks": [
+    "current consumed source/corpus/schedule/encoder/embedding/model/forecast/label hashes and closure order",
+    "all800x32 scheduled same-driver/race endpoint/positive/negative identities, physicalprefix and frozen eligibility",
+    "sameinitialstate in ordered/permuted fits and untrainedrandom asset; exact800steps pertrainedencoder",
+    "all original2023issuance identities and bothlags with all unmatchedrows retained",
+    "bitwise savedoldreferenceforecast reuse and exactbasefallback for all newunsupportedforecasts",
+    "direct savedHGB estimator replay for all2023issuances at bothlags",
+    "independent event and rowMAE, fivepaired event/block3/LOOcomparisons and every frozen advancementcheck"
+  ],
+  "limits": [
+    "Neural raw-prefix replay uses a predeclaredsample; full embeddingtables arehash-bound.",
+    "Existing seasons remain exposed; this replay is not an independentfuturetest.",
+    "Archive clocks remain availabilityproxies."
+  ],
+  "neural_replay_sample": {
+    "atol": 1e-05,
+    "controls": [
+      "ordered",
+      "permuted",
+      "random"
+    ],
+    "event_keys": [
+      202201,
+      202218,
+      202301,
+      202313
+    ],
+    "input_reconstruction": "strict TokenCursor prefix with hash-bound frozen packet semantics; compare support, cutoff and admittedsequence metadata",
+    "lags_seconds": [
+      0,
+      2
+    ],
+    "positions": [
+      "first",
+      "floor(n/2)",
+      "last"
+    ],
+    "representation_replay": "separate numericalforward from savedparameters; no modelrepresentation helper",
+    "rtol": 0.0001,
+    "selection_basis": "positions in original all-issuance order regardlessof target or support",
+    "snapshots": 24
+  },
+  "schema_version": 1,
+  "scope": "independent post-selection replay; no refits or selection changes",
+  "specification": {
+    "path": "research/experiments/boundary_20260908/telemetry_sequence/specification.json",
+    "sha256": "fc799e7adb5d33406c11113b0296905351cd718106a6324d39d86c69020d826c"
+  },
+  "statistics": {
+    "block_length": 3,
+    "circular_block_resamples": 20000,
+    "event_resamples": 20000,
+    "float_atol": 1e-10,
+    "float_rtol": 1e-10,
+    "independent_implementation": "existing independently tested telemetry_verification_v2.independent_comparison, extended only reference enumeration",
+    "seed": 20260907
+  },
+  "status": "declared_before_CPC_historical_construction_or_fitting",
+  "suggested_commit": "research(f1-live): verify controlled telemetry representation evidence"
+}

@@ -1,0 +1,1198 @@
+{
+  "closed_at_utc": "2026-09-08T07:34:52.382035+00:00",
+  "design_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/design_lock.json",
+    "sha256": "cf656765fad43c8c95e831f2abb3c6b4edf621b8a92b3605ed4fdd3f26d4d49b"
+  },
+  "events": [
+    {
+      "event_key": 202301,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 65627,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 27,
+          "GapToLeader/string/string/invalid": 23,
+          "GapToLeader/string/string/leader_lap_counter": 61,
+          "GapToLeader/string/string/seconds": 24682,
+          "IntervalToPositionAhead/object/None/metadata_only": 61,
+          "IntervalToPositionAhead/object/string/clear_blank": 382,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 61,
+          "IntervalToPositionAhead/object/string/seconds": 27321,
+          "Position/string/string/rank": 670
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 43,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202301_lag0.jsonl",
+          "rows": 874,
+          "sha256": "fa906914c89ce12c64f6b2b5d6cf841daf12d92dd752d27979f3dfb175a12ffd",
+          "supported": 831
+        },
+        "2": {
+          "fallback": 48,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202301_lag2.jsonl",
+          "rows": 874,
+          "sha256": "db93353a077f71acf13b950d1768355367f3964d0faa526b760610d25eeddbcc",
+          "supported": 826
+        }
+      },
+      "original": {
+        "event_key": 202301,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl",
+        "rows": 874,
+        "sha256": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be"
+      },
+      "source": {
+        "event_key": 202301,
+        "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+        "status": "reused_verified_pilot",
+        "stream": {
+          "bytes": 6748486,
+          "path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.jsonStream",
+          "sha256": "9f50e19cc13f4b45d60ef5c194c1e45f3d193883faf77d506078f2a6c429408a"
+        }
+      }
+    },
+    {
+      "event_key": 202302,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 53187,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 24,
+          "GapToLeader/string/string/invalid": 4,
+          "GapToLeader/string/string/leader_lap_counter": 52,
+          "GapToLeader/string/string/seconds": 21884,
+          "IntervalToPositionAhead/object/None/metadata_only": 29,
+          "IntervalToPositionAhead/object/string/clear_blank": 253,
+          "IntervalToPositionAhead/object/string/invalid": 2,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 52,
+          "IntervalToPositionAhead/object/string/seconds": 21929,
+          "Position/string/string/rank": 343
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 44,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202302_lag0.jsonl",
+          "rows": 789,
+          "sha256": "88cd54c4c40d9f32cc94e0ed043a3d997c9fe377a131f25079fdee3d95eb310a",
+          "supported": 745
+        },
+        "2": {
+          "fallback": 44,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202302_lag2.jsonl",
+          "rows": 789,
+          "sha256": "86caabfa27ae86f404cc2008f1916aea4c075c7bea589edf3b3b2cf09136d8b7",
+          "supported": 745
+        }
+      },
+      "original": {
+        "event_key": 202302,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202302_issued.jsonl",
+        "rows": 789,
+        "sha256": "5bb165fc41f1cdf32c00c707d64aedc2d38b9cb2280d38ece97b02fabeb74320"
+      },
+      "source": {
+        "event_key": 202302,
+        "session_path": "2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5576851,
+          "path": "data/f1/boundary_20260908/sector_forecast/202302_TimingData.attempt2.httpbody",
+          "sha256": "329a8accdc31e6df2933ac0f6d4029ae79d4d3bf34b5a67a637af4e2796f1d80"
+        }
+      }
+    },
+    {
+      "event_key": 202303,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 49889,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 31,
+          "GapToLeader/string/string/invalid": 10,
+          "GapToLeader/string/string/leader_lap_counter": 61,
+          "GapToLeader/string/string/seconds": 19784,
+          "IntervalToPositionAhead/object/None/metadata_only": 31,
+          "IntervalToPositionAhead/object/string/clear_blank": 285,
+          "IntervalToPositionAhead/object/string/invalid": 4,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 61,
+          "IntervalToPositionAhead/object/string/seconds": 20302,
+          "Position/string/string/rank": 479
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 46,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202303_lag0.jsonl",
+          "rows": 731,
+          "sha256": "ea4ac4d9854ebc9c1e11ee63807810f453a306258616f90e5747fa5cf3aaf82a",
+          "supported": 685
+        },
+        "2": {
+          "fallback": 45,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202303_lag2.jsonl",
+          "rows": 731,
+          "sha256": "de080598773a3b8fb440c5e47939a50042ecdd695e8c782ff89a6c5064589736",
+          "supported": 686
+        }
+      },
+      "original": {
+        "event_key": 202303,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202303_issued.jsonl",
+        "rows": 731,
+        "sha256": "f01330f46346fe61170f79c4d9bb9c19cd15d663199230cee57fd0d38d26d6f0"
+      },
+      "source": {
+        "event_key": 202303,
+        "session_path": "2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5242377,
+          "path": "data/f1/boundary_20260908/sector_forecast/202303_TimingData.attempt2.httpbody",
+          "sha256": "8df0bf8052af85fb303193be63f8f5a511f336ad99277f898d0e83e620396d58"
+        }
+      }
+    },
+    {
+      "event_key": 202304,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 54135,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 25,
+          "GapToLeader/string/string/invalid": 6,
+          "GapToLeader/string/string/leader_lap_counter": 53,
+          "GapToLeader/string/string/seconds": 22308,
+          "IntervalToPositionAhead/object/None/metadata_only": 19,
+          "IntervalToPositionAhead/object/string/clear_blank": 226,
+          "IntervalToPositionAhead/object/string/invalid": 2,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 53,
+          "IntervalToPositionAhead/object/string/seconds": 22438,
+          "Position/string/string/rank": 361
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 53,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202304_lag0.jsonl",
+          "rows": 806,
+          "sha256": "6ab5d73ccdd9e03cb77150d52fe0833823cf40a93899ab082fea054314ef3a04",
+          "supported": 753
+        },
+        "2": {
+          "fallback": 46,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202304_lag2.jsonl",
+          "rows": 806,
+          "sha256": "8b9752e039713fe842954e7b73cd6201af4cb38a3529049fe8e54ccd8568b221",
+          "supported": 760
+        }
+      },
+      "original": {
+        "event_key": 202304,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202304_issued.jsonl",
+        "rows": 806,
+        "sha256": "2729ba6907088a9512eb020dd81af7e48b37d89cba7f79c2a18836546fbb78b4"
+      },
+      "source": {
+        "event_key": 202304,
+        "session_path": "2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5678089,
+          "path": "data/f1/boundary_20260908/sector_forecast/202304_TimingData.attempt2.httpbody",
+          "sha256": "f4af5c61632130f57e98926db21604aff1ad8c32b1107a29ccbbcb63b822c721"
+        }
+      }
+    },
+    {
+      "event_key": 202305,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 64349,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 25,
+          "GapToLeader/string/string/invalid": 5,
+          "GapToLeader/string/string/leader_lap_counter": 62,
+          "GapToLeader/string/string/seconds": 26414,
+          "IntervalToPositionAhead/object/None/metadata_only": 24,
+          "IntervalToPositionAhead/object/string/clear_blank": 304,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 62,
+          "IntervalToPositionAhead/object/string/seconds": 27178,
+          "Position/string/string/rank": 432
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 54,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202305_lag0.jsonl",
+          "rows": 1038,
+          "sha256": "9bf954072351dbfe250e81bf9f1ce999353ae50b049506b042fea24d269dd51b",
+          "supported": 984
+        },
+        "2": {
+          "fallback": 52,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202305_lag2.jsonl",
+          "rows": 1038,
+          "sha256": "d84b1add0e02ad0881acb5340206400d6a591481fcf7641ad3070d98acb6948f",
+          "supported": 986
+        }
+      },
+      "original": {
+        "event_key": 202305,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202305_issued.jsonl",
+        "rows": 1038,
+        "sha256": "467d39f550affeab708638da796861d6bab46dfe801c3f5d0873b106222522f3"
+      },
+      "source": {
+        "event_key": 202305,
+        "session_path": "2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 6738909,
+          "path": "data/f1/boundary_20260908/sector_forecast/202305_TimingData.attempt2.httpbody",
+          "sha256": "6f95b4271738cd409458ace4847af668814abacf7d52880970c58e4e50c91d93"
+        }
+      }
+    },
+    {
+      "event_key": 202306,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 71770,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 22,
+          "GapToLeader/string/string/invalid": 40,
+          "GapToLeader/string/string/leader_lap_counter": 78,
+          "GapToLeader/string/string/seconds": 20069,
+          "IntervalToPositionAhead/object/None/metadata_only": 41,
+          "IntervalToPositionAhead/object/string/clear_blank": 215,
+          "IntervalToPositionAhead/object/string/invalid": 4,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 78,
+          "IntervalToPositionAhead/object/string/seconds": 29819,
+          "Position/string/string/rank": 300
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 96,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202306_lag0.jsonl",
+          "rows": 1383,
+          "sha256": "3527ba8cd0ed93148c87b1eaaf0820321be120c9cee3a6fdd8e4638aa264edce",
+          "supported": 1287
+        },
+        "2": {
+          "fallback": 119,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202306_lag2.jsonl",
+          "rows": 1383,
+          "sha256": "4474cd36aacb99809f7f7e060cb90702b107c2e855b493cd5888d3bd11f02010",
+          "supported": 1264
+        }
+      },
+      "original": {
+        "event_key": 202306,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202306_issued.jsonl",
+        "rows": 1383,
+        "sha256": "e2c4a2382c63a598cbf29bde0672459dbf438c80d0840b51959963995a81c01b"
+      },
+      "source": {
+        "event_key": 202306,
+        "session_path": "2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 7342720,
+          "path": "data/f1/boundary_20260908/sector_forecast/202306_TimingData.attempt2.httpbody",
+          "sha256": "83acdd5ef2f5b116201dbdff7e73b12eb390bd6b76c828b2f60032b31da1158f"
+        }
+      }
+    },
+    {
+      "event_key": 202307,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 62232,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 22,
+          "GapToLeader/string/string/invalid": 36,
+          "GapToLeader/string/string/leader_lap_counter": 68,
+          "GapToLeader/string/string/seconds": 21893,
+          "IntervalToPositionAhead/object/None/metadata_only": 76,
+          "IntervalToPositionAhead/object/string/clear_blank": 471,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 68,
+          "IntervalToPositionAhead/object/string/seconds": 25637,
+          "Position/string/string/rank": 714
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 54,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202307_lag0.jsonl",
+          "rows": 1167,
+          "sha256": "73b1ea5d6d3c52c0c0e90721a94009c3e2ed52e9ed160fad73fe533feb317c45",
+          "supported": 1113
+        },
+        "2": {
+          "fallback": 59,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202307_lag2.jsonl",
+          "rows": 1167,
+          "sha256": "75bf9b76da788ae46f25e4442ce27356deb04f5e7ea9ce70f8dcd4db6d1c1793",
+          "supported": 1108
+        }
+      },
+      "original": {
+        "event_key": 202307,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202307_issued.jsonl",
+        "rows": 1167,
+        "sha256": "34f2bc136e5b1592eb62917ede5cbedd1befd64696297ec84cb59169dc450af3"
+      },
+      "source": {
+        "event_key": 202307,
+        "session_path": "2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 6464446,
+          "path": "data/f1/boundary_20260908/sector_forecast/202307_TimingData.attempt2.httpbody",
+          "sha256": "226f3421a92dff78b491f7b8a5560e50dd38990e2915dd243b2df0e9acefc214"
+        }
+      }
+    },
+    {
+      "event_key": 202308,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 54730,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 22,
+          "GapToLeader/string/string/invalid": 12,
+          "GapToLeader/string/string/leader_lap_counter": 70,
+          "GapToLeader/string/string/seconds": 20704,
+          "IntervalToPositionAhead/object/None/metadata_only": 21,
+          "IntervalToPositionAhead/object/string/clear_blank": 228,
+          "IntervalToPositionAhead/object/string/invalid": 2,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 70,
+          "IntervalToPositionAhead/object/string/seconds": 22130,
+          "Position/string/string/rank": 360
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 78,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202308_lag0.jsonl",
+          "rows": 1087,
+          "sha256": "1d2c0464f209b50fb1790db1481983bca8ce8dd07fe04adb59f6216f57f733c2",
+          "supported": 1009
+        },
+        "2": {
+          "fallback": 60,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202308_lag2.jsonl",
+          "rows": 1087,
+          "sha256": "d39dc4baa9b7a09f172a2e8352f88bf741606eb42a214c2b6c8d05beec0142b3",
+          "supported": 1027
+        }
+      },
+      "original": {
+        "event_key": 202308,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202308_issued.jsonl",
+        "rows": 1087,
+        "sha256": "f53b21605d16ce79cbfbf2e2c6b8bacbddaf6fad07076890811adfbb22c889c0"
+      },
+      "source": {
+        "event_key": 202308,
+        "session_path": "2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5790559,
+          "path": "data/f1/boundary_20260908/sector_forecast/202308_TimingData.attempt2.httpbody",
+          "sha256": "3b5e969fbe6e2f3804ee6cfe36caf626e81f5f9f7c6ac84a3fdb978953607fd6"
+        }
+      }
+    },
+    {
+      "event_key": 202309,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 61621,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 23,
+          "GapToLeader/string/string/invalid": 62,
+          "GapToLeader/string/string/leader_lap_counter": 73,
+          "GapToLeader/string/string/seconds": 19240,
+          "IntervalToPositionAhead/object/None/metadata_only": 58,
+          "IntervalToPositionAhead/object/string/clear_blank": 389,
+          "IntervalToPositionAhead/object/string/invalid": 1,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 73,
+          "IntervalToPositionAhead/object/string/seconds": 24877,
+          "Position/string/string/rank": 532
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 63,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202309_lag0.jsonl",
+          "rows": 1146,
+          "sha256": "ee105fd6a02a68959b46f0e3bf9de2f03bd5b8f63feecc3b505412ef2257f3f0",
+          "supported": 1083
+        },
+        "2": {
+          "fallback": 59,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202309_lag2.jsonl",
+          "rows": 1146,
+          "sha256": "16df2dd52d153596c66c8ac55e8797b66bc24a2568f8a9482d0816f89103ffc1",
+          "supported": 1087
+        }
+      },
+      "original": {
+        "event_key": 202309,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202309_issued.jsonl",
+        "rows": 1146,
+        "sha256": "40352ed47faab9faa3ec9b2a7b9c182672e9340951bb4081e0c525dde51e410a"
+      },
+      "source": {
+        "event_key": 202309,
+        "session_path": "2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 6369036,
+          "path": "data/f1/boundary_20260908/sector_forecast/202309_TimingData.attempt2.httpbody",
+          "sha256": "c0608ed8f23159bb216b4e61ac304b37b6d2eebb01c7d1c641f9291c9b6dc7c3"
+        }
+      }
+    },
+    {
+      "event_key": 202310,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 54668,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 26,
+          "GapToLeader/string/string/invalid": 3,
+          "GapToLeader/string/string/leader_lap_counter": 54,
+          "GapToLeader/string/string/seconds": 22662,
+          "IntervalToPositionAhead/object/None/metadata_only": 39,
+          "IntervalToPositionAhead/object/string/clear_blank": 223,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 54,
+          "IntervalToPositionAhead/object/string/seconds": 22538,
+          "Position/string/string/rank": 305
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 45,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202310_lag0.jsonl",
+          "rows": 762,
+          "sha256": "8f3cc844781a5f55d941fbbb144d66dcd72ebad627b60595daff187d318eb793",
+          "supported": 717
+        },
+        "2": {
+          "fallback": 44,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202310_lag2.jsonl",
+          "rows": 762,
+          "sha256": "58e07e6a802fa7f55eb6f1d423c2bf120236e69e399ac3b48a6864b3d2bc7be2",
+          "supported": 718
+        }
+      },
+      "original": {
+        "event_key": 202310,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202310_issued.jsonl",
+        "rows": 762,
+        "sha256": "688c37e994b0adfbcf8ef38c812dc854361f719b5666d5f45365d2a5b9c2a1f5"
+      },
+      "source": {
+        "event_key": 202310,
+        "session_path": "2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5739005,
+          "path": "data/f1/boundary_20260908/sector_forecast/202310_TimingData.attempt2.httpbody",
+          "sha256": "b2bd7bb088d3fc10e937f99b3fdfeab60c71ca7bc2c4249b5db486d8ca8b0ea5"
+        }
+      }
+    },
+    {
+      "event_key": 202311,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 56977,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 25,
+          "GapToLeader/string/string/invalid": 36,
+          "GapToLeader/string/string/leader_lap_counter": 71,
+          "GapToLeader/string/string/seconds": 18833,
+          "IntervalToPositionAhead/object/None/metadata_only": 42,
+          "IntervalToPositionAhead/object/string/clear_blank": 280,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 71,
+          "IntervalToPositionAhead/object/string/seconds": 23248,
+          "Position/string/string/rank": 464
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 67,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202311_lag0.jsonl",
+          "rows": 1122,
+          "sha256": "b4c992e6c90eb816eba4a903dfc7f90a6cd2a2098fa0bb2e78c6d143313dc286",
+          "supported": 1055
+        },
+        "2": {
+          "fallback": 64,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202311_lag2.jsonl",
+          "rows": 1122,
+          "sha256": "6d8023deb77c3d1aceb780563e77648c8bb71896d40a40bc85ba027a0974752b",
+          "supported": 1058
+        }
+      },
+      "original": {
+        "event_key": 202311,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202311_issued.jsonl",
+        "rows": 1122,
+        "sha256": "b3f31436706351c040c337fa5c26ede2c19231315b0a295f61d27747d404e0f4"
+      },
+      "source": {
+        "event_key": 202311,
+        "session_path": "2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5894083,
+          "path": "data/f1/boundary_20260908/sector_forecast/202311_TimingData.attempt2.httpbody",
+          "sha256": "47299992eaf9168fa2a470cc5da9c52831c66e0f45fea212b356d79be2c98dfe"
+        }
+      }
+    },
+    {
+      "event_key": 202312,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 49531,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 26,
+          "GapToLeader/string/string/invalid": 1,
+          "GapToLeader/string/string/leader_lap_counter": 48,
+          "GapToLeader/string/string/seconds": 20679,
+          "IntervalToPositionAhead/object/None/metadata_only": 29,
+          "IntervalToPositionAhead/object/string/clear_blank": 404,
+          "IntervalToPositionAhead/object/string/invalid": 1,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 48,
+          "IntervalToPositionAhead/object/string/seconds": 20477,
+          "Position/string/string/rank": 620
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 50,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202312_lag0.jsonl",
+          "rows": 683,
+          "sha256": "e04fe67e97faa66cddf257190fd1e050fbf570f1e9f062714df38ae1c572574b",
+          "supported": 633
+        },
+        "2": {
+          "fallback": 52,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202312_lag2.jsonl",
+          "rows": 683,
+          "sha256": "f72fd9aba54278505f2c75354308a0467ae28e626de077ac8ce62ff1cc6ec340",
+          "supported": 631
+        }
+      },
+      "original": {
+        "event_key": 202312,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202312_issued.jsonl",
+        "rows": 683,
+        "sha256": "fc42044aebfa8d5d0598ebb4dc8097b90e1107dc92a6de6cbb3727c207a4cc5e"
+      },
+      "source": {
+        "event_key": 202312,
+        "session_path": "2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5150399,
+          "path": "data/f1/boundary_20260908/sector_forecast/202312_TimingData.attempt2.httpbody",
+          "sha256": "875f132ce30905e2fe18eb8d43bd7fb47e2230fd0c859cbcd6db9731e9c24a6d"
+        }
+      }
+    },
+    {
+      "event_key": 202313,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 69608,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 28,
+          "GapToLeader/string/string/invalid": 12,
+          "GapToLeader/string/string/leader_lap_counter": 76,
+          "GapToLeader/string/string/seconds": 28341,
+          "IntervalToPositionAhead/object/None/metadata_only": 31,
+          "IntervalToPositionAhead/object/string/clear_blank": 702,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 76,
+          "IntervalToPositionAhead/object/string/seconds": 28471,
+          "Position/string/string/rank": 1012
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 55,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202313_lag0.jsonl",
+          "rows": 974,
+          "sha256": "05bfa747829ac50ad9fbfbdd37648244f82bf454bb55edf9c53b90201d557996",
+          "supported": 919
+        },
+        "2": {
+          "fallback": 54,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202313_lag2.jsonl",
+          "rows": 974,
+          "sha256": "604f4014dea8423f2a1ddcb4872b4f9bd60215831b945a4e406e186069d7096c",
+          "supported": 920
+        }
+      },
+      "original": {
+        "event_key": 202313,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202313_issued.jsonl",
+        "rows": 974,
+        "sha256": "c974468accdd65c600b8adaeb0590ea1e84f0dfd2de42f0aa1f323b37d73e0be"
+      },
+      "source": {
+        "event_key": 202313,
+        "session_path": "2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 7307694,
+          "path": "data/f1/boundary_20260908/sector_forecast/202313_TimingData.attempt2.httpbody",
+          "sha256": "5d48d04908a2f28e3a5fc92393a40eb046f2aeae8ca83313bd3cdf8e67fb5922"
+        }
+      }
+    },
+    {
+      "event_key": 202314,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 53664,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 28,
+          "GapToLeader/string/string/invalid": 6,
+          "GapToLeader/string/string/leader_lap_counter": 58,
+          "GapToLeader/string/string/seconds": 21262,
+          "IntervalToPositionAhead/object/None/metadata_only": 30,
+          "IntervalToPositionAhead/object/string/clear_blank": 306,
+          "IntervalToPositionAhead/object/string/invalid": 1,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 58,
+          "IntervalToPositionAhead/object/string/seconds": 21772,
+          "Position/string/string/rank": 472
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 67,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202314_lag0.jsonl",
+          "rows": 840,
+          "sha256": "f7ab4744c93cb28b0bc88de82e4c4cbd64297a38467fe4646a27ce47bb99bd71",
+          "supported": 773
+        },
+        "2": {
+          "fallback": 63,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202314_lag2.jsonl",
+          "rows": 840,
+          "sha256": "d239984d3ba5d38c466e34303f9f68f1e9fa940e0d87f76f463c235ef4a070d2",
+          "supported": 777
+        }
+      },
+      "original": {
+        "event_key": 202314,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202314_issued.jsonl",
+        "rows": 840,
+        "sha256": "941e4636618608303942c69bd45ae857024a7c5b4e46aaef7a6180ab60ada653"
+      },
+      "source": {
+        "event_key": 202314,
+        "session_path": "2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5593567,
+          "path": "data/f1/boundary_20260908/sector_forecast/202314_TimingData.attempt2.httpbody",
+          "sha256": "a0a726e0d26d9fb2874e69004cd7f178f2c417d03d6c0d23a3333710fb5fd309"
+        }
+      }
+    },
+    {
+      "event_key": 202315,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 58057,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 23,
+          "GapToLeader/string/string/invalid": 3,
+          "GapToLeader/string/string/leader_lap_counter": 62,
+          "GapToLeader/string/string/seconds": 24208,
+          "IntervalToPositionAhead/object/None/metadata_only": 23,
+          "IntervalToPositionAhead/object/string/clear_blank": 286,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 62,
+          "IntervalToPositionAhead/object/string/seconds": 24041,
+          "Position/string/string/rank": 417
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 56,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202315_lag0.jsonl",
+          "rows": 922,
+          "sha256": "db8b24490a1f34c3a85ce9fedb96a20f440bb544d28ec380876b96e206df8be2",
+          "supported": 866
+        },
+        "2": {
+          "fallback": 54,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202315_lag2.jsonl",
+          "rows": 922,
+          "sha256": "530e93d19f73e8a32b6e5c9ef78a93181886707355d030c319aef9b0e66fbf2c",
+          "supported": 868
+        }
+      },
+      "original": {
+        "event_key": 202315,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202315_issued.jsonl",
+        "rows": 922,
+        "sha256": "654734de1d18e35b8235c649060f2e269e82ba3b681b498f579042396a64a96b"
+      },
+      "source": {
+        "event_key": 202315,
+        "session_path": "2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 6066900,
+          "path": "data/f1/boundary_20260908/sector_forecast/202315_TimingData.attempt2.httpbody",
+          "sha256": "981c0fedb1c93bd1cb686d4f67e666161fc319aabd90a1e972d6a0b61ef1869d"
+        }
+      }
+    },
+    {
+      "event_key": 202316,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 50079,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 33,
+          "GapToLeader/string/string/invalid": 22,
+          "GapToLeader/string/string/leader_lap_counter": 59,
+          "GapToLeader/string/string/seconds": 19580,
+          "IntervalToPositionAhead/object/None/metadata_only": 69,
+          "IntervalToPositionAhead/object/string/clear_blank": 346,
+          "IntervalToPositionAhead/object/string/invalid": 7,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 59,
+          "IntervalToPositionAhead/object/string/seconds": 20070,
+          "Position/string/string/rank": 523
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 41,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202316_lag0.jsonl",
+          "rows": 663,
+          "sha256": "8b25d4f72ec11474f85f706a3b7ba6598237d8344a1b662301a9c19c1cb14fd2",
+          "supported": 622
+        },
+        "2": {
+          "fallback": 43,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202316_lag2.jsonl",
+          "rows": 663,
+          "sha256": "7b8646fefdd2b25e5bf4dc8f77ac6d0d49da1334a372f0e09e879d83424731cd",
+          "supported": 620
+        }
+      },
+      "original": {
+        "event_key": 202316,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202316_issued.jsonl",
+        "rows": 663,
+        "sha256": "2a7634d1d139313ec3ba9a892abc7da6ef690031d522361995bb34e6e2f1c87c"
+      },
+      "source": {
+        "event_key": 202316,
+        "session_path": "2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5218478,
+          "path": "data/f1/boundary_20260908/sector_forecast/202316_TimingData.attempt2.httpbody",
+          "sha256": "21b0c09646607775307ec9f82e47ce44bd4611e9144cf0ad5073fb940101e73c"
+        }
+      }
+    },
+    {
+      "event_key": 202317,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 52806,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 26,
+          "GapToLeader/string/string/invalid": 33,
+          "GapToLeader/string/string/leader_lap_counter": 61,
+          "GapToLeader/string/string/seconds": 20026,
+          "IntervalToPositionAhead/object/None/metadata_only": 39,
+          "IntervalToPositionAhead/object/string/clear_blank": 515,
+          "IntervalToPositionAhead/object/string/invalid": 1,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 61,
+          "IntervalToPositionAhead/object/string/seconds": 21419,
+          "Position/string/string/rank": 1071
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 57,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202317_lag0.jsonl",
+          "rows": 798,
+          "sha256": "900c618711a56aa428f5de276f9c5915e5f0dd67fe2b63f1e839962035c19e23",
+          "supported": 741
+        },
+        "2": {
+          "fallback": 51,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202317_lag2.jsonl",
+          "rows": 798,
+          "sha256": "5d1106981c430cf01ff91d24803a5bf9d538af1bd3ae3f97ec132d5241415a57",
+          "supported": 747
+        }
+      },
+      "original": {
+        "event_key": 202317,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202317_issued.jsonl",
+        "rows": 798,
+        "sha256": "085bacea39a4fee5942f07cb3a3dfd1bcc8ce581706e67ff8877946941b59aef"
+      },
+      "source": {
+        "event_key": 202317,
+        "session_path": "2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5538810,
+          "path": "data/f1/boundary_20260908/sector_forecast/202317_TimingData.attempt2.httpbody",
+          "sha256": "3e42a497eed1f69522f7409ad9bd18f240d49923da6d43f5a0f3af6f28d26dc3"
+        }
+      }
+    },
+    {
+      "event_key": 202318,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 49040,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 32,
+          "GapToLeader/string/string/invalid": 9,
+          "GapToLeader/string/string/leader_lap_counter": 64,
+          "GapToLeader/string/string/seconds": 19692,
+          "IntervalToPositionAhead/object/None/metadata_only": 76,
+          "IntervalToPositionAhead/object/string/clear_blank": 364,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 64,
+          "IntervalToPositionAhead/object/string/seconds": 19659,
+          "Position/string/string/rank": 537
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 49,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202318_lag0.jsonl",
+          "rows": 879,
+          "sha256": "1878e2edfdb3ef3c0158beee7734a7da08f15bc508b6869425cca45dfcaecdf3",
+          "supported": 830
+        },
+        "2": {
+          "fallback": 50,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202318_lag2.jsonl",
+          "rows": 879,
+          "sha256": "8685865098277411b21ad676dfcdb2fdc5053a65038f7582700c501c0fd394d6",
+          "supported": 829
+        }
+      },
+      "original": {
+        "event_key": 202318,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202318_issued.jsonl",
+        "rows": 879,
+        "sha256": "e489ff5d160b32f52d8a57464593581d1aecb079b0f67b84a674279e942b325a"
+      },
+      "source": {
+        "event_key": 202318,
+        "session_path": "2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5150106,
+          "path": "data/f1/boundary_20260908/sector_forecast/202318_TimingData.attempt2.httpbody",
+          "sha256": "ae0608507a451bfc18ee11341a4e930506b553b65a78d225cb5ad94fdc6bcc92"
+        }
+      }
+    },
+    {
+      "event_key": 202319,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 61037,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 31,
+          "GapToLeader/string/string/invalid": 5,
+          "GapToLeader/string/string/leader_lap_counter": 77,
+          "GapToLeader/string/string/seconds": 25210,
+          "IntervalToPositionAhead/object/None/metadata_only": 39,
+          "IntervalToPositionAhead/object/string/clear_blank": 377,
+          "IntervalToPositionAhead/object/string/invalid": 5,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 77,
+          "IntervalToPositionAhead/object/string/seconds": 25004,
+          "Position/string/string/rank": 568
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 66,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202319_lag0.jsonl",
+          "rows": 1093,
+          "sha256": "70a178050603ee95ecd4371e058e278f5cf3f132f4cef87ac492480226cce2ab",
+          "supported": 1027
+        },
+        "2": {
+          "fallback": 63,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202319_lag2.jsonl",
+          "rows": 1093,
+          "sha256": "bf9cde355ce9d41cf29c0f48935ff39cf22b900dade399d7b5cb3877e3101020",
+          "supported": 1030
+        }
+      },
+      "original": {
+        "event_key": 202319,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202319_issued.jsonl",
+        "rows": 1093,
+        "sha256": "7b30247b8e2986fcc24e9ed503bd35946c22ce63f7c7ae4932bc85567e4346ac"
+      },
+      "source": {
+        "event_key": 202319,
+        "session_path": "2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 6392493,
+          "path": "data/f1/boundary_20260908/sector_forecast/202319_TimingData.attempt2.httpbody",
+          "sha256": "503ace2e34710006572598cf4ad34a07362cd3a53bdf1a063d3183825c6df222"
+        }
+      }
+    },
+    {
+      "event_key": 202320,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 50078,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 28,
+          "GapToLeader/string/string/invalid": 28,
+          "GapToLeader/string/string/leader_lap_counter": 73,
+          "GapToLeader/string/string/seconds": 16169,
+          "IntervalToPositionAhead/object/None/metadata_only": 53,
+          "IntervalToPositionAhead/object/string/clear_blank": 275,
+          "IntervalToPositionAhead/object/string/invalid": 5,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 73,
+          "IntervalToPositionAhead/object/string/seconds": 19458,
+          "Position/string/string/rank": 444
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 86,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202320_lag0.jsonl",
+          "rows": 952,
+          "sha256": "0f30f4e5c47b028437e46bcd5d240d75a2fcb6bd22c6d0150d7985fdb37c2a07",
+          "supported": 866
+        },
+        "2": {
+          "fallback": 69,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202320_lag2.jsonl",
+          "rows": 952,
+          "sha256": "fbad5636cb9937ce1d58a753c71d3ee96e7c3b22aa8fdb49e3c553c78497ab42",
+          "supported": 883
+        }
+      },
+      "original": {
+        "event_key": 202320,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202320_issued.jsonl",
+        "rows": 952,
+        "sha256": "e41072ec28fc451e37035e550093d6948961faaa6e2dd35e4f582ebf78a73949"
+      },
+      "source": {
+        "event_key": 202320,
+        "session_path": "2023/2023-11-05_S\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 5170806,
+          "path": "data/f1/boundary_20260908/sector_forecast/202320_TimingData.attempt2.httpbody",
+          "sha256": "4b8c30673b290b54ab7e2ee32049de5fd93254acb653acd9ce0f2351e86e0439"
+        }
+      }
+    },
+    {
+      "event_key": 202321,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 44664,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 30,
+          "GapToLeader/string/string/invalid": 3,
+          "GapToLeader/string/string/leader_lap_counter": 57,
+          "GapToLeader/string/string/seconds": 18724,
+          "IntervalToPositionAhead/object/None/metadata_only": 27,
+          "IntervalToPositionAhead/object/string/clear_blank": 411,
+          "IntervalToPositionAhead/object/string/invalid": 3,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 57,
+          "IntervalToPositionAhead/object/string/seconds": 18529,
+          "Position/string/string/rank": 628
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 44,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202321_lag0.jsonl",
+          "rows": 700,
+          "sha256": "c24c06091136ceffc29d3e2e68313bfbe8b39b5561e39749c8e2cf58305dd5a4",
+          "supported": 656
+        },
+        "2": {
+          "fallback": 40,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202321_lag2.jsonl",
+          "rows": 700,
+          "sha256": "6b507beb9bf461a8c02046b3fca5c5803c05ab9b2099fc5bfe0624111d8c6f21",
+          "supported": 660
+        }
+      },
+      "original": {
+        "event_key": 202321,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202321_issued.jsonl",
+        "rows": 700,
+        "sha256": "b825afed88ca0ea2d9ce214de03b9a048315c7f78eb164b5d476a6bc9fb7cc8f"
+      },
+      "source": {
+        "event_key": 202321,
+        "session_path": "2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 4766599,
+          "path": "data/f1/boundary_20260908/sector_forecast/202321_TimingData.attempt2.httpbody",
+          "sha256": "b0e773adbabfe021471c755465323e640061757e44345cc0d146e893f7e5de0f"
+        }
+      }
+    },
+    {
+      "event_key": 202322,
+      "full_stream_inventory": {
+        "counts": {
+          "packets": 61660,
+          "timestamp_regressions": 0
+        },
+        "payload_errors": {},
+        "raw_update_inventory": {
+          "GapToLeader/string/string/clear_blank": 24,
+          "GapToLeader/string/string/invalid": 7,
+          "GapToLeader/string/string/leader_lap_counter": 61,
+          "GapToLeader/string/string/seconds": 25851,
+          "IntervalToPositionAhead/object/None/metadata_only": 65,
+          "IntervalToPositionAhead/object/string/clear_blank": 444,
+          "IntervalToPositionAhead/object/string/invalid": 1,
+          "IntervalToPositionAhead/object/string/leader_lap_counter": 61,
+          "IntervalToPositionAhead/object/string/seconds": 25656,
+          "Position/string/string/rank": 692
+        }
+      },
+      "ledgers": {
+        "0": {
+          "fallback": 49,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202322_lag0.jsonl",
+          "rows": 1023,
+          "sha256": "9c6c23c9dfd7d26430521dc4ae9d628d074e9375d60332c32b29ed97c0015f26",
+          "supported": 974
+        },
+        "2": {
+          "fallback": 51,
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/202322_lag2.jsonl",
+          "rows": 1023,
+          "sha256": "887a72525294e3e80d1b9d08dbf6df860ab37b8cb807d22f22fbd395926070fb",
+          "supported": 972
+        }
+      },
+      "original": {
+        "event_key": 202322,
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202322_issued.jsonl",
+        "rows": 1023,
+        "sha256": "6b8f652144ae03bfc81d1b84e1172467fb032150779e8cb46a6c569e131416c3"
+      },
+      "source": {
+        "event_key": 202322,
+        "session_path": "2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/",
+        "status": "downloaded",
+        "stream": {
+          "bytes": 6439746,
+          "path": "data/f1/boundary_20260908/sector_forecast/202322_TimingData.attempt2.httpbody",
+          "sha256": "4f11b17ed2ee018dc15b6a491fc34560be65e8de0d282fb77400d137d83868f7"
+        }
+      }
+    }
+  ],
+  "external_labels_read": false,
+  "issuances_per_lag": 20432,
+  "model_fits": 0
+}

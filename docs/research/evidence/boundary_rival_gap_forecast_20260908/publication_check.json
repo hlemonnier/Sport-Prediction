@@ -1,0 +1,13 @@
+{
+  "all_copies_byte_identical": true,
+  "bytes_checked": 523680,
+  "checked_at_utc": "2026-09-08T07:42:19.558395+00:00",
+  "design_sha256": "cf656765fad43c8c95e831f2abb3c6b4edf621b8a92b3605ed4fdd3f26d4d49b",
+  "failed_execution_markers_absent": true,
+  "files_checked": 17,
+  "hash_algorithm": "SHA256",
+  "original_payloads_rewritten": false,
+  "selection_sha256": "947952fd0fa2322415a7ccf934a104c424f61b8eab15d05f60a9367fc69d95ab",
+  "stage_chronology_checked": true,
+  "verification_sha256": "38b4aefb9a5bbddb532c06aa88d9bc79824f5115ebd62cb80aa89ffb67f622bc"
+}

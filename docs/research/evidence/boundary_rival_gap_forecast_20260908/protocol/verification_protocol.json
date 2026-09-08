@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "status": "declared_before_gap_feature_construction_or_supervised_fitting",
+  "scope": "Post-selection independent replay only; no model fitting or candidate changes",
+  "full_checks": [
+    "Hash-bind reviewed sources, parent source and input graph,44feature streams, model assets, forecast and label closures.",
+    "Verify original2023orderedfullandmatchedinventories and all unmatched forecasts at bothlags.",
+    "Replay every saved base/gap/quality HGB forecast directly from fitted sklearn estimators, exactbasefallback and frozen12contentzeroing.",
+    "Independently recompute all3event/rowmetrics, two paired event/block3/LOO comparisons perlag, originaleventweights and every advancement gate."
+  ],
+  "raw_feature_sample": {
+    "event_keys": [
+      202201,
+      202218,
+      202301,
+      202313
+    ],
+    "positions": [
+      "first",
+      "floor(n/2)",
+      "last"
+    ],
+    "lags_seconds": [
+      2,
+      0
+    ],
+    "snapshots": 24,
+    "selection_basis": "Original all-issuance order; no score/support/target-driven sampling",
+    "check": "Reconstruct timestamped interval history independently fromrawprefixes, compare45content/qualityvalues, strictcutoff,support,currentfieldandhistorysourceidentities.",
+    "arithmetic": "Separate Decimal history delta/range/slope calculations; do not use rival_gap_forecast.features or its history helpers.",
+    "atol": 1e-9,
+    "rtol": 1e-9
+  },
+  "statistics": {
+    "seed": 20260907,
+    "resamples_each": 20000,
+    "block_length": 3,
+    "implementation": "Frozen telemetry_verification_v2.independent_comparison",
+    "source_path": "research/experiments/boundary_20260908/telemetry_verification_v2/verify.py",
+    "source_sha256": "631115bdc2834f0c458e94cd18833f13d8c6bb0d9a190e76f7593d17da44c7b6",
+    "atol": 1e-10
+  },
+  "limits": [
+    "Raw-prefix feature replay covers the fixed24sample, while full feature tables are hashbound and their forecast replay is complete.",
+    "Frozen pilot parsing/support primitives may be shared; numericalhistory/featureassembly and statisticalcalculations are separate.",
+    "Optimizer fitting is not reproduced; saved estimates and all predictions are replayed.",
+    "Previously exposed seasons and archiveclock proxies do not establish prospective live gains."
+  ],
+  "suggested_commit": "research(f1-live): independently replay rival-gap prediction evidence"
+}

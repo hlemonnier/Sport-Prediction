@@ -1,0 +1,24 @@
+{
+  "closed_at_utc": "2026-09-08T07:34:52.716806+00:00",
+  "design_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/design_lock.json",
+    "sha256": "cf656765fad43c8c95e831f2abb3c6b4edf621b8a92b3605ed4fdd3f26d4d49b"
+  },
+  "external_labels_read": false,
+  "model_fits": 0,
+  "original_issuances_per_lag": 39220,
+  "years": {
+    "2022": {
+      "feature_closure": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2022/feature_closure.json",
+        "sha256": "d2b5c10dcf8d30aa20393a0a188cffe4a027ece6623203b7e6a4dd71bbef8957"
+      }
+    },
+    "2023": {
+      "feature_closure": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/features_2023/feature_closure.json",
+        "sha256": "8238bb9bae8daf56eddfc6b8bdcd33515a5a9c5a053ceedaa5b7704bcdc27fd2"
+      }
+    }
+  }
+}

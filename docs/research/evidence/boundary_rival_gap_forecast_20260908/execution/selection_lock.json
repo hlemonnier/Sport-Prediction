@@ -1,0 +1,14 @@
+{
+  "advances_to_later_evaluation": false,
+  "closed_at_utc": "2026-09-08T07:36:34.090661+00:00",
+  "design_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/design_lock.json",
+    "sha256": "cf656765fad43c8c95e831f2abb3c6b4edf621b8a92b3605ed4fdd3f26d4d49b"
+  },
+  "promotion": false,
+  "selected_candidate": "gap_hgb",
+  "selection": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/selection.json",
+    "sha256": "947952fd0fa2322415a7ccf934a104c424f61b8eab15d05f60a9367fc69d95ab"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "closed_at_utc": "2026-09-08T07:35:28.998685+00:00",
+  "data_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/data_lock.json",
+    "sha256": "9d6ca6d5fd1fb7109b3ca92472934509a1629146e9d866a18bd547745af0ef74"
+  },
+  "external_selection_labels_read": false,
+  "fit_summary": {
+    "base_refits": 0,
+    "baseline": "Saved 2022-only parameters; not the deployed 2022-2023 parameter asset",
+    "configuration": {
+      "iterations": 150,
+      "kind": "hgb",
+      "leaves": 15
+    },
+    "events": [
+      202201,
+      202202,
+      202203,
+      202204,
+      202205,
+      202206,
+      202207,
+      202208,
+      202209,
+      202210,
+      202211,
+      202212,
+      202213,
+      202214,
+      202215,
+      202216,
+      202217,
+      202218,
+      202219,
+      202220,
+      202221,
+      202222
+    ],
+    "fit_latency_seconds": 2,
+    "fit_year": 2022,
+    "fits": 2,
+    "issuance_ids_sha256": "bd8e3106a0faef33030322e9f0fd328c701c093cd1b382944209ceb180418351",
+    "rows_per_fit": 18363,
+    "supported_training_rows": 17276,
+    "unsupported_training_rows_retained": 1087,
+    "weighting": "N/(E*n_event) on all original matched 2022 rows"
+  },
+  "models": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/rival_gap_forecast/models.pkl",
+    "sha256": "0a8fec9f12eb3a88d12480800acdc503338f48fcd8670742eaedc87eb9041e9f"
+  },
+  "reused_base_bundle": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/models.pkl",
+    "sha256": "900cc775d1349a529a18341ae8602fc555123b217f4c0aeace63c31385082a0b"
+  },
+  "training_labels": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json",
+    "sha256": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9"
+  }
+}

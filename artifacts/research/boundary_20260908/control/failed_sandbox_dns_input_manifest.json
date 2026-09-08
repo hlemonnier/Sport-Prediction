@@ -1,0 +1,322 @@
+{
+  "audited_fetch_source_sha256": "a9e5ef4ee3bae049aa34c2c951a1e80d3f57d6eab820e536fda9aab7c117637a",
+  "events": [
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202201,
+      "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202202,
+      "session_path": "2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202203,
+      "session_path": "2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202204,
+      "session_path": "2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202205,
+      "session_path": "2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202206,
+      "session_path": "2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202207,
+      "session_path": "2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202208,
+      "session_path": "2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202209,
+      "session_path": "2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202210,
+      "session_path": "2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202211,
+      "session_path": "2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202212,
+      "session_path": "2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202213,
+      "session_path": "2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202214,
+      "session_path": "2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202215,
+      "session_path": "2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202216,
+      "session_path": "2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202217,
+      "session_path": "2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202218,
+      "session_path": "2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202219,
+      "session_path": "2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202220,
+      "session_path": "2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-11-13_S\\\\u00e3o_Paulo_Grand_Prix/2022-11-13_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-11-13_S%C3%A3o_Paulo_Grand_Prix/2022-11-13_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-11-13_S\\\\u00e3o_Paulo_Grand_Prix/2022-11-13_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-11-13_S%C3%A3o_Paulo_Grand_Prix/2022-11-13_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202221,
+      "session_path": "2022/2022-11-13_S\u00e3o_Paulo_Grand_Prix/2022-11-13_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202222,
+      "session_path": "2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202301,
+      "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202302,
+      "session_path": "2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202303,
+      "session_path": "2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202304,
+      "session_path": "2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202305,
+      "session_path": "2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202306,
+      "session_path": "2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202307,
+      "session_path": "2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202308,
+      "session_path": "2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202309,
+      "session_path": "2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202310,
+      "session_path": "2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202311,
+      "session_path": "2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202312,
+      "session_path": "2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202313,
+      "session_path": "2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202314,
+      "session_path": "2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202315,
+      "session_path": "2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202316,
+      "session_path": "2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202317,
+      "session_path": "2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202318,
+      "session_path": "2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202319,
+      "session_path": "2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-11-05_S\\\\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-11-05_S\\\\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202320,
+      "session_path": "2023/2023-11-05_S\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202321,
+      "session_path": "2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/",
+      "status": "failed"
+    },
+    {
+      "error": "RuntimeError('Public source attempts failed: [{\"url\": \"https://livetiming.formula1.com/static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming.formula1.com\\', port=443): Max retries exceeded with url: /static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming.formula1.com\\', port=443): Failed to resolve \\'livetiming.formula1.com\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}, {\"url\": \"https://livetiming-mirror.fastf1.dev/static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/TrackStatus.jsonStream\", \"error\": \"HTTPSConnectionPool(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Max retries exceeded with url: /static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/TrackStatus.jsonStream (Caused by NameResolutionError(\\\\\"HTTPSConnection(host=\\'livetiming-mirror.fastf1.dev\\', port=443): Failed to resolve \\'livetiming-mirror.fastf1.dev\\' ([Errno 8] nodename nor servname provided, or not known)\\\\\"))\"}]')",
+      "event_key": 202322,
+      "session_path": "2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/",
+      "status": "failed"
+    }
+  ],
+  "failed_events": [
+    202201,
+    202202,
+    202203,
+    202204,
+    202205,
+    202206,
+    202207,
+    202208,
+    202209,
+    202210,
+    202211,
+    202212,
+    202213,
+    202214,
+    202215,
+    202216,
+    202217,
+    202218,
+    202219,
+    202220,
+    202221,
+    202222,
+    202301,
+    202302,
+    202303,
+    202304,
+    202305,
+    202306,
+    202307,
+    202308,
+    202309,
+    202310,
+    202311,
+    202312,
+    202313,
+    202314,
+    202315,
+    202316,
+    202317,
+    202318,
+    202319,
+    202320,
+    202321,
+    202322
+  ],
+  "finished_at": "2026-09-08T00:39:54.609714+00:00",
+  "scope": "Only44discovery2022-2023Race TrackStatus streams; no model fitting or error scoring",
+  "source_sha256": "4f59bddf0e0f7a902bd829e21f08f8201a25f0442d30c355df11c9cf0aae0e35",
+  "started_at": "2026-09-08T00:39:54.532151+00:00",
+  "time_contract": "Recorded session clock at12-character stream prefix; no UTC/start offset; ordered repeated timestamps retained. Historical receipt latency unknown.",
+  "unknown_contract": "Unknown status remains unknown; missing Status is distinguished from an explicit unknown update. No future backfill.",
+  "weather_manifest_sha256": "78f76a325c6724a1a3b69ce4183d83a36480c11bbe3aa6b1d79c784ef9ab9ec5"
+}

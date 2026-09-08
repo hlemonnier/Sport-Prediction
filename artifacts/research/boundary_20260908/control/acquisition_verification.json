@@ -1,0 +1,48 @@
+{
+  "acquisition_source_sha256": "4f59bddf0e0f7a902bd829e21f08f8201a25f0442d30c355df11c9cf0aae0e35",
+  "events": 44,
+  "fastf1_api_source_sha256": "919b4948a5a981056f0e82b93da44e0625ea09cc29bee4a317e6708840682974",
+  "fastf1_version": "3.8.3",
+  "input_bytes": 68285,
+  "input_manifest_sha256": "c3a9c475291d3731cd0855dce56a7d628b7b838e0e018382994f15d58ff803f7",
+  "model_status": "Paused before feature engineering, grid freeze, fitting or score inspection; no transfer inputs acquired.",
+  "native_parser_exact_rows": 569,
+  "ordered_duplicate_timestamp_records": [
+    {
+      "event_key": 202216,
+      "rows": [
+        {
+          "Message": "AllClear",
+          "Status": "1",
+          "Time": 433.128,
+          "message_present": true,
+          "sequence": 0,
+          "status_present": true
+        },
+        {
+          "Message": "Yellow",
+          "Status": "2",
+          "Time": 433.128,
+          "message_present": true,
+          "sequence": 1,
+          "status_present": true
+        }
+      ]
+    }
+  ],
+  "partial_status_rows": 0,
+  "receipt_limit": "Download receipts verify acquisition provenance; historical message receipt latency is unknown.",
+  "source_sha256": "8c95713f1351f6c4d72c76e9d5cfe3e8a1be221d8d681e4077b9568f40a78c3d",
+  "status": "acquisition_verified_model_not_started",
+  "status_counts": {
+    "1": 254,
+    "2": 209,
+    "4": 39,
+    "5": 11,
+    "6": 32,
+    "7": 24
+  },
+  "time_contract": "Raw 12-character session clock; native FastF1 parser agrees exactly. No clock offset.",
+  "unknown_status_rows": 0,
+  "verified_input_files": 132
+}

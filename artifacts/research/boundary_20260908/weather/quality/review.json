@@ -1,0 +1,684 @@
+{
+  "acquisition_source_sha256": "a9e5ef4ee3bae049aa34c2c951a1e80d3f57d6eab820e536fda9aab7c117637a",
+  "canonical_round_vs_provider_calendar_number_differences": [
+    {
+      "event_key": 202306,
+      "meeting_name": "Monaco Grand Prix",
+      "provider_meeting_number": 7
+    },
+    {
+      "event_key": 202307,
+      "meeting_name": "Spanish Grand Prix",
+      "provider_meeting_number": 8
+    },
+    {
+      "event_key": 202308,
+      "meeting_name": "Canadian Grand Prix",
+      "provider_meeting_number": 9
+    },
+    {
+      "event_key": 202309,
+      "meeting_name": "Austrian Grand Prix",
+      "provider_meeting_number": 10
+    },
+    {
+      "event_key": 202310,
+      "meeting_name": "British Grand Prix",
+      "provider_meeting_number": 11
+    },
+    {
+      "event_key": 202311,
+      "meeting_name": "Hungarian Grand Prix",
+      "provider_meeting_number": 12
+    },
+    {
+      "event_key": 202312,
+      "meeting_name": "Belgian Grand Prix",
+      "provider_meeting_number": 13
+    },
+    {
+      "event_key": 202313,
+      "meeting_name": "Dutch Grand Prix",
+      "provider_meeting_number": 14
+    },
+    {
+      "event_key": 202314,
+      "meeting_name": "Italian Grand Prix",
+      "provider_meeting_number": 15
+    },
+    {
+      "event_key": 202315,
+      "meeting_name": "Singapore Grand Prix",
+      "provider_meeting_number": 16
+    },
+    {
+      "event_key": 202316,
+      "meeting_name": "Japanese Grand Prix",
+      "provider_meeting_number": 17
+    },
+    {
+      "event_key": 202317,
+      "meeting_name": "Qatar Grand Prix",
+      "provider_meeting_number": 18
+    },
+    {
+      "event_key": 202318,
+      "meeting_name": "United States Grand Prix",
+      "provider_meeting_number": 19
+    },
+    {
+      "event_key": 202319,
+      "meeting_name": "Mexico City Grand Prix",
+      "provider_meeting_number": 20
+    },
+    {
+      "event_key": 202320,
+      "meeting_name": "S\u00e3o Paulo Grand Prix",
+      "provider_meeting_number": 21
+    },
+    {
+      "event_key": 202321,
+      "meeting_name": "Las Vegas Grand Prix",
+      "provider_meeting_number": 22
+    },
+    {
+      "event_key": 202322,
+      "meeting_name": "Abu Dhabi Grand Prix",
+      "provider_meeting_number": 23
+    }
+  ],
+  "event_quality": [
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 833,
+      "event_key": 202201,
+      "maximum_update_gap_seconds": 60.73700000000099,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.91499999999996,
+      "rain_records": 0,
+      "weather_rows": 163
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 597,
+      "event_key": 202202,
+      "maximum_update_gap_seconds": 60.055000000000064,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.99499999999989,
+      "rain_records": 0,
+      "weather_rows": 152
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 756,
+      "event_key": 202203,
+      "maximum_update_gap_seconds": 60.10100000000057,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.84900000000016,
+      "rain_records": 0,
+      "weather_rows": 156
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 951,
+      "event_key": 202204,
+      "maximum_update_gap_seconds": 60.07800000000043,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.85099999999966,
+      "rain_records": 0,
+      "weather_rows": 158
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 818,
+      "event_key": 202205,
+      "maximum_update_gap_seconds": 60.03899999999976,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.99099999999999,
+      "rain_records": 9,
+      "weather_rows": 162
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1044,
+      "event_key": 202206,
+      "maximum_update_gap_seconds": 60.39200000000028,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.92000000000007,
+      "rain_records": 0,
+      "weather_rows": 164
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 907,
+      "event_key": 202207,
+      "maximum_update_gap_seconds": 60.13699999999881,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.89700000000084,
+      "rain_records": 107,
+      "weather_rows": 245
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 704,
+      "event_key": 202208,
+      "maximum_update_gap_seconds": 60.853000000000065,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.9390000000003,
+      "rain_records": 0,
+      "weather_rows": 161
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 969,
+      "event_key": 202209,
+      "maximum_update_gap_seconds": 60.439000000000306,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.97800000000097,
+      "rain_records": 0,
+      "weather_rows": 162
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 623,
+      "event_key": 202210,
+      "maximum_update_gap_seconds": 60.11000000000058,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.85599999999977,
+      "rain_records": 9,
+      "weather_rows": 203
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1121,
+      "event_key": 202211,
+      "maximum_update_gap_seconds": 60.060999999999694,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 120.0010000000002,
+      "rain_records": 0,
+      "weather_rows": 152
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 773,
+      "event_key": 202212,
+      "maximum_update_gap_seconds": 60.072000000000116,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.63200000000006,
+      "rain_records": 0,
+      "weather_rows": 128
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1143,
+      "event_key": 202213,
+      "maximum_update_gap_seconds": 60.04599999999999,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.82700000000023,
+      "rain_records": 46,
+      "weather_rows": 167
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 591,
+      "event_key": 202214,
+      "maximum_update_gap_seconds": 60.865999999999985,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.89499999999953,
+      "rain_records": 0,
+      "weather_rows": 156
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1079,
+      "event_key": 202215,
+      "maximum_update_gap_seconds": 60.154999999999745,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.99399999999969,
+      "rain_records": 0,
+      "weather_rows": 163
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 718,
+      "event_key": 202216,
+      "maximum_update_gap_seconds": 60.23400000000038,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.95600000000013,
+      "rain_records": 0,
+      "weather_rows": 147
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 616,
+      "event_key": 202217,
+      "maximum_update_gap_seconds": 60.050999999999476,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.89000000000124,
+      "rain_records": 46,
+      "weather_rows": 255
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 316,
+      "event_key": 202218,
+      "maximum_update_gap_seconds": 60.780000000000655,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.95999999999913,
+      "rain_records": 250,
+      "weather_rows": 255
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 721,
+      "event_key": 202219,
+      "maximum_update_gap_seconds": 60.38600000000042,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.98499999999967,
+      "rain_records": 0,
+      "weather_rows": 170
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1224,
+      "event_key": 202220,
+      "maximum_update_gap_seconds": 60.07099999999991,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.9970000000003,
+      "rain_records": 0,
+      "weather_rows": 165
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 887,
+      "event_key": 202221,
+      "maximum_update_gap_seconds": 60.077,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.98999999999978,
+      "rain_records": 0,
+      "weather_rows": 167
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 972,
+      "event_key": 202222,
+      "maximum_update_gap_seconds": 60.068999999999505,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.95700000000033,
+      "rain_records": 0,
+      "weather_rows": 155
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 854,
+      "event_key": 202301,
+      "maximum_update_gap_seconds": 60.04600000000028,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 120.01199999999972,
+      "rain_records": 0,
+      "weather_rows": 161
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 769,
+      "event_key": 202302,
+      "maximum_update_gap_seconds": 60.04600000000005,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.87700000000041,
+      "rain_records": 0,
+      "weather_rows": 148
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 712,
+      "event_key": 202303,
+      "maximum_update_gap_seconds": 74.88999999999942,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.9380000000001,
+      "rain_records": 0,
+      "weather_rows": 222
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 786,
+      "event_key": 202304,
+      "maximum_update_gap_seconds": 60.108000000000175,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.88799999999992,
+      "rain_records": 0,
+      "weather_rows": 160
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1018,
+      "event_key": 202305,
+      "maximum_update_gap_seconds": 60.0469999999998,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.9330000000009,
+      "rain_records": 0,
+      "weather_rows": 155
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1363,
+      "event_key": 202306,
+      "maximum_update_gap_seconds": 60.09300000000076,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.96199999999999,
+      "rain_records": 26,
+      "weather_rows": 176
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1147,
+      "event_key": 202307,
+      "maximum_update_gap_seconds": 60.0300000000002,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.97400000000016,
+      "rain_records": 0,
+      "weather_rows": 154
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1067,
+      "event_key": 202308,
+      "maximum_update_gap_seconds": 60.04599999999937,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.89800000000014,
+      "rain_records": 0,
+      "weather_rows": 162
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1126,
+      "event_key": 202309,
+      "maximum_update_gap_seconds": 60.24900000000025,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.98099999999977,
+      "rain_records": 3,
+      "weather_rows": 153
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 742,
+      "event_key": 202310,
+      "maximum_update_gap_seconds": 60.04600000000005,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.82699999999932,
+      "rain_records": 0,
+      "weather_rows": 151
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1104,
+      "event_key": 202311,
+      "maximum_update_gap_seconds": 60.03099999999995,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.9380000000001,
+      "rain_records": 0,
+      "weather_rows": 164
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 664,
+      "event_key": 202312,
+      "maximum_update_gap_seconds": 60.09299999999985,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.99099999999999,
+      "rain_records": 11,
+      "weather_rows": 150
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 954,
+      "event_key": 202313,
+      "maximum_update_gap_seconds": 60.139000000000124,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 120.0059999999994,
+      "rain_records": 48,
+      "weather_rows": 209
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 821,
+      "event_key": 202314,
+      "maximum_update_gap_seconds": 480.0720000000001,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.97199999999975,
+      "rain_records": 0,
+      "weather_rows": 156
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 904,
+      "event_key": 202315,
+      "maximum_update_gap_seconds": 60.03099999999995,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 120.0059999999994,
+      "rain_records": 0,
+      "weather_rows": 176
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 644,
+      "event_key": 202316,
+      "maximum_update_gap_seconds": 60.03099999999995,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.9930000000004,
+      "rain_records": 0,
+      "weather_rows": 158
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 780,
+      "event_key": 202317,
+      "maximum_update_gap_seconds": 60.03100000000086,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.9389999999994,
+      "rain_records": 0,
+      "weather_rows": 159
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 859,
+      "event_key": 202318,
+      "maximum_update_gap_seconds": 60.077000000000226,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.84099999999944,
+      "rain_records": 0,
+      "weather_rows": 168
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1074,
+      "event_key": 202319,
+      "maximum_update_gap_seconds": 60.030000000000655,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.97800000000007,
+      "rain_records": 0,
+      "weather_rows": 190
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 935,
+      "event_key": 202320,
+      "maximum_update_gap_seconds": 60.03099999999995,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.95900000000074,
+      "rain_records": 1,
+      "weather_rows": 183
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 681,
+      "event_key": 202321,
+      "maximum_update_gap_seconds": 60.0920000000001,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.99099999999999,
+      "rain_records": 0,
+      "weather_rows": 108
+    },
+    {
+      "checkpoint_weather_age_above180_seconds": 0,
+      "checkpoint_weather_age_above300_seconds": 0,
+      "eligible_matched_checkpoints": 1003,
+      "event_key": 202322,
+      "maximum_update_gap_seconds": 60.03099999999995,
+      "maximum_weather_age_at_strict60s_checkpoint_seconds": 119.99799999999959,
+      "rain_records": 0,
+      "weather_rows": 156
+    }
+  ],
+  "events": 44,
+  "field_count_histogram": {
+    "7": 7425
+  },
+  "installed_fastf1_version": "3.8.3",
+  "latency_limit": "Archived stream clocks are not historical consumer receipt times; current downloaded_at only dates acquisition. FastF1 postprocesses lap-end clocks. A60s lag is a declared research availability assumption, not proven receipt latency; zero-lag results are sensitivity evidence.",
+  "manifest_sha256": "78f76a325c6724a1a3b69ce4183d83a36480c11bbe3aa6b1d79c784ef9ab9ec5",
+  "missing_numeric_fields": 0,
+  "native_cache_alignment": [
+    {
+      "comparable_lap_timestamps": 1004,
+      "event": "round_01_australian_grand_prix",
+      "maximum_timestamp_difference_seconds": 0.0,
+      "native_weather_equals_exported_rows": 148,
+      "noncomparable_missing_native_lap_times": 2,
+      "source_hashes": {
+        "data/f1/cache/2026/2026-03-08_Australian_Grand_Prix/2026-03-08_Race/_extended_timing_data.ff1pkl": "8c78e2f32418126b59a1c37fffc7071763a845e65bf015d8742b016ad83ed39a",
+        "data/f1/cache/2026/2026-03-08_Australian_Grand_Prix/2026-03-08_Race/weather_data.ff1pkl": "7ecba1911a9d5d95c849f2caf098bfddffdc4a253da64bd8e5fb80d901fcc461",
+        "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_laps.csv": "b28b1c6f1cfa6386b0e70d49c4e9a4a3756d0927f010feb27f86ce14f8b62897",
+        "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_weather.csv": "656ce7386df0b6534dec5613376a55a3d402eaa5a38a0347a3334c488d873c9a"
+      }
+    },
+    {
+      "comparable_lap_timestamps": 1106,
+      "event": "round_03_japanese_grand_prix",
+      "maximum_timestamp_difference_seconds": 0.0,
+      "native_weather_equals_exported_rows": 156,
+      "noncomparable_missing_native_lap_times": 1,
+      "source_hashes": {
+        "data/f1/cache/2026/2026-03-29_Japanese_Grand_Prix/2026-03-29_Race/_extended_timing_data.ff1pkl": "66871145ed9cc0d61ae57f3aba961ef3703e5bf9f38e06575af61733de643d67",
+        "data/f1/cache/2026/2026-03-29_Japanese_Grand_Prix/2026-03-29_Race/weather_data.ff1pkl": "33c87f06f4710dc90c3258964b69fbad2e14abcc1af51dac8cbcaea1333f1867",
+        "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_laps.csv": "6f6622e981e5ef166e86bd5f382cfbe0c4490ab3bbaf91cdb0ca7bcdbae16ceb",
+        "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_weather.csv": "b64619c3fcc1139eb0682c09d39c615d10e6c210680dd9ebb8f487825260e642"
+      }
+    },
+    {
+      "comparable_lap_timestamps": 1038,
+      "event": "round_04_miami_grand_prix",
+      "maximum_timestamp_difference_seconds": 0.0,
+      "native_weather_equals_exported_rows": 168,
+      "noncomparable_missing_native_lap_times": 2,
+      "source_hashes": {
+        "data/f1/cache/2026/2026-05-03_Miami_Grand_Prix/2026-05-03_Race/_extended_timing_data.ff1pkl": "892a0557226e2cc2bd97e798030d5bc00e23f1b1dde6beb4bdb7bef73b26f9d0",
+        "data/f1/cache/2026/2026-05-03_Miami_Grand_Prix/2026-05-03_Race/weather_data.ff1pkl": "a5970c7035cb7a04720a24d06405eba0a596c006ac174f0134533094cd56c6de",
+        "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_laps.csv": "ca751d91781b39d8ff6e10cd95b52882441c1f236d260e8e3fa0875bf06dbca7",
+        "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_weather.csv": "5fa49b0a661b0f71d23dc8cdf67a128f1730f91f9a2df58511570bc0f7ba1ccb"
+      }
+    }
+  ],
+  "numbering_interpretation": "Expected2023 calendar numbering after cancelled meeting; identity is bound by unique provider meeting name/key and Race session key/path.",
+  "numeric_ranges": {
+    "AirTemp": [
+      11.1,
+      37.2
+    ],
+    "Humidity": [
+      5.0,
+      94.0
+    ],
+    "Pressure": [
+      778.5,
+      1019.0
+    ],
+    "Rainfall": [
+      0.0,
+      1.0
+    ],
+    "TrackTemp": [
+      15.6,
+      67.0
+    ],
+    "WindDirection": [
+      0.0,
+      359.0
+    ],
+    "WindSpeed": [
+      0.0,
+      10.1
+    ]
+  },
+  "partial_update_contract": "No partial updates occurred in this sample. For future partial updates, retain channel-specific observation ages when carrying last-known values; never backfill or treat omission as observed zero.",
+  "partial_updates": [],
+  "performance_scored": false,
+  "raw_rainfall_values": {
+    "'0'": 6869,
+    "'1'": 556
+  },
+  "reviewer_source_sha256": "d07fe54f6bfaf0cf95825910512c1cdcc8b478904c046e38e15d439ece970cfd",
+  "source_receipt_hashes": {
+    "data/f1/boundary_20260908/weather/202201_WeatherData.jsonStream.source.json": "b6bac1e52683b632379e8f85f14c0a4fad364e0e70b11c29c559f66c62471676",
+    "data/f1/boundary_20260908/weather/202202_WeatherData.jsonStream.source.json": "b78816f7151caa9e88c1010b1aecdcfb5c9f3f5e4e092bb23335d2aca0f941c0",
+    "data/f1/boundary_20260908/weather/202203_WeatherData.jsonStream.source.json": "36bb914272f52076d07fd23c6e04546d1e23330d5855e0e08c38da3858912da5",
+    "data/f1/boundary_20260908/weather/202204_WeatherData.jsonStream.source.json": "9a5e2e62ee7fa213f57d82b7f68e4e851a1df9f17781e80d9e13026c7dfe0928",
+    "data/f1/boundary_20260908/weather/202205_WeatherData.jsonStream.source.json": "93614443aa68bf7dcfca41a7ccb8e28be6fd123e4d5c4c9b07935925e84ea139",
+    "data/f1/boundary_20260908/weather/202206_WeatherData.jsonStream.source.json": "e27d523bf2f8dfeeaadee69a09700d3c542d61d8a325229c7c64d653c93b0503",
+    "data/f1/boundary_20260908/weather/202207_WeatherData.jsonStream.source.json": "86578920eeffcd42ac02017c9d7bb29f7aaddc38de607fba6786c25789711997",
+    "data/f1/boundary_20260908/weather/202208_WeatherData.jsonStream.source.json": "41f8b999daf771754c390882a5e83ebe3a4a48962c3daef1ac969c24fa21b116",
+    "data/f1/boundary_20260908/weather/202209_WeatherData.jsonStream.source.json": "9075c246a6de1b8875ddf37aa7a3d4a4e704122a43555b254e5386b7eb1535e3",
+    "data/f1/boundary_20260908/weather/202210_WeatherData.jsonStream.source.json": "1b2649664e1c54f7aa035bc7adcaf4495dcb1c3840a447607ad9404a1b643a28",
+    "data/f1/boundary_20260908/weather/202211_WeatherData.jsonStream.source.json": "7045d53390c0173ab4f6880e55be5ad57e53932b41a96bb8e16c3c66523c19d4",
+    "data/f1/boundary_20260908/weather/202212_WeatherData.jsonStream.source.json": "79b7526964ac7658e89b311d0b5e5f849107d921a1fb499f0ed654aff36427fd",
+    "data/f1/boundary_20260908/weather/202213_WeatherData.jsonStream.source.json": "747771b280e0286bcca0ea4c305af95404b4500bd75dbb98812a9a0891b21955",
+    "data/f1/boundary_20260908/weather/202214_WeatherData.jsonStream.source.json": "15a227e0f4e16d2c6aec608b52d3bee186988504a85d3bd1b51d01e228d7b869",
+    "data/f1/boundary_20260908/weather/202215_WeatherData.jsonStream.source.json": "9f01c8163bd24ca1337ecc5586e6183839f145ee6e97b29e8757871f76f3885b",
+    "data/f1/boundary_20260908/weather/202216_WeatherData.jsonStream.source.json": "079cc5b82ce1c47e7940784b09f97ad1ac14273211725cc491b1cc237c273b21",
+    "data/f1/boundary_20260908/weather/202217_WeatherData.jsonStream.source.json": "3e02f826e312ef954bc33975de1d86d0fd97e99dd6a717dcb47afced51a8a415",
+    "data/f1/boundary_20260908/weather/202218_WeatherData.jsonStream.source.json": "dde8a6a5e85ab964cde0aa29f2f074dff279d93982e64e112aa80e94d5bdda08",
+    "data/f1/boundary_20260908/weather/202219_WeatherData.jsonStream.source.json": "9005fc23e45b2457f753eee8f348f3caf06b868b1118b56250ccb119a3847465",
+    "data/f1/boundary_20260908/weather/202220_WeatherData.jsonStream.source.json": "5c49279a27ed36100c25b9b2b7b17c31fbeabc6ce5b0076a367d05a27fc96ebc",
+    "data/f1/boundary_20260908/weather/202221_WeatherData.jsonStream.source.json": "8ee5d20718bc196683805d9368d4c95aebecad7a4ba05dc0c856df0c1ee486d2",
+    "data/f1/boundary_20260908/weather/202222_WeatherData.jsonStream.source.json": "eccbb4402966bb9828e18bcfc4c877aa3d26e8171bad9427bbf44a0808fcda88",
+    "data/f1/boundary_20260908/weather/202301_WeatherData.jsonStream.source.json": "cd78d2d06421871cbb10c8d157af5261096bb6700cd47e29d38fe768f3bfcc52",
+    "data/f1/boundary_20260908/weather/202302_WeatherData.jsonStream.source.json": "0402b3fae92ce7939e4e50e21b27e06754b3f8c5c69159e7e496a527adf6dda7",
+    "data/f1/boundary_20260908/weather/202303_WeatherData.jsonStream.source.json": "afd9a780db8026820f9ecf204a77ed243e9f493510cd8f9d70f838cbe226f59b",
+    "data/f1/boundary_20260908/weather/202304_WeatherData.jsonStream.source.json": "29dad077e4dd925dd07159fd7c9e92e6a309a1785a09fa6ef2ca19bbbeb7d79e",
+    "data/f1/boundary_20260908/weather/202305_WeatherData.jsonStream.source.json": "d98999e30956b83ba657a3f2983a4a8a79380fe7d890a7ecb2c0eaf793c93ba3",
+    "data/f1/boundary_20260908/weather/202306_WeatherData.jsonStream.source.json": "d2dd652bec1dc882b69d90edf69336a5e0cc107840198165a04e4436eed95beb",
+    "data/f1/boundary_20260908/weather/202307_WeatherData.jsonStream.source.json": "1af824fe1b23ce925058f3b0a2e69941cd6b2c2df07ae16bd4439996f6dcd716",
+    "data/f1/boundary_20260908/weather/202308_WeatherData.jsonStream.source.json": "80eecbdf010ec87be36049f6487c2eee1467e5e224fdb8225aee21dc3ef6cdf9",
+    "data/f1/boundary_20260908/weather/202309_WeatherData.jsonStream.source.json": "59243d528d0c65fd84521bf00df9093b3da65e365dd58d1076c589ca7a1ca9d3",
+    "data/f1/boundary_20260908/weather/202310_WeatherData.jsonStream.source.json": "c16d2cdc4b91406a1d0dc1a6b12930a26d6921da0e02d1d779682ccaf56632a7",
+    "data/f1/boundary_20260908/weather/202311_WeatherData.jsonStream.source.json": "c0391cccd8e41c6d3a822adc6e6a220c18fd2d34b7c422d85783d8d1ec6c559d",
+    "data/f1/boundary_20260908/weather/202312_WeatherData.jsonStream.source.json": "f4f4ed1781254eaeaaae8a2bf0bd73ff6270e92cc5419e96ef23307d9f01715b",
+    "data/f1/boundary_20260908/weather/202313_WeatherData.jsonStream.source.json": "bebc8525e42432d476f0ac6ba580c9fa0b4a26aea987284187c6235c3b37f6f6",
+    "data/f1/boundary_20260908/weather/202314_WeatherData.jsonStream.source.json": "5b113697f796e81c7eb59e67e50a67451f8196cc8a0380d88509c8cd38f97a90",
+    "data/f1/boundary_20260908/weather/202315_WeatherData.jsonStream.source.json": "db76295eb82362dcfacf3e7df63383c8ace2a233c74634fc15173e64fb44875e",
+    "data/f1/boundary_20260908/weather/202316_WeatherData.jsonStream.source.json": "610a908f2e693daa46d7406f36e7f865a773e86f1c4b19c44d9c5ee1a500ab65",
+    "data/f1/boundary_20260908/weather/202317_WeatherData.jsonStream.source.json": "189984ba5492b66b995f5ff5c8b5c6608831e908962f98bdc790cecb6a2c777f",
+    "data/f1/boundary_20260908/weather/202318_WeatherData.jsonStream.source.json": "0aa05bcb5b9c7c68ee287a6918de70463f6f5957553e4a50f642bd668fbff8c1",
+    "data/f1/boundary_20260908/weather/202319_WeatherData.jsonStream.source.json": "08faa8865b09c4fdce21d9cb8fdea28734056ac89d718cd620e11ca2bdc89d49",
+    "data/f1/boundary_20260908/weather/202320_WeatherData.jsonStream.source.json": "b55c90e7e0bf16565f893851e5f0ac020ed11f87139d03a90ab30d78a65bd02b",
+    "data/f1/boundary_20260908/weather/202321_WeatherData.jsonStream.source.json": "dfd345f18fdcddcd1022268b44523526e4e2776ca7bb4a676c539496c328c900",
+    "data/f1/boundary_20260908/weather/202322_WeatherData.jsonStream.source.json": "42ee43e872e84372a3b988d2132d01326a2e1bd8bbf8250a3807c9c15a177248"
+  },
+  "status": "PASS_WITH_RECORDED_RECEIPT_LATENCY_LIMITATION",
+  "strict60s_join_age_above180_seconds": 0,
+  "strict60s_join_age_above300_seconds": 0,
+  "strict60s_join_missing_weather_checkpoints": 0,
+  "strict60s_join_weather_age_seconds_quantiles_0_50_99_100": [
+    60.001000000000204,
+    89.85300000000007,
+    119.3993100000004,
+    120.01199999999972
+  ],
+  "time_contract": "Use weather stream seconds directly against lap completion/session Time; do not subtract actual/scheduled race start or apply GMT offset. Both use stream-zero origin.",
+  "update_interval_seconds_quantiles_0_50_99_100": [
+    45.108000000000175,
+    60.0,
+    60.04699999999957,
+    480.0720000000001
+  ],
+  "weather_rows": 7425
+}

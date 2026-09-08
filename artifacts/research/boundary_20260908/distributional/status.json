@@ -1,0 +1,41 @@
+{
+  "schema_version": "paused_research_status_v1",
+  "recorded_at_utc": "2026-09-08T00:50:58.708589+00:00",
+  "status": "paused_draft_unfitted",
+  "reason": "Latest user instruction redirected work to integration, commit and push; pause further research.",
+  "protocol_frozen": true,
+  "implementation_status": "Draft implementation only; not tested, independently verified, or fitted.",
+  "model_fits_executed": 0,
+  "selection_metrics_inspected": false,
+  "transfer_metrics_inspected": false,
+  "predictive_gain_established": false,
+  "production_promotion": false,
+  "missing_before_execution": [
+    "Complete focused mathematical, causal and artifact-contract tests.",
+    "Verify inherited transfer raw-input manifest schema and enforce every source hash.",
+    "Implement independent probability/quantile and evidence replay verification.",
+    "Freeze tested source hashes before any selection fit."
+  ],
+  "files": [
+    {
+      "path": "research/experiments/boundary_20260908/distributional/model.py",
+      "bytes": 7370,
+      "sha256": "64c0cba3c9f4b352e3dafaedc5679b9b13cb1d834513646179bddcc3bfa77f6b"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/distributional/run.py",
+      "bytes": 10611,
+      "sha256": "89d59869ad01303665a84edf3a51f03a1bf24d0fa88b9f844ff0e3a2cbb2e917"
+    },
+    {
+      "path": "research/experiments/boundary_20260908/distributional/specification.json",
+      "bytes": 5927,
+      "sha256": "84c97707c6b8ada670b4a4b12df9cf33dee3e6a6087f85cb15565166a45b0067"
+    },
+    {
+      "path": "artifacts/research/boundary_20260908/distributional/design_lock.json",
+      "bytes": 954,
+      "sha256": "8fbe47a3843f596a9df71fd9caacf7d749c6ccd93ba07260eba8b5ba6a1d01bf"
+    }
+  ]
+}

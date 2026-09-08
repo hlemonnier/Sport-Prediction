@@ -1,0 +1,12 @@
+{
+  "frozen_at_utc": "2026-09-08T00:41:44.043347+00:00",
+  "spec_sha256": "84c97707c6b8ada670b4a4b12df9cf33dee3e6a6087f85cb15565166a45b0067",
+  "distributional_metrics_inspected": false,
+  "base_input_artifacts": {
+    "artifacts/research/frontier_20260907/live/selection.json": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568",
+    "artifacts/research/frontier_20260907/live/discovery_data.pkl": "9f657a724b93c285fa31453b0dca200812e47b634fddfbb3ccb430a4ba70c66d",
+    "artifacts/research/frontier_20260907/live/candidate/model.pkl": "8845658bc0e37c9cc2d4878d846b643d1449efb342469ff509c3c6ec41ab484c",
+    "artifacts/research/frontier_20260907/live/corrected_input_contract/results.json": "c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097",
+    "artifacts/research/frontier_20260907/live/corrected_input_contract/transfer_data_and_forecasts.pkl": "8a8d475bb08037513daf2d6f578f1ffdd07d2755631eead9f033c7a65ebdb8dd"
+  }
+}

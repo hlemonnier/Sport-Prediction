@@ -1,0 +1,8 @@
+{
+  "recorded_at": "2026-09-08T00:28:14.693252+00:00",
+  "source_sha256": "759e5e0b6c0d36378ad4d5a3e9bc75c854774dee1d33a0f8c83120b6f429063c",
+  "session": 84712,
+  "error": "No normalized source meeting match for202221:s_o_paulo_grand_prix",
+  "scope": "Meeting mapping failed before weatherdownload or scoring",
+  "recovery": "Support existing rawdirectory ASCII-regex slug as well as Unicode-transliterated slug; still require unique exact meeting match."
+}

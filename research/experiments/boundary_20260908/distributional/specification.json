@@ -1,0 +1,31 @@
+{
+  "id": "conditional_residual_quantiles_fixed_hgb_20260908",
+  "status": "retrospective_reused_dates_research_only",
+  "objective": "Improve predictive distributions on the original eligible live-lap population while preserving the current HGB point exactly. No point-MAE improvement is claimed.",
+  "known_exposure": "All2024–2026 race dates and prior point errors have already been examined in previous research. New distributional models/scores are frozen before fitting, but these dates are not pristine.",
+  "population": "Exactly original next-eligible-lap issuances and strictly later target timestamps, no later checkpoints.22events2023 for selection,48events2024–25 historical transfer and13exposed2026events only after advancement.",
+  "base": "Inherited originalfrontierHGB15leaves150iterations.2022-only base for2023selection, existing immutable2022–23 production fitted bundle for transfer. Original clipping and point output unchanged.",
+  "training": "Call online_residual.crossfit(): three expanding2022base folds first6/next5,first11/next5,first16/remaining6events. Quantile models and empirical baselines train only on these OOF residuals for selection. If advanced, final distribution fits use2022OOF plus2023predictions from a2022-only base. No2024–26labels enter any distribution fit; no online interval update during transfer.",
+  "quantile_levels": [0.025,0.05,0.1,0.25,0.5,0.75,0.9,0.95,0.975],
+  "central_interval_coverages": [0.5,0.8,0.9,0.95],
+  "median_and_coherence": "All models keep q0.5 exactly equal to the fixed HGB point. Residual lower quantiles are constrained<=0 and sorted ascending; upper quantiles constrained>=0 and sorted ascending. Apply the same projection to empirical references. Finite coherent quantiles are required. No target clipping, width cap, density approximation or NLL.",
+  "candidate_family": "Separate pinball-loss HGB for each non-median residual quantile, using exactly the same80causal inherited feature columns.",
+  "candidates": {"quantile_hgb_l7_i100":{"leaves":7,"iterations":100},"quantile_hgb_l15_i100":{"leaves":15,"iterations":100},"quantile_hgb_l15_i200":{"leaves":15,"iterations":200}},
+  "hgb": {"learning_rate":0.05,"min_samples_leaf":100,"l2_regularization":10,"early_stopping":false,"random_state":20260908},
+  "sample_weights": "Equal total weight per event, normalized to mean1, inherited original.weights(frame). Empirical quantiles minimize the same event-weighted pinball loss before median/coherence constraints.",
+  "references": {
+    "global_empirical": "Event-weighted empirical inverse-CDF quantiles of past OOF residuals, projected around the same fixed HGB median.",
+    "stratified_empirical": "Conditional empirical residual CDF by observed wet_compound,stint_clean_count<=3,and training-only event-weighted quartiles of max(x_mad_3,x_mad_8). Up to16cells. Mixture of cell CDF and global CDF with cell weight n_eff/(n_eff+200),where n_eff=(sumw)^2/sum(w^2); absent cells use global. Quantiles of the mixture CDF, not a mean of cell/global quantiles. Same median/coherence constraint."
+  },
+  "primary_score": "Weighted interval score: [0.5*abs(y-m)+sum_k(alpha_k/2)*IS_alpha_k]/(K+0.5), K=4, alpha=.5,.2,.1,.05. Equivalent to2/9 times sum of nine pinball losses. Proper score for this frozen quantile grid; not a claim to compute exact continuous CRPS.",
+  "secondary_scores": ["coverage and mean width at50/80/90/95percent","pinball loss by quantile","crossing/projection rates","unchanged HGB point MAE","each year and recent2026R10–R13 nested sensitivity"],
+  "aggregation": "Average per-row score/coverage/width within complete event; then equally across events. Identical prediction/target population for every model.",
+  "selection": "Choose minimum2023event-balanced WIS among exactly3candidates; candidate ID tie-break. Advance only if selected WIS is at least1percent lower than BOTH empirical references and80/90/95coverage is no more than5percentagepoints below nominal. Persist selected candidate and reference fits before opening transfer data. Otherwise reject without new transfer forecasts.",
+  "substantial_gate": "Pooled2024–25WIS must be at least10percent lower than BOTH empirical references, with paired3-event blockCI upper<0 against both; each2024/2025/2026WIS lower than both. At80/90/95, each year coverage must be>=nominal-0.05 and>=stratified-reference-0.03. Original point and MAE exactly unchanged. No production promotion from this retrospective experiment.",
+  "uncertainty": {"resamples":20000,"seed":20260908,"method":"paired event and circular3-event blocks, stratified byyear when pooled; candidate-minus-reference; percentile95; all historical leave-one-event-out deltas reported","interpretation":"Historical conditional resampling, not a posterior, prospective confirmation or correction for repeated research."},
+  "resources": {"threads":1,"parallel_fits":1,"neural_models":false,"new_dependencies":false},
+  "sources": ["https://proceedings.mlr.press/v119/duan20a.html","https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008618"],
+  "source_interpretation": "NGBoost motivates distributional prediction; this is custom quantile HGB, not NGBoost or natural-gradient boosting. WIS follows the proper interval/quantile score definition in Bracher et al.",
+  "limits": ["Fixed point is used as predictive median by contract, not proof it is the true conditional median","OOF residual uncertainty must transport from smaller earlier base fits to the later frozen base","Original provider eligibility/accuracy flags and publication latency are retrospective","No probabilities for arbitrary events or fully specified predictive density are issued","No strategy/financial gain claim","No change to production or earlier report/artifacts"],
+  "suggested_commit": "research(f1-live): evaluate conditional quantile forecasts against empirical uncertainty baselines"
+}

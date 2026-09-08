@@ -1,0 +1,24 @@
+{
+  "frozen_at": "2026-09-08T00:39:03.731235+00:00",
+  "dependencies": {
+    "research/experiments/boundary_20260908/weather/model/run_experiment.py": "f21d6c3be76c875d7ee1ef9cff8d37ec3cb807ede3cb92eaae76281bc8bb70bd",
+    "research/experiments/boundary_20260908/weather/model/spec.json": "9d13493c7f4c8494769f3dc101c59ddbc0a44d49bf4076bd0fc52f6aa4617d69",
+    "research/experiments/boundary_20260908/checkpoint/run_experiment.py": "c1dc9a34bbfbbeed915de3ac6b7ff733d69704c786d10156d72708599e00eab6",
+    "artifacts/research/boundary_20260908/checkpoint/models.pkl": "89ccdad3e99616506694b51866590a647e8e41c888a397ca40010fe7a58d90a3",
+    "artifacts/research/boundary_20260908/checkpoint/fit_lock.json": "e8791181b01f350b1038affa6132201e94414fd16f2bc6d52dfab97480e8a2e8",
+    "artifacts/research/boundary_20260908/checkpoint/selection.json": "3223c619d621ef078832f23b3b6f81eb0beb564ba773ab7ef86801810b4c8134",
+    "artifacts/research/boundary_20260908/checkpoint/discovery_checkpoints.pkl": "6d4ec0064461a7683b30adfde430f573964bc4b1ca75288b87df87eb62c85571",
+    "artifacts/research/boundary_20260908/checkpoint/discovery_issuances.pkl": "c04e3b35217af2dddc05a6e4569df4aef769abd23dcfef286f32051d3cef66d5",
+    "artifacts/research/boundary_20260908/weather/input_manifest.json": "78f76a325c6724a1a3b69ce4183d83a36480c11bbe3aa6b1d79c784ef9ab9ec5",
+    "packages/f1/models/live_race/next_lap.py": "eef4d0bab94a933bc284f0d27b2ed94b93eee3721c5d4f46ceafc38b1c9180e9",
+    "packages/f1/models/live_race/next_lap_features.py": "86e8e7d143bacb7c76748f1584667488c8042bb5a0cc53964eee92d4e9adb072",
+    "packages/f1/models/live_race/assets/frontier_live_hgb_l15_i150_20260907.json": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36"
+  },
+  "artifacts": {
+    "models.pkl": "29850a0390554eb3e976bb4ccfcd60b048bb2d6f9dd07e1231aa68f9132da876",
+    "results.json": "31c9c2177bbee96d833abd1c41b555a3bc0e0ec10cd9ca25a5b5e3fdea7e3f1e",
+    "selection_forecasts.pkl": "75046c96740c3e9a65c7cdbff3ce10b625a6af1cdf979eb240a8c0c3a319f888",
+    "discovery_original_pairs.pkl": "8450283af841bb2fc9de0db370562058f327a9c35a8951bff4b562ef0b3137a5",
+    "weather_features_lag60.pkl": "3acfa1a1aa51e69989b32712c5313f3cc886aeedd85f1c494882bb99589bc0c9"
+  }
+}

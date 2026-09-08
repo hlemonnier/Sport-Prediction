@@ -1,0 +1,44 @@
+{
+  "experiment": "eligible_lap_weather_information_cycle_1",
+  "created_before_candidate_fitting": true,
+  "seed": 20260908,
+  "population": "Exact original eligible-issuance HGB forecasts, same driver strictly later next eligible completed lap, unchanged targets/legacy80 features. No checkpoint-population expansion.",
+  "baseline": "Strong production architecture HGB:15leaves,150iterations,absolute_error,.06learningrate,minleaf80,L2=10,early_stoppingfalse,random_state20260907; coefficients fit only2022 for2023selection, with event-balanced training and original ±5s target/±3s prediction residual clips. Reuse verified checkpoint base_2022 artifact if identical.",
+  "weather_clock": "Raw weather and lap Time are recorded session-clock seconds. No scheduled-start, green-flag, timezone or GMT-offset adjustment.",
+  "primary_asof_rule": "Weather.Time strictly less than issuance.Time−60seconds;60s is an added delivery-lag assumption, not verified receipt latency. Equal timestamps excluded.",
+  "feature_contract": {
+    "channels": ["AirTemp","Humidity","Pressure","Rainfall","TrackTemp","WindDirection","WindSpeed"],
+    "last_known": "Each channel carries only its own last finite observation strictly before the cutoff, with its own age/missingness. Values older than600seconds at issuance are unavailable; no backward fills or interpolation.",
+    "history": "Causal5-minute per-minute slopes for AirTemp,Humidity,Pressure,TrackTemp,WindSpeed using last finite record before cutoff and last finite record before cutoff−300s; explicit support. Latest observed positive Rainfall age, observed rain sample fractions/counts and change counts over past15minutes; only timestamps before cutoff.",
+    "wind": "sin/cos of observed direction in degrees and speed-weighted components, with availability indicators; no arithmetic mean of angles.",
+    "rain_gate": "At least one observed Rainfall=1 record with issuance.Time−900 <= weather.Time < issuance.Time−60. Uses only weather history, never target flags or future track status.",
+    "no_weather_fallback": "All variants return exact base point when every current weather channel is unavailable. Rain-gated variants additionally return exact base point when rain gate is false.",
+    "immutability": "Legacy80 feature values and target columns must remain exactly unchanged when adding weather columns. No event/driver identity, future targets or full-event weather statistics enter the model."
+  },
+  "family": {
+    "type": "Weather-augmented HistGradientBoostingRegressor",
+    "loss":"absolute_error","learning_rate":0.06,"max_iter":150,"min_samples_leaf":80,
+    "l2_regularization":10,"early_stopping":false,"random_state":20260908,
+    "target_residual_clip_seconds":5,"prediction_correction_clip_seconds":3,
+    "weights":"Equal event total weight over original eligible targets, including weather-missing events.",
+    "grid":[
+      {"name":"weather_hgb_l7_all","max_leaf_nodes":7,"scope":"all_available"},
+      {"name":"weather_hgb_l7_rain","max_leaf_nodes":7,"scope":"observed_recent_rain"},
+      {"name":"weather_hgb_l15_all","max_leaf_nodes":15,"scope":"all_available"},
+      {"name":"weather_hgb_l15_rain","max_leaf_nodes":15,"scope":"observed_recent_rain"}
+    ]
+  },
+  "partition": "Fit2022, select2023 minimum original-population event-balanced MAE with fixed grid order for ties. No2024–26 acquisition or scoring unless advancement screen passes. All2023variant results reported, no additional search.",
+  "receipt_lag_sensitivity": "Re-encode2023features with lag0s and120s for the selected60s-trained model only, without refit or candidate/lag reselection.",
+  "advancement_screen": {
+    "selected_2023_full_event_balanced_relative_gain_at_least":0.01,
+    "paired_event_ci95_upper_negative":true,
+    "within_year_block3_ci95_upper_negative":true,
+    "all_event_leave_one_out_improve":true,
+    "events_with_changed_predictions_at_least":3,
+    "selected_gain_positive_at_lag0_and_lag120":true,
+    "original_population_features_and_targets_unchanged":true
+  },
+  "reporting": "20000paired event and circular3-event block bootstrap resamples, per-event andLOO, whole original population plus observed weather-rain and dry/no-recent-rain subsets. Report matched/issued coverage and channel ages/missingness. Previously exposed retrospective discovery, not prospective validation; no production promotion.",
+  "constraints":"OneCPU, at most4variants/twoaugmentedfits, no neuralmodels, production/git edits or unapproved later-season acquisition. Root owns weather acquisition; model source/artifacts stay under weather/model."
+}

@@ -1,0 +1,9 @@
+{
+  "recorded_at": "2026-09-08T00:27:28.955885+00:00",
+  "source_sha256": "38707612088714d2fc4b9d216bbd830630e1a80b67c86572a33d384c6e6a90b8",
+  "terminal_session": 33842,
+  "error": "HTTP404 https://livetiming-mirror.fastf1.dev/static/2023/Index.json",
+  "scope": "Failed during index acquisition before any weather streams, model fit or score",
+  "verified_recovery": "Primary2023Index200; primary2022Index403 and configuredmirror2022Index200",
+  "saved_index": "data/f1/boundary_20260908/weather/2022_Index.json"
+}

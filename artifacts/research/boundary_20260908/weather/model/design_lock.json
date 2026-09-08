@@ -1,0 +1,91 @@
+{
+  "frozen_before_fitting": "2026-09-08T00:38:40.669443+00:00",
+  "dependencies": {
+    "research/experiments/boundary_20260908/weather/model/run_experiment.py": "f21d6c3be76c875d7ee1ef9cff8d37ec3cb807ede3cb92eaae76281bc8bb70bd",
+    "research/experiments/boundary_20260908/weather/model/spec.json": "9d13493c7f4c8494769f3dc101c59ddbc0a44d49bf4076bd0fc52f6aa4617d69",
+    "research/experiments/boundary_20260908/checkpoint/run_experiment.py": "c1dc9a34bbfbbeed915de3ac6b7ff733d69704c786d10156d72708599e00eab6",
+    "artifacts/research/boundary_20260908/checkpoint/models.pkl": "89ccdad3e99616506694b51866590a647e8e41c888a397ca40010fe7a58d90a3",
+    "artifacts/research/boundary_20260908/checkpoint/fit_lock.json": "e8791181b01f350b1038affa6132201e94414fd16f2bc6d52dfab97480e8a2e8",
+    "artifacts/research/boundary_20260908/checkpoint/selection.json": "3223c619d621ef078832f23b3b6f81eb0beb564ba773ab7ef86801810b4c8134",
+    "artifacts/research/boundary_20260908/checkpoint/discovery_checkpoints.pkl": "6d4ec0064461a7683b30adfde430f573964bc4b1ca75288b87df87eb62c85571",
+    "artifacts/research/boundary_20260908/checkpoint/discovery_issuances.pkl": "c04e3b35217af2dddc05a6e4569df4aef769abd23dcfef286f32051d3cef66d5",
+    "artifacts/research/boundary_20260908/weather/input_manifest.json": "78f76a325c6724a1a3b69ce4183d83a36480c11bbe3aa6b1d79c784ef9ab9ec5",
+    "packages/f1/models/live_race/next_lap.py": "eef4d0bab94a933bc284f0d27b2ed94b93eee3721c5d4f46ceafc38b1c9180e9",
+    "packages/f1/models/live_race/next_lap_features.py": "86e8e7d143bacb7c76748f1584667488c8042bb5a0cc53964eee92d4e9adb072",
+    "packages/f1/models/live_race/assets/frontier_live_hgb_l15_i150_20260907.json": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36"
+  },
+  "specification": {
+    "experiment": "eligible_lap_weather_information_cycle_1",
+    "created_before_candidate_fitting": true,
+    "seed": 20260908,
+    "population": "Exact original eligible-issuance HGB forecasts, same driver strictly later next eligible completed lap, unchanged targets/legacy80 features. No checkpoint-population expansion.",
+    "baseline": "Strong production architecture HGB:15leaves,150iterations,absolute_error,.06learningrate,minleaf80,L2=10,early_stoppingfalse,random_state20260907; coefficients fit only2022 for2023selection, with event-balanced training and original \u00b15s target/\u00b13s prediction residual clips. Reuse verified checkpoint base_2022 artifact if identical.",
+    "weather_clock": "Raw weather and lap Time are recorded session-clock seconds. No scheduled-start, green-flag, timezone or GMT-offset adjustment.",
+    "primary_asof_rule": "Weather.Time strictly less than issuance.Time\u221260seconds;60s is an added delivery-lag assumption, not verified receipt latency. Equal timestamps excluded.",
+    "feature_contract": {
+      "channels": [
+        "AirTemp",
+        "Humidity",
+        "Pressure",
+        "Rainfall",
+        "TrackTemp",
+        "WindDirection",
+        "WindSpeed"
+      ],
+      "last_known": "Each channel carries only its own last finite observation strictly before the cutoff, with its own age/missingness. Values older than600seconds at issuance are unavailable; no backward fills or interpolation.",
+      "history": "Causal5-minute per-minute slopes for AirTemp,Humidity,Pressure,TrackTemp,WindSpeed using last finite record before cutoff and last finite record before cutoff\u2212300s; explicit support. Latest observed positive Rainfall age, observed rain sample fractions/counts and change counts over past15minutes; only timestamps before cutoff.",
+      "wind": "sin/cos of observed direction in degrees and speed-weighted components, with availability indicators; no arithmetic mean of angles.",
+      "rain_gate": "At least one observed Rainfall=1 record with issuance.Time\u2212900 <= weather.Time < issuance.Time\u221260. Uses only weather history, never target flags or future track status.",
+      "no_weather_fallback": "All variants return exact base point when every current weather channel is unavailable. Rain-gated variants additionally return exact base point when rain gate is false.",
+      "immutability": "Legacy80 feature values and target columns must remain exactly unchanged when adding weather columns. No event/driver identity, future targets or full-event weather statistics enter the model."
+    },
+    "family": {
+      "type": "Weather-augmented HistGradientBoostingRegressor",
+      "loss": "absolute_error",
+      "learning_rate": 0.06,
+      "max_iter": 150,
+      "min_samples_leaf": 80,
+      "l2_regularization": 10,
+      "early_stopping": false,
+      "random_state": 20260908,
+      "target_residual_clip_seconds": 5,
+      "prediction_correction_clip_seconds": 3,
+      "weights": "Equal event total weight over original eligible targets, including weather-missing events.",
+      "grid": [
+        {
+          "name": "weather_hgb_l7_all",
+          "max_leaf_nodes": 7,
+          "scope": "all_available"
+        },
+        {
+          "name": "weather_hgb_l7_rain",
+          "max_leaf_nodes": 7,
+          "scope": "observed_recent_rain"
+        },
+        {
+          "name": "weather_hgb_l15_all",
+          "max_leaf_nodes": 15,
+          "scope": "all_available"
+        },
+        {
+          "name": "weather_hgb_l15_rain",
+          "max_leaf_nodes": 15,
+          "scope": "observed_recent_rain"
+        }
+      ]
+    },
+    "partition": "Fit2022, select2023 minimum original-population event-balanced MAE with fixed grid order for ties. No2024\u201326 acquisition or scoring unless advancement screen passes. All2023variant results reported, no additional search.",
+    "receipt_lag_sensitivity": "Re-encode2023features with lag0s and120s for the selected60s-trained model only, without refit or candidate/lag reselection.",
+    "advancement_screen": {
+      "selected_2023_full_event_balanced_relative_gain_at_least": 0.01,
+      "paired_event_ci95_upper_negative": true,
+      "within_year_block3_ci95_upper_negative": true,
+      "all_event_leave_one_out_improve": true,
+      "events_with_changed_predictions_at_least": 3,
+      "selected_gain_positive_at_lag0_and_lag120": true,
+      "original_population_features_and_targets_unchanged": true
+    },
+    "reporting": "20000paired event and circular3-event block bootstrap resamples, per-event andLOO, whole original population plus observed weather-rain and dry/no-recent-rain subsets. Report matched/issued coverage and channel ages/missingness. Previously exposed retrospective discovery, not prospective validation; no production promotion.",
+    "constraints": "OneCPU, at most4variants/twoaugmentedfits, no neuralmodels, production/git edits or unapproved later-season acquisition. Root owns weather acquisition; model source/artifacts stay under weather/model."
+  }
+}

@@ -1,0 +1,267 @@
+{
+  "advances_to_later_evaluation": false,
+  "copy_policy": "Every included original is copied byte for byte. Internal historical paths and hashes are preserved.",
+  "design_sha256": "0081cb2e946e590e76be704238f98084ee8c8a7cbe47ac0f27a75c2617a1e8a7",
+  "evidence_copies": [
+    {
+      "bytes": 181802,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/design_lock.json",
+      "sha256": "0081cb2e946e590e76be704238f98084ee8c8a7cbe47ac0f27a75c2617a1e8a7",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/design_lock.json"
+    },
+    {
+      "bytes": 6088,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/pre_fit_tests.json",
+      "sha256": "39ba92509b8fcc5bea0a4b825781863bd81371a81e827a08ea42417ef64334e6",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/pre_fit_tests.json"
+    },
+    {
+      "bytes": 80,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/corpus_attempt.json",
+      "sha256": "82ae525e6c35d65dc929052192732c6ebc7d9330b6ac069c309c939ac62e8db3",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/corpus_attempt.json"
+    },
+    {
+      "bytes": 923,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/corpus_lock.json",
+      "sha256": "d7fc91ffb012e722f15175160334e24218e0da85d85aa51f1a122996af8d327c",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/corpus_lock.json"
+    },
+    {
+      "bytes": 1232761,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/corpus/corpus.json",
+      "sha256": "0fc429855b3d1845b162a8cf07855bdb6ead9859d8964d9619425ea730171c42",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/corpus/corpus.json"
+    },
+    {
+      "bytes": 41161,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/schedule/schedule.json",
+      "sha256": "90a1c9d8557a2de1c4c26008a11574dd048a353057140934a2dc4566091da1ce",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/schedule/schedule.json"
+    },
+    {
+      "bytes": 82,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/pretrain_attempt.json",
+      "sha256": "be446d83fc4c11f330924bd9788a9959a8c8e5f853aed2a3db53132532d2fd3a",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/pretrain_attempt.json"
+    },
+    {
+      "bytes": 2545,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/pretrain_lock.json",
+      "sha256": "e556cfbf49bc14d2869aa15c4bd62889c54d0d412b837f62a813b40f5e63cfdc",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/pretrain_lock.json"
+    },
+    {
+      "bytes": 38550,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/encoders/ordered_training.json",
+      "sha256": "d4e1bf1503b74a9b0d1f5991f6fb7e6f839b5f394283e2c7a93733aab742e0b6",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/encoders/ordered_training.json"
+    },
+    {
+      "bytes": 38599,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/encoders/permuted_training.json",
+      "sha256": "7b6a3cf7811936be0401c7e3130cd877ee34fd04781d81305c764a1f44102819",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/encoders/permuted_training.json"
+    },
+    {
+      "bytes": 79,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/embed_attempt.json",
+      "sha256": "e5c762845ab569f37057a39ffe26479350b1e8565e1863a1c023a54fcebe6fe5",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/embed_attempt.json"
+    },
+    {
+      "bytes": 266201,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/embedding_lock.json",
+      "sha256": "b869ff2dcf6b298277575d1c1a83d0d02c0bb722c6841bcb09a539e82a739011",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/embedding_lock.json"
+    },
+    {
+      "bytes": 83,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/selection_attempt.json",
+      "sha256": "4434bfd550dc3caaa205c32fbd44f3bb2dbf3826411cd0c327ec295bbf0a9475",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/selection_attempt.json"
+    },
+    {
+      "bytes": 1805,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/fit_lock.json",
+      "sha256": "c087e4bddcc5fd9ee45466a15ee04a6cf176994481067fdef4020ff1ee3ebbf9",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/fit_lock.json"
+    },
+    {
+      "bytes": 1885,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/selection_issuance_lock.json",
+      "sha256": "09a875728e05df5cb06fb00c3c0c460de9afa03c3fed18210fe710d160e47a4f",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/selection_issuance_lock.json"
+    },
+    {
+      "bytes": 206296,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/selection.json",
+      "sha256": "326a7aa20ce7a41284a80df36f96ea2531399b64f7a7b5f23ae81f733d381c00",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/selection.json"
+    },
+    {
+      "bytes": 696,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/execution_v2/selection_lock.json",
+      "sha256": "a76aca53d2da05815c58a7b92a8e716eee3a6bf5869d60538733ddd35eb40268",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/selection_lock.json"
+    },
+    {
+      "bytes": 6088,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/prior_freeze/pre_fit_tests.json",
+      "sha256": "cb94ed3141ef8deccc3ede7ea800cd5a6ff77da3d70225fc49d1ce9007bc9f5e",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/pre_fit_tests.json"
+    },
+    {
+      "bytes": 800,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/prior_freeze/freeze_failure.json",
+      "sha256": "bbf7c0aeb27fc9dbf05afb7418557480f7f1bd2a905204fe25ae70732e09d71c",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/freeze_failure.json"
+    },
+    {
+      "bytes": 3933,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/prior_freeze/freeze_source_before_guard/amendment.json",
+      "sha256": "f5ba1a99c3038118b549e478bec2b205b115f9e06465ca93efda53fd453ce2a0",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/freeze_source_before_guard/amendment.json"
+    },
+    {
+      "bytes": 29637,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/prior_freeze/freeze_source_before_guard/run.py",
+      "sha256": "b602270756d405bdceae6ef98a19751d435d2f16b50f0838f6809685c36725a9",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/freeze_source_before_guard/run.py"
+    },
+    {
+      "bytes": 15812,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/prior_freeze/freeze_source_before_guard/test_run.py",
+      "sha256": "7ed08449f563af5f61edbd0511d53dd55de7442264ad1f478f4fd86cb0fb3fdf",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/freeze_source_before_guard/test_run.py"
+    },
+    {
+      "bytes": 1780,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/reviews/verification_review.json",
+      "sha256": "795a102fc5a4e80fb431dde984c4a04a8d0336a9bb322551a5bd69c7fdcfa784",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/verification_review.json"
+    },
+    {
+      "bytes": 5560,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/reviews/ci_source_only.json",
+      "sha256": "aa7a9dd96e0a5c1f7826df099984a16c42506c35c320e90b252bca3d5506c353",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/ci_source_only.json"
+    },
+    {
+      "bytes": 737502,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/verification/result.json",
+      "sha256": "b5a0202bb46da8c8da23ad78ea1c36ad706ade3e7654e920e3ff14c12e5ea2a1",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/verification/result.json"
+    },
+    {
+      "bytes": 8689,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/reviews/execution_review.json",
+      "sha256": "880935bce7a7e090e34c7d18f7fba541619b9e71ced7c369b98a2f4c8997d248",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence_execution_review_v2.json"
+    },
+    {
+      "bytes": 12323,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/protocol/specification.json",
+      "sha256": "fc799e7adb5d33406c11113b0296905351cd718106a6324d39d86c69020d826c",
+      "source": "research/experiments/boundary_20260908/telemetry_sequence/specification.json"
+    },
+    {
+      "bytes": 2521,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/protocol/verification_protocol.json",
+      "sha256": "eb9fb0c7ffe8fcc1f543763fbe18ea6e1dc46bfff745d5b7887b4376adb0b813",
+      "source": "research/experiments/boundary_20260908/telemetry_sequence_verification/protocol.json"
+    },
+    {
+      "bytes": 7452,
+      "published": "docs/research/evidence/boundary_telemetry_sequence_20260908/reviews/execution_review_before_guard.json",
+      "sha256": "b0e5f8d3f3edb7a61a3e851dad981369aecac8f4b11e1ae7f1d8e271f0086984",
+      "source": "artifacts/research/boundary_20260908/telemetry_sequence_execution_review.json"
+    }
+  ],
+  "execution_directory": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2",
+  "execution_v2_chronology": [
+    {
+      "closed_at_utc": "2026-09-08T06:18:45.459710+00:00",
+      "closure": "design"
+    },
+    {
+      "closed_at_utc": "2026-09-08T06:23:23.544035+00:00",
+      "closure": "corpus"
+    },
+    {
+      "closed_at_utc": "2026-09-08T06:27:06.699123+00:00",
+      "closure": "pretraining"
+    },
+    {
+      "closed_at_utc": "2026-09-08T06:50:10.632711+00:00",
+      "closure": "embeddings"
+    },
+    {
+      "closed_at_utc": "2026-09-08T06:51:17.870486+00:00",
+      "closure": "supervised_fit"
+    },
+    {
+      "closed_at_utc": "2026-09-08T06:52:25.355799+00:00",
+      "closure": "selection_forecasts"
+    },
+    {
+      "closed_at_utc": "2026-09-08T06:52:29.883894+00:00",
+      "closure": "selection"
+    }
+  ],
+  "independent_verification_sha256": "b5a0202bb46da8c8da23ad78ea1c36ad706ade3e7654e920e3ff14c12e5ea2a1",
+  "omitted_artifacts": "Raw streams, per-driver binary tokens, sample schedule arrays, NPZ embeddings, PT/pickle models, and JSONL features/forecasts/labels remain local; their closed hashes remain in the included metadata.",
+  "prior_attempt": {
+    "description": "Initial freeze rejected concurrent source drift. The failed-state guard amendment and exact prior source snapshots are preserved.",
+    "failed_before_design_and_historical_execution": true,
+    "scientific_settings_changed": false
+  },
+  "promotion": false,
+  "publication_check": {
+    "bytes": 487,
+    "path": "docs/research/evidence/boundary_telemetry_sequence_20260908/publication_check.json",
+    "sha256": "c0bda1301ce322d3c29954cd31327d5fd740f91b391f46b9c85b28d4d76e9860"
+  },
+  "published_at_utc": "2026-09-08T06:56:00.220519+00:00",
+  "raw_data_published": false,
+  "reproduction_limit": "This compact package preserves results and provenance. Full replay additionally requires the omitted hash-matched local inputs and models.",
+  "schema_version": 1,
+  "selection_sha256": "326a7aa20ce7a41284a80df36f96ea2531399b64f7a7b5f23ae81f733d381c00",
+  "serialized_models_published": false,
+  "source_only_test_limit": "The included CI receipt is an executed local source-only test, not proof of a remote GitHub run.",
+  "sources": {
+    "research/experiments/boundary_20260908/telemetry_sequence/EXECUTION.md": "7ec010e98d12d334349353b2b21ebe5fab7e04c02c0899f5cd00f94c3a15eb36",
+    "research/experiments/boundary_20260908/telemetry_sequence/README.md": "d01049db489d73bbf8533be9887591c7522dfaee6daa557699409de23f3f2b26",
+    "research/experiments/boundary_20260908/telemetry_sequence/corpus.py": "321d6143534d8f11ffb25f87a9bff64f385d3523603517340b99b8b2a0215059",
+    "research/experiments/boundary_20260908/telemetry_sequence/encoder.py": "68cd1f8bddf42f22343669d1c01df49462a7fa5b8a7bc863758c3ddf773d5d38",
+    "research/experiments/boundary_20260908/telemetry_sequence/run.py": "81742be369c82bac013b45df583d4d5880878af80c68e4b4d071c4d20fae8273",
+    "research/experiments/boundary_20260908/telemetry_sequence/specification.json": "fc799e7adb5d33406c11113b0296905351cd718106a6324d39d86c69020d826c",
+    "research/experiments/boundary_20260908/telemetry_sequence/supervised.py": "d8f5c18a407afd1cd53d0b4a752d7f366d9dd7486f4de143e773d2f5896d2c91",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_corpus.py": "cea43bcb0d546f972095c90173f0e6f894dec652a211b5f7d251dac7d8b78f32",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_encoder.py": "5c492de11bc54dbc66878ff172e15e72700f5ffc97763a09443666c3907888d5",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_run.py": "9eec2fc581922f0e8fb660d594da881b95adc629720baa39d3fa7f4e51b1ce39",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_supervised.py": "4437cb546b5899a04796a907a4c8492c6f37250008122b7823d5bf79991d18c6",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_tokens.py": "a91ef978a5c910698360263bf602f6e196a04515452f225382539151c2c76764",
+    "research/experiments/boundary_20260908/telemetry_sequence/tokens.py": "ad0723fb90e1f0ee56815e188e2ad1e54baf28f4166a3ac0f9ebbd5d0b0ee9ec",
+    "research/experiments/boundary_20260908/telemetry_sequence_publication/publish.py": "7b38c92c2c44918a8a964f4f058db74e62153ee2314d56554201d4689092943d",
+    "research/experiments/boundary_20260908/telemetry_sequence_publication/test_publish.py": "eb82d78d6e8c1012e88334cf3f28405f8fce6df197f820ed11156e19b0ba385a",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/numerics.py": "c012a24eacdd324ce7c5744d38b35ac00c30f749edc996ba3d6cda4b804461ac",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/protocol.json": "eb9fb0c7ffe8fcc1f543763fbe18ea6e1dc46bfff745d5b7887b4376adb0b813",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/test_numerics.py": "9ed6ab1d14eac25807011156e117499b22187683aec52dfcb0d111158a7a46b1",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/test_verify.py": "073060bc5f6451bea08b66351b89b92eb5daedc7f8c3e7d4afc550dfa3d9a02e",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/verify.py": "bd8f5e2d376faa3062397b60ec0f7bfdc5dc215f627d10aa1540e588ef5c036a"
+  },
+  "status": "closed_verified_retrospective_research",
+  "suggested_commit": "research(f1-live): publish verified causal sequence evidence",
+  "verification_declaration_chronology": {
+    "corpus_started_at_utc": "2026-09-08T06:19:06.550192+00:00",
+    "design_closed_at_utc": "2026-09-08T06:18:45.459710+00:00",
+    "embedding_started_at_utc": "2026-09-08T06:27:43.754125+00:00",
+    "full_verifier_reviewed_at_utc": "2026-09-08T06:30:25.315333+00:00",
+    "interpretation": "The sample/statistical verification protocol was hash-bound before corpus construction and SSL. The complete verifier implementation was reviewed later, before selection; these are distinct milestones.",
+    "pretraining_started_at_utc": "2026-09-08T06:23:48.769165+00:00",
+    "protocol_bound_by_execution_review_at_utc": "2026-09-08T06:17:50.104478+00:00",
+    "protocol_sha256": "eb9fb0c7ffe8fcc1f543763fbe18ea6e1dc46bfff745d5b7887b4376adb0b813",
+    "selection_started_at_utc": "2026-09-08T06:50:30.957436+00:00"
+  }
+}

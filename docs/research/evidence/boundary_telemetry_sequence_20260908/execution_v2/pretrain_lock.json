@@ -1,0 +1,41 @@
+{
+  "checkpoint_policy": "final_fixed_step_only",
+  "closed_at_utc": "2026-09-08T06:27:06.699123+00:00",
+  "corpus_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/corpus_lock.json",
+    "sha256": "d7fc91ffb012e722f15175160334e24218e0da85d85aa51f1a122996af8d327c"
+  },
+  "design_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/design_lock.json",
+    "sha256": "0081cb2e946e590e76be704238f98084ee8c8a7cbe47ac0f27a75c2617a1e8a7"
+  },
+  "encoders": {
+    "ordered": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/encoders/ordered.pt",
+      "sha256": "5932b078cd1ff638e2a6f2f60a059b4c157c8dbde4514cb9a6e86661aab2e081",
+      "state_sha256": "551476ac7e595faed2fca47694e7f69c12b5270b3336ae3ac62dcacc709c3f7c",
+      "training": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/encoders/ordered_training.json",
+        "sha256": "d4e1bf1503b74a9b0d1f5991f6fb7e6f839b5f394283e2c7a93733aab742e0b6"
+      }
+    },
+    "permuted": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/encoders/permuted.pt",
+      "sha256": "3c9af61906504f87578c6fb21c6899a650053e7d7b5268880da4fd479def91d1",
+      "state_sha256": "1736a38e0282fe5b3f5673fc1e387cf9f5eaf6184e6fa498f3de466aa62893f0",
+      "training": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/encoders/permuted_training.json",
+        "sha256": "7b6a3cf7811936be0401c7e3130cd877ee34fd04781d81305c764a1f44102819"
+      }
+    },
+    "random": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/encoders/random.pt",
+      "sha256": "e24cfb0b141d48259cc9a6d348f92c954e24521669ab021bca80f848b9684da5",
+      "state_sha256": "41ab8fdf231db0689d37a2823125648e89040fbc3b98676bc73d10bc4e717bbc"
+    }
+  },
+  "fits": 2,
+  "historical_lap_labels_read": false,
+  "initial_state_sha256": "41ab8fdf231db0689d37a2823125648e89040fbc3b98676bc73d10bc4e717bbc",
+  "shared_deadline_seconds": 3600.0
+}

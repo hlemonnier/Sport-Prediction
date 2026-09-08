@@ -1,0 +1,86 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "-q",
+    "--import-mode=importlib",
+    "-p",
+    "no:cacheprovider",
+    "research/experiments/boundary_20260908/telemetry_sequence",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification"
+  ],
+  "completed_at_utc": "2026-09-08T06:35:32.334465+00:00",
+  "cwd": "/private/tmp/sport-sequence-source-only-20260908-im8xfuty",
+  "elapsed_seconds": 25.95836066600168,
+  "environment": {
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": ".",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "exit_code": 0,
+  "limits": [
+    "This is a local macOS source-only test using the existing CPU interpreter; GitHub Ubuntu execution and dependency installation were not run locally."
+  ],
+  "no_historical_data_or_artifacts_present": true,
+  "no_provider_downloads_or_historical_fits": true,
+  "runtime": {
+    "local_interpreter": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/bin/python",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "pytest": "8.4.2",
+      "requests": "2.34.2",
+      "scikit-learn": "1.9.0",
+      "scipy": "1.18.1",
+      "torch": "2.14.0"
+    },
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]"
+  },
+  "sequence_and_verifier_sources": {
+    "research/experiments/boundary_20260908/telemetry_sequence/EXECUTION.md": "7ec010e98d12d334349353b2b21ebe5fab7e04c02c0899f5cd00f94c3a15eb36",
+    "research/experiments/boundary_20260908/telemetry_sequence/README.md": "d01049db489d73bbf8533be9887591c7522dfaee6daa557699409de23f3f2b26",
+    "research/experiments/boundary_20260908/telemetry_sequence/corpus.py": "321d6143534d8f11ffb25f87a9bff64f385d3523603517340b99b8b2a0215059",
+    "research/experiments/boundary_20260908/telemetry_sequence/encoder.py": "68cd1f8bddf42f22343669d1c01df49462a7fa5b8a7bc863758c3ddf773d5d38",
+    "research/experiments/boundary_20260908/telemetry_sequence/run.py": "81742be369c82bac013b45df583d4d5880878af80c68e4b4d071c4d20fae8273",
+    "research/experiments/boundary_20260908/telemetry_sequence/specification.json": "fc799e7adb5d33406c11113b0296905351cd718106a6324d39d86c69020d826c",
+    "research/experiments/boundary_20260908/telemetry_sequence/supervised.py": "d8f5c18a407afd1cd53d0b4a752d7f366d9dd7486f4de143e773d2f5896d2c91",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_corpus.py": "cea43bcb0d546f972095c90173f0e6f894dec652a211b5f7d251dac7d8b78f32",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_encoder.py": "5c492de11bc54dbc66878ff172e15e72700f5ffc97763a09443666c3907888d5",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_run.py": "9eec2fc581922f0e8fb660d594da881b95adc629720baa39d3fa7f4e51b1ce39",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_supervised.py": "4437cb546b5899a04796a907a4c8492c6f37250008122b7823d5bf79991d18c6",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_tokens.py": "a91ef978a5c910698360263bf602f6e196a04515452f225382539151c2c76764",
+    "research/experiments/boundary_20260908/telemetry_sequence/tokens.py": "ad0723fb90e1f0ee56815e188e2ad1e54baf28f4166a3ac0f9ebbd5d0b0ee9ec",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/numerics.py": "c012a24eacdd324ce7c5744d38b35ac00c30f749edc996ba3d6cda4b804461ac",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/protocol.json": "eb9fb0c7ffe8fcc1f543763fbe18ea6e1dc46bfff745d5b7887b4376adb0b813",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/test_numerics.py": "9ed6ab1d14eac25807011156e117499b22187683aec52dfcb0d111158a7a46b1",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/test_verify.py": "073060bc5f6451bea08b66351b89b92eb5daedc7f8c3e7d4afc550dfa3d9a02e",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/verify.py": "bd8f5e2d376faa3062397b60ec0f7bfdc5dc215f627d10aa1540e588ef5c036a"
+  },
+  "source_copy_and_original_hashes_unchanged_after_tests": true,
+  "source_files_canonical_sha256": "8a6bf9bf1c5943b99b783bb66e12a99b81e9537b40938f9cd7d0860f32bdfec7",
+  "source_files_copied": 404,
+  "started_at_utc": "2026-09-08T06:35:06.331205+00:00",
+  "status": "passed",
+  "stderr": "",
+  "stdout": "........................................................................ [ 29%]\n........................................................................ [ 59%]\n........................................................................ [ 88%]\n...........................                                              [100%]\n243 passed in 24.88s\n",
+  "suggested_commit": "ci(f1): verify causal telemetry sequence contracts on CPU",
+  "workflow": {
+    "cpu_install_documentation": "https://docs.pytorch.org/get-started/locally/",
+    "dependency_commands": [
+      "python -m pip install torch --index-url https://download.pytorch.org/whl/cpu",
+      "python -m pip install pytest numpy pandas scipy scikit-learn requests"
+    ],
+    "existing_job_preserved_byte_for_byte": true,
+    "existing_workflow_prefix_sha256": "ed24b3c0e41312f9fce5737e043a8f8a772ed9ff19977db16d6d872da7ebd689",
+    "new_job": "sequence-contracts",
+    "path": ".github/workflows/boundary-research.yml",
+    "python": "3.12",
+    "sha256": "3c4b4dd9be951cb4ac3e009d3e071ea0d2452e9186d8640e9b18d34563f2cc89",
+    "timeout_minutes": 10
+  }
+}

@@ -1,0 +1,2441 @@
+{
+  "closed_at_utc": "2026-09-08T06:18:45.459710+00:00",
+  "exposure": "Parent 2023 labels and scores were exposed previously; this is retrospective research, not a fresh holdout.",
+  "historical_sequence_builds_before_lock": 0,
+  "independent_review": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence_execution_review_v2.json",
+    "sha256": "880935bce7a7e090e34c7d18f7fba541619b9e71ced7c369b98a2f4c8997d248"
+  },
+  "inputs": {
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/acquisition.json": "9fd8b37c7905c0b9036f9b06a9d33595ecee0e42fd68d774baade5884902b220",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/data_lock.json": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/design_lock.json": "d072bb145868ab03aaacaadbd8b9071890323c5f4f70b29561ea446cd9e347ae",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202201_lag0_issued.jsonl": "237c04e8c783eba6a23a6187bb9442ff140117115dc24cc70786de2bf5fef701",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202201_lag2_issued.jsonl": "7a2831d95d8edf3ec0670c64e9499093893e3279f75effe60b7dedd2fc5e01f7",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202202_lag0_issued.jsonl": "6794134017e0f2b7a1b6ed300bb9a816c48dfe86f652f75356172d281f438fe3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202202_lag2_issued.jsonl": "fd46896a5ffad5c5df057f9194405706a3084576d3779ce3747dd0f9ebc5e45d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202203_lag0_issued.jsonl": "840493b4f5057eb02096680484ab8e41d6b90c7c69b04edbff43c6934ff186bb",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202203_lag2_issued.jsonl": "ba8ab3172391ad7a339fc0c8c19a118eaf5bcea9e60239cba5fb8120792ae789",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202204_lag0_issued.jsonl": "16446690ca8d848716d8ea4311f295752eb709abbc1c556620d3223c5cda495e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202204_lag2_issued.jsonl": "3cb564b351c392960e258b2eb6ee682d682cc75ed43732cb7257fcbac4b0cb2a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202205_lag0_issued.jsonl": "4d6d06aa4bbcf1df25e56fe3db5296599c5add3007f4436807ea57649dc53c58",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202205_lag2_issued.jsonl": "e8ef38aa01ce5088787e50caa9c6a74f1848f32093cc37dd8603c437194ad411",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202206_lag0_issued.jsonl": "95f1789ed96118a308c4349c81052af0e2e881bf16ae03650b4f6c17ad17d7d0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202206_lag2_issued.jsonl": "5aa8b5aea872adcb400c5cb320efd8bc92267723fd149207b8cb71a5041d2683",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202207_lag0_issued.jsonl": "fdbbe13fbb7a3594c53c2c2a0cfa0781746bb3e55ef3543e85302d4af56dd09c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202207_lag2_issued.jsonl": "f3a13ce9a1c92739af0a1ee0559d498d729433deca8fb7685cb4f471da86f56f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202208_lag0_issued.jsonl": "0441cda772afb3d914370029b92e0236af31ffa03b0e37ffa247fa53e3231f2a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202208_lag2_issued.jsonl": "46392f5bf43a54d837ac112306ae0e88d966cf1dce1bb6cc327eff88d2abc92a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202209_lag0_issued.jsonl": "c4c62dfcc54672dd8539deba5c3fd37ca6dbef9a892495eaf0678868345cf799",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202209_lag2_issued.jsonl": "a6c9eead1fde05252b73f608c73b742dc43e17d09ddad3281d9c453a6358120e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202210_lag0_issued.jsonl": "0d5398c66f583e8472e57cb229d9ece901ec1e9828d3005c26687cc30dcc4e62",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202210_lag2_issued.jsonl": "a7068817889bca370ae1e1ebf168f4df85ba8ec8c16f754408ee7679d87dd48e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202211_lag0_issued.jsonl": "f711aea9b9947683f5610448fe852f1879c202966d97a4c273566b5e5c06caa9",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202211_lag2_issued.jsonl": "b3613e0dfe92e6b0341b4e0233c9b639721dad22c58a009bf30d4115ece969c0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202212_lag0_issued.jsonl": "9d8baa77c27d9ae693424ec2688dc8ebecae15a72bc361d4a18aadc384194ee2",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202212_lag2_issued.jsonl": "8d885827eff666a28e1ddfc2437d38210ba084bdee4639d5c2eff9d402dc575b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202213_lag0_issued.jsonl": "3c216812ae266103b5a21a7e7e85277d0ed738e8d7dbfd25eb72aa46dd806ac1",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202213_lag2_issued.jsonl": "3f8c27ee3718a4e03b9446d6c378890749b58805c53fe705b3d3be335865a82b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202214_lag0_issued.jsonl": "ad89fb01a47921c742276e0bbdba339b4c553573969a15ba8d30af574fe5d32b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202214_lag2_issued.jsonl": "33b622343d76b94a95002b3d62dc4c35d650d916ba9f20974397d4fa89d0524d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202215_lag0_issued.jsonl": "71ea1430b01ed683f3d0aa3d534fab2b83dc320226c548ec4c5d5eab62ae1120",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202215_lag2_issued.jsonl": "e0fe18706c14a1961c27138fa67d8f4c40fe47994da511a38d84114f5c0e04b9",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202216_lag0_issued.jsonl": "a6f55a8497feeaf9fbe6c73a88840d3cc5067800f96256f9e842fdaa48b1f04b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202216_lag2_issued.jsonl": "e39a0da4de72df485b7372a158272dd36ff6732637f557f1c862c1fe28be1451",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202217_lag0_issued.jsonl": "0b7f418bb072a729e265f4a85b558c1a35e0cc999dc0e0de035bda06b8595ccd",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202217_lag2_issued.jsonl": "9f311917c8cf7a2cc7ef5807ade1dc1eb4cda3a8f2eaf201d9a047dd9928be7e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202218_lag0_issued.jsonl": "c9096710f513a01d4874f494936a9c0b10e9a32707d675d2995cc9253b986edd",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202218_lag2_issued.jsonl": "64d3eabe73c0da3be313a3613e916cae4d3e3e6a337612622e110098c59b10ee",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202219_lag0_issued.jsonl": "24cd102a229951134553f658154ade0daac33f347ee5ec4a936b048097677310",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202219_lag2_issued.jsonl": "e1e53fd34e5ef97b68c531cc9f526f8486e22631252326be12245788dcf9cd9f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202220_lag0_issued.jsonl": "abca46d4d1d59d5b0d75cb5a5c93c7d86a972464343b8dfeac703b1b0328bdd5",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202220_lag2_issued.jsonl": "fb1dc1c4efa3058ec63cb211d1cf0bd94127529504c1bebcb2c8d97729607ad3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202221_lag0_issued.jsonl": "1b803ab55834bd04d5405c283e88293ebbca969164e607f59b4af5cad2b3c850",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202221_lag2_issued.jsonl": "c84ac3297d19ace895b227da117e2ef2e10fd83860cb71a13b71be391c87a832",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202222_lag0_issued.jsonl": "6dbf631215f9e23bed75b0fbe9869ae010c532cad42a0b79509694e6252c4b3e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/202222_lag2_issued.jsonl": "dfae0166c6768672cdb3bf9e527485454cd9d50e0fdc1e96cbe2af72be2edfa0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/feature_closure.json": "26cad6ef96039e75a8a03671aa169f37dc8ae80bffc105364d3871562d0cd78a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202301_lag0_issued.jsonl": "ff31d1f3802aef612c2138208979efcc43b57bce20e44be55cc22820877bec68",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202301_lag2_issued.jsonl": "31af07d1d5f64788dae614140e46602b4dd9dc29353213e7d8d28fe01f5ed80b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202302_lag0_issued.jsonl": "66f4a48b60cce98a0d5b381cf764c4dd50672cd63a705901406305f6156a105a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202302_lag2_issued.jsonl": "8d537e87f045b0b14daaeec7f14d3bd6c60d08fd5c2210b2fa6798a4cfc152e9",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202303_lag0_issued.jsonl": "35b18a3eddc982660b9e0db14ea01a59bd4fd53445a799bce04995495b683a09",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202303_lag2_issued.jsonl": "1d69834498b4a89e6acfb179bd4133a1a9a3b33f32c1f7d4653cbe3336a8efff",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202304_lag0_issued.jsonl": "9b2f591fd9c761e70aef180061d3a157044c50de3316ef60296727fda8927481",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202304_lag2_issued.jsonl": "30f8674ca7af7bdeb7656f25d5fab7db2dd5eee20246e0366e9810f87aaac856",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202305_lag0_issued.jsonl": "ef33e9e7c9b5bda5af01e0c51d56eba223bbcd6e37198246fa3d67d1eed34d57",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202305_lag2_issued.jsonl": "be2c9cea371ce9f9fb1224ca04d73e5bf37a818604c1aa93e78f9fad1039f7fe",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202306_lag0_issued.jsonl": "99bf3c6ae242843a69bfc758740d9730b22bbc9092548dba84bb296aa0e76a11",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202306_lag2_issued.jsonl": "fcbcb6c9eda12c57290362f51f6df9705fb61a71f5b85484708524c8f055c27d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202307_lag0_issued.jsonl": "b19e25b2d77c299f7d430aab507ad238b77610808833a318664f7b0188856e4c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202307_lag2_issued.jsonl": "13eda72f3878a5a90844d4ddbeda0b40c5358d1522586e7b5f585f3980244aa2",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202308_lag0_issued.jsonl": "3d932ed93c51f6059da9655978c95bfefaff3f785cc9583b474b180f290189ff",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202308_lag2_issued.jsonl": "4604b85c2fd7d961eb0ef7156007870954940d779b8339f41c1ce2f2046a73f7",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202309_lag0_issued.jsonl": "b8c5076b96a90d8c96bd3408b2fd48831a7c67f3b075bcd2f435e915963331a5",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202309_lag2_issued.jsonl": "14193afde20b872295d5332dced3c3c42a196f49faef060b390618560aa6eb9c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202310_lag0_issued.jsonl": "aab89ecc662b1d0b93b5496dc58919447bdd96fd5599702c388537723fe4fd5e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202310_lag2_issued.jsonl": "0d794a228d39321e16b2f809a8cd2ec79ee3cd68bb2a82d3418c652688214802",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202311_lag0_issued.jsonl": "0a7197b1b197e18878782e001f441e3d5f824b8885e90090a15bb1f5df0086ce",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202311_lag2_issued.jsonl": "960567fb486812c0bdac193f79a08396296bed6c84fb96a0f0004a7484fd4682",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202312_lag0_issued.jsonl": "1206ae85771484795aec4d2fec3ef2c2ba787a4b18c092ab7bf97ae55aee9978",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202312_lag2_issued.jsonl": "3e7a5c054e2bfe9a098a6b68c561d9af4d07becf3bd1f13ddc7f1639c2d21a9f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202313_lag0_issued.jsonl": "3187985df41a83ea0c426daa738186cf713cb2892f25d9ad3a54ed3edfb7c898",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202313_lag2_issued.jsonl": "b1ccfed4060bfe2e425d70e97f94da53ca8704bf72a18fb68e8220a0273c9e8d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202314_lag0_issued.jsonl": "96094a9d54938db4b1d6ac304a2e6ec85a560fe6c962052af2ec89e08fe02bf3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202314_lag2_issued.jsonl": "c429884b671a6ac3ef116c94014b750fda9a1a280d4baac42ce8e001d483d86a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202315_lag0_issued.jsonl": "d1291f24037a4a32ac668548f3d86152dd778e1b69cb56aab1ca829919232942",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202315_lag2_issued.jsonl": "1d884cadaad8d310c44a0052fd20c719e26d83f4a88812f2aae0267f07abc681",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202316_lag0_issued.jsonl": "7b57132cee2fd571cb30429cceb46234dd3502d350819c2a73ff4e26bbf7196c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202316_lag2_issued.jsonl": "fd7d99f94e451fd8b6bf6023bc4869c54aeac2e24bfdbe931cd7c2ab248d7854",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202317_lag0_issued.jsonl": "786a1c2a9421b888a895fd29b8c16dec3a75ec014432d1b62f6dad3060d8a1c4",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202317_lag2_issued.jsonl": "52476728a51200c0b7b51ef28b723a647a3cb2333c1d15a2eb41f48b13d64d37",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202318_lag0_issued.jsonl": "a692c6eb7359e16aa09806654103e87d97904ec2890a7dc87d32837a3d8c269d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202318_lag2_issued.jsonl": "66d22957e12a406b7bce00c115d965a566443376a9e8ad16b3784ce871735aa6",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202319_lag0_issued.jsonl": "117f29aaea99a25efbe0da6d761c0d66238c6f9482b727fe81932b1cc83412d2",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202319_lag2_issued.jsonl": "e4e6c6d158d8b10a744af1eece1cf46b0e83086530671116c959de229e55bb32",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202320_lag0_issued.jsonl": "67f6d69ed4d349489929266467ec35e4bfbca28b6bafba11d7385b1196ce3162",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202320_lag2_issued.jsonl": "8d7e4f80e80130c3f9413222904b6c129be6b23eca509c10e9b88406ae900614",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202321_lag0_issued.jsonl": "eb7302540b8962e90c36b9d01d76f886f3843b4ff16f2eab5423b03d7552cde9",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202321_lag2_issued.jsonl": "115be26322c89e87bdafe720b4ba751343a9565a3b5ff0845f8ce33a18b37b62",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202322_lag0_issued.jsonl": "fd7c6f8465e6f9e4db97cf20e2ebdf1e573b6ba1ac84fc4fa926570a571f3948",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/202322_lag2_issued.jsonl": "bef4dd9420a93e312c0acda1d167b0b0814a3c2d5fef4eaca3c56bfb862c373e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/feature_closure.json": "1da25a38de26f3cd46f79eb5b6cebab575a9dd7a9da592a8b06f9ef443f55fe0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/fit_lock.json": "ee59df50ddf2981f41118958a93cb9899a13e81acea96293a971e77fc99d44bf",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/input_validation_2022.json": "d684510c144dc507716cf33049a21746178805775c370caa880383472cfc3fa4",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/input_validation_2023.json": "5504e03284bd9d66825729cb10db6a5c2a7fce13cec5a13eb9ad93b29796e6b7",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202201_labels.jsonl": "8042ae1b8b4a03420ab3830140faa160e9d16bf7c4b934cebf137572e4f83627",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202202_labels.jsonl": "23604030d098dfdc2fa0ac2ee12a6e824eb7f7694a5d3d7a30bc40eedf790ef6",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202203_labels.jsonl": "c92d8b4bd102c014eb0e77aa08813fe708d7af9891d7a34910b9bb756d739590",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202204_labels.jsonl": "d0821ef143b27a824d217261e1a18941690cf7cc6fc6a39c9f30664d4acb1b7c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202205_labels.jsonl": "4ea28db619df4520ab6cc521b724bc56328a03a9ebe0d16caf6815accee1640a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202206_labels.jsonl": "f1a76c3a43a1d633900e5bc5b9eabf723d898d1e879e114dacd4c5a20d21cf95",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202207_labels.jsonl": "e3012d33deeed868db41eee5550fc479b16308e2ab27b7e2b1c8c802dfd891ee",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202208_labels.jsonl": "bc4e8cf502fef151f75d1c89e16e769dfe9583f9411423d5a3293c220da90f46",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202209_labels.jsonl": "45445199e85203781bfb9990f43e40483f282bc7c876b6f3a2d15f3412104446",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202210_labels.jsonl": "0ba44b7f5b810c4df6d310334e15f57693399eaee52f098a6e25c715d6a28e62",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202211_labels.jsonl": "167c48bca830a9963f9ab3c45a4478560dcf0a65aad94bb4c2b2124c6575182c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202212_labels.jsonl": "71f8dbb862a055246eaf34d1e823cf8148ca38e432b446dce58612bc9ec8a565",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202213_labels.jsonl": "66522085452c8431bea669c43be99035b6a68b27eed45fd0c3c952d502058388",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202214_labels.jsonl": "4fd9cce704b73b509cd32fe7935bfdb0d04a4af9c4d8ec506c646086c64c5dff",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202215_labels.jsonl": "656b27cae93ba8898d32ada16992b90539be80d0e668645f6867be6b3dbc7f46",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202216_labels.jsonl": "39c9d2b4bf88db32b1c469c2e6b60bf5e79182513570aef68c9d88eb104d031d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202217_labels.jsonl": "8acc3a981f555fad4212d3935b9dfab6522d2272a453fbecf7cbfff75e6ebe41",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202218_labels.jsonl": "0aea487d1e8cbc01c7aff83bb0411300fa40632d307f31a77d97d324e69b216f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202219_labels.jsonl": "64f2f8150f8cfd28511ced8e3467da0d52abb96d71875f09748181f718804e5f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202220_labels.jsonl": "801d3dc91064b7c8074006400f6d750d3a810d37b3cc375fe478330b23d0d14a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202221_labels.jsonl": "0fa7eba89b93f1319590fce08ae229509f0a40ef30cb1ff103e9f4cd685404c7",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202222_labels.jsonl": "d8fb98eb485a510fc8b6bcc3784d9db240ebd4bd821594fa7cba45a05af350f5",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202301_labels.jsonl": "f1e3c06a9a30d366c848baaa88a8320f6ee9a3e859ae4517b143f08376d1b0fd",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202302_labels.jsonl": "caf7c01b4aab3f75f0ee377a06a887b3ca214da3034987c9f1938010cacca71c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202303_labels.jsonl": "6b65465b31b0abca2c8d613bdf310e8dc51d6ac9c18b8673bdf67d3be5794305",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202304_labels.jsonl": "f840cfce1273e7d82976ae7144c377818378b921139adb8556c4af883e7b0638",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202305_labels.jsonl": "0f2da201f38527b831ee19f0a2513a75256f76a5ae951b8a4648f1b7b1b9117f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202306_labels.jsonl": "b4cd49bffe627f3dae345538c1b8866672d4aedee691f3ea17dd48b5bf99e835",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202307_labels.jsonl": "16c9745473152b082de6fe35976632f8c419740ae6d1653b3c25c3aba5b405b2",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202308_labels.jsonl": "9c47e790ddd5340fbd98086a6d7266678f3dd82593ba94047ee5099f128065ab",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202309_labels.jsonl": "e54bcc2ca8dadc8c385c30bb5da4d5d4b897355c13d0f505a1a61473186bfcfb",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202310_labels.jsonl": "9b62d4bbfb6bd6207052d57459d4ffa00be1a1c684bcbf91d3815226a0300acc",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202311_labels.jsonl": "5d17399f228aafe8f2f5b3a0396a6782bb25f865baf929715aa63a92f814d3eb",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202312_labels.jsonl": "d83fa66b13cad3c694ecfaec8c04cf15c016c444adcd195021e3e4b2330c7f2c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202313_labels.jsonl": "e17caa959130b74c3cafa3bb5df96566c3e09159d0bca4868b4db716ef2dbe70",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202314_labels.jsonl": "022113910abc9f318755ccf6f0cb511f47560c454a49b86a865ca8070932dffd",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202315_labels.jsonl": "b005a295d9c6a35a1e905a3763514cabacdaf4ec86e59980c9f1e6c28054c3f2",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202316_labels.jsonl": "51c1a831efd41c7e08da2fd0ac216464e2782aac83f17471aff1eb6284a4719e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202317_labels.jsonl": "9bf9f5c2341a9262d1fd66f927e6842a2137b32d43c00ade254172198c2fa71d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202318_labels.jsonl": "fac1515bf347df1a02b49b40e51542d6fdfc8a8599715b7dcf077fc99f06de5f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202319_labels.jsonl": "12d757fc3a254867a78887bc2d107d6f3a75bf57f791835adfe85df6bbc6a9a1",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202320_labels.jsonl": "e079b6a142b4e8f8942ebb517999781bd462f41c3d0d5cc66867b86a2756e7ae",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202321_labels.jsonl": "79addaf8e01ec39f88fb35497ae44cd3b640f662e1ba9099a28c1ee18c6d6224",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202322_labels.jsonl": "303b68ca1984dffff77de464e0be76d628e2fde086f35883ba9f481d3a0e4652",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/label_closure.json": "cc83af4088025f3aeb932ca60af2809872740d2bfe1d4b1ba28b670e16764b50",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202202_issued.jsonl": "6cebd70dfe3b886fe4561e8ffe8c08b7abad4a389428183cd1fc2039d9f298a1",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202203_issued.jsonl": "0e3a6bbe90f388d4a14fd62afbaac1e32cea1a3c012c5662c26404617f044a4e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202204_issued.jsonl": "874f50fffed64e25040b80d7015c8dec51221ec7f47cc850920d3d55220030e4",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202205_issued.jsonl": "530447694f877ef9946a308c6da32e3d55a0ee5b031929357068fd854c8fbe78",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202206_issued.jsonl": "d5fc729506b11947ea03a0c99808a7c86151d34ec79f27e3883f894a95966dee",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202207_issued.jsonl": "ae484d28e58a91b28072848d4c3c2cfc59e579c5576a7885a0c291b3868e1b5d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202208_issued.jsonl": "e7131142d9bd8099700fd46b4878fee9ffbda8f021c096013bd16a0585788bd0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202209_issued.jsonl": "f18d54a148067076af8b2a88383570b7abf64af0d260db9f3feae0ca25b07ee6",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202210_issued.jsonl": "30f174aeb2667dffff9e543e9fcf1fd45ecc908f32836054a843ff911fcadce6",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202211_issued.jsonl": "ba22fd31b3a88acb88e437359fb3a5b1aaaed03c0be6addf57a06d693b8942fb",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202212_issued.jsonl": "b529c33a4970aab2259abd86e8aae7ae0a5073794993a9041b7c22a13bc13952",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202213_issued.jsonl": "6bda642a21307c376cc3ac7c032eae2069f198720b916373b6e1847cfbe3efe5",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202214_issued.jsonl": "7f322c30f5f661302e7cc40dac8f0621013bb2ada23699adf117fa1f3c981159",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202215_issued.jsonl": "489051c053fc88953b64b7a3dbc24afc885aab5eda72eadf9dc741c453c44d59",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202216_issued.jsonl": "a188aafa656166957703efaa4df3b662bd7c708c5cb5617a4c61c59fc2da6826",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202217_issued.jsonl": "4fc536e6c1f137f50334003fd330f6930fff00cca288e3886a06dc43860d85a5",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202218_issued.jsonl": "b65d1dc2d5d666579bfe45befb1c1968e1c63f3f7cefae0aa16fb87db8d8e4e4",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202219_issued.jsonl": "7fbb0643fe821627b26efc6d156ad969447252836a97f972221a5e9c799fb17b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202220_issued.jsonl": "f96365ac1264f25265468c341312bdee52850272f510b6e0c242327d64b2d83d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202221_issued.jsonl": "437909a5389a15ca543457221894a714fc5e930f053d26ee7ccd80cc668db662",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202222_issued.jsonl": "54e7a4de0579cd4587b7daf61afbcdb41ed16700c8c40ca10e00d47af4af591c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202302_issued.jsonl": "5bb165fc41f1cdf32c00c707d64aedc2d38b9cb2280d38ece97b02fabeb74320",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202303_issued.jsonl": "f01330f46346fe61170f79c4d9bb9c19cd15d663199230cee57fd0d38d26d6f0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202304_issued.jsonl": "2729ba6907088a9512eb020dd81af7e48b37d89cba7f79c2a18836546fbb78b4",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202305_issued.jsonl": "467d39f550affeab708638da796861d6bab46dfe801c3f5d0873b106222522f3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202306_issued.jsonl": "e2c4a2382c63a598cbf29bde0672459dbf438c80d0840b51959963995a81c01b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202307_issued.jsonl": "34f2bc136e5b1592eb62917ede5cbedd1befd64696297ec84cb59169dc450af3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202308_issued.jsonl": "f53b21605d16ce79cbfbf2e2c6b8bacbddaf6fad07076890811adfbb22c889c0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202309_issued.jsonl": "40352ed47faab9faa3ec9b2a7b9c182672e9340951bb4081e0c525dde51e410a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202310_issued.jsonl": "688c37e994b0adfbcf8ef38c812dc854361f719b5666d5f45365d2a5b9c2a1f5",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202311_issued.jsonl": "b3f31436706351c040c337fa5c26ede2c19231315b0a295f61d27747d404e0f4",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202312_issued.jsonl": "fc42044aebfa8d5d0598ebb4dc8097b90e1107dc92a6de6cbb3727c207a4cc5e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202313_issued.jsonl": "c974468accdd65c600b8adaeb0590ea1e84f0dfd2de42f0aa1f323b37d73e0be",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202314_issued.jsonl": "941e4636618608303942c69bd45ae857024a7c5b4e46aaef7a6180ab60ada653",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202315_issued.jsonl": "654734de1d18e35b8235c649060f2e269e82ba3b681b498f579042396a64a96b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202316_issued.jsonl": "2a7634d1d139313ec3ba9a892abc7da6ef690031d522361995bb34e6e2f1c87c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202317_issued.jsonl": "085bacea39a4fee5942f07cb3a3dfd1bcc8ce581706e67ff8877946941b59aef",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202318_issued.jsonl": "e489ff5d160b32f52d8a57464593581d1aecb079b0f67b84a674279e942b325a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202319_issued.jsonl": "7b30247b8e2986fcc24e9ed503bd35946c22ce63f7c7ae4932bc85567e4346ac",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202320_issued.jsonl": "e41072ec28fc451e37035e550093d6948961faaa6e2dd35e4f582ebf78a73949",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202321_issued.jsonl": "b825afed88ca0ea2d9ce214de03b9a048315c7f78eb164b5d476a6bc9fb7cc8f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202322_issued.jsonl": "6b8f652144ae03bfc81d1b84e1172467fb032150779e8cb46a6c569e131416c3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection.json": "c5ff65e78b686558c110d630201cfa7789362f781e14e84002a8eb69651c5a6b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_issuance_lock.json": "080c1b49bbd576afb795cd48989d67cbe6660b096e084273480709d2fb4cecb2",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_lag0_forecasts.jsonl": "67173eadb2853b975901d840997c33d1058c14865ab06da7004d884f0ea3c1ce",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_lag2_forecasts.jsonl": "fc53cc3d5cea03e9f90f68726cd004de862ac52c80cdb4b0743280c3b99cde1f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_lock.json": "7ce7a8552cc91d6595dbf1aec760a9f6217de4a8bb1804d83f6f7791f2922bc3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202202_CarData.z.attempt1.httpbody": "b9c07856ed10426b799f44c7d17df071880013f9d7091b39163df07ee27c6a63",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202203_CarData.z.attempt1.httpbody": "a329bed1df88152ebfbebe732c484a5263cffe50f039ed896f65a14d87f1a01e",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202204_CarData.z.attempt1.httpbody": "f4b4ae9191d4e0345dfc8cb29695f796f6524eeeddd4242f77919f23072e9752",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202205_CarData.z.attempt1.httpbody": "7089673a8162eea2793490da40fa2ec4f8776efef8bf0442dc79c76765cfab5c",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202206_CarData.z.attempt1.httpbody": "9ed1d90508536cd84adbe589819a2f096b30effe7fe9a35f324c10b114d232a2",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202207_CarData.z.attempt1.httpbody": "c1bb4a05da8c86391dfe405327a603529047b72269f14b7ca5d53102fdc2fffd",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202208_CarData.z.attempt1.httpbody": "08a35d1ce2a728e51d03efeda164428f008e96d92c52ea75f2d1b5e884ee8051",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202209_CarData.z.attempt1.httpbody": "511420e1f3c74198450d09276bd0c6f2ed6d944509586ee3856549dbac61e47b",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202210_CarData.z.attempt1.httpbody": "3398482c769adad2a14e128c0b5b7b1bd74bfa46472b72ac1c7b544102025f90",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202211_CarData.z.attempt1.httpbody": "d63c25ea729b20e268bf8a00e81983466dff0c720755f622dd8d156d9c72ecde",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202212_CarData.z.attempt1.httpbody": "1ae3efa84374a130a4b7631fa84fce854f6633ff58e04ba14a8b9770d58c1ebc",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202213_CarData.z.attempt1.httpbody": "fdcb61a7f9101e709e091021ad27ae45b804afb55f8cd748a30c51a3446f7772",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202214_CarData.z.attempt1.httpbody": "217dd05e43f1a087720cb0c627b98f8fa4997be700cfa95be59888c1d45d99bc",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202215_CarData.z.attempt1.httpbody": "ffabf97489a771de58f3a0c77772611bcec65663b9f6f94cb521a6a86523cbf4",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202216_CarData.z.attempt1.httpbody": "23a3f9019d0674719244244aa481ec0a2119b0270398e18a7e806dff043b3adc",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202217_CarData.z.attempt1.httpbody": "ed86c107a2c30f776949261ea47280398ee33c6c32d0dce8f2cca77af623b1a1",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202218_CarData.z.attempt1.httpbody": "acea2d269b51844db8b1c9652a7f34e8c50470f41a3e1342f98451f055bb5e42",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202219_CarData.z.attempt1.httpbody": "9a631f741288340ca2ff996d98ff792d2f10feb371b598792c9eb9155c4ff66f",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202220_CarData.z.attempt1.httpbody": "ee4ad7dea2715d69d32fd2465c285fbdd2e9463910774c93f2b6178222dd08b0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202221_CarData.z.attempt1.httpbody": "6dd3afd20e6aa7af689de0e47de421662f18f8a5ac075299c25dd129e920c3fd",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202222_CarData.z.attempt1.httpbody": "25681b05bfaa8c74e54381d3bb1c827755982b9c90b273b2eb9c47f60cb8aec3",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt2.httpbody": "a5680ccab7b59c30576d7c812115a2b570692eedf585e4f9522a2f112e714316",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt2.httpbody": "a0741792cc5640a253fd5c6c1d0290f6c366a3060892768d8f32a3578a0a97bb",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt2.httpbody": "26438aa6611b548240b4ef471b9dd211dc42a39bfdf563e46475a15b074dd1bb",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt2.httpbody": "d0730d561db2a0035361c7b85b4ed3f4bbecbeb24d778a8fbf5c3cb19fbf62a0",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt2.httpbody": "642ee7cda0c918dfe690c6d530cc0c997674aaea63d4a2130e67f3c0cb451068",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt2.httpbody": "15818db995d6baf3346942cec09a54bf32b42b08f8a6cd03984551ac22c6decd",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt2.httpbody": "625001c9a24870dbbdee5b15059f91d9a7c36249caa7413a98d00f7023e1f0ea",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt2.httpbody": "5fd63539aa064c00b4fcf1b121c5dc1cae787bf9377abc0efd3637810d3b8e12",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt2.httpbody": "e136da1f3a978007327e841436048e38e91573c21644f9437bd04b087c5f7c38",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt2.httpbody": "861b6ddb42d297022484ac86d6aa6ada1aab292a40e3b2f51f12c2b902cd265d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt2.httpbody": "9b9f7a2a728c2b98144d5728e6f9e63a3e0441d67534d098b5d8a24ef30f56bf",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt2.httpbody": "ccfbc04a49ab4a4369e98891d1252c547c798cb4aa5db9b3904734db0f724782",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt2.httpbody": "0f8fa73f7065fd4fd501cca1a5afcbb244fea870c8e05552e765391349fdcb5a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt2.httpbody": "8779af0fb58da80db8244452f3abbd9e451745b69fe95e77ca97146e2cc32fb5",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt2.httpbody": "50079334f2f66edf4126af6910430af8044ef7312106fd83d7d6bd012b6b787d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt2.httpbody": "ecfc2e73059f85fb49c96aec1f812c52b29a0d4280ac01e0eb3549fc2ef3c46d",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt2.httpbody": "64655f007b138dca545b7bebcafd75d1604bb635a65d0080dbbf2d4528c31282",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt2.httpbody": "1c738726154077f1f35c76a8cceb9d5598237ddb18c44a4362cefc02de7575ac",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt2.httpbody": "4073deafb325edac0f1c63c76b55a8cb44c08a48122fdb21cabe33cf5d62cfd9",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt2.httpbody": "aa8bb2db4cd51c5ada5cbc02ab068cb54faf9e0644549e4b6e689ed6189798dc",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt2.httpbody": "cfad3ff984085baeb1e6b4bb60e00896818234410fe1e8fc9a60a173fc17df11",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18"
+  },
+  "new_fits_before_lock": 0,
+  "parent": {
+    "data_lock": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/data_lock.json",
+      "sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005"
+    },
+    "fit_lock": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/fit_lock.json",
+      "sha256": "ee59df50ddf2981f41118958a93cb9899a13e81acea96293a971e77fc99d44bf"
+    },
+    "reference_forecasts": {
+      "0": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_lag0_forecasts.jsonl",
+        "rows": 20432,
+        "sha256": "67173eadb2853b975901d840997c33d1058c14865ab06da7004d884f0ea3c1ce"
+      },
+      "2": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_lag2_forecasts.jsonl",
+        "rows": 20432,
+        "sha256": "fc53cc3d5cea03e9f90f68726cd004de862ac52c80cdb4b0743280c3b99cde1f"
+      }
+    },
+    "selection_lock": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/selection_lock.json",
+      "sha256": "7ce7a8552cc91d6595dbf1aec760a9f6217de4a8bb1804d83f6f7791f2922bc3"
+    },
+    "streams": [
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T04:25:20.970332+00:00",
+            "headers_received_at_utc": "2026-09-08T04:25:20.635023+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T04:25:20.385222+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8476579",
+              "Date": "Tue, 08 Sep 2026 04:25:20 GMT",
+              "ETag": "\"869a6884e8f9288a92f7a72d04989602\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:52:08 GMT"
+            },
+            "wall_seconds": 0.5851124170003459,
+            "wire_body_bytes": 8476579,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T04:25:20.975442+00:00",
+        "decoded_body_bytes": 8476579,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a",
+        "event_key": 202201,
+        "historical_client_receipt_certified": false,
+        "new_requests": 0,
+        "session_path": "2022/2022-03-20_Bahrain_Grand_Prix/2022-03-20_Race/",
+        "status": "reused_verified_pilot",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:33.166168+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:31.874004+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:31.614147+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7033023",
+              "Date": "Tue, 08 Sep 2026 05:09:31 GMT",
+              "ETag": "\"f56038fc92a3a8a64c5595626ea5caef\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:50:24 GMT"
+            },
+            "wall_seconds": 1.5520153749966994,
+            "wire_body_bytes": 7033023,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202202_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "b9c07856ed10426b799f44c7d17df071880013f9d7091b39163df07ee27c6a63"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:33.175369+00:00",
+        "decoded_body_bytes": 7033023,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202202_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "b9c07856ed10426b799f44c7d17df071880013f9d7091b39163df07ee27c6a63",
+        "event_key": 202202,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-03-27_Saudi_Arabian_Grand_Prix/2022-03-27_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:33.041415+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:31.872241+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:31.614476+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7531091",
+              "Date": "Tue, 08 Sep 2026 05:09:31 GMT",
+              "ETag": "\"668155bc69055bd109aa79597e6784bb\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:10:48 GMT"
+            },
+            "wall_seconds": 1.426957040996058,
+            "wire_body_bytes": 7531091,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202203_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "a329bed1df88152ebfbebe732c484a5263cffe50f039ed896f65a14d87f1a01e"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:33.046007+00:00",
+        "decoded_body_bytes": 7531091,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202203_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "a329bed1df88152ebfbebe732c484a5263cffe50f039ed896f65a14d87f1a01e",
+        "event_key": 202203,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-04-10_Australian_Grand_Prix/2022-04-10_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:34.070171+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:33.278810+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:33.046815+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7859087",
+              "Date": "Tue, 08 Sep 2026 05:09:33 GMT",
+              "ETag": "\"6140ec21cce9b5915c0771e7596cff9c\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:04:10 GMT"
+            },
+            "wall_seconds": 1.023394374991767,
+            "wire_body_bytes": 7859087,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202204_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "f4b4ae9191d4e0345dfc8cb29695f796f6524eeeddd4242f77919f23072e9752"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:34.085008+00:00",
+        "decoded_body_bytes": 7859087,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202204_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "f4b4ae9191d4e0345dfc8cb29695f796f6524eeeddd4242f77919f23072e9752",
+        "event_key": 202204,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-04-24_Emilia_Romagna_Grand_Prix/2022-04-24_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:36.989958+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:33.347804+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:33.176153+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8092159",
+              "Date": "Tue, 08 Sep 2026 05:09:33 GMT",
+              "ETag": "\"3eefc7a7c4f9053c410b44924818b8eb\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:00:26 GMT"
+            },
+            "wall_seconds": 3.8138054159935564,
+            "wire_body_bytes": 8092159,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202205_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "7089673a8162eea2793490da40fa2ec4f8776efef8bf0442dc79c76765cfab5c"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:36.994745+00:00",
+        "decoded_body_bytes": 8092159,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202205_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "7089673a8162eea2793490da40fa2ec4f8776efef8bf0442dc79c76765cfab5c",
+        "event_key": 202205,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-05-08_Miami_Grand_Prix/2022-05-08_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:35.275487+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:34.290694+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:34.088439+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8395523",
+              "Date": "Tue, 08 Sep 2026 05:09:34 GMT",
+              "ETag": "\"0ed30ac78689cf23d9c9a8788bd813e7\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:14:11 GMT"
+            },
+            "wall_seconds": 1.187047583021922,
+            "wire_body_bytes": 8395523,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202206_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "9ed1d90508536cd84adbe589819a2f096b30effe7fe9a35f324c10b114d232a2"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:35.280436+00:00",
+        "decoded_body_bytes": 8395523,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202206_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "9ed1d90508536cd84adbe589819a2f096b30effe7fe9a35f324c10b114d232a2",
+        "event_key": 202206,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-05-22_Spanish_Grand_Prix/2022-05-22_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:36.498038+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:35.407062+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:35.281315+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "10152255",
+              "Date": "Tue, 08 Sep 2026 05:09:35 GMT",
+              "ETag": "\"2acc3e77ca8c35dc638407166b3b1540\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:53:47 GMT"
+            },
+            "wall_seconds": 1.2167318330029957,
+            "wire_body_bytes": 10152255,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202207_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "c1bb4a05da8c86391dfe405327a603529047b72269f14b7ca5d53102fdc2fffd"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:36.504021+00:00",
+        "decoded_body_bytes": 10152255,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202207_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "c1bb4a05da8c86391dfe405327a603529047b72269f14b7ca5d53102fdc2fffd",
+        "event_key": 202207,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-05-29_Monaco_Grand_Prix/2022-05-29_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:37.462691+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:36.813344+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:36.504664+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7932875",
+              "Date": "Tue, 08 Sep 2026 05:09:36 GMT",
+              "ETag": "\"8aaa126a35173196cbf6414fa5010bdc\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:15:32 GMT"
+            },
+            "wall_seconds": 0.9580290410085581,
+            "wire_body_bytes": 7932875,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202208_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "08a35d1ce2a728e51d03efeda164428f008e96d92c52ea75f2d1b5e884ee8051"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:37.467292+00:00",
+        "decoded_body_bytes": 7932875,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202208_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "08a35d1ce2a728e51d03efeda164428f008e96d92c52ea75f2d1b5e884ee8051",
+        "event_key": 202208,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-06-12_Azerbaijan_Grand_Prix/2022-06-12_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:39.062114+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:38.188945+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:36.995322+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8122135",
+              "Date": "Tue, 08 Sep 2026 05:09:38 GMT",
+              "ETag": "\"28c61fc432db2b94c05451b8cb234d21\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:46:48 GMT"
+            },
+            "wall_seconds": 2.0667985409963876,
+            "wire_body_bytes": 8122135,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202209_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "511420e1f3c74198450d09276bd0c6f2ed6d944509586ee3856549dbac61e47b"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:39.067256+00:00",
+        "decoded_body_bytes": 8122135,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202209_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "511420e1f3c74198450d09276bd0c6f2ed6d944509586ee3856549dbac61e47b",
+        "event_key": 202209,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-06-19_Canadian_Grand_Prix/2022-06-19_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:38.183735+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:37.640086+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:37.467948+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7992691",
+              "Date": "Tue, 08 Sep 2026 05:09:37 GMT",
+              "ETag": "\"c0e50490039400fee0915a3eeda7564b\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:47:50 GMT"
+            },
+            "wall_seconds": 0.7157826249895152,
+            "wire_body_bytes": 7992691,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202210_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "3398482c769adad2a14e128c0b5b7b1bd74bfa46472b72ac1c7b544102025f90"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:38.188162+00:00",
+        "decoded_body_bytes": 7992691,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202210_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "3398482c769adad2a14e128c0b5b7b1bd74bfa46472b72ac1c7b544102025f90",
+        "event_key": 202210,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-07-03_British_Grand_Prix/2022-07-03_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:39.657728+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:38.384316+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:38.189177+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "6884931",
+              "Date": "Tue, 08 Sep 2026 05:09:38 GMT",
+              "ETag": "\"6e80705c0b84b047b33913c94f72f8b0\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:23:26 GMT"
+            },
+            "wall_seconds": 1.4685556250042282,
+            "wire_body_bytes": 6884931,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202211_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "d63c25ea729b20e268bf8a00e81983466dff0c720755f622dd8d156d9c72ecde"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:39.661641+00:00",
+        "decoded_body_bytes": 6884931,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202211_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "d63c25ea729b20e268bf8a00e81983466dff0c720755f622dd8d156d9c72ecde",
+        "event_key": 202211,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-07-10_Austrian_Grand_Prix/2022-07-10_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:40.116956+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:39.226887+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:39.067897+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "6643131",
+              "Date": "Tue, 08 Sep 2026 05:09:39 GMT",
+              "ETag": "\"cc140c7e7a19792bdb8f7ec0946f41f6\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:09:06 GMT"
+            },
+            "wall_seconds": 1.049059583019698,
+            "wire_body_bytes": 6643131,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202212_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "1ae3efa84374a130a4b7631fa84fce854f6633ff58e04ba14a8b9770d58c1ebc"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:40.120822+00:00",
+        "decoded_body_bytes": 6643131,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202212_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "1ae3efa84374a130a4b7631fa84fce854f6633ff58e04ba14a8b9770d58c1ebc",
+        "event_key": 202212,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-07-24_French_Grand_Prix/2022-07-24_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:41.061132+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:40.134100+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:39.662357+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8195011",
+              "Date": "Tue, 08 Sep 2026 05:09:39 GMT",
+              "ETag": "\"ed2401b43e826a1006ffc51e441bc746\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:21:27 GMT"
+            },
+            "wall_seconds": 1.3987759159936104,
+            "wire_body_bytes": 8195011,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202213_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "fdcb61a7f9101e709e091021ad27ae45b804afb55f8cd748a30c51a3446f7772"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:41.066144+00:00",
+        "decoded_body_bytes": 8195011,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202213_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "fdcb61a7f9101e709e091021ad27ae45b804afb55f8cd748a30c51a3446f7772",
+        "event_key": 202213,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-07-31_Hungarian_Grand_Prix/2022-07-31_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:41.671050+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:40.298029+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:40.121312+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7422103",
+              "Date": "Tue, 08 Sep 2026 05:09:40 GMT",
+              "ETag": "\"9b3a62e3edb90c31e80df176d7526b77\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:18:26 GMT"
+            },
+            "wall_seconds": 1.5497392079851124,
+            "wire_body_bytes": 7422103,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202214_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "217dd05e43f1a087720cb0c627b98f8fa4997be700cfa95be59888c1d45d99bc"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:41.675694+00:00",
+        "decoded_body_bytes": 7422103,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202214_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "217dd05e43f1a087720cb0c627b98f8fa4997be700cfa95be59888c1d45d99bc",
+        "event_key": 202214,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-08-28_Belgian_Grand_Prix/2022-08-28_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:42.685039+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:41.325007+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:41.066674+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8303467",
+              "Date": "Tue, 08 Sep 2026 05:09:41 GMT",
+              "ETag": "\"d8d7f71751a7221fa458a53923dcd011\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:58:48 GMT"
+            },
+            "wall_seconds": 1.6183677499939222,
+            "wire_body_bytes": 8303467,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202215_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "ffabf97489a771de58f3a0c77772611bcec65663b9f6f94cb521a6a86523cbf4"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:42.689746+00:00",
+        "decoded_body_bytes": 8303467,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202215_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "ffabf97489a771de58f3a0c77772611bcec65663b9f6f94cb521a6a86523cbf4",
+        "event_key": 202215,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-09-04_Dutch_Grand_Prix/2022-09-04_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:42.777523+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:41.867221+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:41.676182+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "6977159",
+              "Date": "Tue, 08 Sep 2026 05:09:41 GMT",
+              "ETag": "\"84409df67235a2590f51a16aaae45ad1\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:12:07 GMT"
+            },
+            "wall_seconds": 1.1013445419957861,
+            "wire_body_bytes": 6977159,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202216_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "23a3f9019d0674719244244aa481ec0a2119b0270398e18a7e806dff043b3adc"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:42.781799+00:00",
+        "decoded_body_bytes": 6977159,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202216_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "23a3f9019d0674719244244aa481ec0a2119b0270398e18a7e806dff043b3adc",
+        "event_key": 202216,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-09-11_Italian_Grand_Prix/2022-09-11_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:43.768737+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:42.883291+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:42.690169+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "11069831",
+              "Date": "Tue, 08 Sep 2026 05:09:42 GMT",
+              "ETag": "\"d3c8254abd61640d2c421af1989da9c9\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:20:08 GMT"
+            },
+            "wall_seconds": 1.0785776660195552,
+            "wire_body_bytes": 11069831,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202217_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "ed86c107a2c30f776949261ea47280398ee33c6c32d0dce8f2cca77af623b1a1"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:43.775805+00:00",
+        "decoded_body_bytes": 11069831,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202217_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "ed86c107a2c30f776949261ea47280398ee33c6c32d0dce8f2cca77af623b1a1",
+        "event_key": 202217,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-10-02_Singapore_Grand_Prix/2022-10-02_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:47.510904+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:43.230368+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:42.782448+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8474079",
+              "Date": "Tue, 08 Sep 2026 05:09:43 GMT",
+              "ETag": "\"3a64e41bcd0d60cc1e051e93ff21d9ac\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:01:27 GMT"
+            },
+            "wall_seconds": 4.728454208001494,
+            "wire_body_bytes": 8474079,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202218_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "acea2d269b51844db8b1c9652a7f34e8c50470f41a3e1342f98451f055bb5e42"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:47.515732+00:00",
+        "decoded_body_bytes": 8474079,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202218_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "acea2d269b51844db8b1c9652a7f34e8c50470f41a3e1342f98451f055bb5e42",
+        "event_key": 202218,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-10-09_Japanese_Grand_Prix/2022-10-09_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:44.754776+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:43.932039+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:43.776470+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8628671",
+              "Date": "Tue, 08 Sep 2026 05:09:43 GMT",
+              "ETag": "\"667e824af4ee14b1917749da5bd7903f\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:06:30 GMT"
+            },
+            "wall_seconds": 0.978311125014443,
+            "wire_body_bytes": 8628671,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202219_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "9a631f741288340ca2ff996d98ff792d2f10feb371b598792c9eb9155c4ff66f"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:44.761965+00:00",
+        "decoded_body_bytes": 8628671,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202219_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "9a631f741288340ca2ff996d98ff792d2f10feb371b598792c9eb9155c4ff66f",
+        "event_key": 202219,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-10-23_United_States_Grand_Prix/2022-10-23_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:46.417143+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:44.980421+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:44.762553+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8652003",
+              "Date": "Tue, 08 Sep 2026 05:09:44 GMT",
+              "ETag": "\"97abe1bef917e50fb8e53c66f835d0eb\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:56:29 GMT"
+            },
+            "wall_seconds": 1.6545915830065496,
+            "wire_body_bytes": 8652003,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202220_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "ee4ad7dea2715d69d32fd2465c285fbdd2e9463910774c93f2b6178222dd08b0"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:46.422802+00:00",
+        "decoded_body_bytes": 8652003,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202220_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "ee4ad7dea2715d69d32fd2465c285fbdd2e9463910774c93f2b6178222dd08b0",
+        "event_key": 202220,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-10-30_Mexico_City_Grand_Prix/2022-10-30_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-11-13_S%C3%A3o_Paulo_Grand_Prix/2022-11-13_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:47.403747+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:46.640227+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:46.423307+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-11-13_S\u00e3o_Paulo_Grand_Prix/2022-11-13_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8276175",
+              "Date": "Tue, 08 Sep 2026 05:09:46 GMT",
+              "ETag": "\"f1359180fa7672a1d5ccd30efb188971\"",
+              "Last-Modified": "Sat, 04 Jul 2026 17:54:30 GMT"
+            },
+            "wall_seconds": 0.9804440000152681,
+            "wire_body_bytes": 8276175,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202221_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "6dd3afd20e6aa7af689de0e47de421662f18f8a5ac075299c25dd129e920c3fd"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:47.408611+00:00",
+        "decoded_body_bytes": 8276175,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202221_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "6dd3afd20e6aa7af689de0e47de421662f18f8a5ac075299c25dd129e920c3fd",
+        "event_key": 202221,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-11-13_S\u00e3o_Paulo_Grand_Prix/2022-11-13_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:48.237448+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:47.603474+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:47.409496+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7709027",
+              "Date": "Tue, 08 Sep 2026 05:09:47 GMT",
+              "ETag": "\"05a8da3f33c37a6469085d5815e41bcd\"",
+              "Last-Modified": "Sat, 04 Jul 2026 18:05:30 GMT"
+            },
+            "wall_seconds": 0.8279547079873737,
+            "wire_body_bytes": 7709027,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202222_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "25681b05bfaa8c74e54381d3bb1c827755982b9c90b273b2eb9c47f60cb8aec3"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:48.242111+00:00",
+        "decoded_body_bytes": 7709027,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202222_CarData.z.attempt1.httpbody",
+        "decoded_body_sha256": "25681b05bfaa8c74e54381d3bb1c827755982b9c90b273b2eb9c47f60cb8aec3",
+        "event_key": 202222,
+        "historical_client_receipt_certified": false,
+        "session_path": "2022/2022-11-20_Abu_Dhabi_Grand_Prix/2022-11-20_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T04:25:20.625039+00:00",
+            "headers_received_at_utc": "2026-09-08T04:25:20.623863+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T04:25:20.385078+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 04:25:20 GMT"
+            },
+            "wall_seconds": 0.23996729200007394,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T04:25:21.411997+00:00",
+            "headers_received_at_utc": "2026-09-08T04:25:20.965474+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T04:25:20.625767+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8107479",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 04:25:21 GMT",
+              "ETag": "\"934e7313a12689428ab2e98783865457\"",
+              "Last-Modified": "Wed, 19 Jun 2024 11:24:38 GMT"
+            },
+            "wall_seconds": 0.7862359170103446,
+            "wire_body_bytes": 8107479,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T04:25:21.416489+00:00",
+        "decoded_body_bytes": 8107479,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18",
+        "event_key": 202301,
+        "historical_client_receipt_certified": false,
+        "new_requests": 0,
+        "session_path": "2023/2023-03-05_Bahrain_Grand_Prix/2023-03-05_Race/",
+        "status": "reused_verified_pilot",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:48.134077+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:48.009905+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:47.516295+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:47 GMT"
+            },
+            "wall_seconds": 0.617783708992647,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:49.783755+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:48.499433+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:48.136004+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7180339",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:49 GMT",
+              "ETag": "\"43c787519c7cccf638f58fc8d23c1e4a\"",
+              "Last-Modified": "Wed, 19 Jun 2024 11:54:01 GMT"
+            },
+            "wall_seconds": 1.6477542909851763,
+            "wire_body_bytes": 7180339,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "a5680ccab7b59c30576d7c812115a2b570692eedf585e4f9522a2f112e714316"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:49.788353+00:00",
+        "decoded_body_bytes": 7180339,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "a5680ccab7b59c30576d7c812115a2b570692eedf585e4f9522a2f112e714316",
+        "event_key": 202302,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-03-19_Saudi_Arabian_Grand_Prix/2023-03-19_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:48.434511+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:48.432377+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:48.242772+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:48 GMT"
+            },
+            "wall_seconds": 0.1917382079991512,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:49.813831+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:48.695666+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:48.435037+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8822499",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:49 GMT",
+              "ETag": "\"e2e4c348d306e53996493eca38635751\"",
+              "Last-Modified": "Wed, 19 Jun 2024 12:25:51 GMT"
+            },
+            "wall_seconds": 1.3788014159945305,
+            "wire_body_bytes": 8822499,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "a0741792cc5640a253fd5c6c1d0290f6c366a3060892768d8f32a3578a0a97bb"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:49.818994+00:00",
+        "decoded_body_bytes": 8822499,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "a0741792cc5640a253fd5c6c1d0290f6c366a3060892768d8f32a3578a0a97bb",
+        "event_key": 202303,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-04-02_Australian_Grand_Prix/2023-04-02_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:50.009007+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:49.999109+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:49.788949+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:49 GMT"
+            },
+            "wall_seconds": 0.22006091702496633,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:51.009326+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:50.222818+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:50.009654+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8055963",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:51 GMT",
+              "ETag": "\"46dd76174cc1b591fd360e8464125cc0\"",
+              "Last-Modified": "Wed, 19 Jun 2024 13:00:33 GMT"
+            },
+            "wall_seconds": 0.9996771249861922,
+            "wire_body_bytes": 8055963,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "26438aa6611b548240b4ef471b9dd211dc42a39bfdf563e46475a15b074dd1bb"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:51.014154+00:00",
+        "decoded_body_bytes": 8055963,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "26438aa6611b548240b4ef471b9dd211dc42a39bfdf563e46475a15b074dd1bb",
+        "event_key": 202304,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-04-30_Azerbaijan_Grand_Prix/2023-04-30_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:50.017640+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:50.014892+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:49.819533+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:50 GMT"
+            },
+            "wall_seconds": 0.19811041600769386,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:51.866837+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:50.249473+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:50.018348+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7857795",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:51 GMT",
+              "ETag": "\"f0c012c70a920bd236f1f9d73ac7cd3a\"",
+              "Last-Modified": "Wed, 19 Jun 2024 13:36:23 GMT"
+            },
+            "wall_seconds": 1.8484937910106964,
+            "wire_body_bytes": 7857795,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "d0730d561db2a0035361c7b85b4ed3f4bbecbeb24d778a8fbf5c3cb19fbf62a0"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:51.871674+00:00",
+        "decoded_body_bytes": 7857795,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "d0730d561db2a0035361c7b85b4ed3f4bbecbeb24d778a8fbf5c3cb19fbf62a0",
+        "event_key": 202305,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-05-07_Miami_Grand_Prix/2023-05-07_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:51.150295+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:51.145801+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:51.014714+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:51 GMT"
+            },
+            "wall_seconds": 0.13557883398607373,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:52.606380+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:51.487651+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:51.150778+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "9462023",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:52 GMT",
+              "ETag": "\"1ff537af9bb55a61f1303ae6c1d2bffb\"",
+              "Last-Modified": "Wed, 19 Jun 2024 14:07:44 GMT"
+            },
+            "wall_seconds": 1.455618209001841,
+            "wire_body_bytes": 9462023,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "642ee7cda0c918dfe690c6d530cc0c997674aaea63d4a2130e67f3c0cb451068"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:52.611689+00:00",
+        "decoded_body_bytes": 9462023,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "642ee7cda0c918dfe690c6d530cc0c997674aaea63d4a2130e67f3c0cb451068",
+        "event_key": 202306,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-05-28_Monaco_Grand_Prix/2023-05-28_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:52.942078+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:52.918138+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:51.872154+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:52 GMT"
+            },
+            "wall_seconds": 1.0699275840015616,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:55.341007+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:53.255196+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:52.942693+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7954495",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:54 GMT",
+              "ETag": "\"fb6ca47251674fb48e492ae0a8e53355\"",
+              "Last-Modified": "Wed, 19 Jun 2024 14:40:23 GMT"
+            },
+            "wall_seconds": 2.3983266669965815,
+            "wire_body_bytes": 7954495,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "15818db995d6baf3346942cec09a54bf32b42b08f8a6cd03984551ac22c6decd"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:55.346287+00:00",
+        "decoded_body_bytes": 7954495,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "15818db995d6baf3346942cec09a54bf32b42b08f8a6cd03984551ac22c6decd",
+        "event_key": 202307,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-06-04_Spanish_Grand_Prix/2023-06-04_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:52.707738+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:52.706653+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:52.612243+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:52 GMT"
+            },
+            "wall_seconds": 0.09549016697565094,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:53.705167+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:53.040515+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:52.708230+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8200815",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:53 GMT",
+              "ETag": "\"b3fdf2b7abf0359f5fc642fc7a1c6017\"",
+              "Last-Modified": "Wed, 19 Jun 2024 15:21:38 GMT"
+            },
+            "wall_seconds": 0.9969435000093654,
+            "wire_body_bytes": 8200815,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "625001c9a24870dbbdee5b15059f91d9a7c36249caa7413a98d00f7023e1f0ea"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:53.710025+00:00",
+        "decoded_body_bytes": 8200815,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "625001c9a24870dbbdee5b15059f91d9a7c36249caa7413a98d00f7023e1f0ea",
+        "event_key": 202308,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-06-18_Canadian_Grand_Prix/2023-06-18_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:53.896130+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:53.894964+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:53.710598+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:53 GMT"
+            },
+            "wall_seconds": 0.18553170800441876,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:54.825901+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:54.096707+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:53.896557+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7459831",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:54 GMT",
+              "ETag": "\"6de626aae0c0224ddcbc37f55eaf6d3b\"",
+              "Last-Modified": "Wed, 19 Jun 2024 16:04:20 GMT"
+            },
+            "wall_seconds": 0.9293539589853026,
+            "wire_body_bytes": 7459831,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "5fd63539aa064c00b4fcf1b121c5dc1cae787bf9377abc0efd3637810d3b8e12"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:54.832517+00:00",
+        "decoded_body_bytes": 7459831,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "5fd63539aa064c00b4fcf1b121c5dc1cae787bf9377abc0efd3637810d3b8e12",
+        "event_key": 202309,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-07-02_Austrian_Grand_Prix/2023-07-02_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:55.150562+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:55.149486+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:54.833369+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:55 GMT"
+            },
+            "wall_seconds": 0.3171909999800846,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:59.224515+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:55.466000+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:55.151153+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7298003",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:56 GMT",
+              "ETag": "\"d4b9dd2812801966428650d3da19d93f\"",
+              "Last-Modified": "Wed, 19 Jun 2024 16:41:03 GMT"
+            },
+            "wall_seconds": 4.073369416000787,
+            "wire_body_bytes": 7298003,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "e136da1f3a978007327e841436048e38e91573c21644f9437bd04b087c5f7c38"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:59.229409+00:00",
+        "decoded_body_bytes": 7298003,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "e136da1f3a978007327e841436048e38e91573c21644f9437bd04b087c5f7c38",
+        "event_key": 202310,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-07-09_British_Grand_Prix/2023-07-09_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:55.563982+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:55.559723+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:55.347266+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:55 GMT"
+            },
+            "wall_seconds": 0.21671570802573115,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:57.315325+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:55.901943+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:55.565105+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8294707",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:56 GMT",
+              "ETag": "\"e4bd36e45f50497070b0e5a10c26eb1e\"",
+              "Last-Modified": "Wed, 19 Jun 2024 17:15:45 GMT"
+            },
+            "wall_seconds": 1.7502284579968546,
+            "wire_body_bytes": 8294707,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "861b6ddb42d297022484ac86d6aa6ada1aab292a40e3b2f51f12c2b902cd265d"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:57.321088+00:00",
+        "decoded_body_bytes": 8294707,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "861b6ddb42d297022484ac86d6aa6ada1aab292a40e3b2f51f12c2b902cd265d",
+        "event_key": 202311,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-07-23_Hungarian_Grand_Prix/2023-07-23_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:57.439468+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:57.436395+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:57.322465+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:57 GMT"
+            },
+            "wall_seconds": 0.11700208301772363,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:59.209581+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:57.773910+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:57.440014+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7168659",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:09:58 GMT",
+              "ETag": "\"f8328f0d8d924862fe17c1793b281450\"",
+              "Last-Modified": "Wed, 19 Jun 2024 17:51:43 GMT"
+            },
+            "wall_seconds": 1.7695785420073662,
+            "wire_body_bytes": 7168659,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "9b9f7a2a728c2b98144d5728e6f9e63a3e0441d67534d098b5d8a24ef30f56bf"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:09:59.214146+00:00",
+        "decoded_body_bytes": 7168659,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "9b9f7a2a728c2b98144d5728e6f9e63a3e0441d67534d098b5d8a24ef30f56bf",
+        "event_key": 202312,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-07-30_Belgian_Grand_Prix/2023-07-30_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:59.462976+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:59.453466+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:59.215011+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:59 GMT"
+            },
+            "wall_seconds": 0.24797012499766424,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:01.117528+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:59.660816+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:59.463678+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "9574775",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:00 GMT",
+              "ETag": "\"1c035a19444f3b99ce12592aa01370dc\"",
+              "Last-Modified": "Wed, 19 Jun 2024 18:33:46 GMT"
+            },
+            "wall_seconds": 1.6538590829877649,
+            "wire_body_bytes": 9574775,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "ccfbc04a49ab4a4369e98891d1252c547c798cb4aa5db9b3904734db0f724782"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:01.138595+00:00",
+        "decoded_body_bytes": 9574775,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "ccfbc04a49ab4a4369e98891d1252c547c798cb4aa5db9b3904734db0f724782",
+        "event_key": 202313,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-08-27_Dutch_Grand_Prix/2023-08-27_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:09:59.440792+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:59.429833+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:09:59.230427+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:09:59 GMT"
+            },
+            "wall_seconds": 0.21036675001960248,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:01.467728+00:00",
+            "headers_received_at_utc": "2026-09-08T05:09:59.660127+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:09:59.441531+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7345015",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:00 GMT",
+              "ETag": "\"d7e3b845bee62e0c3dc86bf454ad08d9\"",
+              "Last-Modified": "Wed, 19 Jun 2024 19:13:37 GMT"
+            },
+            "wall_seconds": 2.026204833004158,
+            "wire_body_bytes": 7345015,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "0f8fa73f7065fd4fd501cca1a5afcbb244fea870c8e05552e765391349fdcb5a"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:01.472206+00:00",
+        "decoded_body_bytes": 7345015,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "0f8fa73f7065fd4fd501cca1a5afcbb244fea870c8e05552e765391349fdcb5a",
+        "event_key": 202314,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-09-03_Italian_Grand_Prix/2023-09-03_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:01.484171+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:01.439523+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:01.140355+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:01 GMT"
+            },
+            "wall_seconds": 0.3438203749828972,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:02.664002+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:01.757288+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:01.484694+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8830839",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:02 GMT",
+              "ETag": "\"d6901337c7539e3168d378c3d39a2685\"",
+              "Last-Modified": "Wed, 19 Jun 2024 19:51:54 GMT"
+            },
+            "wall_seconds": 1.1793127919954713,
+            "wire_body_bytes": 8830839,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "8779af0fb58da80db8244452f3abbd9e451745b69fe95e77ca97146e2cc32fb5"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:02.669309+00:00",
+        "decoded_body_bytes": 8830839,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "8779af0fb58da80db8244452f3abbd9e451745b69fe95e77ca97146e2cc32fb5",
+        "event_key": 202315,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-09-17_Singapore_Grand_Prix/2023-09-17_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:01.606772+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:01.605465+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:01.472918+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:01 GMT"
+            },
+            "wall_seconds": 0.13385087499045767,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:04.128371+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:01.797067+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:01.607289+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7634271",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:02 GMT",
+              "ETag": "\"5979a8221802d17d1e3e2212ff9dcbca\"",
+              "Last-Modified": "Wed, 19 Jun 2024 20:22:58 GMT"
+            },
+            "wall_seconds": 2.521088959008921,
+            "wire_body_bytes": 7634271,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "50079334f2f66edf4126af6910430af8044ef7312106fd83d7d6bd012b6b787d"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:04.132805+00:00",
+        "decoded_body_bytes": 7634271,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "50079334f2f66edf4126af6910430af8044ef7312106fd83d7d6bd012b6b787d",
+        "event_key": 202316,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-09-24_Japanese_Grand_Prix/2023-09-24_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:02.849257+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:02.826059+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:02.670012+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:02 GMT"
+            },
+            "wall_seconds": 0.179248833010206,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:03.948127+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:03.035876+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:02.849841+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7508059",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:03 GMT",
+              "ETag": "\"1f2a7dfba4272650657e9bae472cc9b6\"",
+              "Last-Modified": "Wed, 19 Jun 2024 20:57:42 GMT"
+            },
+            "wall_seconds": 1.0982910419988912,
+            "wire_body_bytes": 7508059,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "ecfc2e73059f85fb49c96aec1f812c52b29a0d4280ac01e0eb3549fc2ef3c46d"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:03.952624+00:00",
+        "decoded_body_bytes": 7508059,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "ecfc2e73059f85fb49c96aec1f812c52b29a0d4280ac01e0eb3549fc2ef3c46d",
+        "event_key": 202317,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-10-08_Qatar_Grand_Prix/2023-10-08_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:04.265436+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:04.251908+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:03.953599+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:04 GMT"
+            },
+            "wall_seconds": 0.31184170802589506,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:05.660935+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:04.581484+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:04.266079+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8160275",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:05 GMT",
+              "ETag": "\"8b7638d6ec2ff1de78a8841b5ae90f9f\"",
+              "Last-Modified": "Wed, 19 Jun 2024 21:38:46 GMT"
+            },
+            "wall_seconds": 1.394861624983605,
+            "wire_body_bytes": 8160275,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "64655f007b138dca545b7bebcafd75d1604bb635a65d0080dbbf2d4528c31282"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:05.665541+00:00",
+        "decoded_body_bytes": 8160275,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "64655f007b138dca545b7bebcafd75d1604bb635a65d0080dbbf2d4528c31282",
+        "event_key": 202318,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-10-22_United_States_Grand_Prix/2023-10-22_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:04.273047+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:04.269082+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:04.133516+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:04 GMT"
+            },
+            "wall_seconds": 0.13953524999669753,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:07.285346+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:04.583588+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:04.273660+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "9153063",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:05 GMT",
+              "ETag": "\"59a2c59d3ca1cafbfd797e6adb5d2db6\"",
+              "Last-Modified": "Wed, 19 Jun 2024 22:19:00 GMT"
+            },
+            "wall_seconds": 3.01169137499528,
+            "wire_body_bytes": 9153063,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "1c738726154077f1f35c76a8cceb9d5598237ddb18c44a4362cefc02de7575ac"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:07.290607+00:00",
+        "decoded_body_bytes": 9153063,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "1c738726154077f1f35c76a8cceb9d5598237ddb18c44a4362cefc02de7575ac",
+        "event_key": 202319,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-10-29_Mexico_City_Grand_Prix/2023-10-29_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:05.802326+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:05.794991+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:05.666181+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-05_S\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:05 GMT"
+            },
+            "wall_seconds": 0.13614108299952932,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-11-05_S%C3%A3o_Paulo_Grand_Prix/2023-11-05_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:07.556012+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:06.008925+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:05.802884+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-11-05_S\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "8053579",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:06 GMT",
+              "ETag": "\"55b9b2489810b34af4ea75080f357521\"",
+              "Last-Modified": "Wed, 19 Jun 2024 22:54:29 GMT"
+            },
+            "wall_seconds": 1.7531342080037575,
+            "wire_body_bytes": 8053579,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "4073deafb325edac0f1c63c76b55a8cb44c08a48122fdb21cabe33cf5d62cfd9"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:07.560873+00:00",
+        "decoded_body_bytes": 8053579,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "4073deafb325edac0f1c63c76b55a8cb44c08a48122fdb21cabe33cf5d62cfd9",
+        "event_key": 202320,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-11-05_S\u00e3o_Paulo_Grand_Prix/2023-11-05_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:07.528939+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:07.441800+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:07.291384+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:07 GMT"
+            },
+            "wall_seconds": 0.237555917003192,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:08.672638+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:07.725044+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:07.529689+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "6441703",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:08 GMT",
+              "ETag": "\"dacb6bd2d955e07157936acb06f22bd1\"",
+              "Last-Modified": "Wed, 19 Jun 2024 23:25:42 GMT"
+            },
+            "wall_seconds": 1.1429542920086533,
+            "wire_body_bytes": 6441703,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "aa8bb2db4cd51c5ada5cbc02ab068cb54faf9e0644549e4b6e689ed6189798dc"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:08.676691+00:00",
+        "decoded_body_bytes": 6441703,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "aa8bb2db4cd51c5ada5cbc02ab068cb54faf9e0644549e4b6e689ed6189798dc",
+        "event_key": 202321,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-11-18_Las_Vegas_Grand_Prix/2023-11-18_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      },
+      {
+        "attempts": [
+          {
+            "actual_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:07.724747+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:07.722145+00:00",
+            "http_status": 404,
+            "request_started_at_utc": "2026-09-08T05:10:07.561458+00:00",
+            "requested_url": "https://livetiming-mirror.fastf1.dev/static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Type": "text/html",
+              "Date": "Tue, 08 Sep 2026 05:10:07 GMT"
+            },
+            "wall_seconds": 0.16329316701740026,
+            "wire_body_bytes": 27150,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt1.httpbody",
+            "wire_body_sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+          },
+          {
+            "actual_url": "https://livetiming.formula1.com/static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/CarData.z.jsonStream",
+            "body_finished_at_utc": "2026-09-08T05:10:10.422029+00:00",
+            "headers_received_at_utc": "2026-09-08T05:10:07.938290+00:00",
+            "http_status": 200,
+            "request_started_at_utc": "2026-09-08T05:10:07.725663+00:00",
+            "requested_url": "https://livetiming.formula1.com/static/2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/CarData.z.jsonStream",
+            "response_headers": {
+              "Content-Length": "7804159",
+              "Content-Type": "application/octet-stream",
+              "Date": "Tue, 08 Sep 2026 05:10:08 GMT",
+              "ETag": "\"0adc9c6833f7664837b29bac2de3380f\"",
+              "Last-Modified": "Wed, 19 Jun 2024 23:54:12 GMT"
+            },
+            "wall_seconds": 2.6963724579836708,
+            "wire_body_bytes": 7804159,
+            "wire_body_complete": true,
+            "wire_body_path": "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt2.httpbody",
+            "wire_body_sha256": "cfad3ff984085baeb1e6b4bb60e00896818234410fe1e8fc9a60a173fc17df11"
+          }
+        ],
+        "completed_at_utc": "2026-09-08T05:10:10.426490+00:00",
+        "decoded_body_bytes": 7804159,
+        "decoded_body_path": "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt2.httpbody",
+        "decoded_body_sha256": "cfad3ff984085baeb1e6b4bb60e00896818234410fe1e8fc9a60a173fc17df11",
+        "event_key": 202322,
+        "historical_client_receipt_certified": false,
+        "session_path": "2023/2023-11-26_Abu_Dhabi_Grand_Prix/2023-11-26_Race/",
+        "status": "downloaded_unparsed",
+        "stream": "CarData.z"
+      }
+    ],
+    "verification": {
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json",
+      "sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf"
+    },
+    "years": {
+      "2022": {
+        "feature_closure": {
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/feature_closure.json",
+          "sha256": "26cad6ef96039e75a8a03671aa169f37dc8ae80bffc105364d3871562d0cd78a"
+        },
+        "input_validation": {
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/input_validation_2022.json",
+          "sha256": "d684510c144dc507716cf33049a21746178805775c370caa880383472cfc3fa4"
+        },
+        "labels": {
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json",
+          "sha256": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9"
+        },
+        "original_references": [
+          {
+            "event_key": 202201,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl",
+            "rows": 853,
+            "sha256": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6"
+          },
+          {
+            "event_key": 202202,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202202_issued.jsonl",
+            "rows": 615,
+            "sha256": "6cebd70dfe3b886fe4561e8ffe8c08b7abad4a389428183cd1fc2039d9f298a1"
+          },
+          {
+            "event_key": 202203,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202203_issued.jsonl",
+            "rows": 775,
+            "sha256": "0e3a6bbe90f388d4a14fd62afbaac1e32cea1a3c012c5662c26404617f044a4e"
+          },
+          {
+            "event_key": 202204,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202204_issued.jsonl",
+            "rows": 969,
+            "sha256": "874f50fffed64e25040b80d7015c8dec51221ec7f47cc850920d3d55220030e4"
+          },
+          {
+            "event_key": 202205,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202205_issued.jsonl",
+            "rows": 838,
+            "sha256": "530447694f877ef9946a308c6da32e3d55a0ee5b031929357068fd854c8fbe78"
+          },
+          {
+            "event_key": 202206,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202206_issued.jsonl",
+            "rows": 1064,
+            "sha256": "d5fc729506b11947ea03a0c99808a7c86151d34ec79f27e3883f894a95966dee"
+          },
+          {
+            "event_key": 202207,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202207_issued.jsonl",
+            "rows": 927,
+            "sha256": "ae484d28e58a91b28072848d4c3c2cfc59e579c5576a7885a0c291b3868e1b5d"
+          },
+          {
+            "event_key": 202208,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202208_issued.jsonl",
+            "rows": 724,
+            "sha256": "e7131142d9bd8099700fd46b4878fee9ffbda8f021c096013bd16a0585788bd0"
+          },
+          {
+            "event_key": 202209,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202209_issued.jsonl",
+            "rows": 989,
+            "sha256": "f18d54a148067076af8b2a88383570b7abf64af0d260db9f3feae0ca25b07ee6"
+          },
+          {
+            "event_key": 202210,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202210_issued.jsonl",
+            "rows": 640,
+            "sha256": "30f174aeb2667dffff9e543e9fcf1fd45ecc908f32836054a843ff911fcadce6"
+          },
+          {
+            "event_key": 202211,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202211_issued.jsonl",
+            "rows": 1141,
+            "sha256": "ba22fd31b3a88acb88e437359fb3a5b1aaaed03c0be6addf57a06d693b8942fb"
+          },
+          {
+            "event_key": 202212,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202212_issued.jsonl",
+            "rows": 793,
+            "sha256": "b529c33a4970aab2259abd86e8aae7ae0a5073794993a9041b7c22a13bc13952"
+          },
+          {
+            "event_key": 202213,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202213_issued.jsonl",
+            "rows": 1163,
+            "sha256": "6bda642a21307c376cc3ac7c032eae2069f198720b916373b6e1847cfbe3efe5"
+          },
+          {
+            "event_key": 202214,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202214_issued.jsonl",
+            "rows": 609,
+            "sha256": "7f322c30f5f661302e7cc40dac8f0621013bb2ada23699adf117fa1f3c981159"
+          },
+          {
+            "event_key": 202215,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202215_issued.jsonl",
+            "rows": 1099,
+            "sha256": "489051c053fc88953b64b7a3dbc24afc885aab5eda72eadf9dc741c453c44d59"
+          },
+          {
+            "event_key": 202216,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202216_issued.jsonl",
+            "rows": 738,
+            "sha256": "a188aafa656166957703efaa4df3b662bd7c708c5cb5617a4c61c59fc2da6826"
+          },
+          {
+            "event_key": 202217,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202217_issued.jsonl",
+            "rows": 636,
+            "sha256": "4fc536e6c1f137f50334003fd330f6930fff00cca288e3886a06dc43860d85a5"
+          },
+          {
+            "event_key": 202218,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202218_issued.jsonl",
+            "rows": 334,
+            "sha256": "b65d1dc2d5d666579bfe45befb1c1968e1c63f3f7cefae0aa16fb87db8d8e4e4"
+          },
+          {
+            "event_key": 202219,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202219_issued.jsonl",
+            "rows": 740,
+            "sha256": "7fbb0643fe821627b26efc6d156ad969447252836a97f972221a5e9c799fb17b"
+          },
+          {
+            "event_key": 202220,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202220_issued.jsonl",
+            "rows": 1244,
+            "sha256": "f96365ac1264f25265468c341312bdee52850272f510b6e0c242327d64b2d83d"
+          },
+          {
+            "event_key": 202221,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202221_issued.jsonl",
+            "rows": 905,
+            "sha256": "437909a5389a15ca543457221894a714fc5e930f053d26ee7ccd80cc668db662"
+          },
+          {
+            "event_key": 202222,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202222_issued.jsonl",
+            "rows": 992,
+            "sha256": "54e7a4de0579cd4587b7daf61afbcdb41ed16700c8c40ca10e00d47af4af591c"
+          }
+        ]
+      },
+      "2023": {
+        "feature_closure": {
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2023/feature_closure.json",
+          "sha256": "1da25a38de26f3cd46f79eb5b6cebab575a9dd7a9da592a8b06f9ef443f55fe0"
+        },
+        "input_validation": {
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/input_validation_2023.json",
+          "sha256": "5504e03284bd9d66825729cb10db6a5c2a7fce13cec5a13eb9ad93b29796e6b7"
+        },
+        "labels": {
+          "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2023/label_closure.json",
+          "sha256": "cc83af4088025f3aeb932ca60af2809872740d2bfe1d4b1ba28b670e16764b50"
+        },
+        "original_references": [
+          {
+            "event_key": 202301,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl",
+            "rows": 874,
+            "sha256": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be"
+          },
+          {
+            "event_key": 202302,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202302_issued.jsonl",
+            "rows": 789,
+            "sha256": "5bb165fc41f1cdf32c00c707d64aedc2d38b9cb2280d38ece97b02fabeb74320"
+          },
+          {
+            "event_key": 202303,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202303_issued.jsonl",
+            "rows": 731,
+            "sha256": "f01330f46346fe61170f79c4d9bb9c19cd15d663199230cee57fd0d38d26d6f0"
+          },
+          {
+            "event_key": 202304,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202304_issued.jsonl",
+            "rows": 806,
+            "sha256": "2729ba6907088a9512eb020dd81af7e48b37d89cba7f79c2a18836546fbb78b4"
+          },
+          {
+            "event_key": 202305,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202305_issued.jsonl",
+            "rows": 1038,
+            "sha256": "467d39f550affeab708638da796861d6bab46dfe801c3f5d0873b106222522f3"
+          },
+          {
+            "event_key": 202306,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202306_issued.jsonl",
+            "rows": 1383,
+            "sha256": "e2c4a2382c63a598cbf29bde0672459dbf438c80d0840b51959963995a81c01b"
+          },
+          {
+            "event_key": 202307,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202307_issued.jsonl",
+            "rows": 1167,
+            "sha256": "34f2bc136e5b1592eb62917ede5cbedd1befd64696297ec84cb59169dc450af3"
+          },
+          {
+            "event_key": 202308,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202308_issued.jsonl",
+            "rows": 1087,
+            "sha256": "f53b21605d16ce79cbfbf2e2c6b8bacbddaf6fad07076890811adfbb22c889c0"
+          },
+          {
+            "event_key": 202309,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202309_issued.jsonl",
+            "rows": 1146,
+            "sha256": "40352ed47faab9faa3ec9b2a7b9c182672e9340951bb4081e0c525dde51e410a"
+          },
+          {
+            "event_key": 202310,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202310_issued.jsonl",
+            "rows": 762,
+            "sha256": "688c37e994b0adfbcf8ef38c812dc854361f719b5666d5f45365d2a5b9c2a1f5"
+          },
+          {
+            "event_key": 202311,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202311_issued.jsonl",
+            "rows": 1122,
+            "sha256": "b3f31436706351c040c337fa5c26ede2c19231315b0a295f61d27747d404e0f4"
+          },
+          {
+            "event_key": 202312,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202312_issued.jsonl",
+            "rows": 683,
+            "sha256": "fc42044aebfa8d5d0598ebb4dc8097b90e1107dc92a6de6cbb3727c207a4cc5e"
+          },
+          {
+            "event_key": 202313,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202313_issued.jsonl",
+            "rows": 974,
+            "sha256": "c974468accdd65c600b8adaeb0590ea1e84f0dfd2de42f0aa1f323b37d73e0be"
+          },
+          {
+            "event_key": 202314,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202314_issued.jsonl",
+            "rows": 840,
+            "sha256": "941e4636618608303942c69bd45ae857024a7c5b4e46aaef7a6180ab60ada653"
+          },
+          {
+            "event_key": 202315,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202315_issued.jsonl",
+            "rows": 922,
+            "sha256": "654734de1d18e35b8235c649060f2e269e82ba3b681b498f579042396a64a96b"
+          },
+          {
+            "event_key": 202316,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202316_issued.jsonl",
+            "rows": 663,
+            "sha256": "2a7634d1d139313ec3ba9a892abc7da6ef690031d522361995bb34e6e2f1c87c"
+          },
+          {
+            "event_key": 202317,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202317_issued.jsonl",
+            "rows": 798,
+            "sha256": "085bacea39a4fee5942f07cb3a3dfd1bcc8ce581706e67ff8877946941b59aef"
+          },
+          {
+            "event_key": 202318,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202318_issued.jsonl",
+            "rows": 879,
+            "sha256": "e489ff5d160b32f52d8a57464593581d1aecb079b0f67b84a674279e942b325a"
+          },
+          {
+            "event_key": 202319,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202319_issued.jsonl",
+            "rows": 1093,
+            "sha256": "7b30247b8e2986fcc24e9ed503bd35946c22ce63f7c7ae4932bc85567e4346ac"
+          },
+          {
+            "event_key": 202320,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202320_issued.jsonl",
+            "rows": 952,
+            "sha256": "e41072ec28fc451e37035e550093d6948961faaa6e2dd35e4f582ebf78a73949"
+          },
+          {
+            "event_key": 202321,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202321_issued.jsonl",
+            "rows": 700,
+            "sha256": "b825afed88ca0ea2d9ce214de03b9a048315c7f78eb164b5d476a6bc9fb7cc8f"
+          },
+          {
+            "event_key": 202322,
+            "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/original_references/202322_issued.jsonl",
+            "rows": 1023,
+            "sha256": "6b8f652144ae03bfc81d1b84e1172467fb032150779e8cb46a6c569e131416c3"
+          }
+        ]
+      }
+    }
+  },
+  "pre_fit_tests": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/pre_fit_tests.json",
+    "sha256": "39ba92509b8fcc5bea0a4b825781863bd81371a81e827a08ea42417ef64334e6"
+  },
+  "runtime": {
+    "numpy": "2.5.3",
+    "pandas": "2.3.3",
+    "python": "3.12.14",
+    "scipy": "1.18.1",
+    "sklearn": "1.9.0",
+    "threads": 1,
+    "torch": "2.14.0"
+  },
+  "sources": {
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4",
+    "research/experiments/boundary_20260908/telemetry/README.md": "2f7d61ddfc29cd289e30ea740f6eea4e93658a1581c8253fe5ce0f4f79d72249",
+    "research/experiments/boundary_20260908/telemetry/acquire.py": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5",
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+    "research/experiments/boundary_20260908/telemetry/data.py": "768f91cf810c531e9cb0d3d2ed7ab25742ddfbfd85a871c28cf0048e5c359e2b",
+    "research/experiments/boundary_20260908/telemetry/data_contract.md": "229c8c2dfc6c646cb62649a2b4047c227a730190cbf86b2e4b2b14f8e0aef3da",
+    "research/experiments/boundary_20260908/telemetry/evaluate.py": "a7744181e6f093c022d139f8bd7cd83542ea9244a2ea2d4d7d970e28d716d88c",
+    "research/experiments/boundary_20260908/telemetry/features.py": "7354b6675a4725d311c5bbf11f329e615118abf33fef5ef4bf4ee69474c1371f",
+    "research/experiments/boundary_20260908/telemetry/models.py": "3f52a84ee9cffc9a1c21b9730cb8c8d7770dca625b935fadc0df6adce1069e6b",
+    "research/experiments/boundary_20260908/telemetry/run.py": "050b574bc20db66cbf9105e78ee5d8d89dcbd30d7fe2879a60c906915ec011ba",
+    "research/experiments/boundary_20260908/telemetry/specification.json": "7f43632a7c0e75ad48fd82ccf33d328b106d08486fa6c026b01cb3be3e8bb8f5",
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1",
+    "research/experiments/boundary_20260908/telemetry/test_data.py": "aa98512fe7c2ebe6634cded626847156b4496e3502e0e639d141cfe303eeba3d",
+    "research/experiments/boundary_20260908/telemetry/test_evaluate.py": "a1ff6c67b3213180bb377fe86712778e4fd3f8272730bf65dfc16f72fef2a719",
+    "research/experiments/boundary_20260908/telemetry/test_features.py": "8c1410bcdef0d635b47e5e1870247ea7166861c8186d8d680702eb3999d3177e",
+    "research/experiments/boundary_20260908/telemetry/test_models.py": "b8c32ed66c473663b96e6f48d516a64f840d8a40a8d1a49bdd4bd8f84f548d44",
+    "research/experiments/boundary_20260908/telemetry/test_run.py": "352210a3e00a5a229aa44f31268614aeb6b236ef954077823317186d2b416edd",
+    "research/experiments/boundary_20260908/telemetry_next/idea.md": "3ef0f7545c0c58cff0fa61f6d007e97e7e8add75b796068f0fbf146b5ba8aed3",
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/boundary_20260908/telemetry_sequence/EXECUTION.md": "7ec010e98d12d334349353b2b21ebe5fab7e04c02c0899f5cd00f94c3a15eb36",
+    "research/experiments/boundary_20260908/telemetry_sequence/README.md": "d01049db489d73bbf8533be9887591c7522dfaee6daa557699409de23f3f2b26",
+    "research/experiments/boundary_20260908/telemetry_sequence/corpus.py": "321d6143534d8f11ffb25f87a9bff64f385d3523603517340b99b8b2a0215059",
+    "research/experiments/boundary_20260908/telemetry_sequence/encoder.py": "68cd1f8bddf42f22343669d1c01df49462a7fa5b8a7bc863758c3ddf773d5d38",
+    "research/experiments/boundary_20260908/telemetry_sequence/run.py": "81742be369c82bac013b45df583d4d5880878af80c68e4b4d071c4d20fae8273",
+    "research/experiments/boundary_20260908/telemetry_sequence/specification.json": "fc799e7adb5d33406c11113b0296905351cd718106a6324d39d86c69020d826c",
+    "research/experiments/boundary_20260908/telemetry_sequence/supervised.py": "d8f5c18a407afd1cd53d0b4a752d7f366d9dd7486f4de143e773d2f5896d2c91",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_corpus.py": "cea43bcb0d546f972095c90173f0e6f894dec652a211b5f7d251dac7d8b78f32",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_encoder.py": "5c492de11bc54dbc66878ff172e15e72700f5ffc97763a09443666c3907888d5",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_run.py": "9eec2fc581922f0e8fb660d594da881b95adc629720baa39d3fa7f4e51b1ce39",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_supervised.py": "4437cb546b5899a04796a907a4c8492c6f37250008122b7823d5bf79991d18c6",
+    "research/experiments/boundary_20260908/telemetry_sequence/test_tokens.py": "a91ef978a5c910698360263bf602f6e196a04515452f225382539151c2c76764",
+    "research/experiments/boundary_20260908/telemetry_sequence/tokens.py": "ad0723fb90e1f0ee56815e188e2ad1e54baf28f4166a3ac0f9ebbd5d0b0ee9ec",
+    "research/experiments/frontier_20260907/feature_encoder.py": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/frontier_20260907/specification.json": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+    "research/experiments/performance_20260907/live/spec.json": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a"
+  },
+  "specification": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/telemetry_sequence/specification.json",
+    "sha256": "fc799e7adb5d33406c11113b0296905351cd718106a6324d39d86c69020d826c"
+  }
+}

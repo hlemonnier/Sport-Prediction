@@ -1,0 +1,57 @@
+{
+  "closed_at_utc": "2026-09-08T06:51:17.870486+00:00",
+  "embedding_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/embedding_lock.json",
+    "sha256": "b869ff2dcf6b298277575d1c1a83d0d02c0bb722c6841bcb09a539e82a739011"
+  },
+  "external_selection_labels_read": false,
+  "fit_summary": {
+    "configuration": {
+      "iterations": 150,
+      "kind": "hgb",
+      "leaves": 15
+    },
+    "events": [
+      202201,
+      202202,
+      202203,
+      202204,
+      202205,
+      202206,
+      202207,
+      202208,
+      202209,
+      202210,
+      202211,
+      202212,
+      202213,
+      202214,
+      202215,
+      202216,
+      202217,
+      202218,
+      202219,
+      202220,
+      202221,
+      202222
+    ],
+    "fit_latency_seconds": 2,
+    "fit_year": 2022,
+    "fits": 3,
+    "issuance_ids_sha256": "bd8e3106a0faef33030322e9f0fd328c701c093cd1b382944209ceb180418351",
+    "old_reference_refits": 0,
+    "representation_fits": 0,
+    "rows_per_fit": 18363,
+    "supported_training_rows": 18357,
+    "unsupported_training_rows_retained": 6,
+    "weighting": "unchanged event-balanced weights on the complete original matched2022 population"
+  },
+  "models": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/supervised_models.pkl",
+    "sha256": "bafb94944e1a13c5e2f99fa684ef2bc9e3dd2c84b7dea727eb82aa98626d67c0"
+  },
+  "training_labels": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json",
+    "sha256": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9"
+  }
+}

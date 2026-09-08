@@ -1,0 +1,15 @@
+{
+  "cause": "A reviewed source snapshot changed during freeze because a final failed-attempt guard was added concurrently. The source stability guard rejected it.",
+  "completed_at_utc": "2026-09-08T06:17:50.103181+00:00",
+  "design_lock_created": false,
+  "error": "ValueError: Sources changed during tests",
+  "exit_code": 1,
+  "new_historical_construction_or_fits": 0,
+  "next_execution_directory": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2",
+  "pre_fit_tests": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/pre_fit_tests.json",
+    "sha256": "cb94ed3141ef8deccc3ede7ea800cd5a6ff77da3d70225fc49d1ce9007bc9f5e"
+  },
+  "scientific_settings_changed": false,
+  "session_id": 75667
+}

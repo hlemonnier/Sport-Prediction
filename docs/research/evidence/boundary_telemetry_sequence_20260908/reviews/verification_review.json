@@ -1,0 +1,23 @@
+{
+  "approved_for_post_selection_replay": true,
+  "combined_synthetic_tests_reported_passed": 49,
+  "design_sha256": "0081cb2e946e590e76be704238f98084ee8c8a7cbe47ac0f27a75c2617a1e8a7",
+  "execution_directory": "artifacts/research/boundary_20260908/telemetry_sequence/execution_v2",
+  "historical_verification_runs_before_review": 0,
+  "independent_reviewer": "audit_live_runtime",
+  "limit": "Raw sequence IDs are reconstructed and reported; saved NPZ parity covers context digest, cutoff/support, features and embeddings, not a nonexistent stored sequence-ID array.",
+  "review_findings_fixed": [
+    "Use the keyword-only key parameter when replaying the permuted control.",
+    "Reject preserved execution failure markers even when a partial selection lock exists."
+  ],
+  "reviewed_at_utc": "2026-09-08T06:30:25.315333+00:00",
+  "root_numerical_tests_passed": 12,
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/numerics.py": "c012a24eacdd324ce7c5744d38b35ac00c30f749edc996ba3d6cda4b804461ac",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/protocol.json": "eb9fb0c7ffe8fcc1f543763fbe18ea6e1dc46bfff745d5b7887b4376adb0b813",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/test_numerics.py": "9ed6ab1d14eac25807011156e117499b22187683aec52dfcb0d111158a7a46b1",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/test_verify.py": "073060bc5f6451bea08b66351b89b92eb5daedc7f8c3e7d4afc550dfa3d9a02e",
+    "research/experiments/boundary_20260908/telemetry_sequence_verification/verify.py": "bd8f5e2d376faa3062397b60ec0f7bfdc5dc215f627d10aa1540e588ef5c036a"
+  },
+  "suggested_commit": "research(f1-live): independently verify controlled CPC evidence"
+}

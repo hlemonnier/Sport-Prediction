@@ -1,0 +1,14 @@
+{
+  "advances_to_later_evaluation": false,
+  "closed_at_utc": "2026-09-08T06:52:29.883894+00:00",
+  "design_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/design_lock.json",
+    "sha256": "0081cb2e946e590e76be704238f98084ee8c8a7cbe47ac0f27a75c2617a1e8a7"
+  },
+  "promotion": false,
+  "selected_candidate": "ordered_hgb",
+  "selection": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/selection.json",
+    "sha256": "326a7aa20ce7a41284a80df36f96ea2531399b64f7a7b5f23ae81f733d381c00"
+  }
+}

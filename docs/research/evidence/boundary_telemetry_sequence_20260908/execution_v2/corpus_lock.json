@@ -1,0 +1,19 @@
+{
+  "closed_at_utc": "2026-09-08T06:23:23.544035+00:00",
+  "corpus": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/corpus/corpus.json",
+    "sha256": "0fc429855b3d1845b162a8cf07855bdb6ead9859d8964d9619425ea730171c42"
+  },
+  "design_lock": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/design_lock.json",
+    "sha256": "0081cb2e946e590e76be704238f98084ee8c8a7cbe47ac0f27a75c2617a1e8a7"
+  },
+  "encoder_fits": 0,
+  "schedule": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/schedule/schedule.json",
+    "sha256": "90a1c9d8557a2de1c4c26008a11574dd048a353057140934a2dc4566091da1ce"
+  },
+  "source_years": [
+    2022
+  ]
+}

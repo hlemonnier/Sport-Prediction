@@ -1,0 +1,45 @@
+{
+  "amendment": "Reject a preserved stage failure before allowing any later stage to consume a partial success closure. Add one regression for a late resource failure with an existing pretrain lock.",
+  "exact_unified_diff": "--- before/run.py\n+++ current/run.py\n@@ -204,7 +204,10 @@\n \n \n def verify_design(out):\n-    lock = read(Path(out)/'design_lock.json')  # Must precede any historical stage I/O.\n+    out=Path(out)\n+    lock = read(out/'design_lock.json')  # Must precede any historical stage I/O.\n+    if any(out.glob('*_failure.json')):\n+        raise ValueError('A failed attempt is preserved; this execution cannot advance')\n     if sources() != lock['sources']: raise ValueError('Current source differs from reviewed design')\n     for path, expected in lock['inputs'].items():\n         if old_data.sha(path) != expected: raise ValueError('Frozen input changed: '+path)\n--- before/test_run.py\n+++ current/test_run.py\n@@ -64,6 +64,14 @@\n     with pytest.raises(corpus.ResourceLimitError):\n         with r.attempt(tmp_path,'example'):pytest.fail('budget bypassed')\n     assert r.read(tmp_path/'example_failure.json')['type']=='ResourceLimitError'\n+\n+\n+def test_late_stage_failure_blocks_consumption_of_partial_success_closure(tmp_path,monkeypatch):\n+    r.save(tmp_path/'design_lock.json',{})\n+    r.save(tmp_path/'pretrain_lock.json',{'status':'closed before late resource check'})\n+    r.save(tmp_path/'pretrain_failure.json',{'error':'late resource breach'})\n+    monkeypatch.setattr(r,'sources',lambda:pytest.fail('attempt advanced beyond preserved failure'))\n+    with pytest.raises(ValueError,match='failed attempt is preserved'):r.verify_design(tmp_path)\n \n \n def packet(ms,channels):\n",
+  "frozen_prior_attempts_preserved": [
+    "artifacts/research/boundary_20260908/telemetry_sequence/pre_fit_tests.json",
+    "artifacts/research/boundary_20260908/telemetry_sequence/freeze_failure.json"
+  ],
+  "historical_stages_executed": 0,
+  "prior_freeze_attempt_bindings": [
+    {
+      "bytes": 6088,
+      "path": "artifacts/research/boundary_20260908/telemetry_sequence/pre_fit_tests.json",
+      "sha256": "cb94ed3141ef8deccc3ede7ea800cd5a6ff77da3d70225fc49d1ce9007bc9f5e"
+    },
+    {
+      "bytes": 800,
+      "path": "artifacts/research/boundary_20260908/telemetry_sequence/freeze_failure.json",
+      "sha256": "bbf7c0aeb27fc9dbf05afb7418557480f7f1bd2a905204fe25ae70732e09d71c"
+    }
+  ],
+  "recorded_at_utc": "2026-09-08T06:17:17.146319+00:00",
+  "scientific_settings_changed": false,
+  "sources": [
+    {
+      "before_sha256": "b602270756d405bdceae6ef98a19751d435d2f16b50f0838f6809685c36725a9",
+      "current_sha256": "81742be369c82bac013b45df583d4d5880878af80c68e4b4d071c4d20fae8273",
+      "preserved_before_path": "artifacts/research/boundary_20260908/telemetry_sequence/freeze_source_before_guard/run.py",
+      "source_path": "research/experiments/boundary_20260908/telemetry_sequence/run.py"
+    },
+    {
+      "before_sha256": "7ed08449f563af5f61edbd0511d53dd55de7442264ad1f478f4fd86cb0fb3fdf",
+      "current_sha256": "9eec2fc581922f0e8fb660d594da881b95adc629720baa39d3fa7f4e51b1ce39",
+      "preserved_before_path": "artifacts/research/boundary_20260908/telemetry_sequence/freeze_source_before_guard/test_run.py",
+      "source_path": "research/experiments/boundary_20260908/telemetry_sequence/test_run.py"
+    }
+  ],
+  "status": "Technical failure-state guard added before any historical execution; preceding freeze correctly rejected source drift.",
+  "validation": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv-f1/bin/python -m pytest -q --import-mode=importlib -p no:cacheprovider research/experiments/boundary_20260908/telemetry_sequence/test_run.py",
+    "focused_tests_passed": 28,
+    "previous_full_suite_passed": 193,
+    "previous_full_suite_seconds": 62.92,
+    "seconds": 2.42
+  }
+}

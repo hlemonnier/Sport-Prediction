@@ -1,0 +1,2369 @@
+{
+  "arrays": {
+    "endpoint": {
+      "bytes": 204800,
+      "dtype": "<i8",
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/schedule/endpoint.bin",
+      "sha256": "991b38b49034d0f3dcb12e839e8a7eb8723e1563baf310b069836e26160af361",
+      "shape": [
+        800,
+        32
+      ]
+    },
+    "negatives": {
+      "bytes": 6348800,
+      "dtype": "<i8",
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/schedule/negatives.bin",
+      "sha256": "7028c6c5f7a2f9a361c758d83d3a5e1b9b40a9fa580146af83a8895e0dbb889a",
+      "shape": [
+        800,
+        32,
+        31
+      ]
+    },
+    "positives": {
+      "bytes": 614400,
+      "dtype": "<i8",
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/schedule/positives.bin",
+      "sha256": "bd7adbf0a607fade0f56bf5e1c566dfbc5f1c8df7982279656ff5bc5d133d5ec",
+      "shape": [
+        800,
+        32,
+        3
+      ]
+    },
+    "stream_index": {
+      "bytes": 102400,
+      "dtype": "<i4",
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/schedule/stream_index.bin",
+      "sha256": "19b1055f603b48a2e41f11967bace1de7eeec9e469e386f5995381c57b1a345e",
+      "shape": [
+        800,
+        32
+      ]
+    }
+  },
+  "batch_size": 32,
+  "closed_at_utc": "2026-09-08T06:23:22.414749+00:00",
+  "corpus": {
+    "bytes": 1232761,
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry_sequence/execution_v2/corpus/corpus.json",
+    "sha256": "0fc429855b3d1845b162a8cf07855bdb6ead9859d8964d9619425ea730171c42"
+  },
+  "draw_frequency_policy": "descriptive_only_no_balance_rejection_or_resampling",
+  "driver_draw_counts": [
+    {
+      "draws": 58,
+      "driver_id": "1",
+      "event_key": 202201
+    },
+    {
+      "draws": 65,
+      "driver_id": "10",
+      "event_key": 202201
+    },
+    {
+      "draws": 55,
+      "driver_id": "11",
+      "event_key": 202201
+    },
+    {
+      "draws": 47,
+      "driver_id": "14",
+      "event_key": 202201
+    },
+    {
+      "draws": 75,
+      "driver_id": "16",
+      "event_key": 202201
+    },
+    {
+      "draws": 52,
+      "driver_id": "18",
+      "event_key": 202201
+    },
+    {
+      "draws": 53,
+      "driver_id": "20",
+      "event_key": 202201
+    },
+    {
+      "draws": 58,
+      "driver_id": "22",
+      "event_key": 202201
+    },
+    {
+      "draws": 48,
+      "driver_id": "23",
+      "event_key": 202201
+    },
+    {
+      "draws": 54,
+      "driver_id": "24",
+      "event_key": 202201
+    },
+    {
+      "draws": 60,
+      "driver_id": "27",
+      "event_key": 202201
+    },
+    {
+      "draws": 57,
+      "driver_id": "3",
+      "event_key": 202201
+    },
+    {
+      "draws": 51,
+      "driver_id": "31",
+      "event_key": 202201
+    },
+    {
+      "draws": 66,
+      "driver_id": "4",
+      "event_key": 202201
+    },
+    {
+      "draws": 60,
+      "driver_id": "44",
+      "event_key": 202201
+    },
+    {
+      "draws": 50,
+      "driver_id": "47",
+      "event_key": 202201
+    },
+    {
+      "draws": 61,
+      "driver_id": "55",
+      "event_key": 202201
+    },
+    {
+      "draws": 60,
+      "driver_id": "6",
+      "event_key": 202201
+    },
+    {
+      "draws": 55,
+      "driver_id": "63",
+      "event_key": 202201
+    },
+    {
+      "draws": 53,
+      "driver_id": "77",
+      "event_key": 202201
+    },
+    {
+      "draws": 48,
+      "driver_id": "1",
+      "event_key": 202202
+    },
+    {
+      "draws": 59,
+      "driver_id": "10",
+      "event_key": 202202
+    },
+    {
+      "draws": 48,
+      "driver_id": "11",
+      "event_key": 202202
+    },
+    {
+      "draws": 60,
+      "driver_id": "14",
+      "event_key": 202202
+    },
+    {
+      "draws": 51,
+      "driver_id": "16",
+      "event_key": 202202
+    },
+    {
+      "draws": 60,
+      "driver_id": "18",
+      "event_key": 202202
+    },
+    {
+      "draws": 58,
+      "driver_id": "20",
+      "event_key": 202202
+    },
+    {
+      "draws": 51,
+      "driver_id": "22",
+      "event_key": 202202
+    },
+    {
+      "draws": 44,
+      "driver_id": "23",
+      "event_key": 202202
+    },
+    {
+      "draws": 62,
+      "driver_id": "24",
+      "event_key": 202202
+    },
+    {
+      "draws": 69,
+      "driver_id": "27",
+      "event_key": 202202
+    },
+    {
+      "draws": 57,
+      "driver_id": "3",
+      "event_key": 202202
+    },
+    {
+      "draws": 54,
+      "driver_id": "31",
+      "event_key": 202202
+    },
+    {
+      "draws": 63,
+      "driver_id": "4",
+      "event_key": 202202
+    },
+    {
+      "draws": 54,
+      "driver_id": "44",
+      "event_key": 202202
+    },
+    {
+      "draws": 60,
+      "driver_id": "47",
+      "event_key": 202202
+    },
+    {
+      "draws": 52,
+      "driver_id": "55",
+      "event_key": 202202
+    },
+    {
+      "draws": 53,
+      "driver_id": "6",
+      "event_key": 202202
+    },
+    {
+      "draws": 57,
+      "driver_id": "63",
+      "event_key": 202202
+    },
+    {
+      "draws": 47,
+      "driver_id": "77",
+      "event_key": 202202
+    },
+    {
+      "draws": 54,
+      "driver_id": "1",
+      "event_key": 202203
+    },
+    {
+      "draws": 57,
+      "driver_id": "10",
+      "event_key": 202203
+    },
+    {
+      "draws": 56,
+      "driver_id": "11",
+      "event_key": 202203
+    },
+    {
+      "draws": 68,
+      "driver_id": "14",
+      "event_key": 202203
+    },
+    {
+      "draws": 56,
+      "driver_id": "16",
+      "event_key": 202203
+    },
+    {
+      "draws": 64,
+      "driver_id": "18",
+      "event_key": 202203
+    },
+    {
+      "draws": 57,
+      "driver_id": "20",
+      "event_key": 202203
+    },
+    {
+      "draws": 55,
+      "driver_id": "22",
+      "event_key": 202203
+    },
+    {
+      "draws": 57,
+      "driver_id": "23",
+      "event_key": 202203
+    },
+    {
+      "draws": 57,
+      "driver_id": "24",
+      "event_key": 202203
+    },
+    {
+      "draws": 64,
+      "driver_id": "3",
+      "event_key": 202203
+    },
+    {
+      "draws": 57,
+      "driver_id": "31",
+      "event_key": 202203
+    },
+    {
+      "draws": 63,
+      "driver_id": "4",
+      "event_key": 202203
+    },
+    {
+      "draws": 61,
+      "driver_id": "44",
+      "event_key": 202203
+    },
+    {
+      "draws": 69,
+      "driver_id": "47",
+      "event_key": 202203
+    },
+    {
+      "draws": 60,
+      "driver_id": "5",
+      "event_key": 202203
+    },
+    {
+      "draws": 73,
+      "driver_id": "55",
+      "event_key": 202203
+    },
+    {
+      "draws": 56,
+      "driver_id": "6",
+      "event_key": 202203
+    },
+    {
+      "draws": 63,
+      "driver_id": "63",
+      "event_key": 202203
+    },
+    {
+      "draws": 53,
+      "driver_id": "77",
+      "event_key": 202203
+    },
+    {
+      "draws": 54,
+      "driver_id": "1",
+      "event_key": 202204
+    },
+    {
+      "draws": 61,
+      "driver_id": "10",
+      "event_key": 202204
+    },
+    {
+      "draws": 42,
+      "driver_id": "11",
+      "event_key": 202204
+    },
+    {
+      "draws": 59,
+      "driver_id": "14",
+      "event_key": 202204
+    },
+    {
+      "draws": 54,
+      "driver_id": "16",
+      "event_key": 202204
+    },
+    {
+      "draws": 61,
+      "driver_id": "18",
+      "event_key": 202204
+    },
+    {
+      "draws": 57,
+      "driver_id": "20",
+      "event_key": 202204
+    },
+    {
+      "draws": 56,
+      "driver_id": "22",
+      "event_key": 202204
+    },
+    {
+      "draws": 56,
+      "driver_id": "23",
+      "event_key": 202204
+    },
+    {
+      "draws": 59,
+      "driver_id": "24",
+      "event_key": 202204
+    },
+    {
+      "draws": 70,
+      "driver_id": "3",
+      "event_key": 202204
+    },
+    {
+      "draws": 51,
+      "driver_id": "31",
+      "event_key": 202204
+    },
+    {
+      "draws": 62,
+      "driver_id": "4",
+      "event_key": 202204
+    },
+    {
+      "draws": 61,
+      "driver_id": "44",
+      "event_key": 202204
+    },
+    {
+      "draws": 52,
+      "driver_id": "47",
+      "event_key": 202204
+    },
+    {
+      "draws": 65,
+      "driver_id": "5",
+      "event_key": 202204
+    },
+    {
+      "draws": 50,
+      "driver_id": "55",
+      "event_key": 202204
+    },
+    {
+      "draws": 57,
+      "driver_id": "6",
+      "event_key": 202204
+    },
+    {
+      "draws": 51,
+      "driver_id": "63",
+      "event_key": 202204
+    },
+    {
+      "draws": 44,
+      "driver_id": "77",
+      "event_key": 202204
+    },
+    {
+      "draws": 58,
+      "driver_id": "1",
+      "event_key": 202205
+    },
+    {
+      "draws": 52,
+      "driver_id": "10",
+      "event_key": 202205
+    },
+    {
+      "draws": 56,
+      "driver_id": "11",
+      "event_key": 202205
+    },
+    {
+      "draws": 45,
+      "driver_id": "14",
+      "event_key": 202205
+    },
+    {
+      "draws": 63,
+      "driver_id": "16",
+      "event_key": 202205
+    },
+    {
+      "draws": 50,
+      "driver_id": "18",
+      "event_key": 202205
+    },
+    {
+      "draws": 51,
+      "driver_id": "20",
+      "event_key": 202205
+    },
+    {
+      "draws": 63,
+      "driver_id": "22",
+      "event_key": 202205
+    },
+    {
+      "draws": 71,
+      "driver_id": "23",
+      "event_key": 202205
+    },
+    {
+      "draws": 52,
+      "driver_id": "24",
+      "event_key": 202205
+    },
+    {
+      "draws": 65,
+      "driver_id": "3",
+      "event_key": 202205
+    },
+    {
+      "draws": 64,
+      "driver_id": "31",
+      "event_key": 202205
+    },
+    {
+      "draws": 50,
+      "driver_id": "4",
+      "event_key": 202205
+    },
+    {
+      "draws": 51,
+      "driver_id": "44",
+      "event_key": 202205
+    },
+    {
+      "draws": 64,
+      "driver_id": "47",
+      "event_key": 202205
+    },
+    {
+      "draws": 57,
+      "driver_id": "5",
+      "event_key": 202205
+    },
+    {
+      "draws": 63,
+      "driver_id": "55",
+      "event_key": 202205
+    },
+    {
+      "draws": 71,
+      "driver_id": "6",
+      "event_key": 202205
+    },
+    {
+      "draws": 60,
+      "driver_id": "63",
+      "event_key": 202205
+    },
+    {
+      "draws": 51,
+      "driver_id": "77",
+      "event_key": 202205
+    },
+    {
+      "draws": 64,
+      "driver_id": "1",
+      "event_key": 202206
+    },
+    {
+      "draws": 46,
+      "driver_id": "10",
+      "event_key": 202206
+    },
+    {
+      "draws": 55,
+      "driver_id": "11",
+      "event_key": 202206
+    },
+    {
+      "draws": 63,
+      "driver_id": "14",
+      "event_key": 202206
+    },
+    {
+      "draws": 67,
+      "driver_id": "16",
+      "event_key": 202206
+    },
+    {
+      "draws": 64,
+      "driver_id": "18",
+      "event_key": 202206
+    },
+    {
+      "draws": 68,
+      "driver_id": "20",
+      "event_key": 202206
+    },
+    {
+      "draws": 61,
+      "driver_id": "22",
+      "event_key": 202206
+    },
+    {
+      "draws": 65,
+      "driver_id": "23",
+      "event_key": 202206
+    },
+    {
+      "draws": 60,
+      "driver_id": "24",
+      "event_key": 202206
+    },
+    {
+      "draws": 50,
+      "driver_id": "3",
+      "event_key": 202206
+    },
+    {
+      "draws": 59,
+      "driver_id": "31",
+      "event_key": 202206
+    },
+    {
+      "draws": 51,
+      "driver_id": "4",
+      "event_key": 202206
+    },
+    {
+      "draws": 60,
+      "driver_id": "44",
+      "event_key": 202206
+    },
+    {
+      "draws": 63,
+      "driver_id": "47",
+      "event_key": 202206
+    },
+    {
+      "draws": 48,
+      "driver_id": "5",
+      "event_key": 202206
+    },
+    {
+      "draws": 55,
+      "driver_id": "55",
+      "event_key": 202206
+    },
+    {
+      "draws": 68,
+      "driver_id": "6",
+      "event_key": 202206
+    },
+    {
+      "draws": 61,
+      "driver_id": "63",
+      "event_key": 202206
+    },
+    {
+      "draws": 61,
+      "driver_id": "77",
+      "event_key": 202206
+    },
+    {
+      "draws": 45,
+      "driver_id": "1",
+      "event_key": 202207
+    },
+    {
+      "draws": 55,
+      "driver_id": "10",
+      "event_key": 202207
+    },
+    {
+      "draws": 46,
+      "driver_id": "11",
+      "event_key": 202207
+    },
+    {
+      "draws": 51,
+      "driver_id": "14",
+      "event_key": 202207
+    },
+    {
+      "draws": 60,
+      "driver_id": "16",
+      "event_key": 202207
+    },
+    {
+      "draws": 49,
+      "driver_id": "18",
+      "event_key": 202207
+    },
+    {
+      "draws": 52,
+      "driver_id": "20",
+      "event_key": 202207
+    },
+    {
+      "draws": 54,
+      "driver_id": "22",
+      "event_key": 202207
+    },
+    {
+      "draws": 51,
+      "driver_id": "23",
+      "event_key": 202207
+    },
+    {
+      "draws": 58,
+      "driver_id": "24",
+      "event_key": 202207
+    },
+    {
+      "draws": 67,
+      "driver_id": "3",
+      "event_key": 202207
+    },
+    {
+      "draws": 67,
+      "driver_id": "31",
+      "event_key": 202207
+    },
+    {
+      "draws": 69,
+      "driver_id": "4",
+      "event_key": 202207
+    },
+    {
+      "draws": 56,
+      "driver_id": "44",
+      "event_key": 202207
+    },
+    {
+      "draws": 62,
+      "driver_id": "47",
+      "event_key": 202207
+    },
+    {
+      "draws": 61,
+      "driver_id": "5",
+      "event_key": 202207
+    },
+    {
+      "draws": 58,
+      "driver_id": "55",
+      "event_key": 202207
+    },
+    {
+      "draws": 74,
+      "driver_id": "6",
+      "event_key": 202207
+    },
+    {
+      "draws": 50,
+      "driver_id": "63",
+      "event_key": 202207
+    },
+    {
+      "draws": 63,
+      "driver_id": "77",
+      "event_key": 202207
+    },
+    {
+      "draws": 75,
+      "driver_id": "1",
+      "event_key": 202208
+    },
+    {
+      "draws": 70,
+      "driver_id": "10",
+      "event_key": 202208
+    },
+    {
+      "draws": 53,
+      "driver_id": "11",
+      "event_key": 202208
+    },
+    {
+      "draws": 62,
+      "driver_id": "14",
+      "event_key": 202208
+    },
+    {
+      "draws": 58,
+      "driver_id": "16",
+      "event_key": 202208
+    },
+    {
+      "draws": 58,
+      "driver_id": "18",
+      "event_key": 202208
+    },
+    {
+      "draws": 67,
+      "driver_id": "20",
+      "event_key": 202208
+    },
+    {
+      "draws": 70,
+      "driver_id": "22",
+      "event_key": 202208
+    },
+    {
+      "draws": 52,
+      "driver_id": "23",
+      "event_key": 202208
+    },
+    {
+      "draws": 62,
+      "driver_id": "24",
+      "event_key": 202208
+    },
+    {
+      "draws": 63,
+      "driver_id": "3",
+      "event_key": 202208
+    },
+    {
+      "draws": 51,
+      "driver_id": "31",
+      "event_key": 202208
+    },
+    {
+      "draws": 62,
+      "driver_id": "4",
+      "event_key": 202208
+    },
+    {
+      "draws": 50,
+      "driver_id": "44",
+      "event_key": 202208
+    },
+    {
+      "draws": 61,
+      "driver_id": "47",
+      "event_key": 202208
+    },
+    {
+      "draws": 67,
+      "driver_id": "5",
+      "event_key": 202208
+    },
+    {
+      "draws": 68,
+      "driver_id": "55",
+      "event_key": 202208
+    },
+    {
+      "draws": 38,
+      "driver_id": "6",
+      "event_key": 202208
+    },
+    {
+      "draws": 60,
+      "driver_id": "63",
+      "event_key": 202208
+    },
+    {
+      "draws": 48,
+      "driver_id": "77",
+      "event_key": 202208
+    },
+    {
+      "draws": 58,
+      "driver_id": "1",
+      "event_key": 202209
+    },
+    {
+      "draws": 68,
+      "driver_id": "10",
+      "event_key": 202209
+    },
+    {
+      "draws": 61,
+      "driver_id": "11",
+      "event_key": 202209
+    },
+    {
+      "draws": 66,
+      "driver_id": "14",
+      "event_key": 202209
+    },
+    {
+      "draws": 56,
+      "driver_id": "16",
+      "event_key": 202209
+    },
+    {
+      "draws": 46,
+      "driver_id": "18",
+      "event_key": 202209
+    },
+    {
+      "draws": 60,
+      "driver_id": "20",
+      "event_key": 202209
+    },
+    {
+      "draws": 42,
+      "driver_id": "22",
+      "event_key": 202209
+    },
+    {
+      "draws": 53,
+      "driver_id": "23",
+      "event_key": 202209
+    },
+    {
+      "draws": 56,
+      "driver_id": "24",
+      "event_key": 202209
+    },
+    {
+      "draws": 46,
+      "driver_id": "3",
+      "event_key": 202209
+    },
+    {
+      "draws": 53,
+      "driver_id": "31",
+      "event_key": 202209
+    },
+    {
+      "draws": 50,
+      "driver_id": "4",
+      "event_key": 202209
+    },
+    {
+      "draws": 73,
+      "driver_id": "44",
+      "event_key": 202209
+    },
+    {
+      "draws": 53,
+      "driver_id": "47",
+      "event_key": 202209
+    },
+    {
+      "draws": 63,
+      "driver_id": "5",
+      "event_key": 202209
+    },
+    {
+      "draws": 64,
+      "driver_id": "55",
+      "event_key": 202209
+    },
+    {
+      "draws": 63,
+      "driver_id": "6",
+      "event_key": 202209
+    },
+    {
+      "draws": 71,
+      "driver_id": "63",
+      "event_key": 202209
+    },
+    {
+      "draws": 57,
+      "driver_id": "77",
+      "event_key": 202209
+    },
+    {
+      "draws": 59,
+      "driver_id": "1",
+      "event_key": 202210
+    },
+    {
+      "draws": 55,
+      "driver_id": "10",
+      "event_key": 202210
+    },
+    {
+      "draws": 51,
+      "driver_id": "11",
+      "event_key": 202210
+    },
+    {
+      "draws": 62,
+      "driver_id": "14",
+      "event_key": 202210
+    },
+    {
+      "draws": 52,
+      "driver_id": "16",
+      "event_key": 202210
+    },
+    {
+      "draws": 55,
+      "driver_id": "18",
+      "event_key": 202210
+    },
+    {
+      "draws": 54,
+      "driver_id": "20",
+      "event_key": 202210
+    },
+    {
+      "draws": 48,
+      "driver_id": "22",
+      "event_key": 202210
+    },
+    {
+      "draws": 46,
+      "driver_id": "23",
+      "event_key": 202210
+    },
+    {
+      "draws": 64,
+      "driver_id": "24",
+      "event_key": 202210
+    },
+    {
+      "draws": 52,
+      "driver_id": "3",
+      "event_key": 202210
+    },
+    {
+      "draws": 65,
+      "driver_id": "31",
+      "event_key": 202210
+    },
+    {
+      "draws": 64,
+      "driver_id": "4",
+      "event_key": 202210
+    },
+    {
+      "draws": 53,
+      "driver_id": "44",
+      "event_key": 202210
+    },
+    {
+      "draws": 55,
+      "driver_id": "47",
+      "event_key": 202210
+    },
+    {
+      "draws": 60,
+      "driver_id": "5",
+      "event_key": 202210
+    },
+    {
+      "draws": 62,
+      "driver_id": "55",
+      "event_key": 202210
+    },
+    {
+      "draws": 63,
+      "driver_id": "6",
+      "event_key": 202210
+    },
+    {
+      "draws": 65,
+      "driver_id": "63",
+      "event_key": 202210
+    },
+    {
+      "draws": 50,
+      "driver_id": "77",
+      "event_key": 202210
+    },
+    {
+      "draws": 64,
+      "driver_id": "1",
+      "event_key": 202211
+    },
+    {
+      "draws": 56,
+      "driver_id": "10",
+      "event_key": 202211
+    },
+    {
+      "draws": 62,
+      "driver_id": "11",
+      "event_key": 202211
+    },
+    {
+      "draws": 54,
+      "driver_id": "14",
+      "event_key": 202211
+    },
+    {
+      "draws": 51,
+      "driver_id": "16",
+      "event_key": 202211
+    },
+    {
+      "draws": 58,
+      "driver_id": "18",
+      "event_key": 202211
+    },
+    {
+      "draws": 48,
+      "driver_id": "20",
+      "event_key": 202211
+    },
+    {
+      "draws": 55,
+      "driver_id": "22",
+      "event_key": 202211
+    },
+    {
+      "draws": 70,
+      "driver_id": "23",
+      "event_key": 202211
+    },
+    {
+      "draws": 53,
+      "driver_id": "24",
+      "event_key": 202211
+    },
+    {
+      "draws": 67,
+      "driver_id": "3",
+      "event_key": 202211
+    },
+    {
+      "draws": 51,
+      "driver_id": "31",
+      "event_key": 202211
+    },
+    {
+      "draws": 50,
+      "driver_id": "4",
+      "event_key": 202211
+    },
+    {
+      "draws": 75,
+      "driver_id": "44",
+      "event_key": 202211
+    },
+    {
+      "draws": 78,
+      "driver_id": "47",
+      "event_key": 202211
+    },
+    {
+      "draws": 64,
+      "driver_id": "5",
+      "event_key": 202211
+    },
+    {
+      "draws": 54,
+      "driver_id": "55",
+      "event_key": 202211
+    },
+    {
+      "draws": 72,
+      "driver_id": "6",
+      "event_key": 202211
+    },
+    {
+      "draws": 53,
+      "driver_id": "63",
+      "event_key": 202211
+    },
+    {
+      "draws": 65,
+      "driver_id": "77",
+      "event_key": 202211
+    },
+    {
+      "draws": 63,
+      "driver_id": "1",
+      "event_key": 202212
+    },
+    {
+      "draws": 64,
+      "driver_id": "10",
+      "event_key": 202212
+    },
+    {
+      "draws": 54,
+      "driver_id": "11",
+      "event_key": 202212
+    },
+    {
+      "draws": 61,
+      "driver_id": "14",
+      "event_key": 202212
+    },
+    {
+      "draws": 69,
+      "driver_id": "16",
+      "event_key": 202212
+    },
+    {
+      "draws": 52,
+      "driver_id": "18",
+      "event_key": 202212
+    },
+    {
+      "draws": 63,
+      "driver_id": "20",
+      "event_key": 202212
+    },
+    {
+      "draws": 54,
+      "driver_id": "22",
+      "event_key": 202212
+    },
+    {
+      "draws": 52,
+      "driver_id": "23",
+      "event_key": 202212
+    },
+    {
+      "draws": 51,
+      "driver_id": "24",
+      "event_key": 202212
+    },
+    {
+      "draws": 75,
+      "driver_id": "3",
+      "event_key": 202212
+    },
+    {
+      "draws": 53,
+      "driver_id": "31",
+      "event_key": 202212
+    },
+    {
+      "draws": 52,
+      "driver_id": "4",
+      "event_key": 202212
+    },
+    {
+      "draws": 74,
+      "driver_id": "44",
+      "event_key": 202212
+    },
+    {
+      "draws": 54,
+      "driver_id": "47",
+      "event_key": 202212
+    },
+    {
+      "draws": 52,
+      "driver_id": "5",
+      "event_key": 202212
+    },
+    {
+      "draws": 52,
+      "driver_id": "55",
+      "event_key": 202212
+    },
+    {
+      "draws": 51,
+      "driver_id": "6",
+      "event_key": 202212
+    },
+    {
+      "draws": 53,
+      "driver_id": "63",
+      "event_key": 202212
+    },
+    {
+      "draws": 67,
+      "driver_id": "77",
+      "event_key": 202212
+    },
+    {
+      "draws": 56,
+      "driver_id": "1",
+      "event_key": 202213
+    },
+    {
+      "draws": 52,
+      "driver_id": "10",
+      "event_key": 202213
+    },
+    {
+      "draws": 62,
+      "driver_id": "11",
+      "event_key": 202213
+    },
+    {
+      "draws": 54,
+      "driver_id": "14",
+      "event_key": 202213
+    },
+    {
+      "draws": 79,
+      "driver_id": "16",
+      "event_key": 202213
+    },
+    {
+      "draws": 64,
+      "driver_id": "18",
+      "event_key": 202213
+    },
+    {
+      "draws": 53,
+      "driver_id": "20",
+      "event_key": 202213
+    },
+    {
+      "draws": 49,
+      "driver_id": "22",
+      "event_key": 202213
+    },
+    {
+      "draws": 71,
+      "driver_id": "23",
+      "event_key": 202213
+    },
+    {
+      "draws": 66,
+      "driver_id": "24",
+      "event_key": 202213
+    },
+    {
+      "draws": 67,
+      "driver_id": "3",
+      "event_key": 202213
+    },
+    {
+      "draws": 51,
+      "driver_id": "31",
+      "event_key": 202213
+    },
+    {
+      "draws": 42,
+      "driver_id": "4",
+      "event_key": 202213
+    },
+    {
+      "draws": 56,
+      "driver_id": "44",
+      "event_key": 202213
+    },
+    {
+      "draws": 57,
+      "driver_id": "47",
+      "event_key": 202213
+    },
+    {
+      "draws": 66,
+      "driver_id": "5",
+      "event_key": 202213
+    },
+    {
+      "draws": 57,
+      "driver_id": "55",
+      "event_key": 202213
+    },
+    {
+      "draws": 46,
+      "driver_id": "6",
+      "event_key": 202213
+    },
+    {
+      "draws": 41,
+      "driver_id": "63",
+      "event_key": 202213
+    },
+    {
+      "draws": 48,
+      "driver_id": "77",
+      "event_key": 202213
+    },
+    {
+      "draws": 32,
+      "driver_id": "1",
+      "event_key": 202214
+    },
+    {
+      "draws": 49,
+      "driver_id": "10",
+      "event_key": 202214
+    },
+    {
+      "draws": 60,
+      "driver_id": "11",
+      "event_key": 202214
+    },
+    {
+      "draws": 47,
+      "driver_id": "14",
+      "event_key": 202214
+    },
+    {
+      "draws": 56,
+      "driver_id": "16",
+      "event_key": 202214
+    },
+    {
+      "draws": 59,
+      "driver_id": "18",
+      "event_key": 202214
+    },
+    {
+      "draws": 67,
+      "driver_id": "20",
+      "event_key": 202214
+    },
+    {
+      "draws": 69,
+      "driver_id": "22",
+      "event_key": 202214
+    },
+    {
+      "draws": 50,
+      "driver_id": "23",
+      "event_key": 202214
+    },
+    {
+      "draws": 66,
+      "driver_id": "24",
+      "event_key": 202214
+    },
+    {
+      "draws": 67,
+      "driver_id": "3",
+      "event_key": 202214
+    },
+    {
+      "draws": 59,
+      "driver_id": "31",
+      "event_key": 202214
+    },
+    {
+      "draws": 53,
+      "driver_id": "4",
+      "event_key": 202214
+    },
+    {
+      "draws": 54,
+      "driver_id": "44",
+      "event_key": 202214
+    },
+    {
+      "draws": 64,
+      "driver_id": "47",
+      "event_key": 202214
+    },
+    {
+      "draws": 59,
+      "driver_id": "5",
+      "event_key": 202214
+    },
+    {
+      "draws": 55,
+      "driver_id": "55",
+      "event_key": 202214
+    },
+    {
+      "draws": 68,
+      "driver_id": "6",
+      "event_key": 202214
+    },
+    {
+      "draws": 61,
+      "driver_id": "63",
+      "event_key": 202214
+    },
+    {
+      "draws": 54,
+      "driver_id": "77",
+      "event_key": 202214
+    },
+    {
+      "draws": 63,
+      "driver_id": "1",
+      "event_key": 202215
+    },
+    {
+      "draws": 60,
+      "driver_id": "10",
+      "event_key": 202215
+    },
+    {
+      "draws": 54,
+      "driver_id": "11",
+      "event_key": 202215
+    },
+    {
+      "draws": 64,
+      "driver_id": "14",
+      "event_key": 202215
+    },
+    {
+      "draws": 54,
+      "driver_id": "16",
+      "event_key": 202215
+    },
+    {
+      "draws": 56,
+      "driver_id": "18",
+      "event_key": 202215
+    },
+    {
+      "draws": 47,
+      "driver_id": "20",
+      "event_key": 202215
+    },
+    {
+      "draws": 57,
+      "driver_id": "22",
+      "event_key": 202215
+    },
+    {
+      "draws": 52,
+      "driver_id": "23",
+      "event_key": 202215
+    },
+    {
+      "draws": 65,
+      "driver_id": "24",
+      "event_key": 202215
+    },
+    {
+      "draws": 58,
+      "driver_id": "3",
+      "event_key": 202215
+    },
+    {
+      "draws": 49,
+      "driver_id": "31",
+      "event_key": 202215
+    },
+    {
+      "draws": 59,
+      "driver_id": "4",
+      "event_key": 202215
+    },
+    {
+      "draws": 44,
+      "driver_id": "44",
+      "event_key": 202215
+    },
+    {
+      "draws": 68,
+      "driver_id": "47",
+      "event_key": 202215
+    },
+    {
+      "draws": 53,
+      "driver_id": "5",
+      "event_key": 202215
+    },
+    {
+      "draws": 61,
+      "driver_id": "55",
+      "event_key": 202215
+    },
+    {
+      "draws": 60,
+      "driver_id": "6",
+      "event_key": 202215
+    },
+    {
+      "draws": 65,
+      "driver_id": "63",
+      "event_key": 202215
+    },
+    {
+      "draws": 69,
+      "driver_id": "77",
+      "event_key": 202215
+    },
+    {
+      "draws": 59,
+      "driver_id": "1",
+      "event_key": 202216
+    },
+    {
+      "draws": 53,
+      "driver_id": "10",
+      "event_key": 202216
+    },
+    {
+      "draws": 40,
+      "driver_id": "11",
+      "event_key": 202216
+    },
+    {
+      "draws": 55,
+      "driver_id": "14",
+      "event_key": 202216
+    },
+    {
+      "draws": 56,
+      "driver_id": "16",
+      "event_key": 202216
+    },
+    {
+      "draws": 68,
+      "driver_id": "18",
+      "event_key": 202216
+    },
+    {
+      "draws": 53,
+      "driver_id": "20",
+      "event_key": 202216
+    },
+    {
+      "draws": 67,
+      "driver_id": "22",
+      "event_key": 202216
+    },
+    {
+      "draws": 67,
+      "driver_id": "24",
+      "event_key": 202216
+    },
+    {
+      "draws": 69,
+      "driver_id": "3",
+      "event_key": 202216
+    },
+    {
+      "draws": 54,
+      "driver_id": "31",
+      "event_key": 202216
+    },
+    {
+      "draws": 50,
+      "driver_id": "4",
+      "event_key": 202216
+    },
+    {
+      "draws": 69,
+      "driver_id": "44",
+      "event_key": 202216
+    },
+    {
+      "draws": 57,
+      "driver_id": "45",
+      "event_key": 202216
+    },
+    {
+      "draws": 68,
+      "driver_id": "47",
+      "event_key": 202216
+    },
+    {
+      "draws": 55,
+      "driver_id": "5",
+      "event_key": 202216
+    },
+    {
+      "draws": 54,
+      "driver_id": "55",
+      "event_key": 202216
+    },
+    {
+      "draws": 54,
+      "driver_id": "6",
+      "event_key": 202216
+    },
+    {
+      "draws": 64,
+      "driver_id": "63",
+      "event_key": 202216
+    },
+    {
+      "draws": 63,
+      "driver_id": "77",
+      "event_key": 202216
+    },
+    {
+      "draws": 60,
+      "driver_id": "1",
+      "event_key": 202217
+    },
+    {
+      "draws": 55,
+      "driver_id": "10",
+      "event_key": 202217
+    },
+    {
+      "draws": 66,
+      "driver_id": "11",
+      "event_key": 202217
+    },
+    {
+      "draws": 52,
+      "driver_id": "14",
+      "event_key": 202217
+    },
+    {
+      "draws": 52,
+      "driver_id": "16",
+      "event_key": 202217
+    },
+    {
+      "draws": 52,
+      "driver_id": "18",
+      "event_key": 202217
+    },
+    {
+      "draws": 55,
+      "driver_id": "20",
+      "event_key": 202217
+    },
+    {
+      "draws": 54,
+      "driver_id": "22",
+      "event_key": 202217
+    },
+    {
+      "draws": 57,
+      "driver_id": "23",
+      "event_key": 202217
+    },
+    {
+      "draws": 67,
+      "driver_id": "24",
+      "event_key": 202217
+    },
+    {
+      "draws": 56,
+      "driver_id": "3",
+      "event_key": 202217
+    },
+    {
+      "draws": 47,
+      "driver_id": "31",
+      "event_key": 202217
+    },
+    {
+      "draws": 62,
+      "driver_id": "4",
+      "event_key": 202217
+    },
+    {
+      "draws": 67,
+      "driver_id": "44",
+      "event_key": 202217
+    },
+    {
+      "draws": 66,
+      "driver_id": "47",
+      "event_key": 202217
+    },
+    {
+      "draws": 60,
+      "driver_id": "5",
+      "event_key": 202217
+    },
+    {
+      "draws": 51,
+      "driver_id": "55",
+      "event_key": 202217
+    },
+    {
+      "draws": 61,
+      "driver_id": "6",
+      "event_key": 202217
+    },
+    {
+      "draws": 54,
+      "driver_id": "63",
+      "event_key": 202217
+    },
+    {
+      "draws": 55,
+      "driver_id": "77",
+      "event_key": 202217
+    },
+    {
+      "draws": 58,
+      "driver_id": "1",
+      "event_key": 202218
+    },
+    {
+      "draws": 49,
+      "driver_id": "10",
+      "event_key": 202218
+    },
+    {
+      "draws": 70,
+      "driver_id": "11",
+      "event_key": 202218
+    },
+    {
+      "draws": 47,
+      "driver_id": "14",
+      "event_key": 202218
+    },
+    {
+      "draws": 55,
+      "driver_id": "16",
+      "event_key": 202218
+    },
+    {
+      "draws": 47,
+      "driver_id": "18",
+      "event_key": 202218
+    },
+    {
+      "draws": 63,
+      "driver_id": "20",
+      "event_key": 202218
+    },
+    {
+      "draws": 66,
+      "driver_id": "22",
+      "event_key": 202218
+    },
+    {
+      "draws": 49,
+      "driver_id": "23",
+      "event_key": 202218
+    },
+    {
+      "draws": 70,
+      "driver_id": "24",
+      "event_key": 202218
+    },
+    {
+      "draws": 60,
+      "driver_id": "3",
+      "event_key": 202218
+    },
+    {
+      "draws": 64,
+      "driver_id": "31",
+      "event_key": 202218
+    },
+    {
+      "draws": 64,
+      "driver_id": "4",
+      "event_key": 202218
+    },
+    {
+      "draws": 51,
+      "driver_id": "44",
+      "event_key": 202218
+    },
+    {
+      "draws": 68,
+      "driver_id": "47",
+      "event_key": 202218
+    },
+    {
+      "draws": 56,
+      "driver_id": "5",
+      "event_key": 202218
+    },
+    {
+      "draws": 53,
+      "driver_id": "55",
+      "event_key": 202218
+    },
+    {
+      "draws": 61,
+      "driver_id": "6",
+      "event_key": 202218
+    },
+    {
+      "draws": 55,
+      "driver_id": "63",
+      "event_key": 202218
+    },
+    {
+      "draws": 54,
+      "driver_id": "77",
+      "event_key": 202218
+    },
+    {
+      "draws": 49,
+      "driver_id": "1",
+      "event_key": 202219
+    },
+    {
+      "draws": 59,
+      "driver_id": "10",
+      "event_key": 202219
+    },
+    {
+      "draws": 64,
+      "driver_id": "11",
+      "event_key": 202219
+    },
+    {
+      "draws": 55,
+      "driver_id": "14",
+      "event_key": 202219
+    },
+    {
+      "draws": 52,
+      "driver_id": "16",
+      "event_key": 202219
+    },
+    {
+      "draws": 59,
+      "driver_id": "18",
+      "event_key": 202219
+    },
+    {
+      "draws": 60,
+      "driver_id": "20",
+      "event_key": 202219
+    },
+    {
+      "draws": 54,
+      "driver_id": "22",
+      "event_key": 202219
+    },
+    {
+      "draws": 62,
+      "driver_id": "23",
+      "event_key": 202219
+    },
+    {
+      "draws": 47,
+      "driver_id": "24",
+      "event_key": 202219
+    },
+    {
+      "draws": 55,
+      "driver_id": "3",
+      "event_key": 202219
+    },
+    {
+      "draws": 55,
+      "driver_id": "31",
+      "event_key": 202219
+    },
+    {
+      "draws": 52,
+      "driver_id": "4",
+      "event_key": 202219
+    },
+    {
+      "draws": 65,
+      "driver_id": "44",
+      "event_key": 202219
+    },
+    {
+      "draws": 56,
+      "driver_id": "47",
+      "event_key": 202219
+    },
+    {
+      "draws": 73,
+      "driver_id": "5",
+      "event_key": 202219
+    },
+    {
+      "draws": 59,
+      "driver_id": "55",
+      "event_key": 202219
+    },
+    {
+      "draws": 57,
+      "driver_id": "6",
+      "event_key": 202219
+    },
+    {
+      "draws": 65,
+      "driver_id": "63",
+      "event_key": 202219
+    },
+    {
+      "draws": 59,
+      "driver_id": "77",
+      "event_key": 202219
+    },
+    {
+      "draws": 53,
+      "driver_id": "1",
+      "event_key": 202220
+    },
+    {
+      "draws": 80,
+      "driver_id": "10",
+      "event_key": 202220
+    },
+    {
+      "draws": 55,
+      "driver_id": "11",
+      "event_key": 202220
+    },
+    {
+      "draws": 46,
+      "driver_id": "14",
+      "event_key": 202220
+    },
+    {
+      "draws": 71,
+      "driver_id": "16",
+      "event_key": 202220
+    },
+    {
+      "draws": 49,
+      "driver_id": "18",
+      "event_key": 202220
+    },
+    {
+      "draws": 62,
+      "driver_id": "20",
+      "event_key": 202220
+    },
+    {
+      "draws": 47,
+      "driver_id": "22",
+      "event_key": 202220
+    },
+    {
+      "draws": 59,
+      "driver_id": "23",
+      "event_key": 202220
+    },
+    {
+      "draws": 57,
+      "driver_id": "24",
+      "event_key": 202220
+    },
+    {
+      "draws": 66,
+      "driver_id": "3",
+      "event_key": 202220
+    },
+    {
+      "draws": 67,
+      "driver_id": "31",
+      "event_key": 202220
+    },
+    {
+      "draws": 57,
+      "driver_id": "4",
+      "event_key": 202220
+    },
+    {
+      "draws": 76,
+      "driver_id": "44",
+      "event_key": 202220
+    },
+    {
+      "draws": 46,
+      "driver_id": "47",
+      "event_key": 202220
+    },
+    {
+      "draws": 44,
+      "driver_id": "5",
+      "event_key": 202220
+    },
+    {
+      "draws": 73,
+      "driver_id": "55",
+      "event_key": 202220
+    },
+    {
+      "draws": 62,
+      "driver_id": "6",
+      "event_key": 202220
+    },
+    {
+      "draws": 63,
+      "driver_id": "63",
+      "event_key": 202220
+    },
+    {
+      "draws": 68,
+      "driver_id": "77",
+      "event_key": 202220
+    },
+    {
+      "draws": 56,
+      "driver_id": "1",
+      "event_key": 202221
+    },
+    {
+      "draws": 55,
+      "driver_id": "10",
+      "event_key": 202221
+    },
+    {
+      "draws": 69,
+      "driver_id": "11",
+      "event_key": 202221
+    },
+    {
+      "draws": 58,
+      "driver_id": "14",
+      "event_key": 202221
+    },
+    {
+      "draws": 71,
+      "driver_id": "16",
+      "event_key": 202221
+    },
+    {
+      "draws": 58,
+      "driver_id": "18",
+      "event_key": 202221
+    },
+    {
+      "draws": 69,
+      "driver_id": "20",
+      "event_key": 202221
+    },
+    {
+      "draws": 64,
+      "driver_id": "22",
+      "event_key": 202221
+    },
+    {
+      "draws": 50,
+      "driver_id": "23",
+      "event_key": 202221
+    },
+    {
+      "draws": 51,
+      "driver_id": "24",
+      "event_key": 202221
+    },
+    {
+      "draws": 56,
+      "driver_id": "3",
+      "event_key": 202221
+    },
+    {
+      "draws": 49,
+      "driver_id": "31",
+      "event_key": 202221
+    },
+    {
+      "draws": 57,
+      "driver_id": "4",
+      "event_key": 202221
+    },
+    {
+      "draws": 57,
+      "driver_id": "44",
+      "event_key": 202221
+    },
+    {
+      "draws": 81,
+      "driver_id": "47",
+      "event_key": 202221
+    },
+    {
+      "draws": 74,
+      "driver_id": "5",
+      "event_key": 202221
+    },
+    {
+      "draws": 57,
+      "driver_id": "55",
+      "event_key": 202221
+    },
+    {
+      "draws": 54,
+      "driver_id": "6",
+      "event_key": 202221
+    },
+    {
+      "draws": 76,
+      "driver_id": "63",
+      "event_key": 202221
+    },
+    {
+      "draws": 65,
+      "driver_id": "77",
+      "event_key": 202221
+    },
+    {
+      "draws": 58,
+      "driver_id": "1",
+      "event_key": 202222
+    },
+    {
+      "draws": 58,
+      "driver_id": "10",
+      "event_key": 202222
+    },
+    {
+      "draws": 46,
+      "driver_id": "11",
+      "event_key": 202222
+    },
+    {
+      "draws": 67,
+      "driver_id": "14",
+      "event_key": 202222
+    },
+    {
+      "draws": 63,
+      "driver_id": "16",
+      "event_key": 202222
+    },
+    {
+      "draws": 71,
+      "driver_id": "18",
+      "event_key": 202222
+    },
+    {
+      "draws": 42,
+      "driver_id": "20",
+      "event_key": 202222
+    },
+    {
+      "draws": 66,
+      "driver_id": "22",
+      "event_key": 202222
+    },
+    {
+      "draws": 50,
+      "driver_id": "23",
+      "event_key": 202222
+    },
+    {
+      "draws": 57,
+      "driver_id": "24",
+      "event_key": 202222
+    },
+    {
+      "draws": 49,
+      "driver_id": "3",
+      "event_key": 202222
+    },
+    {
+      "draws": 66,
+      "driver_id": "31",
+      "event_key": 202222
+    },
+    {
+      "draws": 43,
+      "driver_id": "4",
+      "event_key": 202222
+    },
+    {
+      "draws": 68,
+      "driver_id": "44",
+      "event_key": 202222
+    },
+    {
+      "draws": 62,
+      "driver_id": "47",
+      "event_key": 202222
+    },
+    {
+      "draws": 64,
+      "driver_id": "5",
+      "event_key": 202222
+    },
+    {
+      "draws": 48,
+      "driver_id": "55",
+      "event_key": 202222
+    },
+    {
+      "draws": 62,
+      "driver_id": "6",
+      "event_key": 202222
+    },
+    {
+      "draws": 70,
+      "driver_id": "63",
+      "event_key": 202222
+    },
+    {
+      "draws": 61,
+      "driver_id": "77",
+      "event_key": 202222
+    }
+  ],
+  "event_draw_counts": [
+    {
+      "draws": 1138,
+      "event_key": 202201
+    },
+    {
+      "draws": 1107,
+      "event_key": 202202
+    },
+    {
+      "draws": 1200,
+      "event_key": 202203
+    },
+    {
+      "draws": 1122,
+      "event_key": 202204
+    },
+    {
+      "draws": 1157,
+      "event_key": 202205
+    },
+    {
+      "draws": 1189,
+      "event_key": 202206
+    },
+    {
+      "draws": 1148,
+      "event_key": 202207
+    },
+    {
+      "draws": 1195,
+      "event_key": 202208
+    },
+    {
+      "draws": 1159,
+      "event_key": 202209
+    },
+    {
+      "draws": 1135,
+      "event_key": 202210
+    },
+    {
+      "draws": 1200,
+      "event_key": 202211
+    },
+    {
+      "draws": 1166,
+      "event_key": 202212
+    },
+    {
+      "draws": 1137,
+      "event_key": 202213
+    },
+    {
+      "draws": 1149,
+      "event_key": 202214
+    },
+    {
+      "draws": 1158,
+      "event_key": 202215
+    },
+    {
+      "draws": 1175,
+      "event_key": 202216
+    },
+    {
+      "draws": 1149,
+      "event_key": 202217
+    },
+    {
+      "draws": 1160,
+      "event_key": 202218
+    },
+    {
+      "draws": 1157,
+      "event_key": 202219
+    },
+    {
+      "draws": 1201,
+      "event_key": 202220
+    },
+    {
+      "draws": 1227,
+      "event_key": 202221
+    },
+    {
+      "draws": 1171,
+      "event_key": 202222
+    }
+  ],
+  "horizons": [
+    4,
+    16,
+    32
+  ],
+  "model_fits_before_schedule_close": 0,
+  "negatives": 31,
+  "order": "step_then_batch_row_event_then_driver_then_endpoint_then_negatives",
+  "peak_rss_bytes": 315097088,
+  "rng": "PCG64",
+  "schema": "fixed_cpc_hierarchical_schedule_v1",
+  "seed": 20260908,
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry/features.py": "7354b6675a4725d311c5bbf11f329e615118abf33fef5ef4bf4ee69474c1371f",
+    "research/experiments/boundary_20260908/telemetry_next/idea.md": "3ef0f7545c0c58cff0fa61f6d007e97e7e8add75b796068f0fbf146b5ba8aed3",
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/boundary_20260908/telemetry_sequence/corpus.py": "321d6143534d8f11ffb25f87a9bff64f385d3523603517340b99b8b2a0215059",
+    "research/experiments/boundary_20260908/telemetry_sequence/encoder.py": "68cd1f8bddf42f22343669d1c01df49462a7fa5b8a7bc863758c3ddf773d5d38",
+    "research/experiments/boundary_20260908/telemetry_sequence/tokens.py": "ad0723fb90e1f0ee56815e188e2ad1e54baf28f4166a3ac0f9ebbd5d0b0ee9ec"
+  },
+  "status": "closed",
+  "steps": 800
+}

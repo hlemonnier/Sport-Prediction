@@ -63,6 +63,9 @@ jobs:
           research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py
           research/experiments/boundary_20260908/rival_gap_pilot
           research/experiments/boundary_20260908/rival_gap_pilot_v2
+          research/experiments/boundary_20260908/rival_gap_forecast
+          research/experiments/boundary_20260908/rival_gap_verification/test_prefix.py
+          research/experiments/boundary_20260908/rival_gap_verification/test_cross_implementation.py
           research/experiments/boundary_20260908/telemetry_sequence_publication
 
   sequence-contracts:

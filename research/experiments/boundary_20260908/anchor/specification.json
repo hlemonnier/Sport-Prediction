@@ -1,0 +1,24 @@
+{
+  "experiment_id": "unclipped_robust_live_anchor_20260908",
+  "mechanism": "Predict the next eligible lap as an unclipped current-stint median anchor plus an absolute-loss nonlinear residual, rather than forcing every forecast to remain near the most recent clean lap.",
+  "baseline": "The frozen frontier HGB: absolute_error,learning_rate0.06,max_iter150,max_leaf_nodes15,min_samples_leaf80,l2_regularization10,early_stoppingFalse,seed20260907. Fit2022 only for2023 selection; unchanged production2022-23 model for later comparisons. All80 ordered input features retained.",
+  "data_contract": "Exact original event/driver/issued lap/issued timestamp/target lap/target timestamp/target seconds population. Discovery data and44 raw source entries come from frontier live selection.json; transfer rows and61 full-schema raw entries come only from frontier live corrected_input_contract/results.json. Do not use narrow live_recent_final CSVs.",
+  "new_anchor_features": "Replay raw observations in clock/driver/lap order. Mask pit timestamps later than the current completed-lap clock. Known pit-out, compound change or provider-stint change reset own history; missing compound/stint values carry forward causally. Clean means finite positive LapTime, IsAccurate true, no currently observed pit-in/out and no TrackStatus4/5/6/7. Keep at most five current-stint clean laps including the current observation. Median3/median5 and their gaps to the observed lap, support counts and MADs are never clipped. Do not alter legacy80 columns or issuance/target pairing. Include both anchors' gap/count/MAD as six additional model features.",
+  "models": "Exactly two HGB fits per training boundary: same baseline hyperparameters and event weights, but target is unclipped next eligible lap seconds minus median3 or median5. No output correction clipping. Nonfinite or nonpositive candidate points fall back to the baseline and are counted.",
+  "candidates": {
+    "median3_full": {"window": 3, "policy": "full"},
+    "median3_gate": {"window": 3, "policy": "gate"},
+    "median5_full": {"window": 5, "policy": "full"},
+    "median5_gate": {"window": 5, "policy": "gate"}
+  },
+  "gate_policy": "For gate variants, use the anchor model only when its same-stint support>=3 and abs(anchor-last_observed_seconds)>=1.0; otherwise preserve the current baseline point exactly. Thresholds are fixed without target inspection. No fitted mixture weights.",
+  "selection": "Train2022, score all four configurations on2023 using equally-event-weighted MAE. Select minimum MAE; ties within1e-12 prefer gate then window3. Freeze selection and output point hashes before fitting the selected window on2022+2023 or opening transfer data.",
+  "validation_advancement_screen": "At least0.5 percent relative MAE improvement versus2022-fit baseline on2023 AND every leave-one-event-out mean delta negative. If this fails, stop after discovery and preserve currentHGB; do not score any new transfer variant.",
+  "transfer": "If the advancement screen passes, fit only the selected anchor window on2022+2023. Compare its selected policy against the unchanged productionHGB on2024,2025,pooled2024-2025,all2026 and2026R10-R13. Report all dates as previously exposed retrospective diagnostics. No further selection or hyperparameter changes.",
+  "score_uncertainty": "20000 paired event and circular three-event block bootstraps,seed20260908; leave-one-event-out ranges. Event-balanced MAE in seconds is primary; row MAE and large observed-anchor-gap subsets are descriptive only. Bootstrap intervals are not posterior probabilities.",
+  "substantial_success_screen": "At least10 percent pooled2024-25 MAE improvement against currentHGB, both historical years and2026 individually improve, block95percent upper delta negative, and every leave-one-event-out historical mean delta negative. No production promotion from exposed dates.",
+  "composition": "Root's independently frozen disjoint checkpoint composition may use the2023-selected anchor only if this validation advancement screen passes; otherwise it keeps currentHGB at the original eligible checkpoints.",
+  "resources": {"numerical_threads": 1, "neural_training": false},
+  "production_changes": false,
+  "all_evaluation_dates_previously_exposed": true
+}

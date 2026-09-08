@@ -1,0 +1,32 @@
+{
+  "parameters": {
+    "blend_strength": 0.5,
+    "penalty_strength": 4.0
+  },
+  "selected": "lambda4_strength0.5",
+  "selection_event_keys": [
+    202301,
+    202302,
+    202303,
+    202305,
+    202306,
+    202307,
+    202308,
+    202310,
+    202311,
+    202313,
+    202314,
+    202315,
+    202316,
+    202319,
+    202321,
+    202322
+  ],
+  "selection_variant_event_MAE": {
+    "lambda0.5_strength0.5": 3.73125,
+    "lambda0.5_strength1": 3.70625,
+    "lambda4_strength0.5": 3.6875,
+    "lambda4_strength1": 3.70625
+  },
+  "selection_year": 2023
+}

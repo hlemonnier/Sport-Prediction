@@ -1,0 +1,20 @@
+{
+  "checks": {
+    "event_metrics": 1404,
+    "events": 73,
+    "fitted_histories": 234,
+    "forecast_hashes": 73,
+    "rank_permutations": 468
+  },
+  "comparison_scope": "Exact prior forecast and target rows; prior source drift remains explicitly disclosed.",
+  "implementation_files": 86,
+  "input_files": 428,
+  "limitations": "Verification checks recorded chronology and before-label forecast hashes; execution ordering additionally requires source review.",
+  "output_files": 2,
+  "results_sha256": "11f5ea871774c20ac0318b15dbf14ceb3468d8b9153fa1c793e2002c73fc8e0e",
+  "rows": 1477,
+  "selection_events": 16,
+  "selection_variants": 12,
+  "status": "PASS",
+  "verifier_sha256": "1e39d45ee427772b739c4fe1a9618d819940500c411fe8779e7f6ca9183ec2a1"
+}

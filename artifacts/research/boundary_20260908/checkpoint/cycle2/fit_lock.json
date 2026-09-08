@@ -1,0 +1,20 @@
+{
+  "frozen_before_transfer": "2026-09-08T00:18:06.730127+00:00",
+  "dependencies": {
+    "research/experiments/boundary_20260908/checkpoint/cycle2/run_experiment.py": "5417d2779aaa26f3ee616a31522170386cfe07a38fd344df37d6e0c2ecdf68d3",
+    "research/experiments/boundary_20260908/checkpoint/cycle2/spec.json": "1c9648ac23d87ab03834158040fa506b0fa7f8f961d9593d5103a372d84ddd93",
+    "research/experiments/boundary_20260908/checkpoint/run_experiment.py": "c1dc9a34bbfbbeed915de3ac6b7ff733d69704c786d10156d72708599e00eab6",
+    "artifacts/research/boundary_20260908/checkpoint/fit_lock.json": "e8791181b01f350b1038affa6132201e94414fd16f2bc6d52dfab97480e8a2e8",
+    "artifacts/research/boundary_20260908/checkpoint/selection.json": "3223c619d621ef078832f23b3b6f81eb0beb564ba773ab7ef86801810b4c8134",
+    "artifacts/research/boundary_20260908/checkpoint/models.pkl": "89ccdad3e99616506694b51866590a647e8e41c888a397ca40010fe7a58d90a3",
+    "artifacts/research/boundary_20260908/checkpoint/results.json": "f858e6700afc8adbdd05831cb5287256b21d6e2619d6083bcc8539428071fce9",
+    "artifacts/research/boundary_20260908/checkpoint/verification.json": "f68db6336467224c0880c99959f1ca5654497d31854ddd0da8a35a1c3c87069a",
+    "artifacts/research/boundary_20260908/checkpoint/amended_input_lock.json": "ce963ce6e3397b59fefff50b117200a359c13ba5c13a22bcf85ea8321457c31d",
+    "artifacts/research/boundary_20260908/checkpoint/crossfit_residual_training.pkl": "7fc05d7b65cf903c9d64edaf48f67d12d61eb63d6b037ee1a3975b97c2d9c2ad",
+    "artifacts/research/boundary_20260908/checkpoint/selection_forecasts.pkl": "a3f3720d593b21ddfae8548d099e9a85a369f6132f42b7dd7a874469347281f4"
+  },
+  "selection_sha256": "0bbf48846fd39d368ae46ba26efa09c2b5d69b4bfff5a2e87458d1a744890b88",
+  "models_sha256": "03d0d61bd2400a659a31bd7ebf987ed586912459e607f903ae95898169425d99",
+  "training_sha256": "c94c6ca4a5177d94bd268267d7d740bed7950a7b7a07a4f367548dc9b087a6ae",
+  "selection_forecasts_sha256": "ee924941a9c9231ba0f7a5ceaba428ec9cdfc3ac26ab8c0b9d7f20a4a49c62ca"
+}

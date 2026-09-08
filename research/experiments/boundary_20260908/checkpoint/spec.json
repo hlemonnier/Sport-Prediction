@@ -1,0 +1,64 @@
+{
+  "experiment": "checkpoint_residual_hgb_cycle_1",
+  "created_before_candidate_fitting": true,
+  "seed": 20260908,
+  "population": "After each observed raw lap record, if the frozen eligible-issuance HGB has a pending point for that driver, issue a checkpoint forecast of that driver's strictly later next eligible completed lap.",
+  "comparison": "Both models evaluated at the same checkpoint. Baseline carries the earlier frozen HGB issuance unchanged; no claim of the same information set as that earlier issuance.",
+  "gate": "Only checkpoints whose currently observed record is ineligible can receive an expert correction. Eligible-checkpoint predictions, targets and metrics must match the original HGB issuance benchmark exactly.",
+  "eligibility": "Unchanged recorded FastF1 eligibility: positive finite LapTime, IsAccurate true, no recorded PitInTime/PitOutTime, no track code 4/5/6/7. Provider receipt latency and retrospectively reconstructed eligibility remain unverified.",
+  "same_row_future_metadata": "Candidate features mask PitInTime and PitOutTime whenever their numeric timestamp exceeds current Time. No feature reports that a masked future timestamp exists. Retrospective recorded IsAccurate/eligibility cannot be reconstructed as live arrival truth from these CSVs.",
+  "features": "Frozen prior HGB features retained in separate columns; prior HGB point and correction; observed current lap/sector/speed values and missingness, differences from prior clean-lap values, current compound/tyre-age/position/freshness, available pit indicators, track status codes, elapsed laps/session seconds, available stint transition state. No future targets, target gaps, event-end statistics, driver/event identity or outcomes as features.",
+  "base_hgb": {
+    "loss": "absolute_error", "learning_rate": 0.06, "max_iter": 150,
+    "max_leaf_nodes": 15, "min_samples_leaf": 80, "l2_regularization": 10,
+    "early_stopping": false, "random_state": 20260907,
+    "target_residual_clip_seconds": 5, "prediction_correction_clip_seconds": 3,
+    "features": "Exact bundled production HGB feature list; fixed prior architecture, no new base search.",
+    "training_weights": "Each event has equal total weight over original eligible issuance targets."
+  },
+  "residual_training": {
+    "2022_expanding_folds": [
+      {"train_event_count": 6, "score_event_indices": [6, 11]},
+      {"train_event_count": 11, "score_event_indices": [11, 16]},
+      {"train_event_count": 16, "score_event_indices": [16, 22]}
+    ],
+    "selection_year": 2023,
+    "selection_base_fit_years": [2022],
+    "selection_metric": "Full checkpoint event-balanced MAE; deterministic grid order breaks exact ties.",
+    "training_weights": "Only gated rows; each represented event has equal total weight over its gated checkpoints.",
+    "final_fit": "Selected residual hyperparameters refit on 2022 expanding-fold gated rows plus 2023 gated rows forecast by base fitted only on 2022. First six 2022 events warm up base only. Final baseline is the exact current bundled HGB fitted on 2022-2023."
+  },
+  "candidate_family": {
+    "kind": "HistGradientBoostingRegressor", "loss": "absolute_error",
+    "learning_rate": 0.06, "max_iter": 150, "min_samples_leaf": 40,
+    "l2_regularization": 10, "early_stopping": false, "random_state": 20260908,
+    "target_residual_clip_seconds": 10,
+    "grid": [
+      {"name": "hgb_l7_c3", "max_leaf_nodes": 7, "prediction_clip_seconds": 3},
+      {"name": "hgb_l7_c6", "max_leaf_nodes": 7, "prediction_clip_seconds": 6},
+      {"name": "hgb_l15_c3", "max_leaf_nodes": 15, "prediction_clip_seconds": 3},
+      {"name": "hgb_l15_c6", "max_leaf_nodes": 15, "prediction_clip_seconds": 6}
+    ]
+  },
+  "evaluation": {
+    "historical_transfer": [2024, 2025], "exposed_diagnostic": [2026],
+    "primary": "Equal event weight, equal checkpoint weight within event.",
+    "target_balanced": "Equal event weight, equal distinct driver-target lap weight within event, equal weight for its checkpoints.",
+    "subsets": ["eligible", "all_ineligible", "pit_in", "pit_out", "neutralized", "other_ineligible", "observed_stint_transition", "future_target_stint_transition_diagnostic_only"],
+    "uncertainty": "20000 paired event bootstrap resamples plus 3-consecutive-event circular blocks within each year, leave-one-event-out and per-event deltas. No row bootstrap; intervals descriptive after earlier research exposure.",
+    "report_all_candidates": true,
+    "prospective": false,
+    "promotion": false
+  },
+  "substantial_research_gain_criteria": {
+    "2024_2025_primary_relative_reduction_at_least": 0.10,
+    "2024_2025_target_balanced_relative_reduction_at_least": 0.05,
+    "2024_2025_ineligible_relative_reduction_at_least": 0.20,
+    "both_historical_years_improve": true,
+    "exposed_2026_primary_improves": true,
+    "historical_block3_ci_upper_below_zero": true,
+    "historical_all_leave_one_event_out_improve": true,
+    "eligible_predictions_exactly_unchanged": true
+  },
+  "resource_limits": {"threads": 1, "no_acquisition": true, "no_production_edits": true, "no_second_search": true}
+}

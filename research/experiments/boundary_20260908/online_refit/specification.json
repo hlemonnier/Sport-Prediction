@@ -1,0 +1,23 @@
+{
+  "id":"causal_event_refit_boundary_20260908",
+  "hypothesis":"The serving model was frozen after2023; causally assimilating completed race events can reduce estimation noise and track changing conditions while preserving the original forecast time and target.",
+  "information":"Train only on event_key strictly less than the first predicted event of each block; never refit within a race. Historical cached labels are used after the race has completed. Raw feature schema and target are unchanged.",
+  "base_comparator":"Current fixed HGB15leaf150iteration model,2022-only for2023selection and existing2022-23production model for2024-26transfer.",
+  "refit_cadence":"At the first event of each year and after every4predicted events in that year. No adaptation of hyperparameters after2023selection.",
+  "candidate_grid":[
+    {"name":"cumulative_l15","leaves":15,"half_life_events":null},
+    {"name":"recent16_l15","leaves":15,"half_life_events":16},
+    {"name":"recent48_l15","leaves":15,"half_life_events":48},
+    {"name":"recent16_l31","leaves":31,"half_life_events":16},
+    {"name":"recent48_l31","leaves":31,"half_life_events":48}
+  ],
+  "weights":"Equal total weight per event multiplied by2**(-age_in_observed_events/half_life); normalize sample weights to mean1. Cumulative uses equal event weights.",
+  "model":"HGB absolute_error,learning_rate.06,max_iter150,min_samples_leaf80,L2=10,early_stoppingFalse,seed20260907. Same residual target clip+-5s and point correction clip+-3s as current production.",
+  "selection":"Minimum event-balanced2023MAE across exactly5variants; name breaks numerical ties. Freeze selection before opening transfer table; only advance if gain>=0.5percent.",
+  "substantial_gate":"At least10percent event-balanced gain versus strong currentbaseline in2024-25, improvement in each2024/2025/2026, historical3-event-blockCIupper<0, all historicalleave-one-event-out deltas<0.",
+  "evaluation":"Same55757original matched forecasts in61events;2024-26have been exposed in prior research, so this is reused historical evidence. Online fitting may use an earlier evaluation event only for a later forecast block, by frozen policy.",
+  "sources":["https://jmlr.org/papers/v16/moroshko15a.html","https://arxiv.org/abs/1809.05870"],
+  "interpretation":"A custom bounded rolling-fit experiment motivated by drift/forgetting; not a reproduction of source algorithms or a claim of their guarantees.",
+  "production_change":false,
+  "suggested_commit":"research(f1-live): evaluate causal rolling event refits"
+}

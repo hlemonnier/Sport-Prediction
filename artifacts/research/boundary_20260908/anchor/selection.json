@@ -1,0 +1,1108 @@
+{
+  "all_dates_previously_exposed": true,
+  "candidate_diagnostics": {
+    "median3_full": {
+      "gate_rows": 20007,
+      "invalid_point_fallbacks": 0
+    },
+    "median3_gate": {
+      "gate_rows": 1046,
+      "invalid_point_fallbacks": 0
+    },
+    "median5_full": {
+      "gate_rows": 20007,
+      "invalid_point_fallbacks": 0
+    },
+    "median5_gate": {
+      "gate_rows": 1383,
+      "invalid_point_fallbacks": 0
+    }
+  },
+  "candidate_metrics": {
+    "median3_full": {
+      "baseline_mae": 0.512080723333514,
+      "block3_ci95": [
+        0.0040925006024045765,
+        0.046207873290754244
+      ],
+      "candidate_mae": 0.5358078754482029,
+      "delta": 0.02372715211468895,
+      "event_ci95": [
+        0.0024047000543112374,
+        0.05113440889616197
+      ],
+      "events": 22,
+      "events_tied": 0,
+      "events_won": 5,
+      "loo_max_delta": 0.027432965078142614,
+      "loo_min_delta": 0.013475907928575939,
+      "per_event": [
+        {
+          "baseline_mae": 0.3459360351986063,
+          "candidate_mae": 0.3474729973684241,
+          "event_key": 202301
+        },
+        {
+          "baseline_mae": 0.36454885301960105,
+          "candidate_mae": 0.36763187786477713,
+          "event_key": 202302
+        },
+        {
+          "baseline_mae": 0.7283782166820896,
+          "candidate_mae": 0.7810960303069928,
+          "event_key": 202303
+        },
+        {
+          "baseline_mae": 0.3677582257031425,
+          "candidate_mae": 0.37203631647034624,
+          "event_key": 202304
+        },
+        {
+          "baseline_mae": 0.29550334184553256,
+          "candidate_mae": 0.2963074177643818,
+          "event_key": 202305
+        },
+        {
+          "baseline_mae": 1.25687219795556,
+          "candidate_mae": 1.3764048688553896,
+          "event_key": 202306
+        },
+        {
+          "baseline_mae": 0.36809115433354356,
+          "candidate_mae": 0.37193684112997916,
+          "event_key": 202307
+        },
+        {
+          "baseline_mae": 0.38423732285483636,
+          "candidate_mae": 0.33014240273699835,
+          "event_key": 202308
+        },
+        {
+          "baseline_mae": 0.2902675695509647,
+          "candidate_mae": 0.29109530625848906,
+          "event_key": 202309
+        },
+        {
+          "baseline_mae": 0.2653591543187171,
+          "candidate_mae": 0.2711992695505386,
+          "event_key": 202310
+        },
+        {
+          "baseline_mae": 0.350268068346513,
+          "candidate_mae": 0.35435897633181995,
+          "event_key": 202311
+        },
+        {
+          "baseline_mae": 0.6561460038694623,
+          "candidate_mae": 0.6710076537529671,
+          "event_key": 202312
+        },
+        {
+          "baseline_mae": 0.8774918496670499,
+          "candidate_mae": 0.9897752180443955,
+          "event_key": 202313
+        },
+        {
+          "baseline_mae": 0.29622036201715657,
+          "candidate_mae": 0.3028417624927605,
+          "event_key": 202314
+        },
+        {
+          "baseline_mae": 0.6226120820481291,
+          "candidate_mae": 0.6194977804085278,
+          "event_key": 202315
+        },
+        {
+          "baseline_mae": 0.4018911241002044,
+          "candidate_mae": 0.40188817928206,
+          "event_key": 202316
+        },
+        {
+          "baseline_mae": 0.4178586713151729,
+          "candidate_mae": 0.41404825192342837,
+          "event_key": 202317
+        },
+        {
+          "baseline_mae": 0.3871521090084295,
+          "candidate_mae": 0.39686763688001003,
+          "event_key": 202318
+        },
+        {
+          "baseline_mae": 1.461425361107513,
+          "candidate_mae": 1.7004286411305751,
+          "event_key": 202319
+        },
+        {
+          "baseline_mae": 0.2967897149422956,
+          "candidate_mae": 0.2975763412040559,
+          "event_key": 202320
+        },
+        {
+          "baseline_mae": 0.5350826162688288,
+          "candidate_mae": 0.538559212785428,
+          "event_key": 202321
+        },
+        {
+          "baseline_mae": 0.2958858791839554,
+          "candidate_mae": 0.295600277318116,
+          "event_key": 202322
+        }
+      ],
+      "relative_gain": -0.046334788703295215,
+      "row_baseline_mae": 0.5320326458654109,
+      "row_candidate_mae": 0.5594870959767243,
+      "rows": 20007
+    },
+    "median3_gate": {
+      "baseline_mae": 0.512080723333514,
+      "block3_ci95": [
+        -0.004836237618110519,
+        0.019572880588490993
+      ],
+      "candidate_mae": 0.5184061691446031,
+      "delta": 0.006325445811089355,
+      "event_ci95": [
+        -0.005801378007701022,
+        0.021954444238962832
+      ],
+      "events": 22,
+      "events_tied": 0,
+      "events_won": 10,
+      "loo_max_delta": 0.009177289748507693,
+      "loo_min_delta": 0.001550810718457627,
+      "per_event": [
+        {
+          "baseline_mae": 0.3459360351986063,
+          "candidate_mae": 0.3459208973611114,
+          "event_key": 202301
+        },
+        {
+          "baseline_mae": 0.36454885301960105,
+          "candidate_mae": 0.366385658408392,
+          "event_key": 202302
+        },
+        {
+          "baseline_mae": 0.7283782166820896,
+          "candidate_mae": 0.729594184138492,
+          "event_key": 202303
+        },
+        {
+          "baseline_mae": 0.3677582257031425,
+          "candidate_mae": 0.3665595286386835,
+          "event_key": 202304
+        },
+        {
+          "baseline_mae": 0.29550334184553256,
+          "candidate_mae": 0.2962942304148857,
+          "event_key": 202305
+        },
+        {
+          "baseline_mae": 1.25687219795556,
+          "candidate_mae": 1.3574963785074499,
+          "event_key": 202306
+        },
+        {
+          "baseline_mae": 0.36809115433354356,
+          "candidate_mae": 0.3690982644094422,
+          "event_key": 202307
+        },
+        {
+          "baseline_mae": 0.38423732285483636,
+          "candidate_mae": 0.3306740459801406,
+          "event_key": 202308
+        },
+        {
+          "baseline_mae": 0.2902675695509647,
+          "candidate_mae": 0.28970231372700983,
+          "event_key": 202309
+        },
+        {
+          "baseline_mae": 0.2653591543187171,
+          "candidate_mae": 0.2672889406941897,
+          "event_key": 202310
+        },
+        {
+          "baseline_mae": 0.350268068346513,
+          "candidate_mae": 0.3522036817461785,
+          "event_key": 202311
+        },
+        {
+          "baseline_mae": 0.6561460038694623,
+          "candidate_mae": 0.6641048478600886,
+          "event_key": 202312
+        },
+        {
+          "baseline_mae": 0.8774918496670499,
+          "candidate_mae": 0.9840846324234055,
+          "event_key": 202313
+        },
+        {
+          "baseline_mae": 0.29622036201715657,
+          "candidate_mae": 0.29677021585970215,
+          "event_key": 202314
+        },
+        {
+          "baseline_mae": 0.6226120820481291,
+          "candidate_mae": 0.6122462350880618,
+          "event_key": 202315
+        },
+        {
+          "baseline_mae": 0.4018911241002044,
+          "candidate_mae": 0.3997874215860532,
+          "event_key": 202316
+        },
+        {
+          "baseline_mae": 0.4178586713151729,
+          "candidate_mae": 0.4127091242971512,
+          "event_key": 202317
+        },
+        {
+          "baseline_mae": 0.3871521090084295,
+          "candidate_mae": 0.3899415547316707,
+          "event_key": 202318
+        },
+        {
+          "baseline_mae": 1.461425361107513,
+          "candidate_mae": 1.4496411426587108,
+          "event_key": 202319
+        },
+        {
+          "baseline_mae": 0.2967897149422956,
+          "candidate_mae": 0.29342478113138704,
+          "event_key": 202320
+        },
+        {
+          "baseline_mae": 0.5350826162688288,
+          "candidate_mae": 0.5368848344935093,
+          "event_key": 202321
+        },
+        {
+          "baseline_mae": 0.2958858791839554,
+          "candidate_mae": 0.2941228070255544,
+          "event_key": 202322
+        }
+      ],
+      "relative_gain": -0.01235243883017545,
+      "row_baseline_mae": 0.5320326458654109,
+      "row_candidate_mae": 0.5402772907639402,
+      "rows": 20007
+    },
+    "median5_full": {
+      "baseline_mae": 0.512080723333514,
+      "block3_ci95": [
+        0.00464473704724391,
+        0.06120908641818222
+      ],
+      "candidate_mae": 0.5438794052015294,
+      "delta": 0.03179868186801557,
+      "event_ci95": [
+        0.0017265521234764547,
+        0.06784894257854607
+      ],
+      "events": 22,
+      "events_tied": 0,
+      "events_won": 8,
+      "loo_max_delta": 0.035837246525684895,
+      "loo_min_delta": 0.021791181947937763,
+      "per_event": [
+        {
+          "baseline_mae": 0.3459360351986063,
+          "candidate_mae": 0.34516588425101086,
+          "event_key": 202301
+        },
+        {
+          "baseline_mae": 0.36454885301960105,
+          "candidate_mae": 0.3753473725137552,
+          "event_key": 202302
+        },
+        {
+          "baseline_mae": 0.7283782166820896,
+          "candidate_mae": 0.7650175911549957,
+          "event_key": 202303
+        },
+        {
+          "baseline_mae": 0.3677582257031425,
+          "candidate_mae": 0.36924508316562765,
+          "event_key": 202304
+        },
+        {
+          "baseline_mae": 0.29550334184553256,
+          "candidate_mae": 0.2993532901700577,
+          "event_key": 202305
+        },
+        {
+          "baseline_mae": 1.25687219795556,
+          "candidate_mae": 1.4988283781452094,
+          "event_key": 202306
+        },
+        {
+          "baseline_mae": 0.36809115433354356,
+          "candidate_mae": 0.3661610192157585,
+          "event_key": 202307
+        },
+        {
+          "baseline_mae": 0.38423732285483636,
+          "candidate_mae": 0.33122614691179614,
+          "event_key": 202308
+        },
+        {
+          "baseline_mae": 0.2902675695509647,
+          "candidate_mae": 0.2892134139460931,
+          "event_key": 202309
+        },
+        {
+          "baseline_mae": 0.2653591543187171,
+          "candidate_mae": 0.2636490614078622,
+          "event_key": 202310
+        },
+        {
+          "baseline_mae": 0.350268068346513,
+          "candidate_mae": 0.35434224225874156,
+          "event_key": 202311
+        },
+        {
+          "baseline_mae": 0.6561460038694623,
+          "candidate_mae": 0.6810274899204208,
+          "event_key": 202312
+        },
+        {
+          "baseline_mae": 0.8774918496670499,
+          "candidate_mae": 1.1033401147578983,
+          "event_key": 202313
+        },
+        {
+          "baseline_mae": 0.29622036201715657,
+          "candidate_mae": 0.3021187614496742,
+          "event_key": 202314
+        },
+        {
+          "baseline_mae": 0.6226120820481291,
+          "candidate_mae": 0.6053994208536533,
+          "event_key": 202315
+        },
+        {
+          "baseline_mae": 0.4018911241002044,
+          "candidate_mae": 0.4034743357415562,
+          "event_key": 202316
+        },
+        {
+          "baseline_mae": 0.4178586713151729,
+          "candidate_mae": 0.40883513039581704,
+          "event_key": 202317
+        },
+        {
+          "baseline_mae": 0.3871521090084295,
+          "candidate_mae": 0.38892132738821344,
+          "event_key": 202318
+        },
+        {
+          "baseline_mae": 1.461425361107513,
+          "candidate_mae": 1.6846589285442704,
+          "event_key": 202319
+        },
+        {
+          "baseline_mae": 0.2967897149422956,
+          "candidate_mae": 0.2983714583823301,
+          "event_key": 202320
+        },
+        {
+          "baseline_mae": 0.5350826162688288,
+          "candidate_mae": 0.5348313084476145,
+          "event_key": 202321
+        },
+        {
+          "baseline_mae": 0.2958858791839554,
+          "candidate_mae": 0.2968191554112903,
+          "event_key": 202322
+        }
+      ],
+      "relative_gain": -0.062097010137413866,
+      "row_baseline_mae": 0.5320326458654109,
+      "row_candidate_mae": 0.5705508446004497,
+      "rows": 20007
+    },
+    "median5_gate": {
+      "baseline_mae": 0.512080723333514,
+      "block3_ci95": [
+        -0.0054173561592510775,
+        0.043411522925823315
+      ],
+      "candidate_mae": 0.528793502093634,
+      "delta": 0.01671277876012021,
+      "event_ci95": [
+        -0.00593506832862751,
+        0.04822977429738102
+      ],
+      "events": 22,
+      "events_tied": 0,
+      "events_won": 13,
+      "loo_max_delta": 0.020055368258373237,
+      "loo_min_delta": 0.0069870798602267225,
+      "per_event": [
+        {
+          "baseline_mae": 0.3459360351986063,
+          "candidate_mae": 0.345574329334784,
+          "event_key": 202301
+        },
+        {
+          "baseline_mae": 0.36454885301960105,
+          "candidate_mae": 0.36708981571529076,
+          "event_key": 202302
+        },
+        {
+          "baseline_mae": 0.7283782166820896,
+          "candidate_mae": 0.7312532362351275,
+          "event_key": 202303
+        },
+        {
+          "baseline_mae": 0.3677582257031425,
+          "candidate_mae": 0.36576873803132715,
+          "event_key": 202304
+        },
+        {
+          "baseline_mae": 0.29550334184553256,
+          "candidate_mae": 0.29504214764747344,
+          "event_key": 202305
+        },
+        {
+          "baseline_mae": 1.25687219795556,
+          "candidate_mae": 1.4755448349541798,
+          "event_key": 202306
+        },
+        {
+          "baseline_mae": 0.36809115433354356,
+          "candidate_mae": 0.36912363897540074,
+          "event_key": 202307
+        },
+        {
+          "baseline_mae": 0.38423732285483636,
+          "candidate_mae": 0.330755722151643,
+          "event_key": 202308
+        },
+        {
+          "baseline_mae": 0.2902675695509647,
+          "candidate_mae": 0.28895422327479847,
+          "event_key": 202309
+        },
+        {
+          "baseline_mae": 0.2653591543187171,
+          "candidate_mae": 0.264700254213036,
+          "event_key": 202310
+        },
+        {
+          "baseline_mae": 0.350268068346513,
+          "candidate_mae": 0.35146658458263585,
+          "event_key": 202311
+        },
+        {
+          "baseline_mae": 0.6561460038694623,
+          "candidate_mae": 0.6754190785227346,
+          "event_key": 202312
+        },
+        {
+          "baseline_mae": 0.8774918496670499,
+          "candidate_mae": 1.0984443053249333,
+          "event_key": 202313
+        },
+        {
+          "baseline_mae": 0.29622036201715657,
+          "candidate_mae": 0.29647643085442993,
+          "event_key": 202314
+        },
+        {
+          "baseline_mae": 0.6226120820481291,
+          "candidate_mae": 0.6110132824978634,
+          "event_key": 202315
+        },
+        {
+          "baseline_mae": 0.4018911241002044,
+          "candidate_mae": 0.3998070021659106,
+          "event_key": 202316
+        },
+        {
+          "baseline_mae": 0.4178586713151729,
+          "candidate_mae": 0.4093432264275136,
+          "event_key": 202317
+        },
+        {
+          "baseline_mae": 0.3871521090084295,
+          "candidate_mae": 0.39091993068139486,
+          "event_key": 202318
+        },
+        {
+          "baseline_mae": 1.461425361107513,
+          "candidate_mae": 1.4460873976865567,
+          "event_key": 202319
+        },
+        {
+          "baseline_mae": 0.2967897149422956,
+          "candidate_mae": 0.2923307227076133,
+          "event_key": 202320
+        },
+        {
+          "baseline_mae": 0.5350826162688288,
+          "candidate_mae": 0.5328434723699227,
+          "event_key": 202321
+        },
+        {
+          "baseline_mae": 0.2958858791839554,
+          "candidate_mae": 0.2954986717053791,
+          "event_key": 202322
+        }
+      ],
+      "relative_gain": -0.032637000376276815,
+      "row_baseline_mae": 0.5320326458654109,
+      "row_candidate_mae": 0.5534847562989774,
+      "rows": 20007
+    }
+  },
+  "design_lock_sha256": "7df5d282873a5dfcacae8a46a9772dfd2ab93174ab7630b31bb68c8e565833aa",
+  "discovery_anchors_sha256": "c29364ed29fdc8e46a286234d4d2ed53c4cfb22304c0acbadf961722dff185e8",
+  "input_manifest": [
+    {
+      "anchor_rows": 893,
+      "event_key": 202201,
+      "issuances": 853,
+      "matched_anchor_rows": 833,
+      "matched_rows": 833,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "raw_rows": 1125,
+      "sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345"
+    },
+    {
+      "anchor_rows": 651,
+      "event_key": 202202,
+      "issuances": 615,
+      "matched_anchor_rows": 597,
+      "matched_rows": 597,
+      "new_anchor_history_future_pit_timestamps_ignored": 1,
+      "path": "data/f1/raw/weekends/2022/round_02_saudi_arabian_grand_prix/05_race_laps.csv",
+      "raw_rows": 820,
+      "sha256": "8b72b1b605d24207e7a6d5a6fa278b6bd81406e9b53507db410053a3f994022a"
+    },
+    {
+      "anchor_rows": 813,
+      "event_key": 202203,
+      "issuances": 775,
+      "matched_anchor_rows": 756,
+      "matched_rows": 756,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_03_australian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1045,
+      "sha256": "b01e7ff6c5db6b379335c248ebd20f4e48bfa26fdaf45c750062653f8b4d7f81"
+    },
+    {
+      "anchor_rows": 1006,
+      "event_key": 202204,
+      "issuances": 969,
+      "matched_anchor_rows": 951,
+      "matched_rows": 951,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/05_race_laps.csv",
+      "raw_rows": 1132,
+      "sha256": "83a389df0970599615fbae76767d19b0d28461c4167f7ec3191708c98dd58b66"
+    },
+    {
+      "anchor_rows": 878,
+      "event_key": 202205,
+      "issuances": 838,
+      "matched_anchor_rows": 818,
+      "matched_rows": 818,
+      "new_anchor_history_future_pit_timestamps_ignored": 1,
+      "path": "data/f1/raw/weekends/2022/round_05_miami_grand_prix/05_race_laps.csv",
+      "raw_rows": 1057,
+      "sha256": "7130f761046d2bd6315a86915abb5a96da65664d8823ab0e17e6c68ac36420ec"
+    },
+    {
+      "anchor_rows": 1104,
+      "event_key": 202206,
+      "issuances": 1064,
+      "matched_anchor_rows": 1044,
+      "matched_rows": 1044,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/05_race_laps.csv",
+      "raw_rows": 1230,
+      "sha256": "8442a453e481554d2bb85cd102fcc6a45f244a80c7c71d48bf8fd1ba299213b0"
+    },
+    {
+      "anchor_rows": 967,
+      "event_key": 202207,
+      "issuances": 927,
+      "matched_anchor_rows": 907,
+      "matched_rows": 907,
+      "new_anchor_history_future_pit_timestamps_ignored": 2,
+      "path": "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/05_race_laps.csv",
+      "raw_rows": 1179,
+      "sha256": "ee0b75956ec73b262f1f973951f3918221c9124c9f40c802f2e423e0f22e2deb"
+    },
+    {
+      "anchor_rows": 764,
+      "event_key": 202208,
+      "issuances": 724,
+      "matched_anchor_rows": 704,
+      "matched_rows": 704,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/05_race_laps.csv",
+      "raw_rows": 891,
+      "sha256": "a72b8cfceb34613d06665062b26b21c9defb070e92f166bf75f04ab36fc72562"
+    },
+    {
+      "anchor_rows": 1029,
+      "event_key": 202209,
+      "issuances": 989,
+      "matched_anchor_rows": 969,
+      "matched_rows": 969,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1264,
+      "sha256": "d766eaaafb7d505807312d1fbbfcdf1244068429a75c3a360e7a987fd6b952f9"
+    },
+    {
+      "anchor_rows": 674,
+      "event_key": 202210,
+      "issuances": 640,
+      "matched_anchor_rows": 623,
+      "matched_rows": 623,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_10_british_grand_prix/05_race_laps.csv",
+      "raw_rows": 815,
+      "sha256": "2903341be31d8b79edfff7b494e8b5e2972e36b6b296f2201126ab8e09781b43"
+    },
+    {
+      "anchor_rows": 1181,
+      "event_key": 202211,
+      "issuances": 1141,
+      "matched_anchor_rows": 1121,
+      "matched_rows": 1121,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1324,
+      "sha256": "80e84ff951ec297417a5886cedc1d2fd3896c7e224fc3c807644c5d389dcc498"
+    },
+    {
+      "anchor_rows": 833,
+      "event_key": 202212,
+      "issuances": 793,
+      "matched_anchor_rows": 773,
+      "matched_rows": 773,
+      "new_anchor_history_future_pit_timestamps_ignored": 3,
+      "path": "data/f1/raw/weekends/2022/round_12_french_grand_prix/05_race_laps.csv",
+      "raw_rows": 958,
+      "sha256": "07995f3e32ddc4f3abcecb1423e8e571436ec7fe3631f9d46bb364adf887d6a9"
+    },
+    {
+      "anchor_rows": 1203,
+      "event_key": 202213,
+      "issuances": 1163,
+      "matched_anchor_rows": 1143,
+      "matched_rows": 1143,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1383,
+      "sha256": "f0c60ec41b6ad09f31fe34699f9f9f7951342723da274bd62fb06c93f1ab4dbf"
+    },
+    {
+      "anchor_rows": 645,
+      "event_key": 202214,
+      "issuances": 609,
+      "matched_anchor_rows": 591,
+      "matched_rows": 591,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/05_race_laps.csv",
+      "raw_rows": 792,
+      "sha256": "53cbd5e0cf9fdabe70c662233dd980e92f783310266f71285aadd2931400fdae"
+    },
+    {
+      "anchor_rows": 1139,
+      "event_key": 202215,
+      "issuances": 1099,
+      "matched_anchor_rows": 1079,
+      "matched_rows": 1079,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/05_race_laps.csv",
+      "raw_rows": 1392,
+      "sha256": "f31a1c2f02e108f2146582ef47196dc0ca56a6aaf4bab8952f5402f899c258e3"
+    },
+    {
+      "anchor_rows": 778,
+      "event_key": 202216,
+      "issuances": 738,
+      "matched_anchor_rows": 718,
+      "matched_rows": 718,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_16_italian_grand_prix/05_race_laps.csv",
+      "raw_rows": 971,
+      "sha256": "798d795b8d8c12fbf028246adf01b95c32bc5081e91c0bf281fdbf4cf4b004c8"
+    },
+    {
+      "anchor_rows": 676,
+      "event_key": 202217,
+      "issuances": 636,
+      "matched_anchor_rows": 616,
+      "matched_rows": 616,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/05_race_laps.csv",
+      "raw_rows": 945,
+      "sha256": "b954db0afd6721ed0f3bc926618f4543d8f99f34abae1055cd30460fa0841c12"
+    },
+    {
+      "anchor_rows": 370,
+      "event_key": 202218,
+      "issuances": 334,
+      "matched_anchor_rows": 316,
+      "matched_rows": 316,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/05_race_laps.csv",
+      "raw_rows": 507,
+      "sha256": "3b727ad57371b90c6f4ece4a65394d21d14ffdd6efbd9262c52b188689b47c05"
+    },
+    {
+      "anchor_rows": 778,
+      "event_key": 202219,
+      "issuances": 740,
+      "matched_anchor_rows": 721,
+      "matched_rows": 721,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/05_race_laps.csv",
+      "raw_rows": 992,
+      "sha256": "d373455350d9ec8c4227dcab000c0cd0a89808c4b8d23b899e7743cd43d9d9e9"
+    },
+    {
+      "anchor_rows": 1284,
+      "event_key": 202220,
+      "issuances": 1244,
+      "matched_anchor_rows": 1224,
+      "matched_rows": 1224,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/05_race_laps.csv",
+      "raw_rows": 1379,
+      "sha256": "b36737a3bb217f85c394de99c61f1f12b884e8c0d3ded8aa64659859a46d995e"
+    },
+    {
+      "anchor_rows": 941,
+      "event_key": 202221,
+      "issuances": 905,
+      "matched_anchor_rows": 887,
+      "matched_rows": 887,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/05_race_laps.csv",
+      "raw_rows": 1259,
+      "sha256": "729624203adedba0769a0c8891b2935fc3b8ae242460b7ab5809771dc7ab0c38"
+    },
+    {
+      "anchor_rows": 1032,
+      "event_key": 202222,
+      "issuances": 992,
+      "matched_anchor_rows": 972,
+      "matched_rows": 972,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/05_race_laps.csv",
+      "raw_rows": 1117,
+      "sha256": "e82eace8d2bf82bf657981bae146011cfec6d5e4c957a9fd6664294d3c20bbac"
+    },
+    {
+      "anchor_rows": 914,
+      "event_key": 202301,
+      "issuances": 874,
+      "matched_anchor_rows": 854,
+      "matched_rows": 854,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "raw_rows": 1056,
+      "sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8"
+    },
+    {
+      "anchor_rows": 829,
+      "event_key": 202302,
+      "issuances": 789,
+      "matched_anchor_rows": 769,
+      "matched_rows": 769,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/05_race_laps.csv",
+      "raw_rows": 943,
+      "sha256": "af633b65add8b8380a2999fda5bb1f192a2e1b0c655f0208530534a08c423c39"
+    },
+    {
+      "anchor_rows": 769,
+      "event_key": 202303,
+      "issuances": 731,
+      "matched_anchor_rows": 712,
+      "matched_rows": 712,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_03_australian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1003,
+      "sha256": "e880a2913a6b7f265904e86773dbd2be38f3ed1cfaaf645e30203692d8e2422d"
+    },
+    {
+      "anchor_rows": 846,
+      "event_key": 202304,
+      "issuances": 806,
+      "matched_anchor_rows": 786,
+      "matched_rows": 786,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/05_race_laps.csv",
+      "raw_rows": 962,
+      "sha256": "501866e1a63c68a77d9633137d14e15807a9869cee9281d75b3224fdfe928b20"
+    },
+    {
+      "anchor_rows": 1078,
+      "event_key": 202305,
+      "issuances": 1038,
+      "matched_anchor_rows": 1018,
+      "matched_rows": 1018,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_05_miami_grand_prix/05_race_laps.csv",
+      "raw_rows": 1138,
+      "sha256": "042f0dfd5db204526bf4e72842c458e3bc56ac973ccdcf69bf7627a807902be5"
+    },
+    {
+      "anchor_rows": 1423,
+      "event_key": 202306,
+      "issuances": 1383,
+      "matched_anchor_rows": 1363,
+      "matched_rows": 1363,
+      "new_anchor_history_future_pit_timestamps_ignored": 1,
+      "path": "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/05_race_laps.csv",
+      "raw_rows": 1515,
+      "sha256": "9a288256235e712e87108a17343faa8cecd2ae5ea377a14b3e11075a67162559"
+    },
+    {
+      "anchor_rows": 1207,
+      "event_key": 202307,
+      "issuances": 1167,
+      "matched_anchor_rows": 1147,
+      "matched_rows": 1147,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/05_race_laps.csv",
+      "raw_rows": 1312,
+      "sha256": "a58a9f7c81047587522819e028511a357566b6a6d6dfdd0d881320c245616176"
+    },
+    {
+      "anchor_rows": 1127,
+      "event_key": 202308,
+      "issuances": 1087,
+      "matched_anchor_rows": 1067,
+      "matched_rows": 1067,
+      "new_anchor_history_future_pit_timestamps_ignored": 1,
+      "path": "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1317,
+      "sha256": "8fabdddcf78ccd7271d8c5fd4bdaa8d046ae3efd27a8210b7f109237fdb81f51"
+    },
+    {
+      "anchor_rows": 1186,
+      "event_key": 202309,
+      "issuances": 1146,
+      "matched_anchor_rows": 1126,
+      "matched_rows": 1126,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1354,
+      "sha256": "e7d6285842753c04a7afe5bbae8294cd0f931ddf0bb49409e7bca03e8dea648c"
+    },
+    {
+      "anchor_rows": 802,
+      "event_key": 202310,
+      "issuances": 762,
+      "matched_anchor_rows": 742,
+      "matched_rows": 742,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_10_british_grand_prix/05_race_laps.csv",
+      "raw_rows": 971,
+      "sha256": "3070d8185936137ee666c6897ad1d5bc1e96767283aa2f74297f7bf42842d804"
+    },
+    {
+      "anchor_rows": 1158,
+      "event_key": 202311,
+      "issuances": 1122,
+      "matched_anchor_rows": 1104,
+      "matched_rows": 1104,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/05_race_laps.csv",
+      "raw_rows": 1252,
+      "sha256": "785604227b4dd73b3b814dc1203e266c6d2e057ad3f5480be2d2140aaa6a7d33"
+    },
+    {
+      "anchor_rows": 721,
+      "event_key": 202312,
+      "issuances": 683,
+      "matched_anchor_rows": 664,
+      "matched_rows": 664,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/05_race_laps.csv",
+      "raw_rows": 816,
+      "sha256": "b15e74b797f7c1163f3f66105d2aab33415bde02eb6cfb3fd4aeaf96fa12fd77"
+    },
+    {
+      "anchor_rows": 1014,
+      "event_key": 202313,
+      "issuances": 974,
+      "matched_anchor_rows": 954,
+      "matched_rows": 954,
+      "new_anchor_history_future_pit_timestamps_ignored": 82,
+      "path": "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/05_race_laps.csv",
+      "raw_rows": 1343,
+      "sha256": "dc814e2635575a563da7ae84d0b10a2bf2567cc428a3526f890cc9b57de6e4d0"
+    },
+    {
+      "anchor_rows": 878,
+      "event_key": 202314,
+      "issuances": 840,
+      "matched_anchor_rows": 821,
+      "matched_rows": 821,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_14_italian_grand_prix/05_race_laps.csv",
+      "raw_rows": 957,
+      "sha256": "a69bd539061371ef57c97887d1306527c3abeecae2627acb0000bdf92e10526a"
+    },
+    {
+      "anchor_rows": 958,
+      "event_key": 202315,
+      "issuances": 922,
+      "matched_anchor_rows": 904,
+      "matched_rows": 904,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_15_singapore_grand_prix/05_race_laps.csv",
+      "raw_rows": 1088,
+      "sha256": "091975e87ddd75c550215bd204648c7c19a5fd5ec43c72d818200b0ffc6336c0"
+    },
+    {
+      "anchor_rows": 702,
+      "event_key": 202316,
+      "issuances": 663,
+      "matched_anchor_rows": 644,
+      "matched_rows": 644,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/05_race_laps.csv",
+      "raw_rows": 880,
+      "sha256": "c5f1dec7fc7082914e6eba98cb2383c4b8bbb65a74e7cf27fe5ecde5e4e2664b"
+    },
+    {
+      "anchor_rows": 834,
+      "event_key": 202317,
+      "issuances": 798,
+      "matched_anchor_rows": 780,
+      "matched_rows": 780,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/05_race_laps.csv",
+      "raw_rows": 1006,
+      "sha256": "716c5dbf0274ad90a3719ee73776c50d3a2ac2e8092cc7a8fedc078d154ff014"
+    },
+    {
+      "anchor_rows": 919,
+      "event_key": 202318,
+      "issuances": 879,
+      "matched_anchor_rows": 859,
+      "matched_rows": 859,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/05_race_laps.csv",
+      "raw_rows": 1014,
+      "sha256": "d5097ed759158691a3efa6ffa4e5c00c87dc30a02f2b19fe6b2437f1118d638f"
+    },
+    {
+      "anchor_rows": 1131,
+      "event_key": 202319,
+      "issuances": 1093,
+      "matched_anchor_rows": 1074,
+      "matched_rows": 1074,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/05_race_laps.csv",
+      "raw_rows": 1282,
+      "sha256": "8ccd24708295f43e92823103822c3ff9233734cd6fb46c115b8fbf3c68613d57"
+    },
+    {
+      "anchor_rows": 986,
+      "event_key": 202320,
+      "issuances": 952,
+      "matched_anchor_rows": 935,
+      "matched_rows": 935,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/05_race_laps.csv",
+      "raw_rows": 1108,
+      "sha256": "2c9834e4bc5bf394ae670245ea6171ee9b78e71027dd6a4867b685dc8e362c18"
+    },
+    {
+      "anchor_rows": 738,
+      "event_key": 202321,
+      "issuances": 700,
+      "matched_anchor_rows": 681,
+      "matched_rows": 681,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/05_race_laps.csv",
+      "raw_rows": 946,
+      "sha256": "af472152470e2995671c371aa17b872fdaec257511f14b7e732b8f4415419da5"
+    },
+    {
+      "anchor_rows": 1063,
+      "event_key": 202322,
+      "issuances": 1023,
+      "matched_anchor_rows": 1003,
+      "matched_rows": 1003,
+      "new_anchor_history_future_pit_timestamps_ignored": 0,
+      "path": "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/05_race_laps.csv",
+      "raw_rows": 1157,
+      "sha256": "8dcf0d4c00b6b918b74effa253309625d79d02a17ba19178b5ba743bc9d1c2e5"
+    }
+  ],
+  "predictions_csv_sha256": "e82ef556a7ba643ab120de2da16e3f0531ce7055917dba69fe0a032c43f0c7b6",
+  "predictions_sha256": "838a2ca6a9fbeba97a43de16a90664d632efca67e6cae8d65715f722397c780a",
+  "selected": "median3_gate",
+  "selected_configuration": {
+    "policy": "gate",
+    "window": 3
+  },
+  "selection_event_keys": [
+    202301,
+    202302,
+    202303,
+    202304,
+    202305,
+    202306,
+    202307,
+    202308,
+    202309,
+    202310,
+    202311,
+    202312,
+    202313,
+    202314,
+    202315,
+    202316,
+    202317,
+    202318,
+    202319,
+    202320,
+    202321,
+    202322
+  ],
+  "selection_models_sha256": "8b29b82c55b75d4e10695687c443adbfbf840aee2ce3f74bbc501fb9cc32b095",
+  "selection_year": 2023,
+  "training_event_keys": [
+    202201,
+    202202,
+    202203,
+    202204,
+    202205,
+    202206,
+    202207,
+    202208,
+    202209,
+    202210,
+    202211,
+    202212,
+    202213,
+    202214,
+    202215,
+    202216,
+    202217,
+    202218,
+    202219,
+    202220,
+    202221,
+    202222
+  ],
+  "training_years": [
+    2022
+  ],
+  "validation_advancement_screen_passed": false
+}

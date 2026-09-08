@@ -1,0 +1,16 @@
+{
+  "frozen_before_transfer": "2026-09-07T23:58:31.030291+00:00",
+  "dependencies": {
+    "research/experiments/boundary_20260908/checkpoint/run_experiment.py": "c1dc9a34bbfbbeed915de3ac6b7ff733d69704c786d10156d72708599e00eab6",
+    "research/experiments/boundary_20260908/checkpoint/spec.json": "7ca93935ed58a826c20f78fe539e7e6de8f3c1808a60220c6f03b59481fdfdbc",
+    "packages/f1/models/live_race/next_lap.py": "eef4d0bab94a933bc284f0d27b2ed94b93eee3721c5d4f46ceafc38b1c9180e9",
+    "packages/f1/models/live_race/next_lap_features.py": "86e8e7d143bacb7c76748f1584667488c8042bb5a0cc53964eee92d4e9adb072",
+    "packages/f1/models/live_race/assets/frontier_live_hgb_l15_i150_20260907.json": "d8bd93f1b04ecf290eb821f02397253b77248cf3c1943b05e1c540d4942e7e36",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097"
+  },
+  "design_sha256": "c4491c14538d3d39415290afe977637727397a634d1b8d9b212d02bf89394b4c",
+  "selection_sha256": "3223c619d621ef078832f23b3b6f81eb0beb564ba773ab7ef86801810b4c8134",
+  "models_sha256": "89ccdad3e99616506694b51866590a647e8e41c888a397ca40010fe7a58d90a3",
+  "residual_training_sha256": "7fc05d7b65cf903c9d64edaf48f67d12d61eb63d6b037ee1a3975b97c2d9c2ad",
+  "selection_forecasts_sha256": "a3f3720d593b21ddfae8548d099e9a85a369f6132f42b7dd7a874469347281f4"
+}

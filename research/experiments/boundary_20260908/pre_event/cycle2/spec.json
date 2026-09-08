@@ -1,0 +1,26 @@
+{
+  "experiment_id": "matched_lap_hierarchical_measurement_20260908_cycle2",
+  "mechanisms": 1,
+  "objective": "Add information from multiple comparable pre-Q laps to the strongest historical Q2 forecast; test a new measurement signal after season-reset rank correction failed.",
+  "data_boundary": "Only the last completed Practice3 or SprintQualifying before GrandPrixQualifying. Never post-Q practice. Latest session order must be less than target session order. Baseline forecasts, pre-Q raw anchors and complete roster are immutable preceding experiment outputs read with an explicit feature-column allowlist. Current official qualifying labels are opened only after forecast serialization/hash.",
+  "lap_filter": "Known accurate, green TrackStatus1, no pit-in/out, not explicitly deleted, 30-240 seconds, known session completion clock, known SOFT/MEDIUM/HARD/INTERMEDIATE/WET and tyre age1-6. Within each driver/compound retain laps no slower than1.02 times its clean best, capped to four quickest. Missing deletion metadata is unavailable, not proof a lap was legally undeleted.",
+  "matching": "For each retained lap, nearest clock lap of every other driver on identical compound within180 seconds and tyre age difference<=2. A lap proposes comparisons only with at least two other drivers. Union unique undirected proposals. Individual driver support requires two matched laps, three distinct peer drivers and comparison graph component>=6 drivers. Full roster remains, unsupported drivers retain Q2 latent score; other drivers moving can change their final rank.",
+  "model": "Matched lap difference in seconds divided by pre-Q anchor IQR/9.5 (minimum0.02 seconds), minus Q2 prior rank difference in20-car-equivalent positions. Regress on team-indicator differences, driver-indicator differences, common piecewise-linear clock evolution differences and compound-specific observed tyre-age differences. Clock measured in600-second units, hinges at observed pre-Q lap clock quartiles. Compound intercepts cancel by matching. This estimates relative timing differences, not fuel-corrected true pace.",
+  "loss": "Huber delta3 weighted by0.5*(1/degree_lap_a+1/degree_lap_b) plus quadratic penalties. Team penalty=lambda, driver=4lambda, common clock=0.1, compound-age=2lambda. IRLS maximum60 iterations, coefficient tolerance1e-8; log gradient and iterations. No qualifying labels fit this event-specific measurement model.",
+  "uncertainty": "Delete each incident lap's comparisons and solve with final robust weights held fixed. Maximum absolute change in each driver's team+driver innovation is a conditional leave-lap-out sensitivity, not a calibrated standard error. Reliability=min(matched_laps/3,1)*min(peer_drivers/5,1)/(1+(sensitivity/2)^2), zero without support. Add strength*reliability*clip(innovation,-5,5) to Q2 latent rank; stable legal permutation with Q2 tie-break. Whole-event fallback is exactly Q2 when no supported drivers or invalid scale.",
+  "candidates": {
+    "lambda0.5_strength0.5": {"penalty_strength": 0.5, "blend_strength": 0.5},
+    "lambda0.5_strength1": {"penalty_strength": 0.5, "blend_strength": 1.0},
+    "lambda4_strength0.5": {"penalty_strength": 4.0, "blend_strength": 0.5},
+    "lambda4_strength1": {"penalty_strength": 4.0, "blend_strength": 1.0}
+  },
+  "selection": "Four configurations only, chosen by equal-event mean rank MAE on16 eligible2023 events. Ties within1e-12 prefer larger penalty then smaller strength. Serialize lock before reading current2024 targets. Only selected configuration evaluated on24events2024,24events2025,nine2026. No score-informed repairs or further variants.",
+  "comparators": ["baseline_qualifying", "Q1_fixed_rank_blend", "Q2_ridge_rank_residual"],
+  "metrics": ["complete-roster equally-event-weighted rank MAE", "Kendall tau", "top3 overlap"],
+  "uncertainty_of_score": "20000 paired event bootstrap and circular three-event block bootstrap,seed20260908,leave-one-event-out ranges. Descriptive retrospective resampling, not posterior or prospective confirmation.",
+  "data_roles": {"selection": [2023], "historical_transfer": [2024, 2025], "exposed_diagnostic": [2026], "all_dates_previously_exposed": true},
+  "material_success_screen": "At least0.15 positions better than Q2 over pooled2024-25 and no2026 regression versus Q1. No production promotion from this retrospective run.",
+  "label_blind_support": "2023 mean16.125 supported drivers;2024 15.2083 with one whole-event fallback;2025 16.625;2026 17.7778. These are matching availability counts computed before scoring.",
+  "resources": {"numerical_threads": 1, "neural_training": false},
+  "production_changes": false
+}

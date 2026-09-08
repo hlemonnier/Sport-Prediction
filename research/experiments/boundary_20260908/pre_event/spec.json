@@ -1,0 +1,16 @@
+{
+  "experiment_id": "dynamic_hierarchical_rehearsal_bias_20260908",
+  "mechanism_count": 1,
+  "mechanism": "Season-reset exponentially forgetting hierarchical driver/team rehearsal-bias regression with Huber residuals and Gaussian shrinkage; output sorted as a legal qualifying permutation.",
+  "motivation": "Previous pooled rank correction wins 2024-25 but overcorrects 2026. Estimate the current season's practice-to-qualifying bias instead of transporting older-season coefficients unchanged.",
+  "source": "Same completed pre-Q FP3/Sprint Qualifying and complete-roster contract as the verified performance_20260907 pre-event experiment. No post-Q FP2 on old sprint weekends.",
+  "state": "Reset every January. Fit strictly earlier complete events of the target season. All numerical effects start at zero; no prior-season labels enter the model or the historical-rank feature. Within-season historical rank uses last six driver events, half-life three; fallback same-team event means, then field median.",
+  "response": "19*(official_rank - rehearsal_rank)/(field_size-1), in 20-car-equivalent position units.",
+  "features": "Per-event centered: (earlier_rank-latest_rank)*19/5; (prior_rank-latest_rank)*19/5; latest_rank; imputed indicator; best-two-spread/duration clipped [0,.1] times100; latent-potential-rank minus latest rank scaled19/5; SQ interactions with earlier/prior differences. Plus event-centered driver and team indicator columns. Missing features become zero (prior mean). All scales fixed a priori.",
+  "objective": "Sum event-recency*20/field_size*Huber_delta3(residual-Xbeta) + 0.5*beta^T Lambda beta. Lambda diagonal: numeric=lambda, team=2lambda, driver=4lambda. Exact IRLS solves, maximum40 iterations, coefficient tolerance1e-8. Sort latest_rank + strength*clipped_bias/19, clipping bias to+/-5 equivalent positions. Latest rehearsal rank breaks score ties.",
+  "hyperparameter_grid": {"half_life_events": [3,8], "lambda": [0.5,2,8], "strength": [0.5,1.0]},
+  "selection": "Exactly12 variants. Select minimum equally-event-weighted 2023 MAE only; numerical ties within1e-12 choose larger lambda, smaller strength, shorter half-life. Persist selection lock before opening any 2024 target in this run. Report every tried variant and failure. No further selection or adaptation of hyperparameters.",
+  "evaluation": {"selection_year":2023,"historical_transfer_years":[2024,2025],"exposed_diagnostic_years":[2026],"all_dates_previously_exposed":true,"metrics":["event-balanced rank MAE","Kendall tau","top3 overlap"],"comparators":["baseline_qualifying","Q1_fixed_rank_blend","Q2_ridge_rank_residual"],"primary_comparator":"Q2_ridge_rank_residual, the strongest verified 2024-25 model; also require explicit 2026 comparison to Q1, the strongest prior 2026 point result","uncertainty":"20000 paired event bootstrap and circular three-event block bootstrap; seed20260908; leave-one-event-out range; descriptive, not prospective confirmation","success_screen":"Material research gain requires >=0.15 position event-MAE reduction vs Q2 in pooled2024-25 and no2026 regression vs Q1. No production promotion regardless of result."},
+  "resources": {"numerical_threads":1,"neural_training":false},
+  "production_changes":false
+}

@@ -1,0 +1,26 @@
+{
+  "groups": [
+    {
+      "baseline_row_mae": 0.47254300124027443,
+      "group": "anchor_gap_below1",
+      "row_mae_delta": 0.0,
+      "rows": 18863,
+      "selected_row_mae": 0.47254300124027443
+    },
+    {
+      "baseline_row_mae": 1.018595722160483,
+      "group": "anchor_gap_1to3",
+      "row_mae_delta": 0.02351423514503521,
+      "rows": 989,
+      "selected_row_mae": 1.0421099573055184
+    },
+    {
+      "baseline_row_mae": 4.667144156240401,
+      "group": "anchor_gap_above3",
+      "row_mae_delta": 0.9141614962995798,
+      "rows": 155,
+      "selected_row_mae": 5.581305652539981
+    }
+  ],
+  "scope": "2023-only fixed observed-gap groups; no variants selected or transfer labels opened"
+}

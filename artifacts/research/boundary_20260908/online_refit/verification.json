@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "source_sha256": "df8a5cd61d184a8b495ed3f5bac3f17d23c43fa58f4cf7ccabac4a05d9da6799",
+  "verifier_sha256": "3b684ca735c028c96b3e4d505cee1d5e39f4278cd02e5a6a90d6d6b8618c5739",
+  "selection_sha256": "118570845ace7b0e649d9e6824f0ff796c4b962c1ca1e02a18a71612144f2366",
+  "raw_sources_verified": 44,
+  "fit_prediction_blocks_checked": 30,
+  "selected_policy_exactly_refitted": true,
+  "selection_rows": 20007,
+  "rejected_before_transfer": true
+}

@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "selection_sha256": "f8f418a8325822d6edff654fab6740bd11936ade8b48601b823faea2a42f6ce1",
+  "verifier_sha256": "571b4faa18dc4415ec9808c14ad18974c7d16cf554247cacaae0191adadb4f7c",
+  "raw_sources_verified": 44,
+  "selection_rows": 20007,
+  "candidate_predictions_reproduced": 8,
+  "crossfit_validation_events": 16,
+  "future_outcome_poisoning": [
+    {
+      "event_key": 202301,
+      "cutoff": 5674.5604,
+      "issuances": 256
+    },
+    {
+      "event_key": 202301,
+      "cutoff": 7664.765699999999,
+      "issuances": 598
+    },
+    {
+      "event_key": 202313,
+      "cutoff": 6203.398300000001,
+      "issuances": 286
+    },
+    {
+      "event_key": 202313,
+      "cutoff": 7900.1598,
+      "issuances": 668
+    },
+    {
+      "event_key": 202322,
+      "cutoff": 5593.4076000000005,
+      "issuances": 301
+    },
+    {
+      "event_key": 202322,
+      "cutoff": 7576.3876,
+      "issuances": 702
+    }
+  ],
+  "rejected_before_transfer": true
+}

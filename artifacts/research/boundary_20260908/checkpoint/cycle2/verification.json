@@ -1,0 +1,28 @@
+{
+  "selection_sha256": "0bbf48846fd39d368ae46ba26efa09c2b5d69b4bfff5a2e87458d1a744890b88",
+  "fit_lock_sha256": "0dfebfde8e4803ab8d34383a187ab994c33639dad1c84ec0847b99b5879d4e54",
+  "verifier_sha256": "613b8f270671f6dd04e08f189ebbdb73b46fce1f15f1187b0e4ec9d81d492f1e",
+  "input_hashes_checked": 44,
+  "selection_predictions_recomputed": 88696,
+  "base_2022_only_and_cycle1_discovery_points_exact": true,
+  "independent_selection_event_mae_recomputed": true,
+  "stage1_expanding_crossfit_predictions_exact": true,
+  "no_support_cycle1_fallback_exact": true,
+  "eligible_predictions_unchanged": true,
+  "prefix_invariance": [
+    {
+      "event_key": 202201,
+      "cutoff": 7224.0548,
+      "issuances": 615,
+      "all_four_candidates_exact": true
+    },
+    {
+      "event_key": 202313,
+      "cutoff": 7366.0264,
+      "issuances": 723,
+      "all_four_candidates_exact": true
+    }
+  ],
+  "transfer_evaluated": false,
+  "tests": "5 semantic regression tests passed"
+}

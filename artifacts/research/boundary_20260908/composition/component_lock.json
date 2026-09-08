@@ -1,0 +1,13 @@
+{
+  "frozen_at": "2026-09-08T00:20:46.126490+00:00",
+  "design_lock_sha256": "4b062814a89d9d94a92515cdb3f782021447c0beb49349517de6ba2e09e16675",
+  "anchor_selection_sha256": "36740bf4328a721ebab358e56df06b5c340c5bc97042a254a5b555d14798ebb1",
+  "peer_selection_sha256": "0bbf48846fd39d368ae46ba26efa09c2b5d69b4bfff5a2e87458d1a744890b88",
+  "eligible_branch": "current_hgb",
+  "ineligible_branch": "checkpoint_cycle1_hgb_l15_c3",
+  "reason": "Both newly selected components failed their frozen2023advancement rules.",
+  "source_forecasts_sha256": "c9a8785c938a8b80f88b3b0b05f8a014fa39adc538ef818e44cd5ec5cff4b5e8",
+  "compositor_sha256": "95215cafb5e30dcb9b777fa12968d209e1dcd57557fbe1e7f6e31813f8ea2cb3",
+  "runner_sha256": "50816153a27a0d0c3742f322f567454369aec97299dd5f4b7cca437fbd1f4110",
+  "new_component_transfer_read": false
+}

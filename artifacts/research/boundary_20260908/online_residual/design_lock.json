@@ -1,0 +1,77 @@
+{
+  "frozen_at": "2026-09-07T23:54:07.967514+00:00",
+  "spec_sha256": "7dba1369be15b8fd5987d7fdffadfe94a99dffd9641b45b748c21272da2840e4",
+  "source_sha256": "b5b157e724cd72e825df9d88f0d3b8d83f1f89a26b10f502b21423002f16073a",
+  "original_source_sha256": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+  "discovery_data_sha256": "9f657a724b93c285fa31453b0dca200812e47b634fddfbb3ccb430a4ba70c66d",
+  "specification": {
+    "experiment_id": "online_residual_assimilation_20260908",
+    "hypothesis": "Recently resolved own and peer errors of the frozen nonlinear predictor reveal track-level and driver-level drift not represented by raw lap differences.",
+    "population": "Exactly the original matched next-eligible-lap issuances, not later checkpoints. No prediction time or target changes.",
+    "baseline": "Fixed hgb_l15_i150 hyperparameters; fit2022 for selection2023, unchanged production2022-23 fit for transfer.",
+    "online_information": "A residual becomes visible only at its target timestamp. Own residual at current timestamp is allowed; peer residuals must be strictly earlier. Only resolved same-stint targets update residual state. Own state resets on issuance stint-generation changes. Latest peer residual per driver within180seconds and2laps; event state starts empty.",
+    "residual_training": "Expanding2022 blocks: first6events train base/next5events score; first11/next5; first16/last6. Meta-model sees only these cross-fit residuals. Final residual fit adds2023 base predictions made by a2022-only fit. No transfer outcomes fit any static model; online state updates from already observed outcomes are part of the frozen predictor.",
+    "candidates": {
+      "filters": [
+        {
+          "name": "peer_half",
+          "peer": 0.5,
+          "own": 0
+        },
+        {
+          "name": "peer_full",
+          "peer": 1,
+          "own": 0
+        },
+        {
+          "name": "peer_own_half",
+          "peer": 0.5,
+          "own": 0.5
+        },
+        {
+          "name": "peer_half_own_negative_quarter",
+          "peer": 0.5,
+          "own": -0.25
+        }
+      ],
+      "huber_penalties": [
+        0.1,
+        10.0
+      ],
+      "hgb_leaves": [
+        7,
+        15
+      ],
+      "meta_hgb": {
+        "loss": "absolute_error",
+        "max_iter": 150,
+        "learning_rate": 0.04,
+        "min_samples_leaf": 100,
+        "l2_regularization": 10,
+        "early_stopping": false
+      },
+      "residual_target_clip_seconds": 3,
+      "output_correction_clip_seconds": 1.5
+    },
+    "selection": "Exactly8 candidates. Select minimum event-balanced2023MAE; deterministic lexicographic name tie break. Persist selection lock before transfer loading. If validation gain below0.5percent, reject cycle without opening transfer table.",
+    "substantial_gate": {
+      "historical_relative_gain_min": 0.1,
+      "each_year_improves": [
+        2024,
+        2025,
+        2026
+      ],
+      "historical_block3_ci_upper_max": 0,
+      "all_historical_leave_one_event_out_improve": true
+    },
+    "uncertainty": "20000 paired event and circular3-event bootstrap replicates; event-balanced means; seed20260908. All2024-26dates already exposed historically, so intervals are descriptive, not confirmation after repeated search.",
+    "runtime_limitations": "Same recorded eligibility/input availability convention as current production. Retrospectively reconstructed flags are not proof of original feed receipt times. No calibrated interval or strategy/RL reward claim.",
+    "sources": [
+      "https://jmlr.org/papers/v16/moroshko15a.html",
+      "https://arxiv.org/abs/1809.05870"
+    ],
+    "source_interpretation": "Motivation for forgetting and sequential adaptive regression; custom residual state features and HGB/Huber implementation, not a reproduction of either paper's algorithm or theorem.",
+    "production_changes": false,
+    "suggested_commit": "research(f1-live): test causal online residual assimilation"
+  }
+}

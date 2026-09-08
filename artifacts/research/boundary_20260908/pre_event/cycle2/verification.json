@@ -1,0 +1,21 @@
+{
+  "checks": {
+    "event_metrics": 1020,
+    "events": 73,
+    "fitted_predictions_reconstructed": 120,
+    "forecast_hashes": 73,
+    "rank_permutations": 340,
+    "unsupported_driver_scores_checked": 461,
+    "whole_event_fallbacks": 1
+  },
+  "implementation_files": 87,
+  "input_files": 225,
+  "limits": "Verifies recorded chronology and exact pre-target forecast bytes; execution-order proof additionally requires source review. Measurement sensitivity is not calibrated uncertainty.",
+  "output_files": 3,
+  "results_sha256": "f97953fc65cd65fdbf0ad9c57f267d313a583f576d0dcd5454b0d685e35d6af8",
+  "rows": 1477,
+  "selected_diagnostics_sha256": "a0a4ca047b8699aa82cc7057976416bde2aa76bc57aeb3d6534c7f3ad2344502",
+  "selection_events": 16,
+  "status": "PASS",
+  "verifier_sha256": "86dd993336b3a5b6861983a86f3c5a4becc0b2775d8dcda5bade9d11b4141629"
+}

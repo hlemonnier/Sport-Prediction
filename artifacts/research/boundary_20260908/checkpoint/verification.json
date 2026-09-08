@@ -1,0 +1,44 @@
+{
+  "results_sha256": "f858e6700afc8adbdd05831cb5287256b21d6e2619d6083bcc8539428071fce9",
+  "verifier_sha256": "45d53748ebcd127ffa34b1ae5660c77d1f6f3869af6adb9c5e0854b4b8915300",
+  "source_dependencies_unchanged": true,
+  "input_hashes_checked": 105,
+  "all_transfer_predictions_recomputed": true,
+  "models_checked": [
+    "hgb_l7_c3",
+    "hgb_l7_c6",
+    "hgb_l15_c3",
+    "hgb_l15_c6"
+  ],
+  "full_and_target_balanced_mae_independently_recomputed": true,
+  "eligible_predictions_exactly_unchanged": true,
+  "selection_base_unseen_year_verified": true,
+  "expanding_fold_disjointness_verified": true,
+  "prefix_invariance": [
+    {
+      "event_key": 202201,
+      "cutoff": 7224.0548,
+      "issuances": 615,
+      "all_four_candidates_exact": true
+    },
+    {
+      "event_key": 202313,
+      "cutoff": 7366.0264,
+      "issuances": 723,
+      "all_four_candidates_exact": true
+    },
+    {
+      "event_key": 202506,
+      "cutoff": 6568.432399999999,
+      "issuances": 507,
+      "all_four_candidates_exact": true
+    },
+    {
+      "event_key": 202613,
+      "cutoff": 8250.600400000001,
+      "issuances": 494,
+      "all_four_candidates_exact": true
+    }
+  ],
+  "tests_sha256": "2cf9cdb9008e6445026abf9a6646149c377f797b6fce19dbb680c081b15146c4"
+}

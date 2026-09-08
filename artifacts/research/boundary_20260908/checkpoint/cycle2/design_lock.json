@@ -1,0 +1,112 @@
+{
+  "frozen_at": "2026-09-08T00:17:14.462668+00:00",
+  "specification": {
+    "experiment": "checkpoint_current_peer_residual_cycle_2",
+    "created_before_candidate_fitting": true,
+    "seed": 20260908,
+    "population": "Exact cycle1 checkpoints and target pairings, including unmatched issuances. Original eligible-issuance predictions remain unchanged.",
+    "references": [
+      "Exact current production HGB carried point",
+      "Frozen cycle1 selected hgb_l15_c3 checkpoint expert"
+    ],
+    "activation": "Only ineligible checkpoints with at least three different drivers whose latest eligible clean observations are strictly newer than the original HGB issuance and strictly earlier than this checkpoint; observations must be at most180 seconds old and within one numbered lap. Otherwise return the exact cycle1 point.",
+    "causality": "Process global timestamp batches; no other-car updates from the same timestamp. Recorded eligibility and field publication latency remain retrospective assumptions. No future target flags, laps, durations, gaps or later peer state enter features or activation.",
+    "features": "Cycle1 known features and point; new/current peer clean pace median/MAD/age/support; paired same-driver peer pace differences from records strictly preceding original issuance; same-compound and same-stint peer cohorts; current field pace minus stored prior field reference; robust own-minus-field offsets from up to6 earlier eligible observations and separate current-stint offsets. Insufficient support has explicit missing indicators. Forward observed stint/compound/pit-out resets only; future pit timestamps masked as in cycle1.",
+    "training": {
+      "2022_cycle1_expert_crossfit": [
+        {
+          "train_events": [
+            202207,
+            202208,
+            202209,
+            202210,
+            202211
+          ],
+          "score_events": [
+            202212,
+            202213,
+            202214,
+            202215,
+            202216
+          ]
+        },
+        {
+          "train_events": [
+            202207,
+            202208,
+            202209,
+            202210,
+            202211,
+            202212,
+            202213,
+            202214,
+            202215,
+            202216
+          ],
+          "score_events": [
+            202217,
+            202218,
+            202219,
+            202220,
+            202221,
+            202222
+          ]
+        }
+      ],
+      "base_points": "Reuse cycle1 expanding2022 base forecasts. Every stage1 expert score event is later than every expert-fit event.",
+      "selection": "2023 only, using base coefficients fitted2022 and cycle1 discovery expert fitted on2022 expanding base forecasts. Select minimum full-checkpoint event-balanced MAE with deterministic grid-order tie breaking.",
+      "final_fit": "Selected peer residual refit on2022 cycle1-expert crossfit events12\u201322 plus2023 predictions from the cycle1 discovery expert; no2024\u201326 fitting. Compare transfer to exact bundled HGB and frozen final cycle1 expert.",
+      "weights": "Equal total event weight over active peer-supported checkpoints.",
+      "candidate_family": "HistGradientBoostingRegressor, absolute_error loss, learning_rate0.06,150 iterations,min_samples_leaf40,l2_regularization10,early_stoppingfalse,random_state20260908, target residual clipped\u00b16seconds.",
+      "grid": [
+        {
+          "name": "peer_hgb_l7_c1",
+          "max_leaf_nodes": 7,
+          "prediction_clip_seconds": 1
+        },
+        {
+          "name": "peer_hgb_l7_c3",
+          "max_leaf_nodes": 7,
+          "prediction_clip_seconds": 3
+        },
+        {
+          "name": "peer_hgb_l15_c1",
+          "max_leaf_nodes": 15,
+          "prediction_clip_seconds": 1
+        },
+        {
+          "name": "peer_hgb_l15_c3",
+          "max_leaf_nodes": 15,
+          "prediction_clip_seconds": 3
+        }
+      ]
+    },
+    "evaluation": "All four variants reported. Equal-event full-checkpoint MAE plus equal-driver-target sensitivity, transition/neutralized/support subsets. 20000 paired event resamples, within-year circular three-event block intervals, per-event deltas and LOO. Historical2024/2025 and exposed2026 separate; compare each to production HGB and cycle1.",
+    "substantial_gain_criteria": {
+      "historical_full_checkpoint_gain_vs_production_at_least": 0.1,
+      "historical_target_balanced_gain_vs_production_at_least": 0.05,
+      "both_historical_years_improve_vs_production": true,
+      "historical_block3_ci_upper_negative_vs_production": true,
+      "historical_all_loo_improve_vs_production": true,
+      "exposed2026_improves_vs_production": true,
+      "historical_full_and_target_balanced_improve_vs_cycle1": true,
+      "exposed2026_improves_vs_cycle1": true,
+      "no_support_exact_cycle1_fallback": true,
+      "eligible_predictions_exactly_unchanged": true
+    },
+    "constraints": "OneCPU, four variants only, no acquisition, no production/git changes, no cycle1 artifact edits, no transfer-driven reselection or second grid. Retrospective research only; no promotion."
+  },
+  "dependencies": {
+    "research/experiments/boundary_20260908/checkpoint/cycle2/run_experiment.py": "5417d2779aaa26f3ee616a31522170386cfe07a38fd344df37d6e0c2ecdf68d3",
+    "research/experiments/boundary_20260908/checkpoint/cycle2/spec.json": "1c9648ac23d87ab03834158040fa506b0fa7f8f961d9593d5103a372d84ddd93",
+    "research/experiments/boundary_20260908/checkpoint/run_experiment.py": "c1dc9a34bbfbbeed915de3ac6b7ff733d69704c786d10156d72708599e00eab6",
+    "artifacts/research/boundary_20260908/checkpoint/fit_lock.json": "e8791181b01f350b1038affa6132201e94414fd16f2bc6d52dfab97480e8a2e8",
+    "artifacts/research/boundary_20260908/checkpoint/selection.json": "3223c619d621ef078832f23b3b6f81eb0beb564ba773ab7ef86801810b4c8134",
+    "artifacts/research/boundary_20260908/checkpoint/models.pkl": "89ccdad3e99616506694b51866590a647e8e41c888a397ca40010fe7a58d90a3",
+    "artifacts/research/boundary_20260908/checkpoint/results.json": "f858e6700afc8adbdd05831cb5287256b21d6e2619d6083bcc8539428071fce9",
+    "artifacts/research/boundary_20260908/checkpoint/verification.json": "f68db6336467224c0880c99959f1ca5654497d31854ddd0da8a35a1c3c87069a",
+    "artifacts/research/boundary_20260908/checkpoint/amended_input_lock.json": "ce963ce6e3397b59fefff50b117200a359c13ba5c13a22bcf85ea8321457c31d",
+    "artifacts/research/boundary_20260908/checkpoint/crossfit_residual_training.pkl": "7fc05d7b65cf903c9d64edaf48f67d12d61eb63d6b037ee1a3975b97c2d9c2ad",
+    "artifacts/research/boundary_20260908/checkpoint/selection_forecasts.pkl": "a3f3720d593b21ddfae8548d099e9a85a369f6132f42b7dd7a874469347281f4"
+  }
+}

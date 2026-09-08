@@ -1,0 +1,530 @@
+202301 scored 20 active 12
+202302 scored 20 active 12
+202303 scored 20 active 12
+202304 EXCLUDED ValueError('round_04_azerbaijan_grand_prix: no causal FP3/Sprint-Qualifying target-aligned rehearsal')
+202305 scored 20 active 12
+202306 scored 20 active 12
+202307 scored 20 active 12
+202308 scored 20 active 12
+202309 EXCLUDED ValueError('round_09_austrian_grand_prix: no causal FP3/Sprint-Qualifying target-aligned rehearsal')
+202310 scored 20 active 12
+202311 scored 20 active 12
+202312 EXCLUDED ValueError('round_12_belgian_grand_prix: no causal FP3/Sprint-Qualifying target-aligned rehearsal')
+202313 scored 20 active 12
+202314 scored 20 active 12
+202315 scored 20 active 12
+202316 scored 20 active 12
+202317 EXCLUDED ValueError('round_17_qatar_grand_prix: no causal FP3/Sprint-Qualifying target-aligned rehearsal')
+202318 EXCLUDED ValueError('round_18_united_states_grand_prix: no causal FP3/Sprint-Qualifying target-aligned rehearsal')
+202319 scored 20 active 12
+202320 EXCLUDED ValueError('round_20_s_o_paulo_grand_prix: no causal FP3/Sprint-Qualifying target-aligned rehearsal')
+202321 scored 20 active 12
+202322 scored 20 active 12
+202401 scored 20 active 1
+202402 scored 20 active 1
+202403 scored 19 active 1
+202404 scored 20 active 1
+202405 scored 20 active 1
+202406 scored 20 active 1
+202407 scored 20 active 1
+202408 scored 20 active 1
+202409 scored 20 active 1
+202410 scored 20 active 1
+202411 scored 20 active 1
+202412 scored 20 active 1
+202413 scored 20 active 1
+202414 scored 20 active 1
+202415 scored 20 active 1
+202416 scored 20 active 1
+202417 scored 20 active 1
+202418 scored 20 active 1
+202419 scored 20 active 1
+202420 scored 20 active 1
+202421 scored 20 active 1
+202422 scored 20 active 1
+202423 scored 20 active 1
+202424 scored 20 active 1
+202501 scored 20 active 1
+202502 scored 20 active 1
+202503 scored 20 active 1
+202504 scored 20 active 1
+202505 scored 20 active 1
+202506 scored 20 active 1
+202507 scored 20 active 1
+202508 scored 20 active 1
+202509 scored 20 active 1
+202510 scored 20 active 1
+202511 scored 20 active 1
+202512 scored 20 active 1
+202513 scored 20 active 1
+202514 scored 20 active 1
+202515 scored 20 active 1
+202516 scored 20 active 1
+202517 scored 20 active 1
+202518 scored 20 active 1
+202519 scored 20 active 1
+202520 scored 20 active 1
+202521 scored 20 active 1
+202522 scored 20 active 1
+202523 scored 20 active 1
+202524 scored 20 active 1
+202601 scored 22 active 1
+202602 scored 22 active 1
+202603 scored 22 active 1
+202604 scored 22 active 1
+/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1213: RuntimeWarning: Mean of empty slice
+  return np.nanmean(a, axis, out=out, keepdims=keepdims)
+/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1213: RuntimeWarning: Mean of empty slice
+  return np.nanmean(a, axis, out=out, keepdims=keepdims)
+202605 scored 22 active 1
+202606 scored 22 active 1
+202607 scored 22 active 1
+202608 scored 22 active 1
+202609 scored 22 active 1
+{
+  "selected": {
+    "selected": "h8_l0.5_s1",
+    "parameters": {
+      "half_life_events": 8,
+      "lambda": 0.5,
+      "strength": 1.0
+    },
+    "selection_event_keys": [
+      202301,
+      202302,
+      202303,
+      202305,
+      202306,
+      202307,
+      202308,
+      202310,
+      202311,
+      202313,
+      202314,
+      202315,
+      202316,
+      202319,
+      202321,
+      202322
+    ],
+    "selection_variant_event_MAE": {
+      "h3_l0.5_s0.5": 4.0625,
+      "h3_l0.5_s1": 3.85625,
+      "h3_l2_s0.5": 4.1,
+      "h3_l2_s1": 3.90625,
+      "h3_l8_s0.5": 4.143750000000001,
+      "h3_l8_s1": 3.88125,
+      "h8_l0.5_s0.5": 4.08125,
+      "h8_l0.5_s1": 3.83125,
+      "h8_l2_s0.5": 4.1,
+      "h8_l2_s1": 3.875,
+      "h8_l8_s0.5": 4.125,
+      "h8_l8_s1": 3.88125
+    },
+    "target_boundary": "all selected event keys <202400"
+  },
+  "summaries": {
+    "2024": {
+      "events": 24,
+      "rows": 479,
+      "event_keys": [
+        202401,
+        202402,
+        202403,
+        202404,
+        202405,
+        202406,
+        202407,
+        202408,
+        202409,
+        202410,
+        202411,
+        202412,
+        202413,
+        202414,
+        202415,
+        202416,
+        202417,
+        202418,
+        202419,
+        202420,
+        202421,
+        202422,
+        202423,
+        202424
+      ],
+      "mean_MAE": {
+        "h8_l0.5_s1": 2.8800438596491227,
+        "baseline_qualifying": 3.230043859649123,
+        "Q1_fixed_rank_blend": 2.9802631578947367,
+        "Q2_ridge_rank_residual": 2.7633771929824555
+      },
+      "mean_Kendall": {
+        "h8_l0.5_s1": 0.5987329434697856,
+        "baseline_qualifying": 0.5502436647173489,
+        "Q1_fixed_rank_blend": 0.5888888888888889,
+        "Q2_ridge_rank_residual": 0.6170077972709551
+      },
+      "paired_vs": {
+        "baseline_qualifying": {
+          "events": 24,
+          "delta_mean": -0.35000000000000003,
+          "ci95": [
+            -0.6166666666666667,
+            -0.14572916666667565
+          ],
+          "bootstrap_fraction_improving": 0.99995,
+          "loo_min": -0.37826086956521743,
+          "loo_max": -0.25217391304347825,
+          "event_wins": 13,
+          "event_ties": 6,
+          "three_event_circular_block_ci95": [
+            -0.6208333333333333,
+            -0.12083333333333329
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q1_fixed_rank_blend": {
+          "events": 24,
+          "delta_mean": -0.10021929824561404,
+          "ci95": [
+            -0.23355263157894735,
+            0.03311403508771935
+          ],
+          "bootstrap_fraction_improving": 0.9299,
+          "loo_min": -0.12631578947368421,
+          "loo_max": -0.07848970251716246,
+          "event_wins": 11,
+          "event_ties": 5,
+          "three_event_circular_block_ci95": [
+            -0.2585526315789474,
+            0.049561403508771966
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q2_ridge_rank_residual": {
+          "events": 24,
+          "delta_mean": 0.11666666666666665,
+          "ci95": [
+            0.01250000000000002,
+            0.22916666666666666
+          ],
+          "bootstrap_fraction_improving": 0.01195,
+          "loo_min": 0.08695652173913043,
+          "loo_max": 0.13478260869565215,
+          "event_wins": 8,
+          "event_ties": 5,
+          "three_event_circular_block_ci95": [
+            0.016666666666666653,
+            0.23750000000000004
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        }
+      }
+    },
+    "2025": {
+      "events": 24,
+      "rows": 480,
+      "event_keys": [
+        202501,
+        202502,
+        202503,
+        202504,
+        202505,
+        202506,
+        202507,
+        202508,
+        202509,
+        202510,
+        202511,
+        202512,
+        202513,
+        202514,
+        202515,
+        202516,
+        202517,
+        202518,
+        202519,
+        202520,
+        202521,
+        202522,
+        202523,
+        202524
+      ],
+      "mean_MAE": {
+        "h8_l0.5_s1": 3.1291666666666664,
+        "baseline_qualifying": 3.366666666666667,
+        "Q1_fixed_rank_blend": 3.2000000000000006,
+        "Q2_ridge_rank_residual": 3.0541666666666667
+      },
+      "mean_Kendall": {
+        "h8_l0.5_s1": 0.5592105263157895,
+        "baseline_qualifying": 0.5258771929824562,
+        "Q1_fixed_rank_blend": 0.5530701754385965,
+        "Q2_ridge_rank_residual": 0.5701754385964913
+      },
+      "paired_vs": {
+        "baseline_qualifying": {
+          "events": 24,
+          "delta_mean": -0.23749999999999996,
+          "ci95": [
+            -0.425,
+            -0.062499999999999924
+          ],
+          "bootstrap_fraction_improving": 0.9964,
+          "loo_min": -0.2695652173913043,
+          "loo_max": -0.18695652173913038,
+          "event_wins": 14,
+          "event_ties": 4,
+          "three_event_circular_block_ci95": [
+            -0.4124999999999999,
+            -0.07083333333333329
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q1_fixed_rank_blend": {
+          "events": 24,
+          "delta_mean": -0.07083333333333329,
+          "ci95": [
+            -0.2333333333333333,
+            0.09166666666666672
+          ],
+          "bootstrap_fraction_improving": 0.79355,
+          "loo_min": -0.09999999999999995,
+          "loo_max": -0.03913043478260865,
+          "event_wins": 12,
+          "event_ties": 1,
+          "three_event_circular_block_ci95": [
+            -0.25833333333333325,
+            0.08750000000000004
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q2_ridge_rank_residual": {
+          "events": 24,
+          "delta_mean": 0.07500000000000002,
+          "ci95": [
+            -0.0666666666666666,
+            0.2166666666666667
+          ],
+          "bootstrap_fraction_improving": 0.14255,
+          "loo_min": 0.04347826086956526,
+          "loo_max": 0.10869565217391307,
+          "event_wins": 9,
+          "event_ties": 4,
+          "three_event_circular_block_ci95": [
+            -0.08749999999999995,
+            0.22083333333333335
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        }
+      }
+    },
+    "pooled_2024_2025": {
+      "events": 48,
+      "rows": 959,
+      "event_keys": [
+        202401,
+        202402,
+        202403,
+        202404,
+        202405,
+        202406,
+        202407,
+        202408,
+        202409,
+        202410,
+        202411,
+        202412,
+        202413,
+        202414,
+        202415,
+        202416,
+        202417,
+        202418,
+        202419,
+        202420,
+        202421,
+        202422,
+        202423,
+        202424,
+        202501,
+        202502,
+        202503,
+        202504,
+        202505,
+        202506,
+        202507,
+        202508,
+        202509,
+        202510,
+        202511,
+        202512,
+        202513,
+        202514,
+        202515,
+        202516,
+        202517,
+        202518,
+        202519,
+        202520,
+        202521,
+        202522,
+        202523,
+        202524
+      ],
+      "mean_MAE": {
+        "h8_l0.5_s1": 3.0046052631578952,
+        "baseline_qualifying": 3.2983552631578945,
+        "Q1_fixed_rank_blend": 3.0901315789473682,
+        "Q2_ridge_rank_residual": 2.9087719298245616
+      },
+      "mean_Kendall": {
+        "h8_l0.5_s1": 0.5789717348927875,
+        "baseline_qualifying": 0.5380604288499026,
+        "Q1_fixed_rank_blend": 0.5709795321637426,
+        "Q2_ridge_rank_residual": 0.5935916179337232
+      },
+      "paired_vs": {
+        "baseline_qualifying": {
+          "events": 48,
+          "delta_mean": -0.29374999999999996,
+          "ci95": [
+            -0.45625,
+            -0.15416666666666665
+          ],
+          "bootstrap_fraction_improving": 0.99995,
+          "loo_min": -0.3106382978723404,
+          "loo_max": -0.24468085106382972,
+          "event_wins": 27,
+          "event_ties": 10,
+          "three_event_circular_block_ci95": [
+            -0.45416666666666666,
+            -0.14791666666666667
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q1_fixed_rank_blend": {
+          "events": 48,
+          "delta_mean": -0.08552631578947366,
+          "ci95": [
+            -0.19188596491228063,
+            0.02072368421052635
+          ],
+          "bootstrap_fraction_improving": 0.94505,
+          "loo_min": -0.10011198208286672,
+          "loo_max": -0.07032474804031352,
+          "event_wins": 23,
+          "event_ties": 6,
+          "three_event_circular_block_ci95": [
+            -0.20427631578947367,
+            0.024890350877192987
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q2_ridge_rank_residual": {
+          "events": 48,
+          "delta_mean": 0.09583333333333334,
+          "ci95": [
+            0.006250000000000029,
+            0.18749999999999997
+          ],
+          "bootstrap_fraction_improving": 0.017,
+          "loo_min": 0.08085106382978725,
+          "loo_max": 0.11276595744680852,
+          "event_wins": 17,
+          "event_ties": 9,
+          "three_event_circular_block_ci95": [
+            -0.004166666666666615,
+            0.18958333333333335
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        }
+      }
+    },
+    "exposed_2026": {
+      "events": 9,
+      "rows": 198,
+      "event_keys": [
+        202601,
+        202602,
+        202603,
+        202604,
+        202605,
+        202606,
+        202607,
+        202608,
+        202609
+      ],
+      "mean_MAE": {
+        "h8_l0.5_s1": 2.05050505050505,
+        "baseline_qualifying": 1.8686868686868685,
+        "Q1_fixed_rank_blend": 1.8484848484848486,
+        "Q2_ridge_rank_residual": 2.0101010101010104
+      },
+      "mean_Kendall": {
+        "h8_l0.5_s1": 0.7527657527657526,
+        "baseline_qualifying": 0.7739297739297739,
+        "Q1_fixed_rank_blend": 0.7797017797017797,
+        "Q2_ridge_rank_residual": 0.7594997594997595
+      },
+      "paired_vs": {
+        "baseline_qualifying": {
+          "events": 9,
+          "delta_mean": 0.18181818181818177,
+          "ci95": [
+            -0.05050505050505053,
+            0.47474747474747464
+          ],
+          "bootstrap_fraction_improving": 0.0772,
+          "loo_min": 0.05681818181818177,
+          "loo_max": 0.24999999999999994,
+          "event_wins": 2,
+          "event_ties": 1,
+          "three_event_circular_block_ci95": [
+            -0.010101010101010166,
+            0.3838383838383838
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q1_fixed_rank_blend": {
+          "events": 9,
+          "delta_mean": 0.20202020202020193,
+          "ci95": [
+            -1.4802973661668753e-16,
+            0.46464646464646453
+          ],
+          "bootstrap_fraction_improving": 0.032,
+          "loo_min": 0.09090909090909083,
+          "loo_max": 0.24999999999999994,
+          "event_wins": 2,
+          "event_ties": 1,
+          "three_event_circular_block_ci95": [
+            0.07070707070707065,
+            0.3535353535353534
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        },
+        "Q2_ridge_rank_residual": {
+          "events": 9,
+          "delta_mean": 0.040404040404040366,
+          "ci95": [
+            -0.1515151515151515,
+            0.22222222222222213
+          ],
+          "bootstrap_fraction_improving": 0.33885,
+          "loo_min": -0.011363636363636381,
+          "loo_max": 0.10227272727272721,
+          "event_wins": 2,
+          "event_ties": 3,
+          "three_event_circular_block_ci95": [
+            -0.05050505050505053,
+            0.1313131313131313
+          ],
+          "interpretation": "historical paired resampling frequency, not a posterior or promotion test"
+        }
+      }
+    }
+  },
+  "material_success_screen": false
+}

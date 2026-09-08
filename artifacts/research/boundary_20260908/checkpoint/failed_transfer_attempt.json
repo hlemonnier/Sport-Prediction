@@ -1,0 +1,11 @@
+{
+  "status": "source_schema_failure_before_scoring",
+  "original_runner_sha256": "c1dc9a34bbfbbeed915de3ac6b7ff733d69704c786d10156d72708599e00eab6",
+  "fit_lock_sha256": "e8791181b01f350b1038affa6132201e94414fd16f2bc6d52dfab97480e8a2e8",
+  "last_completed_event_feature_build": 202609,
+  "failed_event": 202610,
+  "error": "ValueError: Observed-input schema is incomplete: FreshTyre, Position, Sector1Time, Sector2Time, Sector3Time, SpeedFL, SpeedI1, SpeedI2, SpeedST",
+  "original_recent_directory": "data/f1/performance_20260907/live_recent_final",
+  "transfer_scores_computed": false,
+  "source_contract_relaxed": false
+}

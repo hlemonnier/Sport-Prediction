@@ -1,0 +1,37 @@
+{
+  "frozen_at": "2026-09-08T00:11:01.096575+00:00",
+  "spec_sha256": "828a62c4c8b14dd724bde7b71e143ec26e895faa660e1ab8e0f889d553d0b55d",
+  "specification": {
+    "id": "observed_regime_expert_composition_20260908",
+    "reason": "A robust anchor may improve original eligible issuances while a checkpoint expert uses newly observed transition information. These mechanisms act on disjoint observed checkpoint categories and can be composed without fitted blend weights.",
+    "design_timing": "Declared before either the robust-anchor experiment or fresh-peer checkpoint cycle2 has produced selection or transfer scores. Existing checkpoint cycle1 and earlier failed families are already known.",
+    "original_eligible_branch": "Use the robust-anchor candidate selected by its frozen2023protocol only if it passes its predeclared validation advancement screen; otherwise use current HGB. Never select a branch from2024-26performance.",
+    "ineligible_branch": "Use the fresh-peer checkpoint cycle2 candidate selected by its frozen2023protocol only if it improves on selectedcheckpointcycle1 in2023event-balanced checkpointMAE; otherwise use selectedcycle1hgb_l15_c3. CurrentHGBremains its internal reference even when the displayed original-eligible branch changes.",
+    "gate": "The same reconstructed observed eligibility used by the existing checkpoint experiment. Eligible branch is a forecast issued at that exact observation; ineligible branch is an updated point at the later observation. The original HGB point and issuance remain preserved for comparison and for the checkpoint model's inputs.",
+    "no_new_fitting": "No composition weights, thresholds or ensemble search. Exactly one deterministic hard-gated composition, selected from2023alone; freeze component file hashes and selected branches before loading their transfer predictions for composition.",
+    "comparison_population": "The original61948completed-lap checkpoints with a currentHGBpoint and a later eligible target in61races2024-26. Match event,driver,checkpointlap/time,targetlap/time andtargetseconds exactly. Report checkpointbalanced and targetbalanced results, original55757eligible issuances separately, each year, gated categories and distinct targets.",
+    "strong_references": [
+      "currentproductionHGBatthesamecheckpoint",
+      "selectedcheckpointcycle1",
+      "selectedcheckpointcycle2ifadvanced"
+    ],
+    "substantial_gate": {
+      "historical_full_checkpoint_gain_vs_current_min": 0.1,
+      "historical_target_balanced_gain_vs_current_min": 0.05,
+      "each_year_full_checkpoint_improves_vs_current": [
+        2024,
+        2025,
+        2026
+      ],
+      "historical_block3_ci_upper_vs_current_max": 0,
+      "historical_all_leave_one_event_out_improve": true,
+      "original_eligible_branch_must_not_regress_in_pooled_historical_or2026": true,
+      "must_improve_historical_full_checkpoint_over_selectedcycle1": true
+    },
+    "uncertainty": "Use existing frozen checkpoint evaluator paired event and3-event block intervals. Previously exposed retrospective dates; no prospective guarantee or calibrated point interval claim.",
+    "failure_policy": "Report a failed composition if any gate fails. Do not retrospectively replace the anchor or checkpoint candidate with a more favorable transfer variant, alter the population or refit a blend.",
+    "production_change": false,
+    "suggested_commit": "research(f1-live): evaluate observed-regime expert composition"
+  },
+  "components_selection_not_yet_available": true
+}

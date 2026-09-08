@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/pre_event/run_experiment.py", line 213, in <module>
+    main(parser.parse_args().output.resolve())
+  File "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/pre_event/run_experiment.py", line 123, in main
+    for p,h in ref['implementation_manifest'].items():assert sha(ROOT/p)==h,p
+                                                             ^^^^^^^^^^^^^^
+AssertionError: packages/f1/data/schemas/session.py

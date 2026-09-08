@@ -1,0 +1,34 @@
+{
+  "advancement_screen_passed": false,
+  "four_candidate_metrics_reconstructed": true,
+  "gate_rows": {
+    "median3_full": 20007,
+    "median3_gate": 1046,
+    "median5_full": 20007,
+    "median5_gate": 1383
+  },
+  "immutable_original_rows": 38370,
+  "implementation_files": 3,
+  "input_files": 44,
+  "legacy_features_unchanged": 80,
+  "model_forecasts_reconstructed": 100035,
+  "new_features": 6,
+  "real_causal_prefix_cases": [
+    {
+      "event_key": 202201,
+      "prefix_and_future_poison": "PASS",
+      "prefix_rows": 499
+    },
+    {
+      "event_key": 202301,
+      "prefix_and_future_poison": "PASS",
+      "prefix_rows": 455
+    }
+  ],
+  "selection_events": 22,
+  "selection_rows": 20007,
+  "selection_sha256": "36740bf4328a721ebab358e56df06b5c340c5bc97042a254a5b555d14798ebb1",
+  "status": "PASS",
+  "transfer_scored": false,
+  "verifier_sha256": "e93a9aa950f094381a653145c63b62cbfe9ee09955ddf5f3537e546c6b8c2e52"
+}

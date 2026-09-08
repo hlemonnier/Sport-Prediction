@@ -1,0 +1,316 @@
+{
+  "frozen_before_transfer_scores": "2026-09-08T00:04:21.985824+00:00",
+  "adapter_sha256": "aedd30c8a6d128bbd0deaf1db1914f5a2098a8826a0afc6aebdc2beecbd507c4",
+  "original_fit_lock_sha256": "e8791181b01f350b1038affa6132201e94414fd16f2bc6d52dfab97480e8a2e8",
+  "canonical_input_manifest_container_sha256": "c9c230e889f178413e6d9f841cb2456d8a39b7e6e59b4ae3bf6d4092ba2da097",
+  "prior_input_recovery_manifest_sha256": "1874c835ee1ae717c22c8dcbdec16f6c3e3a244353e87ff5d585ee46f5568f3c",
+  "inputs": [
+    {
+      "event_key": 202401,
+      "path": "data/f1/raw/weekends/2024/round_01_bahrain_grand_prix/05_race_laps.csv",
+      "sha256": "ed3ab172c6a075623151093882e30c64e405f949157c729c3af398e53a7977ee"
+    },
+    {
+      "event_key": 202402,
+      "path": "data/f1/raw/weekends/2024/round_02_saudi_arabian_grand_prix/05_race_laps.csv",
+      "sha256": "15240aff063910c1edee51cd6a00ac34d7891ed62df4a19b0ad40f4f189df1cb"
+    },
+    {
+      "event_key": 202403,
+      "path": "data/f1/raw/weekends/2024/round_03_australian_grand_prix/05_race_laps.csv",
+      "sha256": "6ae00e4f1263dbba297b68a685036312aea4279a468eecce4b508dc151c79f95"
+    },
+    {
+      "event_key": 202404,
+      "path": "data/f1/raw/weekends/2024/round_04_japanese_grand_prix/05_race_laps.csv",
+      "sha256": "07311c6d1677b6e5a8d4fe6ded46c6b28c0e03edf348c5e1b395ac1f716589bd"
+    },
+    {
+      "event_key": 202405,
+      "path": "data/f1/raw/weekends/2024/round_05_chinese_grand_prix/05_race_laps.csv",
+      "sha256": "c150a129c162060cb2c04f194befb5920a83957e6cebad66328760055661f4f4"
+    },
+    {
+      "event_key": 202406,
+      "path": "data/f1/raw/weekends/2024/round_06_miami_grand_prix/05_race_laps.csv",
+      "sha256": "a1c478dd4ced62130f31c14492ed5d61b1a898c9bacd8b975eb002561fba3a8a"
+    },
+    {
+      "event_key": 202407,
+      "path": "data/f1/raw/weekends/2024/round_07_emilia_romagna_grand_prix/05_race_laps.csv",
+      "sha256": "4761a03fb9cbd79d9e247ee378a4a2252d0b373e4f2fb8e91b95eec8c9bf1af0"
+    },
+    {
+      "event_key": 202408,
+      "path": "data/f1/raw/weekends/2024/round_08_monaco_grand_prix/05_race_laps.csv",
+      "sha256": "677eb01cf2df15e8123645fde7d7e7f918f01f0df2a0ad1954ea1a14bd227de6"
+    },
+    {
+      "event_key": 202409,
+      "path": "data/f1/raw/weekends/2024/round_09_canadian_grand_prix/05_race_laps.csv",
+      "sha256": "cb4930d6ead8079f056e26e5d59ec722c1269182fc406061ce3410201ea052d7"
+    },
+    {
+      "event_key": 202410,
+      "path": "data/f1/raw/weekends/2024/round_10_spanish_grand_prix/05_race_laps.csv",
+      "sha256": "0154710d8183488142397406492cb3603f529c225ccb3e0188ae9ffe9cbc6111"
+    },
+    {
+      "event_key": 202411,
+      "path": "data/f1/raw/weekends/2024/round_11_austrian_grand_prix/05_race_laps.csv",
+      "sha256": "7c3ab096d229ffc52faf1c42794a57d54e621db875ede76ee20dc1cc849d4f4c"
+    },
+    {
+      "event_key": 202412,
+      "path": "data/f1/raw/weekends/2024/round_12_british_grand_prix/05_race_laps.csv",
+      "sha256": "1100e51ba2091bb65cd241a5ac88e8fd2a73cd3347ee28ff1ff00aee02c5d0a1"
+    },
+    {
+      "event_key": 202413,
+      "path": "data/f1/raw/weekends/2024/round_13_hungarian_grand_prix/05_race_laps.csv",
+      "sha256": "3262bb5899e767de9f62cd2629cbab819ad7f16f42f1a51a369ebd4fb3419d9a"
+    },
+    {
+      "event_key": 202414,
+      "path": "data/f1/raw/weekends/2024/round_14_belgian_grand_prix/05_race_laps.csv",
+      "sha256": "733296f8f3ce1660a2d69e6657a8ade62b33d7711102090f18d8bfaf5a26dcbd"
+    },
+    {
+      "event_key": 202415,
+      "path": "data/f1/raw/weekends/2024/round_15_dutch_grand_prix/05_race_laps.csv",
+      "sha256": "78e784515e041535366397ef8960e3d27ad99b0bf5bdc5622067fe643a2189bb"
+    },
+    {
+      "event_key": 202416,
+      "path": "data/f1/raw/weekends/2024/round_16_italian_grand_prix/05_race_laps.csv",
+      "sha256": "51639765ff9295eabc05eb13f2d2084caeaea4a335b9f6ff98a8aba8a011f4bb"
+    },
+    {
+      "event_key": 202417,
+      "path": "data/f1/raw/weekends/2024/round_17_azerbaijan_grand_prix/05_race_laps.csv",
+      "sha256": "062f665fb8ae82799d9a8cccdd46a6eae409e9860463ef925193bd9a6f8ddb61"
+    },
+    {
+      "event_key": 202418,
+      "path": "data/f1/raw/weekends/2024/round_18_singapore_grand_prix/05_race_laps.csv",
+      "sha256": "006d7ea6bed4ce0738bb43268ebac580307e89ae69a0f87700051660bd07f153"
+    },
+    {
+      "event_key": 202419,
+      "path": "data/f1/raw/weekends/2024/round_19_united_states_grand_prix/05_race_laps.csv",
+      "sha256": "e3a32c516e7caafdd7df93834ecb8691da12302ccfbfac1b6c7a6b9259e311d3"
+    },
+    {
+      "event_key": 202420,
+      "path": "data/f1/raw/weekends/2024/round_20_mexico_city_grand_prix/05_race_laps.csv",
+      "sha256": "0fde9ec9151a55a047ec730f1029f7ecbc62b2c162ebab444e0dd23a534c8192"
+    },
+    {
+      "event_key": 202421,
+      "path": "data/f1/raw/weekends/2024/round_21_s_o_paulo_grand_prix/05_race_laps.csv",
+      "sha256": "abe6f44be4e552d099c44ebdbe99631bb4b80a37146e66b46535757062556e9d"
+    },
+    {
+      "event_key": 202422,
+      "path": "data/f1/raw/weekends/2024/round_22_las_vegas_grand_prix/05_race_laps.csv",
+      "sha256": "dd2881dea12061f57b57eaccb54861740eeb0faa29aadc78fbf14695e8cad866"
+    },
+    {
+      "event_key": 202423,
+      "path": "data/f1/raw/weekends/2024/round_23_qatar_grand_prix/05_race_laps.csv",
+      "sha256": "1cf5af6884ade406762d2af1edbb0cd76f4432688d6f400064799e13958e3339"
+    },
+    {
+      "event_key": 202424,
+      "path": "data/f1/raw/weekends/2024/round_24_abu_dhabi_grand_prix/05_race_laps.csv",
+      "sha256": "9d0bf28b0736acf87e4b4faab9f7c1b0edf551d074ea87f741d77af16bf05b98"
+    },
+    {
+      "event_key": 202501,
+      "path": "data/f1/raw/weekends/2025/round_01_australian_grand_prix/05_race_laps.csv",
+      "sha256": "2a5f00792c2e510767634db80708fbaca7868667d81e9aa98f3df68c77097c0d"
+    },
+    {
+      "event_key": 202502,
+      "path": "data/f1/raw/weekends/2025/round_02_chinese_grand_prix/05_race_laps.csv",
+      "sha256": "7931dea49b2d964b34a2caee720506aa2c1153860c4d31aaa6778573f249f7eb"
+    },
+    {
+      "event_key": 202503,
+      "path": "data/f1/raw/weekends/2025/round_03_japanese_grand_prix/05_race_laps.csv",
+      "sha256": "8900e6b334a48337242b2114bea40a8dcfc8ce148d245577c3374b079038b283"
+    },
+    {
+      "event_key": 202504,
+      "path": "data/f1/raw/weekends/2025/round_04_bahrain_grand_prix/05_race_laps.csv",
+      "sha256": "bed5e21ace18bb070e134604103e4391e1f2e293880e199c9cb145edffb55c6f"
+    },
+    {
+      "event_key": 202505,
+      "path": "data/f1/raw/weekends/2025/round_05_saudi_arabian_grand_prix/05_race_laps.csv",
+      "sha256": "b13f5c0b8aa4b3e05dc0848dd6b5c9cf74be62ba12463e93aa26735519d03d49"
+    },
+    {
+      "event_key": 202506,
+      "path": "data/f1/raw/weekends/2025/round_06_miami_grand_prix/05_race_laps.csv",
+      "sha256": "52ecd135c54a1723f64a3870ca9459f79a5c758377f0b8c6ed68d6bbefce22de"
+    },
+    {
+      "event_key": 202507,
+      "path": "data/f1/raw/weekends/2025/round_07_emilia_romagna_grand_prix/05_race_laps.csv",
+      "sha256": "959d5a0e3e029f9b9b6837b95c463c665caab7e2e6ad05e4c3b067ebaf5384cd"
+    },
+    {
+      "event_key": 202508,
+      "path": "data/f1/raw/weekends/2025/round_08_monaco_grand_prix/05_race_laps.csv",
+      "sha256": "a8d05a0a066fe98dcb1a8cddff1058860f764072c6afe7acc599f6d2490553aa"
+    },
+    {
+      "event_key": 202509,
+      "path": "data/f1/raw/weekends/2025/round_09_spanish_grand_prix/05_race_laps.csv",
+      "sha256": "0ab99e68a2af077cbdc7b3338e7becd97f8543082ec8d0441aaccb768cb5c556"
+    },
+    {
+      "event_key": 202510,
+      "path": "data/f1/raw/weekends/2025/round_10_canadian_grand_prix/05_race_laps.csv",
+      "sha256": "b65dcd4e75b8305f4ab9e9b9a4f9ee34dffb9c85198a2d663cb40f7f519c4983"
+    },
+    {
+      "event_key": 202511,
+      "path": "data/f1/raw/weekends/2025/round_11_austrian_grand_prix/05_race_laps.csv",
+      "sha256": "b48b3af8c3153329504dc747c93b0663567d57c9098eb3454d1ad5487f2edc4c"
+    },
+    {
+      "event_key": 202512,
+      "path": "data/f1/raw/weekends/2025/round_12_british_grand_prix/05_race_laps.csv",
+      "sha256": "efce45858b841750f0cb666a536020f431eb4bd20bb7a15e1a92a00544edfe5a"
+    },
+    {
+      "event_key": 202513,
+      "path": "data/f1/raw/weekends/2025/round_13_belgian_grand_prix/05_race_laps.csv",
+      "sha256": "8979ff19c5b416ec22b56f574a3a95c811d89693735b6c5add5d76d6c75e6736"
+    },
+    {
+      "event_key": 202514,
+      "path": "data/f1/raw/weekends/2025/round_14_hungarian_grand_prix/05_race_laps.csv",
+      "sha256": "0b37a1c974aeaf07edbcc8edf9917e50f26323f4cc74cb89b5e81f268381bf60"
+    },
+    {
+      "event_key": 202515,
+      "path": "data/f1/raw/weekends/2025/round_15_dutch_grand_prix/05_race_laps.csv",
+      "sha256": "dbcc040d079ce26fea0000835b8e643c7f9009354f4b137fcce47f7d436cb2d7"
+    },
+    {
+      "event_key": 202516,
+      "path": "data/f1/raw/weekends/2025/round_16_italian_grand_prix/05_race_laps.csv",
+      "sha256": "caa34a9804ed3df91a9a55e693f7455490ea42b63c73fc8be1c166e0f4542c5c"
+    },
+    {
+      "event_key": 202517,
+      "path": "data/f1/raw/weekends/2025/round_17_azerbaijan_grand_prix/05_race_laps.csv",
+      "sha256": "9f63991ca55aacf9c4a4d4fb17745009ccf999d4f4281e417cd72ab0fcd624a6"
+    },
+    {
+      "event_key": 202518,
+      "path": "data/f1/raw/weekends/2025/round_18_singapore_grand_prix/05_race_laps.csv",
+      "sha256": "e2dcbe27b15ab5423cf16959846c14a538df3f6b971970a756d91dc6bed1b831"
+    },
+    {
+      "event_key": 202519,
+      "path": "data/f1/raw/weekends/2025/round_19_united_states_grand_prix/05_race_laps.csv",
+      "sha256": "9a39c37683e7fe2430b231b6a81daa1564c4c70fb078173826ab76fb8adcf640"
+    },
+    {
+      "event_key": 202520,
+      "path": "data/f1/raw/weekends/2025/round_20_mexico_city_grand_prix/05_race_laps.csv",
+      "sha256": "457c1e54a11697b282572de7f78eb19ef466dc42d23ac4509fa8c318780aa6d2"
+    },
+    {
+      "event_key": 202521,
+      "path": "data/f1/raw/weekends/2025/round_21_s_o_paulo_grand_prix/05_race_laps.csv",
+      "sha256": "69f3e067024f43ac4c1e0446c2f4721df9538b076f7a24f5fd1bb770ccdff9b3"
+    },
+    {
+      "event_key": 202522,
+      "path": "data/f1/raw/weekends/2025/round_22_las_vegas_grand_prix/05_race_laps.csv",
+      "sha256": "2e74783ef10d26f97a0728ac672eb2d6d8f003e69c502dbae42f2f70f4fe69c6"
+    },
+    {
+      "event_key": 202523,
+      "path": "data/f1/raw/weekends/2025/round_23_qatar_grand_prix/05_race_laps.csv",
+      "sha256": "83656e738343bbed2705909b97e9b70b8cca8e6db786296faddb5c016e87cda9"
+    },
+    {
+      "event_key": 202524,
+      "path": "data/f1/raw/weekends/2025/round_24_abu_dhabi_grand_prix/05_race_laps.csv",
+      "sha256": "e958cd1cb7d4729549e682df1d5e5076e0ad15e18854c6b04c7c347ccd070851"
+    },
+    {
+      "event_key": 202601,
+      "path": "data/f1/raw/weekends/2026/round_01_australian_grand_prix/05_race_laps.csv",
+      "sha256": "b28b1c6f1cfa6386b0e70d49c4e9a4a3756d0927f010feb27f86ce14f8b62897"
+    },
+    {
+      "event_key": 202602,
+      "path": "data/f1/raw/weekends/2026/round_02_chinese_grand_prix/05_race_laps.csv",
+      "sha256": "1d37818735961ff0fb7c2ac6869c73e77f1e0a0d3367dce693c0122e8ba98358"
+    },
+    {
+      "event_key": 202603,
+      "path": "data/f1/raw/weekends/2026/round_03_japanese_grand_prix/05_race_laps.csv",
+      "sha256": "6f6622e981e5ef166e86bd5f382cfbe0c4490ab3bbaf91cdb0ca7bcdbae16ceb"
+    },
+    {
+      "event_key": 202604,
+      "path": "data/f1/raw/weekends/2026/round_04_miami_grand_prix/05_race_laps.csv",
+      "sha256": "ca751d91781b39d8ff6e10cd95b52882441c1f236d260e8e3fa0875bf06dbca7"
+    },
+    {
+      "event_key": 202605,
+      "path": "data/f1/raw/weekends/2026/round_05_canadian_grand_prix/05_race_laps.csv",
+      "sha256": "25c34b99e6c3f88c8ce369aefd4fcceb51ecaa7668efdc486b64a22a3fb69bbb"
+    },
+    {
+      "event_key": 202606,
+      "path": "data/f1/raw/weekends/2026/round_06_monaco_grand_prix/05_race_laps.csv",
+      "sha256": "dab9724de863a0f211cda5e43a65ca0ee31780deb311227be5d213fafcd0402a"
+    },
+    {
+      "event_key": 202607,
+      "path": "data/f1/raw/weekends/2026/round_07_barcelona_grand_prix/05_race_laps.csv",
+      "sha256": "2f6b43bbc6a3bbfa54696f7bbc292e17e169b57c9e6019270bb4db6d09bb17a4"
+    },
+    {
+      "event_key": 202608,
+      "path": "data/f1/raw/weekends/2026/round_08_austrian_grand_prix/05_race_laps.csv",
+      "sha256": "5fe48376806be2a8314cc791800e1eb3b3f6433bec2ccd7f72f2397fc841adcb"
+    },
+    {
+      "event_key": 202609,
+      "path": "data/f1/raw/weekends/2026/round_09_british_grand_prix/05_race_laps.csv",
+      "sha256": "85636e3a52b8b576020de7df4200b26b5796a3896c0068f1f2191b6e70ba97dc"
+    },
+    {
+      "event_key": 202610,
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_10_belgian_grand_prix_race_laps.csv",
+      "sha256": "fb63da074182a3f34827d7a064a2d17c6ca08f75f1f4a7f18f43d8001fadbf74"
+    },
+    {
+      "event_key": 202611,
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_11_hungarian_grand_prix_race_laps.csv",
+      "sha256": "152f3b8edf80c879d86ca4605bf2ad7e64ef68df3eed07d9648b918b02745321"
+    },
+    {
+      "event_key": 202612,
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_12_dutch_grand_prix_race_laps.csv",
+      "sha256": "cc7de7926af981b9b59c3356b83b74592ad29b5784b2037a159322f8ec6fa2d4"
+    },
+    {
+      "event_key": 202613,
+      "path": "data/f1/frontier_20260907/recent_full_observations/2026_round_13_italian_grand_prix_race_laps.csv",
+      "sha256": "e7f496dfbe072ffc63a9ab353379250fb6ca5d3268b7b645e8e1442480b7331e"
+    }
+  ],
+  "change": "Use the existing canonical full observed-input manifest for all61 transfer events, including restored nine observed fields in R10\u201313. No feature, target, fitted parameter, selection or criterion changes.",
+  "refit_permitted": false
+}

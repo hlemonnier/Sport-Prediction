@@ -1,0 +1,24 @@
+{
+  "base_blocks": 126,
+  "checks": [
+    "source and input hashes",
+    "exact correction training populations and availability",
+    "shot model serialized parameter replay",
+    "training-only scaler replay",
+    "selected correction serialized probability replay",
+    "frozen prior comparator agreement",
+    "pooled metrics and paired intervals recomputed"
+  ],
+  "corrected_blocks": 48,
+  "corrected_models_reconstructed": 108,
+  "evaluation_sha256": "1c1d037ffbdf00a693728254e630792315ee7db8d8f79cbdb3545d34df66a795",
+  "max_serialized_probability_replay_error": 0.0,
+  "prequential_feature_rows": 7980,
+  "prior_comparator_max_error": 0.0,
+  "prior_comparator_vectors_checked": 7600,
+  "selection_sha256": "e1db351c667da7ab438f8364e6ced76b06f3e34784efedafef7bcab18316e806",
+  "shot_models_reconstructed": 504,
+  "source_sha256": "1928a5cf5e70e340dba20389b3ada4a5a3b4cf7abb05b0380943d0532a1902a2",
+  "status": "passed",
+  "verified_at_utc": "2026-09-08T00:03:20.510957+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "max_leaf_gradient_inf": 9.9636133921166e-07,
+  "max_probability_replay_error": 0.0,
+  "models_replayed": 36,
+  "objective_monotonicity_checked": true,
+  "regularized_leaf_gradients_recomputed": 10133,
+  "source_sha256": "eb0ce9bc7ad6407482177272e1481da4af9263bfd2570ae4df1ccb6a7e39cb19",
+  "status": "passed",
+  "training_membership_availability_checked": true,
+  "trees_replayed": 2100,
+  "verified_at_utc": "2026-09-08T00:18:41.211641+00:00"
+}

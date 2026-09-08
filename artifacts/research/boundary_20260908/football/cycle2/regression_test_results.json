@@ -1,0 +1,9 @@
+{
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv-f1/bin/python -m pytest -q -p no:cacheprovider research/experiments/boundary_20260908/football/test_math.py research/experiments/boundary_20260908/football/cycle2/test_model.py",
+  "failed": 0,
+  "passed": 13,
+  "recorded_at_utc": "2026-09-08T00:23:35.916846+00:00",
+  "scope": "Combined mathematical, timing, provider input hash and production API tests; synthetic fixtures are not performance evidence.",
+  "seconds": 2.6,
+  "source_sha256": "eb0ce9bc7ad6407482177272e1481da4af9263bfd2570ae4df1ccb6a7e39cb19"
+}

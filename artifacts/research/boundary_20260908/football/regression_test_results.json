@@ -1,0 +1,13 @@
+{
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv-f1/bin/python -m pytest -q -p no:cacheprovider research/experiments/boundary_20260908/football/test_math.py",
+  "failed": 0,
+  "passed": 9,
+  "pre_fit_test_adjustments": [
+    "Protocol includes metrics_status=disabled in actual API when shadow evaluation is disabled; compare all underlying population fields.",
+    "Document and retain existing E0:2021:Newcastle:West Ham AS=8 AST=9 source anomaly; separate count GLMs remain defined."
+  ],
+  "recorded_at_utc": "2026-09-08T00:02:10.448726+00:00",
+  "scope": "Synthetic mathematical checks, actual production API comparator equivalence, cached input integrity; not performance evidence.",
+  "seconds": 2.22,
+  "source_sha256": "1928a5cf5e70e340dba20389b3ada4a5a3b4cf7abb05b0380943d0532a1902a2"
+}

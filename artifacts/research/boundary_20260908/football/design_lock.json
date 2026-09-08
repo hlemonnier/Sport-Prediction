@@ -1,0 +1,149 @@
+{
+  "frozen_at_utc": "2026-09-07T23:45:08.600311+00:00",
+  "spec_sha256": "74e11bdeeb2ec5951daef1ae97c55ea5ad852ab6133110c003edabf47fef58a8",
+  "new_candidate_metrics_inspected": false,
+  "specification": {
+    "id": "football_shot_strength_logscore_boundary_20260908",
+    "status": "retrospective_reused_dates_no_promotion",
+    "known_exposure": "All2024/25\u20132025/26league outcomes and prior aggregate metrics were inspected in the20260907cycle. This cycle freezes new hypotheses before their evaluation but is not a pristine test.",
+    "leagues": {
+      "E0": "Europe/London",
+      "SP1": "Europe/Madrid",
+      "I1": "Europe/Rome"
+    },
+    "input_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "prequential_feature_years": [
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "selection": {
+      "league": "E0",
+      "seasons": [
+        2022,
+        2023
+      ],
+      "rule": "lowest pooled natural-log loss among six candidates; retain prior selected blend when no candidate beats it; fixed candidate ID tie-break"
+    },
+    "evaluation_seasons": [
+      2024,
+      2025
+    ],
+    "timing": "forecast at each league local00:00, historical final result/statistics available next local midnight; same-day update forbidden; known resumption source-completion-day exception inherited",
+    "base_refit": "same first forecast day of calendar two-month bucket and same prior1095local-calendar-day rows as previous cycle",
+    "comparators": [
+      "production_default_dc_auto",
+      "dc365_elo50",
+      "dc_180",
+      "dc_365",
+      "dc_equal"
+    ],
+    "production_default_definition": "Exact current default equal DC fitted to production chronological_populations.fit, auto calibration on disjoint.calibration, frozen until next research refit; verify against actual run_prediction API. Production cadence/history input controlled to same1095days and two-month cadence as comparators. No claim that stronger prior research is production.",
+    "required_research_references": [
+      "dc365_elo50",
+      "dc_180"
+    ],
+    "parent_hyperparameters": "All prior DC and Elo settings unchanged; same historical data and timing.",
+    "mechanisms": [
+      "log_probability_residual_only",
+      "shot_strength_90d",
+      "shot_strength_365d"
+    ],
+    "ridge_penalties": [
+      0.01,
+      0.1
+    ],
+    "shot_strength_model": {
+      "type": "ridge Poisson GLM for shots and shots-on-target, each with additive team attack/opponent defence and home flag; count mean features, not an xG model",
+      "alpha": 0.05,
+      "half_life_days": [
+        90,
+        365
+      ],
+      "fit_intercept": true,
+      "solver": "lbfgs",
+      "max_iter": 500,
+      "tol": 1e-08,
+      "row_history_days": 1095,
+      "statistics": [
+        "HS",
+        "AS",
+        "HST",
+        "AST"
+      ],
+      "no_target_statistics": true
+    },
+    "offset_model": {
+      "formula": "p_new=softmax(log(p_DC365_Elo50)+standardized_features @ W)",
+      "objective": "mean negative log likelihood + penalty/2 * sum(W**2), including correction intercept; W=0 is exact prior identity",
+      "features": [
+        "log(mixH/mixA)",
+        "log(mixD/mixA)",
+        "DC-vs-Elo log H/A disagreement",
+        "DC-vs-Elo log D/A disagreement",
+        "Spain indicator",
+        "Italy indicator",
+        "optional log predicted home shots",
+        "optional log predicted away shots",
+        "optional log predicted home shots-on-target",
+        "optional log predicted away shots-on-target"
+      ],
+      "training": "strictly prior available prequential base predictions/outcomes from all3leagues, trailing1460calendar days; scalers fit on these same rows; no in-sample base probabilities",
+      "pooling": "Historical meta-learning includes all3leagues; evaluation is chronological country/year transfer, not zero-shot held-out league transfer",
+      "refit": "per inherited base-model refit cutoff"
+    },
+    "primary_metric": "natural-log multiclass log loss",
+    "secondary": [
+      "sum-of-class Brier",
+      "top1 accuracy",
+      "10-bin top-label ECE",
+      "league/year deltas"
+    ],
+    "uncertainty": {
+      "resamples": 4000,
+      "seed": 20260908,
+      "blocks_calendar_days": [
+        1,
+        7,
+        28
+      ],
+      "paired": true,
+      "strata": "league-season",
+      "sign": "candidate minus reference",
+      "interval": "percentile95, historical conditional uncertainty; no adjustment for researcher reuse"
+    },
+    "substantial_gain_target": "At least2% lower pooled evaluation log loss than BOTH predeclared strong research references, plus improvement over current production default; paired28-day interval should exclude zero against both research references. Failure to meet this target is reported, without expanding the search.",
+    "resources": {
+      "threads": 1,
+      "parallel_fits": 1,
+      "neural_models": false
+    },
+    "source_references": [
+      "https://arxiv.org/abs/2001.09097",
+      "https://papers.nips.cc/paper_files/paper/2019/hash/8ca01ea920679a0fe3728441494041b9-Abstract.html"
+    ],
+    "limitations": [
+      "shots data are final post-match observations used only in future forecasts",
+      "no original publication/revision timestamps",
+      "known Fiorentina\u2013Inter completion-day row is not pre-original-kickoff",
+      "reused exposed temporal cohorts",
+      "no lineup/player/xG data",
+      "no odds features",
+      "no production promotion"
+    ]
+  }
+}

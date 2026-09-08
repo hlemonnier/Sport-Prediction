@@ -1,0 +1,224 @@
+{
+  "created_at_utc": "2026-09-08T02:50:12.057504+00:00",
+  "derived_files": {
+    "docs/research/evidence/boundary_xg_execution_20260908/binding_check.json": "Read-only verification receipt for the original hashes and exact copies.",
+    "docs/research/evidence/boundary_xg_execution_20260908/selection_rows_summary.json": "Natural-log losses algebraically derived from frozen issued probabilities for all 760 rows. Includes hashed match identities, dates and seasons; excludes raw labels and predictors.",
+    "docs/research/evidence/boundary_xg_execution_20260908/selection_summary.json": "Exact metrics, paired intervals, selection gates and input hashes extracted from the original selection result. Prediction and feature arrays are omitted."
+  },
+  "exact_byte_copies": {
+    "availability_contract.json": {
+      "bytes": 4567,
+      "original_path": "artifacts/research/boundary_20260908/football_xg_data/availability_contract.json",
+      "sha256": "dd924f3d0b7c010f9482c782daeb20ce59c826a97e3466d8f8a6f83862569e56"
+    },
+    "design_lock.json": {
+      "bytes": 10916,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/design_lock.json",
+      "sha256": "f411eabcf0923fbdddcf509d06e5a1d5e9c8aeab063d5e0df8dcb722fc88a9ab"
+    },
+    "evidence.json": {
+      "bytes": 5728,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/evidence.json",
+      "sha256": "34e1452064e2f667311a49cd4079f2ed4cbd00dbfd11fb678bb0f0e4719344fc"
+    },
+    "execution_contract.json": {
+      "bytes": 2332,
+      "original_path": "research/experiments/boundary_20260908/football_xg/execution/execution_contract.json",
+      "sha256": "fb7315bdc14263939ddcb2d35e1d07d31615ee4906c8e7bfee43bcbfb7df11e6"
+    },
+    "independent_pre_fit_review.json": {
+      "bytes": 6872,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/independent_pre_fit_review.json",
+      "sha256": "029507f1a99fb79628ee2087229f549fb9ba07eacd058a172dbe0cd0e268437a"
+    },
+    "pre_fit_tests.json": {
+      "bytes": 4461,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/pre_fit_tests.json",
+      "sha256": "f19ac7b26234eb86ac67fd6ae5cd489581a533ed1fbee30ba7f24a03af0aa64e"
+    },
+    "selection_attempt.json": {
+      "bytes": 3673,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/selection_attempt.json",
+      "sha256": "e00d82885684cb6d6b0e603ef81a06efb658e0b5a94cbd0733fd2c0e5f25c757"
+    },
+    "selection_breakdown.json": {
+      "bytes": 14045,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/diagnostics/selection_breakdown.json",
+      "sha256": "54d0e21b73ef3937e0202aaafe364785204f1d30f7b62ceaa1385f1ff59efba4"
+    },
+    "selection_lock.json": {
+      "bytes": 3954,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/selection_lock.json",
+      "sha256": "629e592e721dd54fe6793a126aeb2ad1ef98b6d81c28962c492f4d8430a55661"
+    },
+    "specification.json": {
+      "bytes": 5101,
+      "original_path": "research/experiments/boundary_20260908/football_xg/specification.json",
+      "sha256": "0b67076e2135a44bdaaab62b76fff60cf1b8243ae659fe79e0724a75be17ff6f"
+    },
+    "verification.json": {
+      "bytes": 13147,
+      "original_path": "artifacts/research/boundary_20260908/football_xg/execution/verification.json",
+      "sha256": "0b2e26e59d465695cfc00e7dab53affbfacf463314fa106b92a1a9b4285e99a9"
+    }
+  },
+  "frozen_source_files_to_publish_at_original_paths": {
+    "research/experiments/boundary_20260908/football_xg/execution/README.md": {
+      "bytes": 6277,
+      "sha256": "b81a7eefd37a79d0be959f7a23d82ba6d74f38477a9b99531c37e9035a4c9100"
+    },
+    "research/experiments/boundary_20260908/football_xg/execution/execution_contract.json": {
+      "bytes": 2332,
+      "sha256": "fb7315bdc14263939ddcb2d35e1d07d31615ee4906c8e7bfee43bcbfb7df11e6"
+    },
+    "research/experiments/boundary_20260908/football_xg/execution/models.py": {
+      "bytes": 17683,
+      "sha256": "58d6f17972ee4dc094d76d92b5cddf5f95ccfe5b843fab54dc229f3a43f2f661"
+    },
+    "research/experiments/boundary_20260908/football_xg/execution/run.py": {
+      "bytes": 17085,
+      "sha256": "c9a3fdf87cc7344d310e5b94d429197b6f15dccc6602570c4c43c8af181b2a08"
+    },
+    "research/experiments/boundary_20260908/football_xg/execution/test_model.py": {
+      "bytes": 18171,
+      "sha256": "89fa364c5f9157a82f1df27b072d23e45ef6e4c301bb179dce8cf2f5dce9f6fe"
+    },
+    "research/experiments/boundary_20260908/football_xg/execution/test_run.py": {
+      "bytes": 3147,
+      "sha256": "a730bce12eaa56eb7da38cc16d1a04228646771b19367b3b47a7c7817475d0f1"
+    },
+    "research/experiments/boundary_20260908/football_xg/execution/verification/verify.py": {
+      "bytes": 23886,
+      "sha256": "af8bbe164966d8536576f78773b08d3ef278d6b5043908367ac7e7b456c02b5c"
+    }
+  },
+  "models_fitted_during_publication": 0,
+  "new_predictive_evaluations_during_publication": 0,
+  "omitted_large_or_row_level_originals": [
+    {
+      "bytes": 8095026,
+      "large_local_replay_dependency": true,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/features_selection_E0_delay7.json",
+      "sha256": "be2a1347c92d84d4a07f26b6ddf8775936ae21199500dc50b3d56135e0ca8944"
+    },
+    {
+      "bytes": 7677327,
+      "large_local_replay_dependency": true,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/features_selection_I1_delay7.json",
+      "sha256": "796c06bae7d5620939a6fd4c6ddb97ff2df8809046c106adff4271d70c683a01"
+    },
+    {
+      "bytes": 7969287,
+      "large_local_replay_dependency": true,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/features_selection_SP1_delay7.json",
+      "sha256": "b46297dc40e971ecc031b4d56ad6f0886f34ad2d5683680f7359a3165e6ea44d"
+    },
+    {
+      "bytes": 2076842,
+      "large_local_replay_dependency": false,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/selection_7day.json",
+      "sha256": "297891ba46c79c843ab40da9f7ec6df0d0df3a60f56b4d1a1a3c87c6f30a4c35"
+    },
+    {
+      "bytes": 1874381,
+      "large_local_replay_dependency": true,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/selection_fits_delay7.json",
+      "sha256": "5a336e64516783d41be0fbaffa65bb45bf624741cf63e97a75ee090f177cdd98"
+    },
+    {
+      "bytes": 487976,
+      "large_local_replay_dependency": false,
+      "path": "artifacts/research/boundary_20260908/football_xg/execution/selection_issued_delay7.json",
+      "sha256": "9e548a20eafeb5bb8758e3250b229a87b7aab5ab7163b694e443fbb66faf0153"
+    }
+  ],
+  "original_bindings_verified": 89,
+  "original_evidence_path": "artifacts/research/boundary_20260908/football_xg/execution/evidence.json",
+  "original_evidence_sha256": "34e1452064e2f667311a49cd4079f2ed4cbd00dbfd11fb678bb0f0e4719344fc",
+  "outcome": {
+    "fourteen_day_evaluated": false,
+    "new_production_promotion": false,
+    "required_selection_gain_percent": 0.5,
+    "selected": "xg_add90",
+    "selection_passed": false,
+    "selection_relative_gain_percent_vs_shot": 0.03673682912942455,
+    "transfer_evaluated": false
+  },
+  "published_files": {
+    "docs/research/boundary_xg_execution_20260908.md": {
+      "bytes": 7099,
+      "sha256": "a9790b094cfa55e5e2716422c93003806a1af2905ebed6efefefa2f3032fab0a"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/availability_contract.json": {
+      "bytes": 4567,
+      "sha256": "dd924f3d0b7c010f9482c782daeb20ce59c826a97e3466d8f8a6f83862569e56"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/binding_check.json": {
+      "bytes": 15782,
+      "sha256": "f2fdffeeb4034487007b07313858ceda619b07a1a613acac1a4d9fdb75135656"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/design_lock.json": {
+      "bytes": 10916,
+      "sha256": "f411eabcf0923fbdddcf509d06e5a1d5e9c8aeab063d5e0df8dcb722fc88a9ab"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/evidence.json": {
+      "bytes": 5728,
+      "sha256": "34e1452064e2f667311a49cd4079f2ed4cbd00dbfd11fb678bb0f0e4719344fc"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/execution_contract.json": {
+      "bytes": 2332,
+      "sha256": "fb7315bdc14263939ddcb2d35e1d07d31615ee4906c8e7bfee43bcbfb7df11e6"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/independent_pre_fit_review.json": {
+      "bytes": 6872,
+      "sha256": "029507f1a99fb79628ee2087229f549fb9ba07eacd058a172dbe0cd0e268437a"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/pre_fit_tests.json": {
+      "bytes": 4461,
+      "sha256": "f19ac7b26234eb86ac67fd6ae5cd489581a533ed1fbee30ba7f24a03af0aa64e"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/selection_attempt.json": {
+      "bytes": 3673,
+      "sha256": "e00d82885684cb6d6b0e603ef81a06efb658e0b5a94cbd0733fd2c0e5f25c757"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/selection_breakdown.json": {
+      "bytes": 14045,
+      "sha256": "54d0e21b73ef3937e0202aaafe364785204f1d30f7b62ceaa1385f1ff59efba4"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/selection_lock.json": {
+      "bytes": 3954,
+      "sha256": "629e592e721dd54fe6793a126aeb2ad1ef98b6d81c28962c492f4d8430a55661"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/selection_rows_summary.json": {
+      "bytes": 265647,
+      "sha256": "f149eb366124a7cea3eacdcc8321f1cc187e80af4a6f8d2199e489cd291064bb"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/selection_summary.json": {
+      "bytes": 17920,
+      "sha256": "af4404e2ab38d1c0357e4a2c692d16159e053ca715f3020195fc9152617593d2"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/specification.json": {
+      "bytes": 5101,
+      "sha256": "0b67076e2135a44bdaaab62b76fff60cf1b8243ae659fe79e0724a75be17ff6f"
+    },
+    "docs/research/evidence/boundary_xg_execution_20260908/verification.json": {
+      "bytes": 13147,
+      "sha256": "0b2e26e59d465695cfc00e7dab53affbfacf463314fa106b92a1a9b4285e99a9"
+    }
+  },
+  "raw_provider_data_published": false,
+  "report": "docs/research/boundary_xg_execution_20260908.md",
+  "reproduction_limit": "Loss summaries support reaggregating the primary metric and paired block differences. Replaying features and fitted models, or recomputing secondary metrics, requires the omitted raw inputs, features, fitted models and probability files with their exact original hashes. Copied receipts preserve the original paths; they do not redirect the verifier to the compact derived files.",
+  "serialized_fit_arrays_published": false,
+  "status": "verified_compact_publication_of_completed_negative_research",
+  "suggested_commit": "research(football): publish verified delayed-xG selection failure",
+  "validation": {
+    "all8primary_losses_reaggregated": true,
+    "all_report_links_resolve": true,
+    "copied_original_independent_verifier_status": "passed",
+    "copied_original_test_receipt_passed": 105,
+    "exact_copy_hash_failures": 0,
+    "maximum_primary_loss_reaggregation_error": 2.220446049250313e-16,
+    "original_hash_failures": 0
+  }
+}

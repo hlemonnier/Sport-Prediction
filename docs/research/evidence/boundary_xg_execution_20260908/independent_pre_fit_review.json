@@ -1,0 +1,97 @@
+{
+  "blockers": [],
+  "checks": {
+    "all_six_prior_feature_cache_raw_hashes_verified": true,
+    "availability_is_elapsed_utc_days_after_next_local_midnight": true,
+    "current_targets_removed_from_forecast_inputs": true,
+    "fourteen_day_history_min_max": [
+      757,
+      1184
+    ],
+    "fourteen_day_prequential_unknown_team_fixtures": 103,
+    "full_fourteen_day_prequential_rebuild": true,
+    "historical_xg_features_use_original_fit_cutoffs": true,
+    "metadata_filter_precedes_unavailable_measurements": true,
+    "new_candidate_scores_read": 0,
+    "new_real_xg_fits_performed_by_reviewer": 0,
+    "prior_correction_training_blocks_reconstructed": 48,
+    "prior_selected_model": "shot_strength_90d_ridge0.1",
+    "prior_serialized_probability_max_difference": 0.0,
+    "prior_training_ids_and_scalers_exact": true,
+    "quasi_score_and_offset_objectives_correct": true,
+    "same_population_strong_reference_gates_match_frozen_spec": true,
+    "selection_league_season_counts": {
+      "E0:2022": 380,
+      "E0:2023": 380
+    },
+    "selection_matches": 760,
+    "selection_mean_fit_blocks_per_delay": 90,
+    "selection_prequential_feature_rows": 5700,
+    "seven_day_history_min_max": [
+      757,
+      1194
+    ],
+    "seven_day_prequential_unknown_team_fixtures": 95,
+    "transfer_league_season_counts": {
+      "E0:2024": 380,
+      "E0:2025": 380,
+      "I1:2024": 380,
+      "I1:2025": 380,
+      "SP1:2024": 380,
+      "SP1:2025": 380
+    },
+    "transfer_matches": 2280,
+    "unique_matched_incumbent_rows": 3040
+  },
+  "incumbent_artifacts": {
+    "artifacts/research/boundary_20260908/football/evaluation.json": "1c1d037ffbdf00a693728254e630792315ee7db8d8f79cbdb3545d34df66a795",
+    "artifacts/research/boundary_20260908/football/selection.json": "e1db351c667da7ab438f8364e6ced76b06f3e34784efedafef7bcab18316e806",
+    "artifacts/research/boundary_20260908/football/selection_lock.json": "d5f743de01717bafc6e471e586ae5dd7c8e00c9428bde692a933b8bb517da450"
+  },
+  "independent_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=. .venv-f1/bin/python -m pytest research/experiments/boundary_20260908/football_xg/execution/test_model.py research/experiments/boundary_20260908/football_xg/execution/test_run.py -q -p no:cacheprovider",
+    "failed": 0,
+    "passed": 105,
+    "seconds": 1.41
+  },
+  "limitations": [
+    "Historical publication and revision timestamps are unavailable;7/14-day availability are assumptions.",
+    "Transfer seasons were exposed in prior non-xG research; block-bootstrap intervals are conditional historical evidence.",
+    "Unknown teams use the predeclared learned intercept/home fallback, with support flags; scored rows are never excluded.",
+    "The prior controlled production-default comparator is distinct from the stronger research-only shot incumbent."
+  ],
+  "reviewed_at_utc": "2026-09-08T02:16:37.004520+00:00",
+  "scope": "Independent read-only protocol, source, inherited-population and serialized incumbent review completed before any real xG fitting or new-candidate scoring.",
+  "sources": {
+    "artifacts/research/boundary_20260908/football_xg_data/availability_contract.json": "dd924f3d0b7c010f9482c782daeb20ce59c826a97e3466d8f8a6f83862569e56",
+    "packages/football/mrp/__init__.py": "022b1bec73bb3db9b88bbc871a1a9ecc5ec088181a1903ca6c6ae089abed3bb7",
+    "packages/football/mrp/config.py": "5c637788e5c44a0602521b777e9755c1d6cf5e743091b94c41de548cde4fee7b",
+    "packages/football/mrp/constants.py": "2c32ada9148c9fdf1a57844559ce77ba7530ed1d3cb5d58afa33335b7a4ea28b",
+    "packages/football/mrp/data.py": "c4742cd2744b46817e34d3e7767f175179ee4919d4a0d61ae5770b254138fb33",
+    "packages/football/mrp/joint.py": "cab06d09c0b827cf37de34b1ad89793a1f442aded2d72ca0d0eeb35027559b4b",
+    "packages/football/mrp/prediction.py": "c5085b32c8a33efa485cac87ce2c2b279a23cff97b0fe04fdeb10f383cb90918",
+    "packages/football/mrp/protocol.py": "61df7a8735bd523fece0e75a1558e41c94978b356515ad40b833d5a1c24c9906",
+    "packages/football/mrp/providers.py": "3b8cfb677df7b60a885f6faa2db49f5dc3756ec8655f2e38d548175c2512231a",
+    "packages/football/mrp/score_distribution.py": "904c747f36658050112600fa31ee2392f289fab96ec292a66a2552f9dcfb0bfa",
+    "packages/football/mrp/training.py": "08ed99dc3a47563379f7c6fb37561531b3d1d8cce7805363acb0c36131718443",
+    "packages/football/mrp/utils.py": "a721c82f2a773092bb174b05230e7c286a54b48a00984ae1af7c6c73fc84540e",
+    "packages/football/mrp/weather.py": "52a573771e9a2d07ecafa4b306f30d06b0fba2e4f43b40b43282af0da7c663b1",
+    "research/experiments/boundary_20260908/football/models.py": "fe66fd4d399efe8249d1887820884cd576541e06769d3289109e11d64d01c971",
+    "research/experiments/boundary_20260908/football/run.py": "d735042fb251e324012c625ab5e51ce265c3498bf53fc175eca43f45eca81083",
+    "research/experiments/boundary_20260908/football/specification.json": "74e11bdeeb2ec5951daef1ae97c55ea5ad852ab6133110c003edabf47fef58a8",
+    "research/experiments/boundary_20260908/football/test_math.py": "9f6a09d4562797bcdcd836bcac4ffa8e337bd430480e28029d835b3a7d24d474",
+    "research/experiments/boundary_20260908/football/verify.py": "ff58500eb50db8e7d121955dfc16e067d79fbd039c8c7a3e6d8553c9d6aeeed2",
+    "research/experiments/boundary_20260908/football_xg/execution/execution_contract.json": "fb7315bdc14263939ddcb2d35e1d07d31615ee4906c8e7bfee43bcbfb7df11e6",
+    "research/experiments/boundary_20260908/football_xg/execution/models.py": "58d6f17972ee4dc094d76d92b5cddf5f95ccfe5b843fab54dc229f3a43f2f661",
+    "research/experiments/boundary_20260908/football_xg/execution/run.py": "c9a3fdf87cc7344d310e5b94d429197b6f15dccc6602570c4c43c8af181b2a08",
+    "research/experiments/boundary_20260908/football_xg/execution/test_model.py": "89fa364c5f9157a82f1df27b072d23e45ef6e4c301bb179dce8cf2f5dce9f6fe",
+    "research/experiments/boundary_20260908/football_xg/execution/test_run.py": "a730bce12eaa56eb7da38cc16d1a04228646771b19367b3b47a7c7817475d0f1",
+    "research/experiments/boundary_20260908/football_xg/models.py": "2527a1363c28ce94fb697f678bbba75dc468de1c8a0776062e1a1bd07a3c920e",
+    "research/experiments/boundary_20260908/football_xg/specification.json": "0b67076e2135a44bdaaab62b76fff60cf1b8243ae659fe79e0724a75be17ff6f",
+    "research/experiments/boundary_20260908/football_xg_data/availability.py": "65fa96fb81272060bb4110ea383aa3aa12cb0b23204d7b3077c00d6d787f0b28",
+    "research/experiments/performance_20260907/football/benchmark.py": "4a6a06578f920eedac0c92c9f8b55fce1ba3395ce7102f6362d2f765770070eb",
+    "research/experiments/performance_20260907/football/transfer_run.py": "36183d73c28003013de18fc1486f3296cc7bf15b36183b674d841798b20d32a6"
+  },
+  "status": "passed",
+  "suggested_commit": "research(football): independently verify delayed xG experiment and frozen incumbents"
+}

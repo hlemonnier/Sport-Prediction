@@ -1,0 +1,27 @@
+{
+  "id": "football_past_xg_strength_20260908",
+  "objective": "Use newly acquired historical shot-quality information to improve pre-match1X2 forecasts over the strongest frozen goal/shot references.",
+  "horizon": "Existing league-local day-start forecast cutoff; no current-match stats, xG, odds or lineup inputs. Goal/result availability remains the inherited next-local-midnight assumption. xG is delayed by7 additional full days after that midnight;14-day delay is a separately rebuilt sensitivity with identical settings, not extra model selection.",
+  "data": "Exact primary Understat matches joined to unchanged canonical league/season/home/away/date/score. Only accepted_exact_join=True records enter xG training. Date-disagreed or otherwise ambiguous xG records are not used. Prediction/target population remains complete and identical to the earlier football cycle; missing xG never excludes a scored match. Original xG publication/revision times are unavailable; delays are assumptions, not timestamp proof.",
+  "leagues": {"E0":"Europe/London","SP1":"Europe/Madrid","I1":"Europe/Rome"},
+  "feature_training_seasons": [2017,2018,2019,2020,2021,2022,2023],
+  "prequential_feature_seasons": [2019,2020,2021,2022,2023],
+  "selection": "Same760EPL matches in2022/23-2023/24 as prior selection; correction training uses only prior resolved prequential rows across3leagues and1460days. Select minimum natural-log loss across4candidates at7-day xG delay. Advance only if relative gain>=0.5percent vs DC365/Elo50,DC180,and selected prior shot correction. Rebuild14-day features and refit the selected fixed configuration only; it must still improve every strong reference. No transfer scoring after failure.",
+  "transfer": "Same2280matches across E0/SP1/I1 in2024/25-2025/26 after selection passes. Expand training with strictly earlier resolved matches; all knobs fixed. Entire cohorts and per-league/per-season results retained. These seasons were exposed in prior non-xG experiments; not pristine or prospective evidence.",
+  "xg_strength": {"family":"Poisson quasi-likelihood log-link team attack/opponent defense/home advantage","target":"continuous nonnegative home/away xG; treated as a mean model, not a literal count likelihood","half_lives_days":[90,365],"history_days":1095,"alpha":0.05,"intercept_penalized":false,"solver":"newton-cholesky","max_iter":200,"tol":0.00000001,"fit_cadence":"exact inherited approximately2month base fit cutoffs","unknown_teams":"zero attack/defense coefficients plus learned intercept/home effect; support recorded, no invented xG observations"},
+  "candidates": {
+    "xg_add90":{"half_life":90,"mode":"add"},
+    "xg_add365":{"half_life":365,"mode":"add"},
+    "xg_replace90":{"half_life":90,"mode":"replace"},
+    "xg_replace365":{"half_life":365,"mode":"replace"}
+  },
+  "correction": "Reuse the prior identity-shrunk multiclass log-probability offset objective with penalty0.1, training-only standardization, intercept penalized identically. Base6 features are log prior odds,DC-versus-Elo contrasts and league indicators. Add variants retain the prior4 predicted90day shot/SOT log means and append2 predicted xG log means; replace variants use2xG log means instead of4shot means. Prior DC365/Elo50 probabilities remain the logit offset. No goal outcomes are used as current xG features.",
+  "comparators": ["production_default_dc_auto","dc365_elo50","dc_180","shot_strength_90d_ridge0.1"],
+  "substantial_gate": "At7days pooled transfer log loss must improve>=2percent vs each of DC365/Elo50,DC180,and prior shot correction, with paired28day interval upper<0 vs each. Each league and each pooled season must improve prior shot correction. Pooled Brier must not worsen prior shot correction; top-label ECE increase<=0.01. At14days the same fixed setting must improve all3strong references pooled and each league vs prior shot. Exclude documented resumed fixture as a declared diagnostic only, retaining it in the primary population. No production promotion solely from these retrospective files.",
+  "uncertainty": {"resamples":20000,"seed":20260908,"blocks_calendar_days":[7,28],"strata":"league-season","interpretation":"descriptive paired historical block bootstrap, not posterior or correction for repeated research"},
+  "numerical_checks": "Poisson quasi-score gradient incl penalty/intercept; exact serialized intensity replay; offset objective gradient<=1e-6; normalized positive finite1X2vectors; identity ablation reproduces prior selected shot predictions; current/future xG and outcomes cannot change earlier forecast features.",
+  "resources": {"threads":1,"new_dependencies":false,"parallel_fits":1},
+  "sources": ["https://understat.com/","https://arxiv.org/abs/2101.02104","https://arxiv.org/abs/2001.09097"],
+  "source_scope": "Primary papers motivate predicting performance statistics and shot quality; this is a custom team xG mean model plus frozen-style affine probability correction, not a reproduction of their results.",
+  "suggested_commit": "research(football): test delayed xG strength against goal and shot incumbents"
+}

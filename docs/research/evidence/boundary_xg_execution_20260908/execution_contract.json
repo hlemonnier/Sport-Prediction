@@ -1,0 +1,18 @@
+{
+  "schema_version": "football_xg_execution_contract_v1",
+  "parent_spec_sha256": "0b67076e2135a44bdaaab62b76fff60cf1b8243ae659fe79e0724a75be17ff6f",
+  "parent_draft_immutable": true,
+  "hypotheses_and_gates": "Exact four candidates and thresholds from parent specification; no prior new-candidate fits or scores.",
+  "availability": "Validated completion day -> next local midnight -> UTC -> plus7*24 or14*24hours, at or before naive-UTC forecast cutoff; inherited data-contract helper. Unavailable records filtered before measured xG/goals are inspected.",
+  "history": "Same1095-calendar-day canonical history IDs as each frozen base fit, intersected with exact joins and corrected UTC availability. Historical features use each original fit cutoff; expanding correction uses earlier resolved prequential rows within1460days.",
+  "delay_sensitivity": "Only if7day screen passes. Select once at7days; rebuild all historical xG features and refit exactly that same chosen configuration at14days. Both half-life mean models may be computed, but only the chosen correction is scored.",
+  "current_match_targets": "Removed from model prediction inputs; probabilities written in target-free issuance artifact before metrics. Labels available only for earlier resolved correction training and subsequent scoring.",
+  "matched_ablation": "Each correction block refits unchanged prior shot model on identical rows/order and requires bit-identical incumbent probabilities.",
+  "selection_population": "Exact760 inherited EPL matches,2022/23+2023/24; no xG-based scoring exclusions.",
+  "transfer_population": "Exact2280 inherited matches,3leagues x2024/25+2025/26; no new-candidate transfer until both selection delays pass.",
+  "input_lock_scope": "Hashes both inherited selection/transfer caches and both joined xG files; reading file hashes is not scoring. New transfer feature fits and forecasts are blocked until advancement.",
+  "frozen_source_scope": "Top-level execution Python files, parent spec/draft, this contract, inherited football sources and xG data helper. Later independent verifier may live only in a nested verification directory.",
+  "no_fresh_prospective_test": true,
+  "promotion_requires_additional_review": true,
+  "suggested_commit": "research(football): execute delayed xG strength against frozen incumbents"
+}

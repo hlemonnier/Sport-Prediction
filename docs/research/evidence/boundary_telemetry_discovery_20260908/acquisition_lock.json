@@ -1,0 +1,19 @@
+{
+  "acquisition_review_sha256": "23d416dab715fbf26791a4e5038ba7af6cfc1d9349d8b621062f79faa750bcb8",
+  "contract_sha256": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+  "frozen_at_utc": "2026-09-08T05:09:31.514864+00:00",
+  "max_new_http_requests": 84,
+  "max_parallel_requests": 2,
+  "model_fits": 0,
+  "new_stream_jobs": 42,
+  "predictive_scores": 0,
+  "reused_streams": 2,
+  "sessions": 44,
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4",
+    "research/experiments/boundary_20260908/telemetry/acquire.py": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5",
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1",
+    "research/experiments/boundary_20260908/telemetry_pilot/acquire.py": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e"
+  }
+}

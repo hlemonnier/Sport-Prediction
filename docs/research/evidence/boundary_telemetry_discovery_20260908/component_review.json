@@ -1,0 +1,89 @@
+{
+  "historical_candidate_scores_by_reviewer": 0,
+  "historical_model_fits_by_reviewer": 0,
+  "remaining_limits": [
+    "Archive-prefix availability is a source-time proxy, not certified original client receipt or individual sample time.",
+    "Lap accuracy, pit and status fields retain the original recorded-as-available convention; source revisions and delivery latency are not reconstructed.",
+    "Averaged raw channel codes do not establish fuel, power, energy, brake pressure or verified wing-open duration.",
+    "The historical selection dates were previously exposed; event bootstrap intervals do not correct all earlier adaptive research selection.",
+    "Historical source preparation, full real-prefix invariance, model fitting, baseline-metric reproduction and candidate scoring have not been performed by this reviewer in this component review.",
+    "This receipt does not authorize promotion or substitute for the complete source/specification/data lock and independent runner review."
+  ],
+  "resolved_findings": [
+    {
+      "finding": "Matched-cohort equality alone could not detect deletion of unmatched issuances.",
+      "resolution": "expected_issuances is mandatory and independently fixes every original key plus base feature and anchor value. Regression tests remove one or all unmatched rows, add a row and poison unmatched features."
+    },
+    {
+      "finding": "Relative gain is undefined when a reference has exactly zero mean absolute error.",
+      "resolution": "The comparison retains finite absolute differences and intervals, emits null relative_reduction and fails the relative-gain gate. Existing positive-reference mathematics is unchanged."
+    },
+    {
+      "finding": "The initial telemetry mean could overflow for repeated maximum-finite values or underflow constant subnormal inputs.",
+      "resolution": "The feature owner changed the mean to maximum-scaled summation before final source locking. The final suite includes twelve extreme-value regressions; the revised helper was independently read."
+    }
+  ],
+  "reviewed_at_utc": "2026-09-08T05:14:10.413057+00:00",
+  "reviewer": "audit_football",
+  "reviewer_scope": {
+    "acquisition": "Previously reviewed separately; no acquisition checks or network requests repeated for this receipt.",
+    "features_and_data": "Independent read-only scientific source review and independent test replay.",
+    "models_and_evaluator": "Implementation owner; mathematical and synthetic verification, not an independent author review.",
+    "runner": "Not covered by this component receipt; final orchestration and execution-lock review remain separate."
+  },
+  "schema": "telemetry_scientific_component_review_v1",
+  "scientific_checks": [
+    "Atomic physical packets enter only when cumulative-maximum archive availability is strictly before the lag-adjusted exact integer-nanosecond cutoff. Source UTC does not determine feature availability.",
+    "Driver windows are lower-inclusive and upper-exclusive at 30, 90 and 180 seconds; future packet payloads are not decoded before admission. Regressing packet times cannot be backdated.",
+    "Valid entries are aggregated within each packet before equal packet averaging. Population speed dispersion uses packet means. Presence, validity and joint throttle/brake support remain separate.",
+    "The 90-column layout contains exactly 27 content and 63 quality coordinates. The support gate uses six packets, 24-second span and at most five-second newest age in the 30-second window, without requiring all channels.",
+    "Missing streams produce explicit unavailable support and exact base fallback; downloaded corruption is a blocking validation result, not a reason to remove rows or relabel the source unavailable.",
+    "Original 80 features, naive anchors and issuance identities remain unchanged. Decimal CSV clock text is converted exactly to nanoseconds while preserving the original float-key representation.",
+    "All three 2022 fits use the same complete matched population and original event weights N/(E*n_event). Both augmented fits include unsupported training rows. The control zeros content at training and inference while retaining the same feature layout.",
+    "The original absolute-error HGB configuration, residual target clipping at five seconds and prediction correction clipping at three seconds are reused. Unsupported inference assigns the exact base bits; zero-second sensitivity reuses the two-second coefficients.",
+    "Evaluation requires both an independent complete original issuance inventory and the original matched target population. It rejects removal or addition of unmatched issuances and changes to their original anchors/features.",
+    "Selection checks all 22 events, the expected 2022-only base selection MAE, both strong references, one-percent improvement, negative event/block-three interval endpoints and all negative leave-one-event-out means; zero-second sensitivity must improve both corresponding references.",
+    "Bootstrap calls reuse the original seed 20260907, 20000 event resamples and subsequent 20000 circular three-event block resamples. Unmatched outcomes receive forecasts and coverage accounting but no invented numeric target loss."
+  ],
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry/data.py": "768f91cf810c531e9cb0d3d2ed7ab25742ddfbfd85a871c28cf0048e5c359e2b",
+    "research/experiments/boundary_20260908/telemetry/data_contract.md": "229c8c2dfc6c646cb62649a2b4047c227a730190cbf86b2e4b2b14f8e0aef3da",
+    "research/experiments/boundary_20260908/telemetry/evaluate.py": "a7744181e6f093c022d139f8bd7cd83542ea9244a2ea2d4d7d970e28d716d88c",
+    "research/experiments/boundary_20260908/telemetry/features.py": "7429c3e5d5e951dd094e1e15f44bc7e7cf67adea644238003592b8b5963fce33",
+    "research/experiments/boundary_20260908/telemetry/models.py": "3f52a84ee9cffc9a1c21b9730cb8c8d7770dca625b935fadc0df6adce1069e6b",
+    "research/experiments/boundary_20260908/telemetry/specification.json": "7f43632a7c0e75ad48fd82ccf33d328b106d08486fa6c026b01cb3be3e8bb8f5",
+    "research/experiments/boundary_20260908/telemetry/test_data.py": "aa98512fe7c2ebe6634cded626847156b4496e3502e0e639d141cfe303eeba3d",
+    "research/experiments/boundary_20260908/telemetry/test_evaluate.py": "a1ff6c67b3213180bb377fe86712778e4fd3f8272730bf65dfc16f72fef2a719",
+    "research/experiments/boundary_20260908/telemetry/test_features.py": "b7b91cd56c2619f4610b61f6ee5c56e78c7b3e8d6ef0457ff8c13c416dbd6bce",
+    "research/experiments/boundary_20260908/telemetry/test_models.py": "b8c32ed66c473663b96e6f48d516a64f840d8a40a8d1a49bdd4bd8f84f548d44",
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/frontier_20260907/feature_encoder.py": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/frontier_20260907/specification.json": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+    "research/experiments/performance_20260907/live/spec.json": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a"
+  },
+  "source_inventory_sha256": "af9cc1aa78e36ad50150d3316ea7e4c9692b55fc00cc54afd2b45dcd48af0b38",
+  "status": "passed",
+  "suggested_commit": "research(f1-live): enforce complete telemetry issuance evaluation and verify causal components",
+  "supplemental_independent_oracle": {
+    "absolute_tolerance": 2e-12,
+    "cases": "Hand-built packet-weighted reference with bundle sizes one through seven, missing/invalid channels, regressing archive clocks and unusable source UTC.",
+    "code_location": "Session tool transcript; no separate oracle source file was persisted.",
+    "coordinates_checked": 1620,
+    "final_revision_scope": "The subsequent change only replaces the mean arithmetic with scaled summation; final source verification is the 158-test suite and source review recorded above.",
+    "seed": 8122,
+    "snapshots": 18,
+    "source_sha256": "2896c186852661550752e39243dfcf4e82918ff4ad061d3419db049c55ff2943",
+    "status": "passed_on_pre_hardening_feature_revision"
+  },
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv-f1/bin/python -m pytest -q --import-mode=importlib -p no:cacheprovider research/experiments/boundary_20260908/telemetry/test_features.py research/experiments/boundary_20260908/telemetry/test_data.py research/experiments/boundary_20260908/telemetry/test_models.py research/experiments/boundary_20260908/telemetry/test_evaluate.py",
+    "exit_code": 0,
+    "historical_inputs_or_scores_used": false,
+    "passed": 158,
+    "reported_seconds": 4.53,
+    "stdout_summary": "158 passed in 4.53s"
+  }
+}

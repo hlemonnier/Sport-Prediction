@@ -1,0 +1,52 @@
+{
+  "checks": [
+    "Exact frozen original44 discovery session mappings, 22 per year in 2022 and 2023; exactly two verified pilot reuses and42 new jobs",
+    "Typed unchanged transport settings, two concurrent jobs, two provider attempts per new event, 64MiB wire and decoded caps, 12GiB disk headroom",
+    "All21 closed pilot verification path/hash/byte bindings rechecked, including source and attempt receipts",
+    "Global output guard prevents any new request if any declared event already has bodies, receipts, source or progress outputs",
+    "Source-bound passing review required before exclusive acquisition lock; lock binds this review",
+    "Every new source and attempt receipt is compared against its returned result; requested URL/provider order, output paths, success status and complete body checks are bound",
+    "Unavailable attempts remain in the44-event manifest; downloaded streams remain unparsed; all new output bytes and sources are rechecked before final closure",
+    "Frozen pilot source and acquisition contract unchanged; isolated transport module redirects only its DATA directory"
+  ],
+  "completed_at_utc": "2026-09-08T05:09:03.920477+00:00",
+  "contract_sha256": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+  "dry_run": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv-f1/bin/python research/experiments/boundary_20260908/telemetry/acquire.py --dry-run",
+    "exit_code": 0,
+    "max_new_http_requests": 84,
+    "max_parallel_requests": 2,
+    "model_fits": 0,
+    "new_stream_jobs": 42,
+    "predictive_scores": 0,
+    "reused_streams": 2,
+    "sessions": 44
+  },
+  "limitations": [
+    "Acceptance deadline is not hard DNS/socket cancellation; frozen30s read overrun limitation remains.",
+    "This review does not certify future HTTP success, raw stream validity, historical client receipt clocks or predictive improvement."
+  ],
+  "models_fitted": 0,
+  "network_calls": 0,
+  "predictive_scores": 0,
+  "review_scope": "Offline fixed44 acquisition orchestration and reuse closure; no historical feature build, target access, fit or network call",
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4",
+    "research/experiments/boundary_20260908/telemetry/acquire.py": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5",
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1",
+    "research/experiments/boundary_20260908/telemetry_pilot/acquire.py": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e"
+  },
+  "status": "passed",
+  "suggested_commit": "research(f1-live): validate immutable discovery telemetry acquisition",
+  "test_evidence": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=. .venv-f1/bin/python -m pytest -q -p no:cacheprovider --import-mode=importlib research/experiments/boundary_20260908/telemetry/test_acquire.py research/experiments/boundary_20260908/telemetry_pilot/test_acquire.py",
+    "elapsed_seconds": 0.54,
+    "exit_code": 0,
+    "frozen_transport_tests": 56,
+    "new_wrapper_tests": 46,
+    "passed": 102,
+    "prior_collection_attempt": "One collection-only command omitted --import-mode=importlib and stopped before tests due duplicate test_acquire.py module basenames; corrected command above passed. No source workaround or frozen edit.",
+    "stdout": "........................................................................ [ 70%]\n..............................                                           [100%]\n102 passed in 0.54s\n"
+  }
+}

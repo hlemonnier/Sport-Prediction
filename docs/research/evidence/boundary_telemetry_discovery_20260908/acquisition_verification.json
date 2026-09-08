@@ -1,0 +1,719 @@
+{
+  "acquisition_lock_sha256": "edb419d1f99f54176319aac26759ef4ae04f8682c44ac324feae99bce540d482",
+  "acquisition_review_sha256": "23d416dab715fbf26791a4e5038ba7af6cfc1d9349d8b621062f79faa750bcb8",
+  "acquisition_sha256": "9fd8b37c7905c0b9036f9b06a9d33595ecee0e42fd68d774baade5884902b220",
+  "events": 44,
+  "model_fits": 0,
+  "new_events": 42,
+  "new_http_attempts": 63,
+  "predictive_scores": 0,
+  "reused_pilots": 2,
+  "status": "PASS",
+  "stream_payload_integrity": "pending feature-phase exhaustive parsing",
+  "total_decoded_bytes": 355191352,
+  "unavailable_events": 0,
+  "unique_checked_files": 175,
+  "verified_at_utc": "2026-09-08T05:13:13.082925+00:00",
+  "verified_files": {
+    "data/f1/boundary_20260908/telemetry/202202_CarData.z.attempt1.httpbody": {
+      "bytes": 7033023,
+      "sha256": "b9c07856ed10426b799f44c7d17df071880013f9d7091b39163df07ee27c6a63"
+    },
+    "data/f1/boundary_20260908/telemetry/202202_CarData.z.attempt1.receipt.json": {
+      "bytes": 995,
+      "sha256": "d13150449ffbb4ac1bc30af7dc639184bd9bf839b9a4fbf0741bd8aa5bc47743"
+    },
+    "data/f1/boundary_20260908/telemetry/202202_CarData.z.source.json": {
+      "bytes": 1586,
+      "sha256": "e14e27091f78187ff0381ec22b41c26b74a6ee56b653af5cfb27d2b2e2fe7462"
+    },
+    "data/f1/boundary_20260908/telemetry/202203_CarData.z.attempt1.httpbody": {
+      "bytes": 7531091,
+      "sha256": "a329bed1df88152ebfbebe732c484a5263cffe50f039ed896f65a14d87f1a01e"
+    },
+    "data/f1/boundary_20260908/telemetry/202203_CarData.z.attempt1.receipt.json": {
+      "bytes": 988,
+      "sha256": "a661eadfab8f723d37b49b4cbd70c0604bc9cfa6cad31989a387a979a6972c05"
+    },
+    "data/f1/boundary_20260908/telemetry/202203_CarData.z.source.json": {
+      "bytes": 1576,
+      "sha256": "4a2a63865434e92921b6807e15ce2fcacfe3408b4aaca53a44dfeacd5972959c"
+    },
+    "data/f1/boundary_20260908/telemetry/202204_CarData.z.attempt1.httpbody": {
+      "bytes": 7859087,
+      "sha256": "f4b4ae9191d4e0345dfc8cb29695f796f6524eeeddd4242f77919f23072e9752"
+    },
+    "data/f1/boundary_20260908/telemetry/202204_CarData.z.attempt1.receipt.json": {
+      "bytes": 996,
+      "sha256": "a4aec4b666c7f51921064f32b4c67554ce132165a20d98f3e580a16b1c4460d9"
+    },
+    "data/f1/boundary_20260908/telemetry/202204_CarData.z.source.json": {
+      "bytes": 1588,
+      "sha256": "cccc3785255dc49692759009e43faa09fc5a180a54b0a49a83f0eaab052dff16"
+    },
+    "data/f1/boundary_20260908/telemetry/202205_CarData.z.attempt1.httpbody": {
+      "bytes": 8092159,
+      "sha256": "7089673a8162eea2793490da40fa2ec4f8776efef8bf0442dc79c76765cfab5c"
+    },
+    "data/f1/boundary_20260908/telemetry/202205_CarData.z.attempt1.receipt.json": {
+      "bytes": 979,
+      "sha256": "34eeb978bf34d2b9a4bcb56e270c733af758fed88a39dc23aadebb61af73db4b"
+    },
+    "data/f1/boundary_20260908/telemetry/202205_CarData.z.source.json": {
+      "bytes": 1562,
+      "sha256": "966fbc96460d56fb68319669308e764c24f70af7396c022d63de74f8e5d8123e"
+    },
+    "data/f1/boundary_20260908/telemetry/202206_CarData.z.attempt1.httpbody": {
+      "bytes": 8395523,
+      "sha256": "9ed1d90508536cd84adbe589819a2f096b30effe7fe9a35f324c10b114d232a2"
+    },
+    "data/f1/boundary_20260908/telemetry/202206_CarData.z.attempt1.receipt.json": {
+      "bytes": 982,
+      "sha256": "cc8a4b6109df7ffd4c633355469fbe83960229eac01a437f84f4ff500c46998f"
+    },
+    "data/f1/boundary_20260908/telemetry/202206_CarData.z.source.json": {
+      "bytes": 1567,
+      "sha256": "46be7cdf07cda9c3111cb96d3379d9518cff79c0fc1e82a09f1838929ea6ad1a"
+    },
+    "data/f1/boundary_20260908/telemetry/202207_CarData.z.attempt1.httpbody": {
+      "bytes": 10152255,
+      "sha256": "c1bb4a05da8c86391dfe405327a603529047b72269f14b7ca5d53102fdc2fffd"
+    },
+    "data/f1/boundary_20260908/telemetry/202207_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "930608de7b2d9f4e0948d5b2efb907f9196fbe65c7f771e9862ba7d2f85b1da2"
+    },
+    "data/f1/boundary_20260908/telemetry/202207_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "14c10adb15cbee4a877087efb61f20597749c7172ebf4f597c261004ba2b8df6"
+    },
+    "data/f1/boundary_20260908/telemetry/202208_CarData.z.attempt1.httpbody": {
+      "bytes": 7932875,
+      "sha256": "08a35d1ce2a728e51d03efeda164428f008e96d92c52ea75f2d1b5e884ee8051"
+    },
+    "data/f1/boundary_20260908/telemetry/202208_CarData.z.attempt1.receipt.json": {
+      "bytes": 989,
+      "sha256": "90d0fce2c0dff5ddb1c5fbf92c7861861c39eb1a43943a2bc13c277b90f14191"
+    },
+    "data/f1/boundary_20260908/telemetry/202208_CarData.z.source.json": {
+      "bytes": 1577,
+      "sha256": "7e6acae8bcfd50f686977c42fc79b08db6ee9b3cf08576c129f26beb13ec3d91"
+    },
+    "data/f1/boundary_20260908/telemetry/202209_CarData.z.attempt1.httpbody": {
+      "bytes": 8122135,
+      "sha256": "511420e1f3c74198450d09276bd0c6f2ed6d944509586ee3856549dbac61e47b"
+    },
+    "data/f1/boundary_20260908/telemetry/202209_CarData.z.attempt1.receipt.json": {
+      "bytes": 985,
+      "sha256": "1c83991432eb25335be8cd153045ba713946239028171c9c8b164db69579aa4d"
+    },
+    "data/f1/boundary_20260908/telemetry/202209_CarData.z.source.json": {
+      "bytes": 1571,
+      "sha256": "c3ce7d44c128bcfbbc38a9e6b8ae00aa3baff00a322e44a9a212feeb4b707760"
+    },
+    "data/f1/boundary_20260908/telemetry/202210_CarData.z.attempt1.httpbody": {
+      "bytes": 7992691,
+      "sha256": "3398482c769adad2a14e128c0b5b7b1bd74bfa46472b72ac1c7b544102025f90"
+    },
+    "data/f1/boundary_20260908/telemetry/202210_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "0638cd94e8358f10a5b502d7c12056ecd77a093997ea916938e871d09fe7dec1"
+    },
+    "data/f1/boundary_20260908/telemetry/202210_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "a7c26bf3acabd99c7eb6b6fc830bb49a4bf504cfe75d1e59582c38640dca7d9c"
+    },
+    "data/f1/boundary_20260908/telemetry/202211_CarData.z.attempt1.httpbody": {
+      "bytes": 6884931,
+      "sha256": "d63c25ea729b20e268bf8a00e81983466dff0c720755f622dd8d156d9c72ecde"
+    },
+    "data/f1/boundary_20260908/telemetry/202211_CarData.z.attempt1.receipt.json": {
+      "bytes": 985,
+      "sha256": "2c8b083aef0171d47108ba26aaf40b67413a6d0ee3cbbbb6fc19a22ed5b05d71"
+    },
+    "data/f1/boundary_20260908/telemetry/202211_CarData.z.source.json": {
+      "bytes": 1571,
+      "sha256": "95a78caf3db790fe61c24285b63f0714a83ed5160e16dd919342edfa584147b5"
+    },
+    "data/f1/boundary_20260908/telemetry/202212_CarData.z.attempt1.httpbody": {
+      "bytes": 6643131,
+      "sha256": "1ae3efa84374a130a4b7631fa84fce854f6633ff58e04ba14a8b9770d58c1ebc"
+    },
+    "data/f1/boundary_20260908/telemetry/202212_CarData.z.attempt1.receipt.json": {
+      "bytes": 980,
+      "sha256": "e7304419fc4bd535d901a3676c8fa23ced68ce7e76ba74eba124bd475307ef0b"
+    },
+    "data/f1/boundary_20260908/telemetry/202212_CarData.z.source.json": {
+      "bytes": 1564,
+      "sha256": "46fc040fd942f3098321a699070e9c4606ff11c149ed29a911f6aabe72957efb"
+    },
+    "data/f1/boundary_20260908/telemetry/202213_CarData.z.attempt1.httpbody": {
+      "bytes": 8195011,
+      "sha256": "fdcb61a7f9101e709e091021ad27ae45b804afb55f8cd748a30c51a3446f7772"
+    },
+    "data/f1/boundary_20260908/telemetry/202213_CarData.z.attempt1.receipt.json": {
+      "bytes": 987,
+      "sha256": "03f714e147d597ed6fa5f0ee5e86559725180b65a5158d44484b7d1f4c8440d6"
+    },
+    "data/f1/boundary_20260908/telemetry/202213_CarData.z.source.json": {
+      "bytes": 1574,
+      "sha256": "a48c5f0395a74350dfe151fd4c9f6294d4ae46865ff2c509db836eebe9c684f8"
+    },
+    "data/f1/boundary_20260908/telemetry/202214_CarData.z.attempt1.httpbody": {
+      "bytes": 7422103,
+      "sha256": "217dd05e43f1a087720cb0c627b98f8fa4997be700cfa95be59888c1d45d99bc"
+    },
+    "data/f1/boundary_20260908/telemetry/202214_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "67dca7612805bbf47cc3d1b340de0cf34274bc80dfc5d288eb63519fe9bce8c6"
+    },
+    "data/f1/boundary_20260908/telemetry/202214_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "c78c1bc2bdac8cfb251de0049b1110f770b7861fdc8f977e26564bf9542b5cd0"
+    },
+    "data/f1/boundary_20260908/telemetry/202215_CarData.z.attempt1.httpbody": {
+      "bytes": 8303467,
+      "sha256": "ffabf97489a771de58f3a0c77772611bcec65663b9f6f94cb521a6a86523cbf4"
+    },
+    "data/f1/boundary_20260908/telemetry/202215_CarData.z.attempt1.receipt.json": {
+      "bytes": 979,
+      "sha256": "0286e8d5eceeb7952a40c7c40a0b6d31de10dc759e616408d69283ed8e7db53b"
+    },
+    "data/f1/boundary_20260908/telemetry/202215_CarData.z.source.json": {
+      "bytes": 1562,
+      "sha256": "014d21c9d5ca0f9bfaea3310c9a220b804ed22cb89a9520bce759f665bcf836a"
+    },
+    "data/f1/boundary_20260908/telemetry/202216_CarData.z.attempt1.httpbody": {
+      "bytes": 6977159,
+      "sha256": "23a3f9019d0674719244244aa481ec0a2119b0270398e18a7e806dff043b3adc"
+    },
+    "data/f1/boundary_20260908/telemetry/202216_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "7b436ff0962851a8a2cbb999c59e8ea561199f7b272ddbb1ab1fb2e9807f42f4"
+    },
+    "data/f1/boundary_20260908/telemetry/202216_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "c0016a94f3ed3ffaef9523cecd5db3ffdd7a9b88180eecb814546b5ae8cc2a01"
+    },
+    "data/f1/boundary_20260908/telemetry/202217_CarData.z.attempt1.httpbody": {
+      "bytes": 11069831,
+      "sha256": "ed86c107a2c30f776949261ea47280398ee33c6c32d0dce8f2cca77af623b1a1"
+    },
+    "data/f1/boundary_20260908/telemetry/202217_CarData.z.attempt1.receipt.json": {
+      "bytes": 989,
+      "sha256": "b81ea6c7e5e4fb7b39366a549e3be1cb2ec68c1d514b5c6d93a3d9ca6dc4c296"
+    },
+    "data/f1/boundary_20260908/telemetry/202217_CarData.z.source.json": {
+      "bytes": 1577,
+      "sha256": "9142f68cefb0ed0a9ef2bd96236b5fb1daa62af2fc04b6e5df87f9e32fada567"
+    },
+    "data/f1/boundary_20260908/telemetry/202218_CarData.z.attempt1.httpbody": {
+      "bytes": 8474079,
+      "sha256": "acea2d269b51844db8b1c9652a7f34e8c50470f41a3e1342f98451f055bb5e42"
+    },
+    "data/f1/boundary_20260908/telemetry/202218_CarData.z.attempt1.receipt.json": {
+      "bytes": 984,
+      "sha256": "7d3a1f92d0f35d70f904a7d5db1d19ba587899add388f8baf64d18736664e60a"
+    },
+    "data/f1/boundary_20260908/telemetry/202218_CarData.z.source.json": {
+      "bytes": 1570,
+      "sha256": "266eb2fbefd9291f7762d4c59bcb6980855e9034e5a03e913202ef10f06d570a"
+    },
+    "data/f1/boundary_20260908/telemetry/202219_CarData.z.attempt1.httpbody": {
+      "bytes": 8628671,
+      "sha256": "9a631f741288340ca2ff996d98ff792d2f10feb371b598792c9eb9155c4ff66f"
+    },
+    "data/f1/boundary_20260908/telemetry/202219_CarData.z.attempt1.receipt.json": {
+      "bytes": 994,
+      "sha256": "7a3d3d819d121f61bf94cdb87d0ca98310520146cd427226f64d86f3977230d6"
+    },
+    "data/f1/boundary_20260908/telemetry/202219_CarData.z.source.json": {
+      "bytes": 1585,
+      "sha256": "f7b41a097dfb6a8303f943bdea7636b926d619d2c04d2b43860a3f4281def368"
+    },
+    "data/f1/boundary_20260908/telemetry/202220_CarData.z.attempt1.httpbody": {
+      "bytes": 8652003,
+      "sha256": "ee4ad7dea2715d69d32fd2465c285fbdd2e9463910774c93f2b6178222dd08b0"
+    },
+    "data/f1/boundary_20260908/telemetry/202220_CarData.z.attempt1.receipt.json": {
+      "bytes": 991,
+      "sha256": "ffeba7e33ffd8ff32630d20faec8b2036eb8eeb9bbb3f6c89964b25a0d0d2173"
+    },
+    "data/f1/boundary_20260908/telemetry/202220_CarData.z.source.json": {
+      "bytes": 1580,
+      "sha256": "aaa4a4722894c2c58dd19220d4974b244e59aeaff7d4ba6dfae3bf3b4d11c321"
+    },
+    "data/f1/boundary_20260908/telemetry/202221_CarData.z.attempt1.httpbody": {
+      "bytes": 8276175,
+      "sha256": "6dd3afd20e6aa7af689de0e47de421662f18f8a5ac075299c25dd129e920c3fd"
+    },
+    "data/f1/boundary_20260908/telemetry/202221_CarData.z.attempt1.receipt.json": {
+      "bytes": 997,
+      "sha256": "7a3d6df8f25cd7a4a433850750d1bfa3d2dcd9be31faaa2b5835fc9558bbb82f"
+    },
+    "data/f1/boundary_20260908/telemetry/202221_CarData.z.source.json": {
+      "bytes": 1589,
+      "sha256": "6490019d94cc8343c5199f0a047d6095d2aa9bedcc9aa50054e2a75967aa08c0"
+    },
+    "data/f1/boundary_20260908/telemetry/202222_CarData.z.attempt1.httpbody": {
+      "bytes": 7709027,
+      "sha256": "25681b05bfaa8c74e54381d3bb1c827755982b9c90b273b2eb9c47f60cb8aec3"
+    },
+    "data/f1/boundary_20260908/telemetry/202222_CarData.z.attempt1.receipt.json": {
+      "bytes": 987,
+      "sha256": "3f799f06fa18b3c254c7606fa525b8ebfeda27cb50be28b58704a72a7af38de2"
+    },
+    "data/f1/boundary_20260908/telemetry/202222_CarData.z.source.json": {
+      "bytes": 1574,
+      "sha256": "0c9e60e8e91e1969f28c451a51126ed233eaf4906f7cbf541ffbd29d11f91670"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt1.receipt.json": {
+      "bytes": 886,
+      "sha256": "94f411a60ab0ec1d2d54a037e8826818efecfd61d6828aae5e2e1210d298d4cd"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt2.httpbody": {
+      "bytes": 7180339,
+      "sha256": "a5680ccab7b59c30576d7c812115a2b570692eedf585e4f9522a2f112e714316"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt2.receipt.json": {
+      "bytes": 1033,
+      "sha256": "dd5003aeeb6a4acbed524f16c7075809ebc633ffcda62365d28793e487a27314"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.source.json": {
+      "bytes": 2583,
+      "sha256": "37336d85a5cf29d4c81ba83e95650eb40caa89761776d46bae4660571e65fd59"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt1.receipt.json": {
+      "bytes": 881,
+      "sha256": "dc71124aa6ae7c72f1948f206852950bdd521defad64733a050d4726a6aa1ab1"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt2.httpbody": {
+      "bytes": 8822499,
+      "sha256": "a0741792cc5640a253fd5c6c1d0290f6c366a3060892768d8f32a3578a0a97bb"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt2.receipt.json": {
+      "bytes": 1027,
+      "sha256": "f2e687e590127352e8bf2297b7563816417395fab0cac59e9579b3d7e00a310c"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.source.json": {
+      "bytes": 2569,
+      "sha256": "2a5b71b04321d5968beed72dc4cc61336472545b4c634e73d4925207844213d4"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt1.receipt.json": {
+      "bytes": 882,
+      "sha256": "8b9381f7c098aa2e58082d30c68416a3ab5cbf6afef5578ce348f8c066288bee"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt2.httpbody": {
+      "bytes": 8055963,
+      "sha256": "26438aa6611b548240b4ef471b9dd211dc42a39bfdf563e46475a15b074dd1bb"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt2.receipt.json": {
+      "bytes": 1027,
+      "sha256": "b3c28b1cbc43b3454253cc4bd2af621d85012ce79e4775b1077bb7367a247e83"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.source.json": {
+      "bytes": 2570,
+      "sha256": "b240e61f28267e7a4f7bf45e68e21b37af50259a1211ee3b966994e5de2f8699"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt1.receipt.json": {
+      "bytes": 872,
+      "sha256": "458a9446cb1421caa219ce0c0f13cba7a5bd0489d187766531095624178c82c8"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt2.httpbody": {
+      "bytes": 7857795,
+      "sha256": "d0730d561db2a0035361c7b85b4ed3f4bbecbeb24d778a8fbf5c3cb19fbf62a0"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt2.receipt.json": {
+      "bytes": 1017,
+      "sha256": "4a41c0ca9f06cf33dc068bfbebedc52f00f6923c09aa0fe62effec656063736c"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.source.json": {
+      "bytes": 2545,
+      "sha256": "03cb09536e372bf22b1b6de7c846711a191a6446c78e45644e374e22d482f546"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt1.receipt.json": {
+      "bytes": 874,
+      "sha256": "7fe14e5e222677249156daced30e8ff8e7c0b9db960d4a93f481ffa899554868"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt2.httpbody": {
+      "bytes": 9462023,
+      "sha256": "642ee7cda0c918dfe690c6d530cc0c997674aaea63d4a2130e67f3c0cb451068"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt2.receipt.json": {
+      "bytes": 1018,
+      "sha256": "5cedc3eca3cff30082a3a8c4cfc37b5d3468b04a3393fb1d67b273614d5facdf"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.source.json": {
+      "bytes": 2549,
+      "sha256": "150f69eb58472f94328279fbad28a2a7c3977081c4a97638c1fb199ca9cbeb92"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt1.receipt.json": {
+      "bytes": 875,
+      "sha256": "9e0127e0d390c4872e0cdc1b77aa07dd4bfeba1b99e52dbe3cdd2fd92f517d79"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt2.httpbody": {
+      "bytes": 7954495,
+      "sha256": "15818db995d6baf3346942cec09a54bf32b42b08f8a6cd03984551ac22c6decd"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt2.receipt.json": {
+      "bytes": 1021,
+      "sha256": "1d15ccfdec4d8be89d9f040561ae2b440c066aedd2666ae47ee8c2ff5a39e52f"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.source.json": {
+      "bytes": 2554,
+      "sha256": "8cfa88549519ee4448612ffa7adf8258ed18f972c9e35afa265c98ccd35c9c3c"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "c93ea05127b2cb4dccdcd34b1eabaf5a2c739a896b57dff8538413830e26f45a"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt2.httpbody": {
+      "bytes": 8200815,
+      "sha256": "625001c9a24870dbbdee5b15059f91d9a7c36249caa7413a98d00f7023e1f0ea"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt2.receipt.json": {
+      "bytes": 1023,
+      "sha256": "696046e23d7fc271fff9591b62beac5267d5f95baf36ad068948f3b03f779d9b"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.source.json": {
+      "bytes": 2560,
+      "sha256": "152a92f004aa9da91567234ee1e008da28e07a0334002a4e7d90b0f823802c27"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "861ed377836b7a638644aa1dde6a98e0d686334ca49c9fd5b6f317f83e8157a9"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt2.httpbody": {
+      "bytes": 7459831,
+      "sha256": "5fd63539aa064c00b4fcf1b121c5dc1cae787bf9377abc0efd3637810d3b8e12"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt2.receipt.json": {
+      "bytes": 1023,
+      "sha256": "b89ac7c63e85845520f7c23f9a4cf4422e80c9ba91150d48cabf532a01afb095"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.source.json": {
+      "bytes": 2560,
+      "sha256": "d5c0aaa77f4c3f4f074867ddab408682089cff93264b59cc7af022f43d570a63"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt1.receipt.json": {
+      "bytes": 875,
+      "sha256": "da554b39e00ca88e1b1182ade7a963625758fd40495430754bb74af55517af0c"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt2.httpbody": {
+      "bytes": 7298003,
+      "sha256": "e136da1f3a978007327e841436048e38e91573c21644f9437bd04b087c5f7c38"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt2.receipt.json": {
+      "bytes": 1020,
+      "sha256": "f1d82f3ecea2db86cf934aafa172d3e909eae5a181a5a537cbd3db52c41aaff3"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.source.json": {
+      "bytes": 2553,
+      "sha256": "272e4a395138b7008e5b83fad717fec21ebcc4bfd273e862351330f01f1eb5c9"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt1.receipt.json": {
+      "bytes": 880,
+      "sha256": "f1b55212e3e59311ae440e071a220906cde1781ecca4958909b59ea9c54b102b"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt2.httpbody": {
+      "bytes": 8294707,
+      "sha256": "861b6ddb42d297022484ac86d6aa6ada1aab292a40e3b2f51f12c2b902cd265d"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "9aa86bf7b7ab8ed974d19c217adaac0719f3daa155c2589d1f25c27c35f571dc"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.source.json": {
+      "bytes": 2565,
+      "sha256": "fedad9f1625fbd3d4848e05800c56fd0085d3fb5b43b1135e49a5507eae98855"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt1.receipt.json": {
+      "bytes": 876,
+      "sha256": "fb34336db42d5036478b924818b9ad292e69183c077db82c767b963d710a1eb0"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt2.httpbody": {
+      "bytes": 7168659,
+      "sha256": "9b9f7a2a728c2b98144d5728e6f9e63a3e0441d67534d098b5d8a24ef30f56bf"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt2.receipt.json": {
+      "bytes": 1021,
+      "sha256": "7d1518e1dc9c10bb245a8554a5da40a8fd8b350ed0195074eb6a1bedd2b0ecac"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.source.json": {
+      "bytes": 2555,
+      "sha256": "58f2f65fb13e4be7afba0bd912b2f90dd1ea36518ab048a9d986fda1c3b6ccbc"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt1.receipt.json": {
+      "bytes": 872,
+      "sha256": "985be3fc7b00d25b3f1a880e7f7aa08f3a9e921bcaab840a62277c51920d6887"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt2.httpbody": {
+      "bytes": 9574775,
+      "sha256": "ccfbc04a49ab4a4369e98891d1252c547c798cb4aa5db9b3904734db0f724782"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt2.receipt.json": {
+      "bytes": 1017,
+      "sha256": "dbfc1e4167d8505ea9c9cfa2b06ed35036539a4c7b8c41e8d87003f294937bb3"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.source.json": {
+      "bytes": 2545,
+      "sha256": "1cd8c0e7d6c6191953a74b6f98f4be401817e69fa99c1ab6522f0318961de340"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt1.receipt.json": {
+      "bytes": 876,
+      "sha256": "1a6c7162c85813b77a9385791245c357235acc79b4ef68e78348c55477f554e3"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt2.httpbody": {
+      "bytes": 7345015,
+      "sha256": "0f8fa73f7065fd4fd501cca1a5afcbb244fea870c8e05552e765391349fdcb5a"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt2.receipt.json": {
+      "bytes": 1020,
+      "sha256": "286fbf939e76e4925ea0c7c8583ff82e6b7ab9d3fb6eb6a7a2fe8844e283c963"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.source.json": {
+      "bytes": 2554,
+      "sha256": "bd9d0b62b51b70d05bc8f9e5c35c9f0f1be78cfd1676559807248dd7b058926b"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt1.receipt.json": {
+      "bytes": 879,
+      "sha256": "0aa6730910e7d1b7996870cfea093a23604c340acfed1e553badd087925d233c"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt2.httpbody": {
+      "bytes": 8830839,
+      "sha256": "8779af0fb58da80db8244452f3abbd9e451745b69fe95e77ca97146e2cc32fb5"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "b0485458808cdd3ce37bcead55106fa5a25f9e57af05044eb4742c877d589084"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.source.json": {
+      "bytes": 2564,
+      "sha256": "32febf7e035abf616d722a31eec44728c07a1e1063094d63168995be60f67089"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "6a37016a2097092c70d76bc30f5e5790e1ab0812b21531b5c3d904c03022c4a6"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt2.httpbody": {
+      "bytes": 7634271,
+      "sha256": "50079334f2f66edf4126af6910430af8044ef7312106fd83d7d6bd012b6b787d"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt2.receipt.json": {
+      "bytes": 1022,
+      "sha256": "2002a8f379b38c1934999f5535e29eb5810b6ed6be8528eba586365dc6ec6a9c"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.source.json": {
+      "bytes": 2559,
+      "sha256": "959ecaa2d1560333e34932f4120a97c01f74f3476b4b31af9031e096d03fbcc2"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt1.receipt.json": {
+      "bytes": 870,
+      "sha256": "0a4c29d635ae7313ec2967865b38df862d34c92ee046630a0ad46ce79b3cbfd6"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt2.httpbody": {
+      "bytes": 7508059,
+      "sha256": "ecfc2e73059f85fb49c96aec1f812c52b29a0d4280ac01e0eb3549fc2ef3c46d"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt2.receipt.json": {
+      "bytes": 1017,
+      "sha256": "b25019db7af4ef6674e64d33a40048fe9f40248ecba5be77c83713cd52754dfc"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.source.json": {
+      "bytes": 2543,
+      "sha256": "31e6e7464210175a448dd66001f66fec0bc461b15cbc3e70a5c46d2c2e233a10"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt1.receipt.json": {
+      "bytes": 888,
+      "sha256": "171e6d17c2c74bcbfec9fea5104123109d027f6f7265a3f8f945210b4bef8a48"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt2.httpbody": {
+      "bytes": 8160275,
+      "sha256": "64655f007b138dca545b7bebcafd75d1604bb635a65d0080dbbf2d4528c31282"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt2.receipt.json": {
+      "bytes": 1032,
+      "sha256": "0c55597569af38bf22222170cb0e88159cf95e4815afb7ad178365c39fd573fc"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.source.json": {
+      "bytes": 2584,
+      "sha256": "6d04b01f4175cea517ee328a7d580862e514593f7ad735ca65cb2b2a8bab0a1c"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt1.receipt.json": {
+      "bytes": 884,
+      "sha256": "bb09fda116857c510b5561806dfe20c85a71b1b5c3e72a97690a398f21509eaf"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt2.httpbody": {
+      "bytes": 9153063,
+      "sha256": "1c738726154077f1f35c76a8cceb9d5598237ddb18c44a4362cefc02de7575ac"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt2.receipt.json": {
+      "bytes": 1027,
+      "sha256": "95d599678301b2f0c304f1ad02998771549c6230dc48675bfa19b7a9ae4e053f"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.source.json": {
+      "bytes": 2573,
+      "sha256": "830cdccb5917edb25563d02ddef2cd2321f9daeb6618c7ef7ccf50d106cf018b"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt1.receipt.json": {
+      "bytes": 890,
+      "sha256": "50007027ebc2de5144d835f47aa0b0230e32e155922f069579c00314777a524b"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt2.httpbody": {
+      "bytes": 8053579,
+      "sha256": "4073deafb325edac0f1c63c76b55a8cb44c08a48122fdb21cabe33cf5d62cfd9"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt2.receipt.json": {
+      "bytes": 1035,
+      "sha256": "4c14fb7daecf606e45aaf3df25cc03e064da00f2290a718db1ddb9d423e77cea"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.source.json": {
+      "bytes": 2590,
+      "sha256": "b26f5afe6a46344bb88725cc92e2521f76c3160d5787e4da97640e76ed83c826"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "b0b1c62f4bff680a030a1fc4063b0be21dbdb4c03cdfb95e84f5addf98ef067f"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt2.httpbody": {
+      "bytes": 6441703,
+      "sha256": "aa8bb2db4cd51c5ada5cbc02ab068cb54faf9e0644549e4b6e689ed6189798dc"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "6d86f0b64d204b8ff1665767b9e6d7c21fbb3fef323da82f5232eb30e6235736"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.source.json": {
+      "bytes": 2563,
+      "sha256": "78824e3e6789272c0f20de2c0e817c42d95fa3dab63925e20af61c27df3aaeb9"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt1.receipt.json": {
+      "bytes": 880,
+      "sha256": "2cfcb9c75f651d5f5d3647f708a1a10c053c5d931489f2ec394b0368011e11c9"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt2.httpbody": {
+      "bytes": 7804159,
+      "sha256": "cfad3ff984085baeb1e6b4bb60e00896818234410fe1e8fc9a60a173fc17df11"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "8640b3ef2ce1a5b522de93b8a4de8301118c7bb89b1ab9ede5b1c4897e5b3475"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.source.json": {
+      "bytes": 2565,
+      "sha256": "1361f3f7be9da1aea19236001ae6b941f1427cc0c62cda34b1ef044081cb3b7d"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody": {
+      "bytes": 8476579,
+      "sha256": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody": {
+      "bytes": 8107479,
+      "sha256": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18"
+    },
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": {
+      "bytes": 1992,
+      "sha256": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4"
+    },
+    "research/experiments/boundary_20260908/telemetry/acquire.py": {
+      "bytes": 11623,
+      "sha256": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5"
+    },
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": {
+      "bytes": 24491,
+      "sha256": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c"
+    },
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": {
+      "bytes": 11543,
+      "sha256": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/acquire.py": {
+      "bytes": 10074,
+      "sha256": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e"
+    }
+  }
+}

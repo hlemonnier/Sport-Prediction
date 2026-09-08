@@ -1,0 +1,42 @@
+{
+  "command": [
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/.venv-f1/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "--import-mode=importlib",
+    "-p",
+    "no:cacheprovider",
+    "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/research/experiments/boundary_20260908/telemetry"
+  ],
+  "completed_at_utc": "2026-09-08T05:19:54.555107+00:00",
+  "exit_code": 0,
+  "source_files": {
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4",
+    "research/experiments/boundary_20260908/telemetry/README.md": "2f7d61ddfc29cd289e30ea740f6eea4e93658a1581c8253fe5ce0f4f79d72249",
+    "research/experiments/boundary_20260908/telemetry/acquire.py": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5",
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c",
+    "research/experiments/boundary_20260908/telemetry/data.py": "768f91cf810c531e9cb0d3d2ed7ab25742ddfbfd85a871c28cf0048e5c359e2b",
+    "research/experiments/boundary_20260908/telemetry/data_contract.md": "229c8c2dfc6c646cb62649a2b4047c227a730190cbf86b2e4b2b14f8e0aef3da",
+    "research/experiments/boundary_20260908/telemetry/evaluate.py": "a7744181e6f093c022d139f8bd7cd83542ea9244a2ea2d4d7d970e28d716d88c",
+    "research/experiments/boundary_20260908/telemetry/features.py": "7354b6675a4725d311c5bbf11f329e615118abf33fef5ef4bf4ee69474c1371f",
+    "research/experiments/boundary_20260908/telemetry/models.py": "3f52a84ee9cffc9a1c21b9730cb8c8d7770dca625b935fadc0df6adce1069e6b",
+    "research/experiments/boundary_20260908/telemetry/run.py": "050b574bc20db66cbf9105e78ee5d8d89dcbd30d7fe2879a60c906915ec011ba",
+    "research/experiments/boundary_20260908/telemetry/specification.json": "7f43632a7c0e75ad48fd82ccf33d328b106d08486fa6c026b01cb3be3e8bb8f5",
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1",
+    "research/experiments/boundary_20260908/telemetry/test_data.py": "aa98512fe7c2ebe6634cded626847156b4496e3502e0e639d141cfe303eeba3d",
+    "research/experiments/boundary_20260908/telemetry/test_evaluate.py": "a1ff6c67b3213180bb377fe86712778e4fd3f8272730bf65dfc16f72fef2a719",
+    "research/experiments/boundary_20260908/telemetry/test_features.py": "8c1410bcdef0d635b47e5e1870247ea7166861c8186d8d680702eb3999d3177e",
+    "research/experiments/boundary_20260908/telemetry/test_models.py": "b8c32ed66c473663b96e6f48d516a64f840d8a40a8d1a49bdd4bd8f84f548d44",
+    "research/experiments/boundary_20260908/telemetry/test_run.py": "352210a3e00a5a229aa44f31268614aeb6b236ef954077823317186d2b416edd",
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3",
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680",
+    "research/experiments/frontier_20260907/feature_encoder.py": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec",
+    "research/experiments/frontier_20260907/live_frontier.py": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265",
+    "research/experiments/frontier_20260907/specification.json": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740",
+    "research/experiments/performance_20260907/live/run_experiment.py": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097",
+    "research/experiments/performance_20260907/live/spec.json": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a"
+  },
+  "stderr": "",
+  "stdout": "........................................................................ [ 31%]\n........................................................................ [ 63%]\n........................................................................ [ 95%]\n..........                                                               [100%]\n226 passed in 7.42s\n"
+}

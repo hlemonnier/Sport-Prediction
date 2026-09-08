@@ -1,0 +1,413 @@
+{
+  "acceptance": {
+    "all_checks_required": true,
+    "any_failure": "No production activation; preserve attempt and stop. No new policy, subset or hyperparameter search in this protocol.",
+    "comparison": "candidate minus actual current reference",
+    "joint_score": {
+      "each_country_nll_nonworse": true,
+      "paired28day95_upper_at_most": 0.0,
+      "pooled_nll_nonworse": true
+    },
+    "one_fixed_candidate": true,
+    "one_x_two": {
+      "each_country_nll_strictly_improves": true,
+      "each_country_season_class_sum_brier_nonworse": true,
+      "each_country_season_nll_nonworse": true,
+      "minimum_pooled_relative_nll_gain": 0.02,
+      "paired28day95_upper_strictly_below": 0.0
+    },
+    "proof_gates": [
+      "all source/input/identity/clock hashes verified",
+      "faithful actual caller and old vector parity",
+      "complete coherent output matrices and target-independent support",
+      "independent saved-state and metrics replay",
+      "disjoint assessment model and full-history fixture model lineage remain separate"
+    ]
+  },
+  "assessment_vs_deployment": {
+    "activation": "Only after all acceptance and canonical API/CLI/default-policy parity tests pass; prior user integration authorization persists, but this protocol makes no activation.",
+    "assessment_parameters": "Retain prefix-fit/calibration lineage for historical held-out metrics; do not score full-history fitted rows as held-out.",
+    "future_fixture_parameters": "Full admitted history as of actual future cutoff, calibration off, separate from the assessment model.",
+    "global_scope": "Default Dixon policy only; do not claim benefit for untested GBDT/hybrid or other explicit settings.",
+    "metrics_lineage": "Every diagnostic explicitly identifies evaluation model/fit and held-out IDs; every fixture identifies the full-history forecast model/fit.",
+    "preserve_disjoint_historical_assessment": true,
+    "reference_preservation": "Preserve an immutable source snapshot before modifying canonical caller/model code so old reference evidence remains replayable."
+  },
+  "caller_parity": {
+    "actual_reference_entrypoint": "packages.football.mrp.prediction.run_prediction",
+    "all2280_candidate_vectors_checked": true,
+    "all2280_reference_vectors_checked": true,
+    "complete_outputs": [
+      "final_HDA",
+      "full_finite_score_matrix",
+      "base_goal_rates",
+      "rho",
+      "expected_goals",
+      "mode_score_and_probability",
+      "tail_bounds",
+      "model_and_calibration_policy",
+      "fit_lineage"
+    ],
+    "expected_goals_absolute_tolerance": 1e-10,
+    "hda_absolute_tolerance": 1e-10,
+    "hda_relative_tolerance": 0.0,
+    "history_ids_and_order_exact": true,
+    "mismatch_policy": "Abort before new score attachment/evaluation. Do not substitute archived vectors for a mismatched actual caller or choose the favorable reconstruction.",
+    "prefix_partitions_exact": true,
+    "probability_mass_absolute_tolerance": 1e-10,
+    "rendered12decimal_absolute_tolerance": 6e-13,
+    "scope": "Use the same canonical local data/fixture/history selection semantics with the frozen block input snapshot. Record any harness IO adapter explicitly.",
+    "score_matrix_absolute_tolerance": 1e-12,
+    "score_matrix_relative_tolerance": 0.0,
+    "unused_gbdt": "May suppress only after synthetic differential proof that all selected Dixon fixture outputs remain unchanged; no change to DC fitting, partitions, calibration or reconciliation."
+  },
+  "candidate": "dc_full_admitted_equal_off",
+  "candidates": [
+    "dc_full_admitted_equal_off"
+  ],
+  "created_at_utc": "2026-09-08T09:57:18.598993+00:00",
+  "execution": {
+    "exclusive_attempts_and_closures": true,
+    "fit_budget": {
+      "candidate_calibration_fits": 0,
+      "candidate_dc_fits_max": 36,
+      "duplicate_dc_fits_for_parity": 0,
+      "new_research_models": 0,
+      "reference_calibration_policy_calls": 36,
+      "reference_dc_fits": 36
+    },
+    "independent_verification": "No refits: rebuild memberships, restore raw parameters/calibrator state, replay each complete output and all fixed metrics/gates.",
+    "preserve_failures": true,
+    "reject_failed_predecessors": true,
+    "required_tests": [
+      "future/current label poisoning leaves prior state and support unchanged",
+      "disjoint assessment lineage retained",
+      "actual default caller reproduction",
+      "dc_equal parity under calibration off",
+      "saved matrix HDA/moments/mode consistency",
+      "observed-target support does not affect earlier matrix",
+      "zero/out-of-support score fails without clipping or row removal",
+      "calibrator serialization replay",
+      "all country and joint-score vetoes",
+      "exclusive outputs and failed-stage refusal"
+    ],
+    "reuse_branch_choice": "Decide and record solely from serialization/caller feasibility before attaching any new scoreline targets, never from model scores.",
+    "stages": [
+      "review and freeze protocol/new source/runtime/tests",
+      "metadata and input closure",
+      "36 reference kernel/calibrator reconstructions and caller parity",
+      "reuse36 saved full-history states or exactly36 fixed fits if parity requires",
+      "close all2280 target-free joint outputs",
+      "attach external labels and compute fixed paired metrics/gates",
+      "independent no-refit replay",
+      "conditional reviewed default-policy integration"
+    ]
+  },
+  "exposure": {
+    "all_dates_previously_exposed": true,
+    "fresh_holdout": false,
+    "no_claim_best_research_model": true,
+    "old_1x2_gain_already_inspected": true,
+    "prior_failed_research_decisions_unchanged": true,
+    "prospective_validation": false
+  },
+  "fixed_dc_kernel": {
+    "canonical_module": "packages.football.mrp.joint",
+    "equal_weights": true,
+    "fit_status": "Preserve and verify canonical fit status and diagnostics. Any unplanned solver failure aborts; do not score a replacement.",
+    "max_iterations": 1000,
+    "neutral_prior_goal_rates": [
+      1.35,
+      1.05
+    ],
+    "optimizer_tolerance": 1e-10,
+    "rate_constraints": [
+      0.05,
+      6.0
+    ],
+    "regularization": 0.002,
+    "rho_parameter_bounds": [
+      -0.2,
+      0.2
+    ],
+    "solver_initialization_constraints_and_fallback": "Inherit the exact bound canonical source; no new initialization, alternate solver, decay, penalty, rate clipping or chosen fallback.",
+    "support_epsilon": 1e-09
+  },
+  "hyperparameter_search": false,
+  "id": "football_fixed_full_history_dc_deployment_policy_20260908",
+  "inputs": {
+    "acquisition_manifests": [
+      {
+        "bytes": 4949,
+        "path": "data/football/performance_20260907/source_manifest.json",
+        "sha256": "8521af37c445777340cfa436fda3f9f6caed33bf632b3536cd6016a932f9298b"
+      },
+      {
+        "bytes": 7936,
+        "path": "data/football/performance_20260907/transfer_source_manifest.json",
+        "sha256": "ca5a485628cd231786e63558564eb7eeaba67bc45e456143e21506b48cf8ecc6"
+      }
+    ],
+    "cached_csv_byte_counts": "Verify each raw file against its feature input_hashes entry and filename/sha256/bytes in the two pinned acquisition manifests.",
+    "cached_csv_maps": [
+      {
+        "artifact": "artifacts/research/boundary_20260908/football/features_evaluation_E0.json",
+        "canonical_sha256": "513cc083d0dbadae4bf0da28080a570c9198bd1c8e82c60a027fdebcedc7c53b",
+        "entries": 9,
+        "json_pointer": "/input_hashes"
+      },
+      {
+        "artifact": "artifacts/research/boundary_20260908/football/features_evaluation_I1.json",
+        "canonical_sha256": "79aa4ff9ff2aa772b07269331ba1e613780a884e3128270603416b17e6f9246b",
+        "entries": 9,
+        "json_pointer": "/input_hashes"
+      },
+      {
+        "artifact": "artifacts/research/boundary_20260908/football/features_evaluation_SP1.json",
+        "canonical_sha256": "305b3a2d37c35c565991f5d8758a921f4785468f35138ea37c69295a75bfb36a",
+        "entries": 9,
+        "json_pointer": "/input_hashes"
+      }
+    ],
+    "cached_csv_total": 27,
+    "canonical_global_caller_sources": [
+      {
+        "bytes": 60906,
+        "path": "apps/api/src/index.js",
+        "sha256": "734e6275f414a7ef314b2a77d46a8db6c793afd27c9d26970b050cb8be55bb99"
+      },
+      {
+        "bytes": 6678,
+        "path": "research/projects/football/Match Result Prediction/Python/run_experiment.py",
+        "sha256": "41048a0fd60054708c3ac562b126b8aac5e0cf18dbad2d47e7d98e8df3806766"
+      },
+      {
+        "bytes": 938,
+        "path": "research/projects/football/Match Result Prediction/Python/mrp/__init__.py",
+        "sha256": "bb67482296b5bf67bebe7b423d3670171d7821212e80189dcfeefbf9ebd6e117"
+      }
+    ],
+    "closure_rule": "Check current bytes against the old passed verification, source map, feature hashes, CSV hashes and original acquisition manifests; freeze the new reviewed implementation before any new fit.",
+    "feature_artifacts": {
+      "E0": {
+        "bytes": 3132604,
+        "path": "artifacts/research/boundary_20260908/football/features_evaluation_E0.json",
+        "sha256": "d499ff3b88e6c3c1e6d71de5f817cf115c28814a177d27474b932f61eed986e0"
+      },
+      "I1": {
+        "bytes": 2972132,
+        "path": "artifacts/research/boundary_20260908/football/features_evaluation_I1.json",
+        "sha256": "12513263b09f03e77d35edf0b8741fbb05789acd8f5c623d8e4a0457ef623090"
+      },
+      "SP1": {
+        "bytes": 3084272,
+        "path": "artifacts/research/boundary_20260908/football/features_evaluation_SP1.json",
+        "sha256": "2ca1b7efa0b22d0d67a080b9f200a09555de1542b849e2706977d8496aba0437"
+      }
+    },
+    "inherited_source_map": {
+      "artifact": "artifacts/research/boundary_20260908/football/evaluation.json",
+      "canonical_sha256": "1928a5cf5e70e340dba20389b3ada4a5a3b4cf7abb05b0380943d0532a1902a2",
+      "entries": 19,
+      "json_pointer": "/source_files",
+      "verify_current_files": true
+    },
+    "old_design_lock": {
+      "bytes": 5594,
+      "path": "artifacts/research/boundary_20260908/football/design_lock.json",
+      "sha256": "331d94c08acdf5b2e390756019203b4bbc7680ac27f765e5a2279004ff18f980"
+    },
+    "old_evaluation": {
+      "bytes": 10718400,
+      "path": "artifacts/research/boundary_20260908/football/evaluation.json",
+      "sha256": "1c1d037ffbdf00a693728254e630792315ee7db8d8f79cbdb3545d34df66a795"
+    },
+    "old_verification": {
+      "bytes": 986,
+      "path": "artifacts/research/boundary_20260908/football/verification.json",
+      "sha256": "3a6328942dd4fe0708aa3539d2f89464106f11fc727abbbf7c15bfbbef89356a"
+    },
+    "runtime_gap": {
+      "bytes": 16498,
+      "path": "research/experiments/boundary_20260908/football_runtime_gap.md",
+      "sha256": "f163df31cfce7e535dfb5e59402ee8d609c05e55ae5c26964c6946584826e2f6"
+    },
+    "runtime_scoreline_diagnostic": {
+      "bytes": 10199,
+      "path": "research/experiments/boundary_20260908/football_runtime_scoreline_diagnostic.md",
+      "sha256": "1f7b5f7d31990c386338367cb0d9400d19dd48db47829c05530ea8f78b9c22b8"
+    },
+    "unrelated_mutable_publication_documents_bound": false
+  },
+  "joint_score": {
+    "builder": "packages.football.mrp.score_distribution.build_score_distribution followed by canonical reconcile(selected_HDA)",
+    "common_scoring_function": "For nonnegative integer (h,a), return matrix[h][a] when inside support, else zero. Both policies use this identical rule on their distinct saved matrices.",
+    "estimand": "Negative natural log of probability in each policy actual emitted finite joint score matrix.",
+    "infer_joint_gain_from_1x2_gain": false,
+    "initial_min_max_goals": 1,
+    "no_target_informed_support_expansion": true,
+    "no_unannounced_infinite_support_substitution": true,
+    "out_of_support_or_zero_mass": "Infinite NLL; preserve row, record cause, fail advancement, and do not compute a misleading finite bootstrap.",
+    "probability_floor": null,
+    "shadow_evaluation_scoreline_metric_reused": false,
+    "shared_conditional_kernel_assumed": false,
+    "support_selection": "Only frozen goal rates/rho and selected HDA may determine support or existing reconciliation refinement; never observed target goals.",
+    "tail_tolerance": 1e-12,
+    "undefined_loss_json": "Use explicit nonfinite_loss status with null numeric fields and gates false; strict standard JSON only."
+  },
+  "metrics": {
+    "brier": "Mean sum of three squared probability errors",
+    "joint_score": "Mean observed-score NLL from preclosed emitted matrices over identical2280 fixtures",
+    "one_x_two": "Mean natural-log class NLL over all2280 fixtures",
+    "secondary": [
+      "top1 accuracy",
+      "10-bin top-label ECE",
+      "class calibration bias",
+      "country/country-season losses",
+      "tail/support diagnostics"
+    ],
+    "weighting": "One equal weight per fixture; identical population for every metric."
+  },
+  "new_fits_performed": 0,
+  "new_forecasts_generated": 0,
+  "new_joint_score_metrics_computed": false,
+  "policies": {
+    "dc_frozen_prefix_auto": {
+      "calibration_membership": "The exact saved calibration partition; inherited automatic calibration policy unchanged.",
+      "fit_membership": "chronological_populations(full_admitted_history).fit, exact saved prefix IDs/content/partitions.",
+      "football_calibration": "auto",
+      "football_model": "dixon",
+      "goal_strength_half_life_days": null,
+      "historical_vector_key": "production_default_dc_auto",
+      "raw_model": "Actual canonical fit_dixon_coles prefix fit; reconstruct the missing 36 goal-model states."
+    },
+    "dc_full_admitted_equal_off": {
+      "calibration": "Identity; no calibration fit and no reuse of a calibrator trained on a different raw model.",
+      "fit_membership": "Every row in the exact full admitted block history, once; not every cached match.",
+      "football_calibration": "off",
+      "football_model": "dixon",
+      "goal_strength_half_life_days": null,
+      "historical_vector_key": "dc_equal",
+      "reuse": "Reuse only after exact source, fit population, serialized goal-parameter and canonical caller/model parity checks. Otherwise fit all 36 blocks once with the same settings.",
+      "saved_parameters": "fits[j].base.dixon_coles.dc_equal in each pinned feature artifact"
+    }
+  },
+  "population": {
+    "block_inventory_binding": {
+      "canonical_json": "UTF-8 json.dumps(value,sort_keys=True,separators=(comma,colon),allow_nan=False); default ensure_ascii=True.",
+      "complete_derived_inventory_sha256": "82131b65fea90180fa419097e547bb1c4e7e129918d2f4040197eb5b866de29d",
+      "count": 36,
+      "derivation": "Per block preserve source league, source feature path/index, base fit_id/cutoff/fit_match_ids count/fit_ids_sha256/fit_content_sha256; digest complete base.dixon_coles.dc_equal, complete production_default.populations, and ordered matching row IDs; record saved population sample sizes. Sort by (fit_cutoff_utc,league,fit_id), then SHA256 of sorted-key compact JSON.",
+      "derived_fields": [
+        "calibration_rows",
+        "feature_artifact",
+        "feature_fit_index",
+        "fit_cutoff_utc",
+        "fit_id",
+        "forecast_rows",
+        "full_admitted_content_sha256",
+        "full_admitted_ids_sha256",
+        "full_admitted_rows",
+        "historical_selection_rows",
+        "historical_test_rows",
+        "league",
+        "ordered_forecast_ids_sha256",
+        "prefix_fit_rows",
+        "prefix_partition_sha256",
+        "saved_dc_equal_parameters_sha256"
+      ],
+      "source": "Each pinned feature_artifact: fits[j].base plus the forecast rows with the same fit_id; production_default.populations binds the prefix partitions."
+    },
+    "countries": [
+      "E0",
+      "SP1",
+      "I1"
+    ],
+    "fit_blocks": 36,
+    "fit_blocks_each_country": 12,
+    "fixture_filtering": false,
+    "missing_or_unreconstructable_row": "Fail the attempt; do not drop or silently replace the fixture.",
+    "ordered_original_match_ids_sha256": "13e5eb0e6763266167dc003d982756d933a873bec7a16017c2765256f03505ed",
+    "resumed_fixture": "I1:2024:Fiorentina:Inter retained under its inherited canonical completion-day identity.",
+    "rows": 2280,
+    "rows_each_country_season": 380,
+    "season_start_years": [
+      2024,
+      2025
+    ]
+  },
+  "production_changes_at_protocol_creation": false,
+  "proposal": {
+    "bytes": 7481,
+    "path": "research/experiments/boundary_20260908/football_deployment_policy/README.md",
+    "sha256": "e002b4b039f42a674446514780e641dc28fd46ed084d12c4cfebba08f9d93dda"
+  },
+  "purpose": "Verify one deliverable operational default-policy improvement, not select a novel best research forecaster.",
+  "reference": "dc_frozen_prefix_auto",
+  "resources": {
+    "maximum_peak_rss_bytes": 2147483648,
+    "maximum_stage_wall_seconds": 3600,
+    "new_dependencies": false,
+    "new_downloads": false,
+    "parallel_fits": 1,
+    "threads": 1
+  },
+  "serialization": {
+    "byte_hash_every_closed_artifact": true,
+    "close_before_external_labels": true,
+    "no_parameters_inferred_from_HDA_alone": true,
+    "per_block": [
+      "input source hashes",
+      "ordered full admitted IDs/content hash",
+      "all disjoint assessment partitions",
+      "actual prefix and candidate attack/defense maps, intercepts and rho",
+      "optimizer diagnostics and status",
+      "calibrator method plus full fitted isotonic knots or Platt coefficients/intercepts/classes and constructor settings, or identity state",
+      "readable independent-replay state plus any exact opaque state required for native replay",
+      "fit cutoff and policy metadata",
+      "runtime and source closure"
+    ],
+    "per_fixture": [
+      "unchanged identity/issue and fit clocks",
+      "block and policy IDs",
+      "raw lambda_home/lambda_away/rho",
+      "raw HDA, selected HDA and final reconciled HDA",
+      "complete matrix and dimensions",
+      "expected goals and most-likely score",
+      "base omitted mass and final tail bound"
+    ]
+  },
+  "status": "protocol_only_before_new_reconstruction_fits_or_joint_score_evaluation",
+  "suggested_commit": "research(football): specify full-history DC deployment proof",
+  "timing": {
+    "archive_limit": "Existing files physically contain exposed labels; target-free assembly means explicit semantic non-use, not absence of label bytes.",
+    "equal_clock_group_atomic": true,
+    "external_labels": "Attach scoring goals/outcomes only after all 36 blocks and all 2280 complete output states close and hash. Earlier resolved outcomes may train later blocks.",
+    "fit_cadence": "The same frozen two-month buckets and first-fixture cutoffs; no extra fit when a later result becomes available within the block.",
+    "forecast_cutoffs": "Original per-fixture forecast_cutoff_utc and block fit_cutoff_utc unchanged; legacy naive timestamps mean UTC.",
+    "history_days": 1095,
+    "history_match_date_strictly_before_cutoff": true,
+    "history_window": "The exact saved full block fit_match_ids, independently reconstructed using original local-day window [D-1095,D) and result_available_at <= fit_cutoff_utc.",
+    "metadata_first": "Establish IDs, dates, source hashes and admitted membership before interpreting numeric training payloads. Future/current fixture values cannot alter earlier parameters, support or outputs.",
+    "result_available_at_comparison": "<="
+  },
+  "uncertainty": {
+    "blocks_calendar_days": [
+      1,
+      7,
+      28
+    ],
+    "gate_block_days": 28,
+    "interval": "Percentile95",
+    "method": "Inherited paired fixed-calendar blocks anchored at each stratum first fixture; omit empty blocks; resample existing blocks with replacement within stratum, preserving original fixture-count stratum weights.",
+    "pairing": "Same saved row deltas and same sampled block identities for 1X2 and joint-score comparisons.",
+    "prospective_inference": false,
+    "resamples": 4000,
+    "research_selection_adjustment": false,
+    "seed": 20260908,
+    "strata": [
+      "league",
+      "season"
+    ]
+  }
+}

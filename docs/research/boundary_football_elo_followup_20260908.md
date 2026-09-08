@@ -46,6 +46,8 @@ The execution source lock binds 43 source files and 323 inherited inputs. The ne
 
 The next concrete opportunity is the [global football fitting policy](../../research/experiments/boundary_20260908/football_runtime_gap.md). Existing full-history equal-weight DC forecasts improve the controlled runtime's 1X2 loss by 3.432%, but that operational gap still requires faithful runtime implementation and assessment. The [scoreline-state audit](../../research/experiments/boundary_20260908/football_runtime_scoreline_diagnostic.md) identifies missing saved runtime parameters: a paired scoreline comparison cannot be recovered from old 1X2 vectors alone when the underlying goal model changes. It also states the exact conditions under which replacing only outcome masses on a common score kernel transfers a 1X2 log-loss difference to scoreline log loss.
 
+The [fixed deployment-policy assessment](../../research/experiments/boundary_20260908/football_deployment_policy/README.md) specifies that next comparison, including actual-caller parity, saved goal/calibration state, target-independent score support and acceptance gates fixed before new scoreline losses. It has not yet been executed.
+
 The substantial new research-gain objective remains unmet. The validated global F1 model remains intact; this release changes football research and CI, not production behavior.
 
 ## Evidence

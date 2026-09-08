@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 import math
 from typing import Any
@@ -17,6 +18,7 @@ from .constants import (
     MODEL_VERSION,
 )
 from .data import load_local_football_data, select_target_fixtures, select_training_matches
+from .deployment import full_history_forecast
 from .training import (
     build_history_from_matches,
     evaluate_match_probabilities,
@@ -150,9 +152,21 @@ def _is_hybrid_eligible(
 
 
 def run_prediction(config: PredictionConfig) -> PredictionResult:
+    """Predict fixtures, using the verified full-history automatic DC default."""
+    return _run_prediction(config, full_history_default=True)
+
+
+def run_assessment_prediction(config: PredictionConfig) -> PredictionResult:
+    """Preserve the original frozen-prefix policy for research replay."""
+    return _run_prediction(config, full_history_default=False)
+
+
+def _run_prediction(config: PredictionConfig, *, full_history_default: bool) -> PredictionResult:
     notes: list[str] = []
     model_policy = _normalize_football_model(config.football_model)
     calibration_policy = _normalize_calibration_policy(config.football_calibration)
+    deploy_full_history = (full_history_default and model_policy == "dixon"
+        and calibration_policy == "auto" and config.goal_strength_half_life_days is None)
     dataset, data_notes = load_local_football_data(config)
     notes.extend(data_notes)
     fixtures, fixture_notes = select_target_fixtures(dataset, config)
@@ -276,15 +290,58 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
         diagnostics["protocol"]["metrics_status"] = "disabled" if not config.shadow_eval else "insufficient_history"
         notes.append("No out-of-sample metrics reported: evaluation disabled or insufficient disjoint history.")
 
+    # Historical metrics above remain on the untouched fit-prefix estimator and
+    # held-out calibrator. Only fixture forecasts use the separate full-history
+    # estimator; no metric is recomputed on that estimator's training rows.
+    fixture_outputs = None
+    fixture_calibration_effective = calibration_effective
+    if deploy_full_history:
+        full = full_history_forecast(history_matches, fixtures,
+            cutoff=min(fixture.date for fixture in fixtures))
+        fixture_outputs = {state["match_id"]: state for state in full["fixtures"]}
+        diagnostics["assessment_model"] = {
+            "protocol": deepcopy(diagnostics["protocol"]),
+            "goal_model_fit": deepcopy(diagnostics["goal_model_fit"]),
+            "calibration_method_effective": calibration_effective,
+        }
+        diagnostics["schema_version"] = "football_forecast_diagnostics_v3"
+        diagnostics["fixture_policy"] = "dc_full_admitted_equal_off"
+        diagnostics["fixture_policy_version"] = "full_history_dc_deployment_v1"
+        diagnostics["fixture_model"] = {key: deepcopy(value) for key,value in full.items() if key != "fixtures"}
+        diagnostics["forecast_training_sample_size"] = len(history_matches)
+        fixture_calibration_effective = "dixon:identity"
+        diagnostics["fixture_calibration_method_effective"] = fixture_calibration_effective
+        diagnostics["calibration_method_effective"] = fixture_calibration_effective
+        diagnostics["protocol"]["parameter_policy"] = (
+            "Historical assessment uses frozen fit-prefix parameters and held-out calibration; "
+            "fixtures use a separate equal-weight model fitted to all admitted history, calibration off.")
+        diagnostics["calibration_note"] = (
+            "Historical assessment retains its held-out classwise calibration; "
+            "the separate full-history Dixon fixture model uses calibration off.")
+        notes.extend(full["notes"])
+        notes.append("Automatic Dixon fixture policy: full admitted history, equal weights, calibration off; historical assessment remains on its original prefix.")
+
     rows: list[dict[str, str]] = []
     for fixture in fixtures:
-        lambda_home, lambda_away = dixon.expected_goals(fixture.home_team_id, fixture.away_team_id)
-        raw = build_score_distribution(lambda_home,lambda_away,dixon.rho)
-        selected = selected_probabilities(fixture)
-        joint = raw.reconcile(selected)
-        selected = joint.outcome_probabilities
-        expected_home,expected_away = joint.expected_goals
-        score_home,score_away,scoreline_probability = joint.most_likely_scoreline
+        if fixture_outputs is None:
+            lambda_home, lambda_away = dixon.expected_goals(fixture.home_team_id, fixture.away_team_id)
+            raw = build_score_distribution(lambda_home,lambda_away,dixon.rho)
+            selected = selected_probabilities(fixture)
+            joint = raw.reconcile(selected)
+            selected = joint.outcome_probabilities
+            expected_home,expected_away = joint.expected_goals
+            score_home,score_away,scoreline_probability = joint.most_likely_scoreline
+            raw_hda = raw.outcome_probabilities
+            joint_matrix = joint.matrix
+            omitted_mass, tail_bound = joint.omitted_probability_mass, joint.tail_probability_bound
+        else:
+            state = fixture_outputs[fixture.match_id]
+            lambda_home, lambda_away = state["lambda_home"], state["lambda_away"]
+            selected, raw_hda = tuple(state["hda"]), tuple(state["raw_hda"])
+            expected_home,expected_away = state["expected_goals"]
+            score_home,score_away,scoreline_probability = state["mode"]
+            joint_matrix = state["matrix"]
+            omitted_mass, tail_bound = state["omitted_probability_mass"], state["tail_probability_bound"]
         baseline_probs = baseline.predict(fixture)
         ranked = _ranked_outcome_labels(selected)
         baseline_ranked = _ranked_outcome_labels(baseline_probs)
@@ -302,27 +359,27 @@ def run_prediction(config: PredictionConfig) -> PredictionResult:
             "home_win_prob":format_decimal(selected[0],12),"draw_prob":format_decimal(selected[1],12),"away_win_prob":format_decimal(selected[2],12),
             "predicted_outcome":ranked[0], "prediction_confidence":format_decimal(max(selected),12),
             "outcome_rank_1":ranked[0],"outcome_rank_2":ranked[1],"outcome_rank_3":ranked[2],
-            "raw_home_win_prob":format_decimal(raw.outcome_probabilities[0],12),
-            "raw_draw_prob":format_decimal(raw.outcome_probabilities[1],12),
-            "raw_away_win_prob":format_decimal(raw.outcome_probabilities[2],12),
+            "raw_home_win_prob":format_decimal(raw_hda[0],12),
+            "raw_draw_prob":format_decimal(raw_hda[1],12),
+            "raw_away_win_prob":format_decimal(raw_hda[2],12),
             "baseline_home_win_prob":format_decimal(baseline_probs[0],12),
             "baseline_draw_prob":format_decimal(baseline_probs[1],12),
             "baseline_away_win_prob":format_decimal(baseline_probs[2],12),
             "baseline_predicted_outcome":baseline_ranked[0],"baseline_confidence":format_decimal(max(baseline_probs),12),
             "baseline_outcome_rank_1":baseline_ranked[0],"baseline_outcome_rank_2":baseline_ranked[1],"baseline_outcome_rank_3":baseline_ranked[2],
             "predicted_scoreline":f"{score_home}-{score_away}","scoreline_prob":format_decimal(scoreline_probability,12),
-            "score_distribution_omitted_mass":str(joint.omitted_probability_mass),
-            "score_distribution_tail_error_bound":str(joint.tail_probability_bound),
-            "calibration_method":calibration_effective,"calibration_method_effective":calibration_effective,
+            "score_distribution_omitted_mass":str(omitted_mass),
+            "score_distribution_tail_error_bound":str(tail_bound),
+            "calibration_method":fixture_calibration_effective,"calibration_method_effective":fixture_calibration_effective,
             "primary_model":model_used,"model_used":model_used,"gbdt_enabled":str(gbdt_enabled).lower(),
             "hybrid_weight_w":format_decimal(hybrid_weight,1),"baseline_model":"frequency_by_season_and_team",
             "forecast_status":diagnostics["status"],"maturity":"research_only",
         }
         diagnostics["fixture_distributions"][fixture.match_id] = {
-            "score_probability_matrix":[list(r) for r in joint.matrix],
+            "score_probability_matrix":[list(r) for r in joint_matrix],
             "outcome_probabilities":list(selected),"expected_goals":[expected_home,expected_away],
-            "base_omitted_probability_mass":joint.omitted_probability_mass,
-            "reconciled_tail_error_bound":joint.tail_probability_bound,
+            "base_omitted_probability_mass":omitted_mass,
+            "reconciled_tail_error_bound":tail_bound,
             "reconciliation":"Preserve conditional score probabilities within each selected 1X2 region.",
         }
         if config.weather_enabled:

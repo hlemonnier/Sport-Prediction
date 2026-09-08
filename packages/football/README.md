@@ -1,9 +1,10 @@
 # Football research models
 
 The executable package provides pre-match 1X2 forecasts and a coherent joint score
-distribution. Its status is **research only**. Implemented methods and passing
-synthetic regression tests establish neither real-data predictive accuracy nor a
-betting edge. `maturity.json` records the supported and unfinished surfaces.
+distribution. Its status is **research only**. The default full-history policy has
+a verified retrospective comparison against the previous default; this does not
+establish a betting edge. `maturity.json` records the supported and unfinished
+surfaces. See the [deployment evidence](../../docs/research/football_default_deployment_20260908.md).
 
 ## Implemented mathematics
 
@@ -67,12 +68,18 @@ calibration metric is reported as out-of-sample performance. Insufficient histor
 uses a fit/calibration split when possible, otherwise uncalibrated fitting, with
 no claimed validation and no hybrid selection.
 
-The deployed base parameters remain those from the fit prefix. Calibration and
-selection never train base parameters; the outer outcomes never choose a policy.
-Completed results may update rolling form for later predictions, including during
-the outer block, matching a sequential pre-match forecast protocol. A new run
-repeats this documented procedure on its updated available history. This approach
-trades some parameter recency for a directly auditable separation of evidence.
+Historical assessment retains the fit-prefix parameters, calibration, selection
+and untouched evaluation populations. The automatic Dixon default with no decay
+now uses a separate equal-weight model for future fixtures: it fits every admitted
+history row once and applies identity calibration. Its policy identifier is
+`dc_full_admitted_equal_off`. The full-history model does not emit held-out metrics
+on rows that it fitted. Diagnostics identify its complete fit lineage separately
+from `assessment_model`, which retains the original assessment protocol.
+
+Explicit `off`, `platt`, `isotonic`, nondefault decay, GBDT and hybrid settings keep
+their existing prefix policy. `run_assessment_prediction` provides the unchanged
+assessment caller for reproducible comparisons. Results resolved and available at
+a later run may enter that run's fixture model, without rewriting earlier forecasts.
 
 Automatic calibration uses Platt scaling of class log-odds on smaller held-out
 samples; isotonic becomes eligible at 200 calibration rows. Explicit `isotonic`
@@ -98,9 +105,11 @@ output metadata only. Pre-match and scoreline wrappers share this implementation
 their separate folders do not imply independent trained models. The legacy
 notebook is an experiment template.
 
-No real football dataset or validated market-relative benchmark is bundled in the
-canonical data/artifact directories. A real deployment decision still requires
-versioned source snapshots, multiple chronological seasons/leagues, uncertainty
-from matchday/season-aware resampling, comparison with a bookmaker baseline at the
-same decision time, and costs/limits appropriate to the intended use. Those are
-future empirical work, not hidden claims of this package.
+The default-policy comparison used 2,280 fixtures across England, Italy and Spain
+in 2024/25 and 2025/26, with versioned inputs, complete saved score matrices and
+paired calendar-block uncertainty. Relative to the previous default, 1X2 log loss
+fell 3.43% and joint-score log loss fell 2.02%. These dates were already exposed;
+the result is not a fresh prospective holdout or a claim to beat the strongest
+research candidate. Raw provider files stay outside the published package.
+Bookmaker-relative performance at the same decision time and executable betting
+costs/limits remain separate empirical requirements.

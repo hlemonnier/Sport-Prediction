@@ -92,19 +92,20 @@ def test_meta_training_uses_availability_and_never_same_day():
     assert [r["match_id"] for r in run.prior_training_rows(candidates, cutoff)] == ["prior"]
 
 
-def test_comparator_matches_real_production_prediction_api():
+def test_comparator_matches_frozen_assessment_prediction_api():
     history = matches()
     target = FixtureRecord("target", history[-1].date+timedelta(days=4), 2020, "synthetic", 250, "team0", "team1")
     data = LocalFootballData(None, {}, history, [target])
     config = PredictionConfig("synthetic", 2020, 250, "1x2", shadow_eval=False)
     model, cal, groups = models.production_default_fit(history)
     expected = models.production_default_predict(model, cal, "team0", "team1")
-    # Only IO/population selectors are replaced. The actual prediction path runs,
-    # including its own DC fit, calibration, GBDT computation and reconciliation.
+    # This comparator remains the historical prefix policy. The named assessment
+    # caller preserves it after the separately verified production-default update.
+    # Only IO/population selectors are replaced; fitting and reconciliation run.
     with patch.object(prediction, "load_local_football_data", return_value=(data, [])), \
          patch.object(prediction, "select_target_fixtures", return_value=([target], [])), \
          patch.object(prediction, "select_training_matches", return_value=(history, [])):
-        actual = prediction.run_prediction(config)
+        actual = prediction.run_assessment_prediction(config)
     row = actual.rows[0]
     np.testing.assert_allclose(expected, [float(row[k]) for k in ["home_win_prob", "draw_prob", "away_win_prob"]], atol=6e-13, rtol=0)
     for key, value in groups.metadata().items():

@@ -1,0 +1,135 @@
+{
+  "acquisition": {
+    "event_keys": [
+      202201,
+      202202,
+      202203,
+      202204,
+      202205,
+      202206,
+      202207,
+      202208,
+      202209,
+      202210,
+      202211,
+      202212,
+      202213,
+      202214,
+      202215,
+      202216,
+      202217,
+      202218,
+      202219,
+      202220,
+      202221,
+      202222,
+      202301,
+      202302,
+      202303,
+      202304,
+      202305,
+      202306,
+      202307,
+      202308,
+      202309,
+      202310,
+      202311,
+      202312,
+      202313,
+      202314,
+      202315,
+      202316,
+      202317,
+      202318,
+      202319,
+      202320,
+      202321,
+      202322
+    ],
+    "no_downloads": true,
+    "path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+    "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+  },
+  "amendment": {
+    "amended_at_utc": "2026-09-08T03:07:35.121262+00:00",
+    "before_implementation_or_any_assembly": true,
+    "original_draft_path": "research/experiments/boundary_20260908/sector_forecast/execution/data_contract_initial_draft.json",
+    "original_draft_sha256": "31e010713b2d074cddefab27a67b6c9636661d43beb508d4a69fee1065b87190",
+    "reason": "Target grouping must never include sector. Removed optional sector-specific target group so S1 and S2 resolving to the same target share exactly one target identity and weight."
+  },
+  "api": {
+    "attach_targets": "attach_targets(records,csv_path,terminal) -> labeled deep copies; call only after caller has closed and hashed target-free records",
+    "build_event": "build_event(paths,event_key) -> (records, diagnostics); no completed-lap CSV access",
+    "load_event_paths": "load_event_paths(event_key, manifest_path=None) -> four verified raw stream paths for one frozen discovery event"
+  },
+  "atomic_correction_amendment": {
+    "before_v2_historical_assembly_or_outcomes": true,
+    "implementation": "Separate the first strictly earlier S1 prerequisite, exactly matching the frozen pilot first-S1 attribution condition, from the latest atomic S1 value source. Accept unchanged repeats and genuine revisions at their actual packet clock. Missing, wrong-epoch, ambiguous or future prerequisite data fail closed; this validates the existing pilot prerequisite rather than adding an eligibility filter.",
+    "original_contract": {
+      "path": "research/experiments/boundary_20260908/sector_forecast/execution/data_contract.json",
+      "sha256": "612818fe0fa362348e38367e1f93145c4444e3153365aaf533998b17c214dd02"
+    },
+    "original_design_lock": {
+      "path": "artifacts/research/boundary_20260908/sector_forecast/execution/design_lock.json",
+      "sha256": "8550844b86f14a8742140872f55f005b96ab27386ac533185222ad560f83aa26"
+    },
+    "raw_failure_diagnostic": {
+      "path": "artifacts/research/boundary_20260908/sector_forecast/execution_preflight/same_packet_s1_failure_diagnosis.json",
+      "sha256": "e27cbb4b442ef60aedb35f7e7145d582c8e4c3df03c908dc69d85720ebcec64c"
+    },
+    "reason": "The v1 target-free build stopped before labels, fitting or scores on a genuine provider correction: Hungary 202213, driver 47, packet 24356 reported S1=30.526; packet 24357 corrected S1 to 30.486 while first reporting S2=31.233. The old equality check rejected this valid atomic snapshot.",
+    "unchanged": [
+      "Pilot candidate and retirement gates",
+      "Minimum three strictly prior valid own completions",
+      "All five reference formulas",
+      "Feature columns and encoder",
+      "Model families and hyperparameters",
+      "Selection and transfer gates",
+      "Sector-independent target identities"
+    ]
+  },
+  "feature_dependency": "execution_v2.features.encode(checkpoint, history, context, baseline_result), with the unchanged 75-column FEATURES schema. Root closes and hashes execution sources before historical v2 assembly or fitting.",
+  "feature_missingness_amendment": {
+    "amended_at_utc": "2026-09-08T03:12:21.264442+00:00",
+    "before_any_historical_assembly_or_model_fit": true,
+    "prior_contract_path": "research/experiments/boundary_20260908/sector_forecast/execution/data_contract_before_feature_nan_amendment.json",
+    "prior_contract_sha256": "2e33b818a064b6bc2b95ddf00e6603aad4b861401a0d8e2aec12f89e6b8122c1",
+    "reason": "The fixed encoder uses explicit NaN for unavailable optional inputs and unobserved later sectors. Require positive finite points and allow finite or explicit NaN features; infinity is always invalid."
+  },
+  "frozen_at_utc": "2026-09-08T03:06:33.169859+00:00",
+  "history": "Only own-driver completed.iter_completed rows with observed_valid_completed is exactly True and available_ms strictly less than checkpoint_ms. Oldest-first deterministic order by available_ms,packet_sequence,completion_id. Equal-clock completions are excluded globally even if earlier physical packet. Require at least3 such histories before any model issues. Never join ordinal local_epoch across different parsers.",
+  "id": "sector_forecast_target_free_assembly_20260908_v2",
+  "integrity": "Consume completed iterator fully and require stream_input_valid=True before returning any assembled records. Missing,extra,duplicate or inconsistent context keys are a hard input error. Verify immutable input bytes before/after assembly; diagnostics bind full rawstream hashes while each row uses prefix packet/history provenance only. Final archive integrity rejection does not certify historical receipt completeness.",
+  "limits": "Historical archived-time replay only. Raw clean history is not final IsAccurate, current counter is not canonicalLapNumber, and current acquisition does not recover historical client receipt times. No new fits,scores or raw downloads in this implementation task.",
+  "models": "Call published predict_baselines for all four fixed references plus Gaussian on exactly the same supported population, using known_asof_contamination from context. Call fixed features.encode on the same checkpoint/history. All five point forecasts must be positive and finite. Feature values may be finite numbers or explicit NaN for unavailable inputs, but never infinity. Invalid schemas or model outputs fail closed rather than dropping a model row.",
+  "outcomes": "Only separate attach_targets reads canonical CSV, using frozen pilot.run.target_index and resolve_target. Preserve all rows and nested features/points unchanged; require explicit boolean terminal. Target identity and target_group_id are event+driver+canonical CSV row; canonical time/lap are retained for consistency verification. Sector belongs to issuance identity only and never to target identity or target weighting. S1 and S2 resolving to the same target share its group. Compute weights only after the consumer chooses its population. Unmatched rows retain None target/group IDs and original explicit outcome status.",
+  "population": "Retain every positive S1/S2 row emitted by frozen pilot ledger.build. First gate is exactly pilot candidate_checkpoint plus exclusion of already observed Retired=True or Stopped=True. Context joins must match event,driver,packet_sequence,sector and counter/epoch-attribution metadata. Unknown context coverage remains explicit; it is not an additional silently selected population filter.",
+  "prefix": "S1 uses only its own positive sector_seconds. S2 requires the first unambiguous positive S1 observation from the same pilot epoch in a strictly earlier TimingData packet. This prerequisite may have the same cumulative availability clock, because physical packet order is the pilot prerequisite rule. S2 uses the latest positive S1 value in its actual atomic snapshot, including a correction or repeat received in the current S2 packet, plus current S2. The latest value is never backdated to its prerequisite observation. Neither baselines nor features read current S3, target identity, future current-lap cleanliness or final CSV values.",
+  "prefix_provenance": "For every issued S2, source_provenance.s1_prefix records prior_support from the first positive S1 in the pilot epoch, matching pilot.first[1] (event, driver, within-pilot epoch, packet sequence, availability and value), value_source (the unchanged latest S1 snapshot source), and booleans for a current-packet update and a changed value. An earlier issued S1 is never mutated. Same-epoch matching is within the pilot parser only; it never joins completed-parser epoch ordinals.",
+  "published_dependencies": {
+    "research/experiments/boundary_20260908/sector_forecast/baselines.py": "2a8dfffb21ab4c098d5445bad6ee293d3917075dc1779f92e684d821486c4a47",
+    "research/experiments/boundary_20260908/sector_forecast/completed.py": "3d6b88f0d7678ff542f08478b62ca766e7fbd2f4b559b855c78f9443c2e32917",
+    "research/experiments/boundary_20260908/sector_forecast/context.py": "8a717e68b2caff4870aef7349cd3832bdc73ce251728a56dff6eaacc2c461d2a",
+    "research/experiments/boundary_20260908/sector_pilot/ledger.py": "74efc6f80e2264613c35f9c1924d29447d84233786e74076bf1dd9b6da709139",
+    "research/experiments/boundary_20260908/sector_pilot/run.py": "220b5608092e8fea36738abbb42af16ada9942d269052a1ee199ed1bce8993f6"
+  },
+  "status": "bounded_v2_correctness_amendment_tested_before_historical_v2_assembly_or_fitting",
+  "suggested_commit": "fix(research): preserve atomic sector revisions at forecast issuance",
+  "tests": [
+    "synthetic prefix invariance and future payload poisoning",
+    "strict equal-time own and peer history exclusion",
+    "no target reads during target-free assembly",
+    "all raw checkpoint keys retained including unsupported",
+    "missing and inconsistent context fail closed",
+    "same population for all5points and fixed features",
+    "unmatched target retention and stable duplicate-target grouping",
+    "full stream validity checked only after consuming completion iterator",
+    "Genuine atomic S1 correction with unchanged earlier S1 forecast and current source clock",
+    "Prior-packet S1 revision followed by an unchanged current-packet repeat",
+    "Atomic sector-key order invariance and current S3 poisoning using the actual 75-feature encoder",
+    "No-prior simultaneous S1/S2 remains an explicitly unsupported S2",
+    "Missing, wrong-event, wrong-driver, wrong-epoch, ambiguous and future prerequisite or value sources are rejected",
+    "Ordinary intermediate S1 revisions preserve supported S2 issuance; raw timestamp regression remains a sticky pilot exclusion for the later S2"
+  ],
+  "unsupported": "Each unsupported row retains its key, issue metadata and explicit pilot/retired/history status, with empty features/points. Minimum-history gate follows the pilot and retirement gates. All rows remain available for separate terminal/unmatched outcome accounting."
+}

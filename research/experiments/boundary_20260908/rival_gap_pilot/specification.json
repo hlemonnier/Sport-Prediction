@@ -1,0 +1,122 @@
+{
+  "amendment_before_historical_analysis": "Replace the initially proposed generic text records() dependency with a local bounded binary header cursor. Preserve the initial specification separately. This addresses future payload decoding and unplaceable-clock attribution before any historical pilot payload analysis; scope, categories, readiness thresholds and population are unchanged.",
+  "clock_contract": "Parse only the first 12 binary bytes using exact ASCII HH:MM:SS.mmm syntax (hours 00-99, minutes/seconds 00-59). Physical lines establish packet sequence. Valid packet availability is the cumulative maximum of valid archive timestamps. Read and decode the payload only after available_ms*1000000 < exact original issued_at_ns - lag_seconds*1000000000. Regressed packets retain their original stamp and cumulative availability; field observations are marked ambiguous until a later nonregressed update. All Lines in one admitted packet apply atomically before a query snapshot.",
+  "events": [
+    {
+      "event_key": 202201,
+      "issuances": {
+        "event_key": 202201,
+        "path": "artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl",
+        "rows": 853,
+        "sha256": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6"
+      },
+      "stream": {
+        "bytes": 7192208,
+        "path": "data/f1/boundary_20260908/sector_pilot/network_retry/202201_TimingData.jsonStream",
+        "sha256": "ca688ed48f657e2ed82fae017f934a35128d94658a7c58e5e5d178e158cee262"
+      }
+    },
+    {
+      "event_key": 202301,
+      "issuances": {
+        "event_key": 202301,
+        "path": "artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl",
+        "rows": 874,
+        "sha256": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be"
+      },
+      "stream": {
+        "bytes": 6748486,
+        "path": "data/f1/boundary_20260908/sector_pilot/network_retry/202301_TimingData.jsonStream",
+        "sha256": "9f50e19cc13f4b45d60ef5c194c1e45f3d193883faf77d506078f2a6c429408a"
+      }
+    }
+  ],
+  "expected_original_issuances": 1727,
+  "expected_rows_both_lags": 3454,
+  "fields": [
+    "Position",
+    "GapToLeader",
+    "IntervalToPositionAhead"
+  ],
+  "forbidden": [
+    "new downloads",
+    "other races",
+    "external label or target table reads",
+    "new model features for fitting",
+    "model fitting",
+    "prediction scores",
+    "FastF1 processed timing forward-fill/interpolation",
+    "physical nearest-car or lapped-traffic proximity claim"
+  ],
+  "full_inventory_contract": "After both per-lag snapshot files close for an event, a separate complete-file pass counts valid/invalid timestamp headers, regressions, payload errors and field categories. It can discard an invalid-header physical line and continue for inventory only, never assigning that line an availability or updating a forecasting state. Inventory is not an input to any snapshot.",
+  "id": "race_order_gap_feasibility_20260908",
+  "lags_seconds": [
+    2,
+    0
+  ],
+  "limits": [
+    "Race-order time gap is distinct from physical nearest-car distance; lap-deficit categories do not locate lapped traffic.",
+    "Archive clocks and canonical original issuance timestamps are retrospective availability proxies, not certified historical client receipt.",
+    "Existing seasons and earlier scores are exposed; no pristine holdout or predictive gain is claimed.",
+    "No parser-derived ahead-driver identity is certified from asynchronously updated ranks."
+  ],
+  "outputs": [
+    "Per-event/per-lag original-issuance snapshots with explicit field categories, parsed values, source sequences/clocks, ages and readiness flags",
+    "Full-stream update counts by field, outer/leaf raw type, category and clear status",
+    "Per-event/per-lag readiness, staleness, rank inconsistency and missingness counts",
+    "Immutable source/input/run closures and failure receipts"
+  ],
+  "parent_bindings": [
+    {
+      "path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+      "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+    },
+    {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/data_lock.json",
+      "sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005"
+    },
+    {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json",
+      "sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf"
+    }
+  ],
+  "parser_lookahead_limit": "The forecasting cursor reads at most a 12-byte binary header from the next physical line; it neither reads nor decodes that payload until its valid availability passes the strict cutoff. Once an invalid timestamp header is reached after the admitted physical prefix, stop permanently at that boundary and flag source uncertainty. It has recorded_ms=null and available_ms=null: no guessed clock, highwater assignment, or subsequent forecast consumption. A future valid header shields even malformed/invalid-UTF-8/oversize payloads and subsequent unknown headers from earlier snapshots. No temporal placement or future-invariance claim is made for an immediately reached unknown header.",
+  "payload_contract": "Decode admitted payload bytes as UTF-8 JSON dictionaries. Payloads longer than 16777216 bytes including their line ending are marked OversizePayload and drained in bounded chunks; UTF-8, JSON and structural failures are explicit source uncertainty. Neither payload decoding nor size validation occurs before admission. Ignore empty LF/CRLF physical lines while retaining physical sequence numbering; all other malformed headers are unplaceable.",
+  "primary_source": "https://raw.githubusercontent.com/theOehrly/Fast-F1/v3.8.3/fastf1/_api.py",
+  "quality_flags": [
+    "unknown_or_invalid_rank",
+    "duplicate_reported_rank",
+    "interval_predates_last_rank_change",
+    "leader_rank_category_inconsistent",
+    "latest_field_timestamp_regressed",
+    "source_parse_gap_or_unknown_clock",
+    "missing_clear_invalid_or_stale_gap"
+  ],
+  "rank_change": "A changed observed rank records its packet sequence. An interval from an earlier sequence is flagged until explicitly updated. Same-packet rank and gap changes are atomic and order invariant. Duplicate current reported ranks are flagged; these snapshots do not identify an ahead driver.",
+  "raw_semantics": {
+    "absent": "No update; retain prior observation with its original timestamp and sequence.",
+    "clear": "Explicit null or blank string replaces the previous observation; unavailable markers -, --, N/A, NONE, NULL do likewise.",
+    "lap_deficit": "Optional leading plus followed by positive integer LAP or LAPS is a categorical lap deficit, never converted into seconds.",
+    "leader": "LEADER is an explicit leader marker. LAP n is a separate leader-lap-counter marker, not a numeric interval.",
+    "numeric": "Finite nonnegative scalar/string seconds, optional leading plus and whitespace; colon durations with bounded trailing components allowed. Booleans and negative/nonfinite values are invalid.",
+    "object": "Only an explicitly present Value updates a field. An object lacking Value is metadata-only, not a clear or freshness refresh.",
+    "other": "Unrecognized strings/types are invalid and counted.",
+    "position": "Only an integer rank from 1 through 20 is valid; explicit clears invalidate current rank."
+  },
+  "readiness": {
+    "age_clock": "age_seconds and all fixed freshness thresholds refer to the admission cutoff. Runner also reports age_seconds_at_issuance = age_seconds + lag_seconds; the primary 10-second cutoff-age condition therefore permits up to 12 seconds of age at issuance. Thresholds are unchanged.",
+    "coverage_age_thresholds_seconds": [
+      2,
+      5,
+      10,
+      30
+    ],
+    "leader_gap": "Separately report fresh numeric/leader/lap-deficit GapToLeader categories.",
+    "maximum_gap_age_seconds": 10,
+    "policy": "Per-row flags only: all rows retained, no empirical coverage threshold or performance advancement decision in this pilot.",
+    "rank_1": "Explicit leader/leader-lap-counter or numeric zero GapToLeader, freshly updated; an absent/cleared interval alone does not invalidate a consistently identified leader.",
+    "rank_2_to_20": "Fresh numeric interval, known unique current rank, interval updated at or after the last rank change, and no current leader/category inconsistency or source ambiguity."
+  },
+  "status": "declared before pilot payload analysis; no prediction experiment",
+  "suggested_commit": "research(f1-live): prepare causal rival-gap feasibility pilot"
+}

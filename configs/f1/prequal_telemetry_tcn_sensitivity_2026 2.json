@@ -1,0 +1,250 @@
+{
+  "schema_version": "f1_prequal_telemetry_tcn_sensitivity_plan_v1",
+  "year": 2026,
+  "source_manifest": "data/f1/derived/prequal_telemetry_supervised_2026.json",
+  "matrix_output": "artifacts/backtests/f1/telemetry/prequal_telemetry_tcn_sensitivity_matrix_v1_2026.json",
+  "decision_policy": {
+    "reference_profile_id": "d1_optimizer_primary",
+    "reference_profile_fixed_before_durable_matrix_execution": true,
+    "profile_design_provenance_declared_per_profile": true,
+    "outer_target_informed_profile_ids": [
+      "d1_optimizer_primary",
+      "d2_lower_capacity_broad_receptive_field",
+      "d3_primary_seed_stability",
+      "d1_zero_telemetry_static_anchor_sham",
+      "d4_posthoc_lr_1e4",
+      "d4_posthoc_lr_1e4_zero_telemetry_sham"
+    ],
+    "durable_matrix_results_used_to_select_reference_profile": false,
+    "matrix_interpretation": "descriptive_parameter_and_input_ablation_only",
+    "promotion_allowed_from_this_matrix": false,
+    "posthoc_profiles_never_selection_evidence": true,
+    "reason_for_reference": "post-development optimizer hypothesis used as a fixed comparison reference, never as locked selection evidence"
+  },
+  "profiles": [
+    {
+      "profile_id": "d0_control",
+      "purpose": "corrected fastest-anchor control matching the original optimization regime",
+      "evidence_role": "original_optimization_control_not_selection_evidence",
+      "profile_design_provenance": {
+        "design_stage": "original_pre_sensitivity_control",
+        "prior_outer_results_informed_profile_design": false,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": false,
+        "hyperparameters_tuned_on_outer_targets": false,
+        "durable_matrix_results_used_to_select_profile": false,
+        "promotion_eligible_from_profile_design": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d0_control_v2_2026.json",
+      "config": {
+        "minimum_train_events": 4,
+        "maximum_epochs": 60,
+        "early_stopping_patience": 8,
+        "early_stopping_min_delta_seconds": 0.001,
+        "learning_rate": 0.003,
+        "weight_decay": 0.01,
+        "huber_beta_seconds": 0.25,
+        "seed": 20260714,
+        "hidden_channels": 4,
+        "kernel_size": 3,
+        "dilations": [1, 2],
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "max_abs_correction_seconds": 1.5,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "telemetry_input_mode": "observed_anchor_aligned"
+      }
+    },
+    {
+      "profile_id": "d1_optimizer_primary",
+      "purpose": "post-development lower-step-size reference fixed before the durable matrix run",
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "prior_outer_results_informed_profile_design": true,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "durable_matrix_results_used_to_select_profile": false,
+        "promotion_eligible_from_profile_design": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_research_v2_2026.json",
+      "config": {
+        "minimum_train_events": 4,
+        "maximum_epochs": 200,
+        "early_stopping_patience": 20,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "learning_rate": 0.0005,
+        "weight_decay": 0.0001,
+        "huber_beta_seconds": 0.25,
+        "seed": 20260714,
+        "hidden_channels": 4,
+        "kernel_size": 3,
+        "dilations": [1, 2],
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "max_abs_correction_seconds": 1.5,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "telemetry_input_mode": "observed_anchor_aligned"
+      }
+    },
+    {
+      "profile_id": "d2_lower_capacity_broad_receptive_field",
+      "purpose": "architecture-only comparison with lower capacity and a broader 57-bin receptive field",
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "prior_outer_results_informed_profile_design": true,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "durable_matrix_results_used_to_select_profile": false,
+        "promotion_eligible_from_profile_design": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d2_lower_capacity_v2_2026.json",
+      "config": {
+        "minimum_train_events": 4,
+        "maximum_epochs": 200,
+        "early_stopping_patience": 20,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "learning_rate": 0.0005,
+        "weight_decay": 0.0001,
+        "huber_beta_seconds": 0.25,
+        "seed": 20260714,
+        "hidden_channels": 2,
+        "kernel_size": 5,
+        "dilations": [1, 2, 4],
+        "dropout": 0.0,
+        "head_hidden_dim": 2,
+        "max_abs_correction_seconds": 1.5,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "telemetry_input_mode": "observed_anchor_aligned"
+      }
+    },
+    {
+      "profile_id": "d3_primary_seed_stability",
+      "purpose": "repeat the reference optimizer with one independently fixed seed",
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "prior_outer_results_informed_profile_design": true,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "durable_matrix_results_used_to_select_profile": false,
+        "promotion_eligible_from_profile_design": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d3_seed_v2_2026.json",
+      "config": {
+        "minimum_train_events": 4,
+        "maximum_epochs": 200,
+        "early_stopping_patience": 20,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "learning_rate": 0.0005,
+        "weight_decay": 0.0001,
+        "huber_beta_seconds": 0.25,
+        "seed": 20260715,
+        "hidden_channels": 4,
+        "kernel_size": 3,
+        "dilations": [1, 2],
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "max_abs_correction_seconds": 1.5,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "telemetry_input_mode": "observed_anchor_aligned"
+      }
+    },
+    {
+      "profile_id": "d1_zero_telemetry_static_anchor_sham",
+      "purpose": "equal-architecture input ablation isolating static-anchor signal from aligned telemetry",
+      "evidence_role": "posthoc_exploratory_profile_predeclared_before_durable_matrix_run",
+      "profile_design_provenance": {
+        "design_stage": "postdevelopment_outer_results_informed_before_durable_matrix",
+        "prior_outer_results_informed_profile_design": true,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "durable_matrix_results_used_to_select_profile": false,
+        "promotion_eligible_from_profile_design": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_d1_zero_telemetry_sham_v2_2026.json",
+      "config": {
+        "minimum_train_events": 4,
+        "maximum_epochs": 200,
+        "early_stopping_patience": 20,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "learning_rate": 0.0005,
+        "weight_decay": 0.0001,
+        "huber_beta_seconds": 0.25,
+        "seed": 20260714,
+        "hidden_channels": 4,
+        "kernel_size": 3,
+        "dilations": [1, 2],
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "max_abs_correction_seconds": 1.5,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "telemetry_input_mode": "zero_telemetry_static_anchor_sham"
+      }
+    },
+    {
+      "profile_id": "d4_posthoc_lr_1e4",
+      "purpose": "posthoc optimizer hypothesis retained only as descriptive follow-up after the outer sensitivity was observed",
+      "evidence_role": "posthoc_hypothesis_after_outer_sensitivity_observed",
+      "profile_design_provenance": {
+        "design_stage": "post_sensitivity_outer_results_informed_followup",
+        "prior_outer_results_informed_profile_design": true,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "durable_matrix_results_used_to_select_profile": false,
+        "promotion_eligible_from_profile_design": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d4_posthoc_lr1e4_v2_2026.json",
+      "config": {
+        "minimum_train_events": 4,
+        "maximum_epochs": 200,
+        "early_stopping_patience": 20,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "learning_rate": 0.0001,
+        "weight_decay": 0.0001,
+        "huber_beta_seconds": 0.25,
+        "seed": 20260714,
+        "hidden_channels": 4,
+        "kernel_size": 3,
+        "dilations": [1, 2],
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "max_abs_correction_seconds": 1.5,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "telemetry_input_mode": "observed_anchor_aligned"
+      }
+    },
+    {
+      "profile_id": "d4_posthoc_lr_1e4_zero_telemetry_sham",
+      "purpose": "equal-architecture zero-telemetry sham for the posthoc optimizer hypothesis",
+      "evidence_role": "posthoc_hypothesis_after_outer_sensitivity_observed",
+      "profile_design_provenance": {
+        "design_stage": "post_sensitivity_outer_results_informed_followup",
+        "prior_outer_results_informed_profile_design": true,
+        "same_outer_evaluation_targets_seen_before_profile_freeze": true,
+        "hyperparameters_tuned_on_outer_targets": true,
+        "durable_matrix_results_used_to_select_profile": false,
+        "promotion_eligible_from_profile_design": false
+      },
+      "output_path": "artifacts/backtests/f1/telemetry/prequal_telemetry_true_tcn_anchor_d4_posthoc_lr1e4_zero_telemetry_sham_v2_2026.json",
+      "config": {
+        "minimum_train_events": 4,
+        "maximum_epochs": 200,
+        "early_stopping_patience": 20,
+        "early_stopping_min_delta_seconds": 0.0005,
+        "learning_rate": 0.0001,
+        "weight_decay": 0.0001,
+        "huber_beta_seconds": 0.25,
+        "seed": 20260714,
+        "hidden_channels": 4,
+        "kernel_size": 3,
+        "dilations": [1, 2],
+        "dropout": 0.0,
+        "head_hidden_dim": 4,
+        "max_abs_correction_seconds": 1.5,
+        "minimum_inner_relative_gain_to_select_tcn": 0.02,
+        "telemetry_input_mode": "zero_telemetry_static_anchor_sham"
+      }
+    }
+  ]
+}

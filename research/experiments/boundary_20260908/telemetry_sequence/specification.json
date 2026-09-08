@@ -1,0 +1,357 @@
+{
+  "closure_order": [
+    "freeze independently reviewed source/specification and closed parent inputs",
+    "build and close2022-only token corpus and fixed sampling schedule",
+    "fit exactly two encoders and close both plus exact initial random state",
+    "build and close all original target-free issuance embeddings at both lags",
+    "attach closed2022labels and fit three supervised models",
+    "close all2023forecasts at both lags",
+    "attach old2023labels and evaluate all five comparisons",
+    "independently verify numerical results before any advancement"
+  ],
+  "discovery": {
+    "event_keys": [
+      202201,
+      202202,
+      202203,
+      202204,
+      202205,
+      202206,
+      202207,
+      202208,
+      202209,
+      202210,
+      202211,
+      202212,
+      202213,
+      202214,
+      202215,
+      202216,
+      202217,
+      202218,
+      202219,
+      202220,
+      202221,
+      202222,
+      202301,
+      202302,
+      202303,
+      202304,
+      202305,
+      202306,
+      202307,
+      202308,
+      202309,
+      202310,
+      202311,
+      202312,
+      202313,
+      202314,
+      202315,
+      202316,
+      202317,
+      202318,
+      202319,
+      202320,
+      202321,
+      202322
+    ],
+    "new_provider_downloads": 0,
+    "original_issuances": 39220,
+    "selection_matched_rows": 20007,
+    "selection_years": [
+      2023
+    ],
+    "train_matched_rows": 18363,
+    "train_years": [
+      2022
+    ],
+    "unmatched_retained": 850
+  },
+  "encoder": {
+    "architecture": "seven causal Conv1d layers, per-timestamp LayerNorm, GELU, endpoint linear projection",
+    "batch_normalization": false,
+    "bidirectional": false,
+    "dilations": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "dropout": false,
+    "embedding_dimension": 16,
+    "embedding_normalization": "unit L2; all-padding context explicitly zero",
+    "fit_controls": [
+      "ordered",
+      "permuted"
+    ],
+    "heads": "three bias-free16x16 bilinear matrices",
+    "kernel_size": 3,
+    "parameters": 15048,
+    "random_control": "exact initial state from same seed, zero optimizer steps",
+    "target_encoder": "one Linear(34,16), L2-normalized output",
+    "temporal_pooling": false,
+    "width": 24
+  },
+  "experiment_id": "original_issuance_causal_telemetry_cpc_20260908",
+  "frozen_components": {
+    "encoder.py": {
+      "path": "research/experiments/boundary_20260908/telemetry_sequence/encoder.py",
+      "sha256": "68cd1f8bddf42f22343669d1c01df49462a7fa5b8a7bc863758c3ddf773d5d38"
+    },
+    "test_encoder.py": {
+      "path": "research/experiments/boundary_20260908/telemetry_sequence/test_encoder.py",
+      "sha256": "5c492de11bc54dbc66878ff172e15e72700f5ffc97763a09443666c3907888d5"
+    },
+    "test_tokens.py": {
+      "path": "research/experiments/boundary_20260908/telemetry_sequence/test_tokens.py",
+      "sha256": "a91ef978a5c910698360263bf602f6e196a04515452f225382539151c2c76764"
+    },
+    "tokens.py": {
+      "path": "research/experiments/boundary_20260908/telemetry_sequence/tokens.py",
+      "sha256": "ad0723fb90e1f0ee56815e188e2ad1e54baf28f4166a3ac0f9ebbd5d0b0ee9ec"
+    }
+  },
+  "later_transfer_gate": {
+    "all_leave_one_event_out_negative_each": true,
+    "candidate": "ordered_hgb",
+    "event_and_block3_upper_ci_negative_each": true,
+    "historical_each_year_positive_each_reference": true,
+    "historical_minimum_relative_event_mae_reduction_each_reference": 0.1,
+    "historical_required_events": 48,
+    "historical_years": [
+      2024,
+      2025
+    ],
+    "implementation_status": "policy frozen now; execution allowed only after closed discovery pass",
+    "references": [
+      "unchanged_current_frontier_hgb",
+      "telemetry_hgb",
+      "quality_hgb",
+      "permuted_hgb",
+      "random_hgb"
+    ],
+    "representation_policy": "retain exact2022-only ordered/permuted encoders and initial random weights",
+    "representation_refit": false,
+    "requires_selection_pass_before_any_later_telemetry_access": true,
+    "stress_minimum_relative_event_mae_reduction_each_reference": 0.05,
+    "stress_required_events": 13,
+    "stress_rounds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ],
+    "stress_year": 2026,
+    "supervised_refit": {
+      "base_reference": "unchanged portable frontier fitted2022-2023",
+      "fit_years": [
+        2022,
+        2023
+      ],
+      "fits": 5,
+      "models": [
+        "ordered_hgb",
+        "permuted_hgb",
+        "random_hgb",
+        "telemetry_hgb",
+        "quality_hgb"
+      ],
+      "same_hyperparameters_and_full_population": true,
+      "same_primary_lag_seconds": 2,
+      "training_rows": 38370,
+      "zero_lag_uses_same_final_coefficients": true
+    },
+    "zero_second_sensitivity_positive_each": true
+  },
+  "limits": [
+    "Seasons have already been exposed; new representation training does not create an untouched holdout.",
+    "Archive availability is a source-time proxy, not certified historical client receipt.",
+    "Additional packet samples do not add independent races.",
+    "No physical fuel, battery, tyre-state, causal-control or strategy identification is claimed.",
+    "Point-forecast evidence does not establish calibrated intervals, race-order probability or prospective gain."
+  ],
+  "objective": "Test whether learned ordered packet representations improve the unchanged next-eligible-clean-lap forecast beyond all fixed references and matched controls.",
+  "parent_bindings": {
+    "acquisition": {
+      "path": "artifacts/research/boundary_20260908/telemetry/acquisition.json",
+      "sha256": "9fd8b37c7905c0b9036f9b06a9d33595ecee0e42fd68d774baade5884902b220"
+    },
+    "data_lock": {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/data_lock.json",
+      "sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005"
+    },
+    "fit_lock": {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/fit_lock.json",
+      "sha256": "ee59df50ddf2981f41118958a93cb9899a13e81acea96293a971e77fc99d44bf"
+    },
+    "selection_lock": {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/selection_lock.json",
+      "sha256": "7ce7a8552cc91d6595dbf1aec760a9f6217de4a8bb1804d83f6f7791f2922bc3"
+    },
+    "verification": {
+      "path": "artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json",
+      "sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf"
+    }
+  },
+  "proposal": {
+    "path": "research/experiments/boundary_20260908/telemetry_next/idea.md",
+    "sha256": "3ef0f7545c0c58cff0fa61f6d007e97e7e8add75b796068f0fbf146b5ba8aed3"
+  },
+  "resources": {
+    "cpu_threads": 1,
+    "fits_serial": true,
+    "max_resident_bytes": 3221225472,
+    "policy": "resource breach closes a failed attempt; no architecture, epoch, source or cohort reduction to rescue it",
+    "pretraining_shared_seconds": 3600,
+    "provider_driver_lru_limit": 8
+  },
+  "schema_version": 1,
+  "selection_gate": {
+    "all_leave_one_event_out_negative_each": true,
+    "candidate": "ordered_hgb",
+    "event_and_block3_upper_ci_negative_each": true,
+    "fail_action": "close this fixed family without later telemetry access, retuning or promotion",
+    "minimum_relative_event_mae_reduction_each_reference": 0.01,
+    "references": [
+      "base_hgb",
+      "telemetry_hgb",
+      "quality_hgb",
+      "permuted_hgb",
+      "random_hgb"
+    ],
+    "required_events": 22,
+    "reuse_old_reference_forecasts_bitwise": true,
+    "zero_second_sensitivity_positive_each": true
+  },
+  "sources": [
+    "https://arxiv.org/abs/1807.03748",
+    "https://arxiv.org/abs/2106.10466"
+  ],
+  "ssl": {
+    "batch_size": 32,
+    "checkpoint": "last fixed step only; no early stopping or tuning",
+    "endpoint_context": "physical driver packet prefix through i inclusive; query cutoffavailability_i+1ns; later equal-clock packet indices excluded",
+    "endpoint_eligibility": "frozen support on full prefix; i+32 exists; at least31 eligible distinct negatives",
+    "event_eligibility": "every declared2022race must contain an eligible driver; otherwise fail before fitting; report all driver exclusion counts",
+    "forbidden_sampling_fields": [
+      "lap labels",
+      "lap boundaries",
+      "stints",
+      "future cleanliness",
+      "race results"
+    ],
+    "negative_count": 31,
+    "negatives": "same driver and event; absolute availability difference>=180000000000ns; exclude all three positive packet indices; unique within each context",
+    "normalization_fitting": false,
+    "optimizer": {
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "epsilon": 1e-08,
+      "gradient_norm_limit": 1,
+      "learning_rate": 0.001,
+      "name": "Adam",
+      "weight_decay": 0
+    },
+    "permutation": "key seed20260908/event/driver/last-admitted physical packet sequence; move earlier nonpadding content-validity-quality-logbundle slots as bundles; newest packet, chronological gaps and padding fixed; positives and negatives unchanged",
+    "positive_packet_offsets": [
+      4,
+      16,
+      32
+    ],
+    "rng": "numpy.random.default_rng PCG64; independent of hash-keyed permutation",
+    "sampling_order": "row-major step then batch row; event uniform from ascending22events, eligible driver uniform from lexical drivers, endpoint uniform from ascending eligible indices, then31 negatives without replacement from ascending eligible indices",
+    "schedule": "close corpus and all800x32 original endpoint/positive/negative identities before either fit; both fits replay identical schedule",
+    "seed": 20260908,
+    "selection_year_tokens_used_for_training": false,
+    "steps": 800,
+    "temperature": 0.1
+  },
+  "status": "declared_before_new_historical_token_construction_or_representation_fits",
+  "suggested_commit": "research(f1-live): execute controlled causal telemetry representation test",
+  "supervised": {
+    "base_features": 80,
+    "early_stopping": false,
+    "features": 186,
+    "fit_latency_seconds": 2,
+    "fit_years": [
+      2022
+    ],
+    "fits": 3,
+    "l2_regularization": 10,
+    "learning_rate": 0.06,
+    "loss": "absolute_error",
+    "max_iter": 150,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 80,
+    "model": "HistGradientBoostingRegressor",
+    "model_names": [
+      "ordered_hgb",
+      "permuted_hgb",
+      "random_hgb"
+    ],
+    "prediction_correction_clip_seconds": 3,
+    "random_state": 20260907,
+    "representation_features": 16,
+    "representation_fine_tuning": false,
+    "same_rows_and_order": true,
+    "telemetry_features": 90,
+    "training_residual_clip_seconds": 5,
+    "weight": "N/(E*n_event) on all18363original matched2022rows",
+    "zero_lag_refit": false
+  },
+  "telemetry90_execution_directory": "artifacts/research/boundary_20260908/telemetry/execution",
+  "tokens": {
+    "clock": "exact original issuance nanoseconds; cumulative physical archive prefix milliseconds; strictly less than cutoff",
+    "column_order": "tokens.TOKEN_NAMES; immutable component binding",
+    "content_validity_quality_semantics": "unchanged frozen telemetry90 atomic per-driver packet reductions",
+    "coordinates": 34,
+    "max_packets": 128,
+    "padding": "left; zero content plus padding indicator1",
+    "predecessor_gap": "actual preceding driver packet even outside180s; first-ever gap0",
+    "primary_lag_seconds": 2,
+    "scaled_maximum": 5,
+    "scales": {
+      "fractions": 1,
+      "gap_seconds": 5,
+      "gear": 8,
+      "log_bundle_size": "log(18)",
+      "rpm": 15000,
+      "speed": 350,
+      "throttle": 100
+    },
+    "sensitivity_lag_seconds": 0,
+    "support_gate": {
+      "calculated_before_token_truncation": true,
+      "maximum_newest_age_seconds": 5,
+      "minimum_packets": 6,
+      "minimum_span_seconds": 24,
+      "window_seconds": 30
+    },
+    "unsupported_prediction": "bitwise incumbent base HGB; preserve all rows",
+    "window_seconds": 180
+  },
+  "uncertainty": {
+    "circular_event_block_length": 3,
+    "event_weight": "equal event then equal matched issuance within event",
+    "interval": "percentile95",
+    "multiple_search_correction": false,
+    "resamples_each": 20000,
+    "seed": 20260907,
+    "sign": "candidate minus reference"
+  }
+}

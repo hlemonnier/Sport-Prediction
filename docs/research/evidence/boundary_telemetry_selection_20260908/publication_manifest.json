@@ -1,0 +1,155 @@
+{
+  "advances_to_later_evaluation": false,
+  "copy_policy": "Every evidence copy retains the exact original bytes, paths and hashes. The source and published fields map local originals to their included publication copies.",
+  "earlier_discovery_publication": {
+    "bytes": 7814,
+    "path": "docs/research/evidence/boundary_telemetry_discovery_20260908/publication_manifest.json",
+    "sha256": "7eb50c90900603ac24f5c6850feda69d13999d538d0f7037b02dae1160bfb0c1"
+  },
+  "evidence_copies": [
+    {
+      "bytes": 16865,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/data_lock.json",
+      "sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/data_lock.json"
+    },
+    {
+      "bytes": 1714,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/fit_lock.json",
+      "sha256": "ee59df50ddf2981f41118958a93cb9899a13e81acea96293a971e77fc99d44bf",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/fit_lock.json"
+    },
+    {
+      "bytes": 8330,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/selection_issuance_lock.json",
+      "sha256": "080c1b49bbd576afb795cd48989d67cbe6660b096e084273480709d2fb4cecb2",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/selection_issuance_lock.json"
+    },
+    {
+      "bytes": 34972,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/selection.json",
+      "sha256": "c5ff65e78b686558c110d630201cfa7789362f781e14e84002a8eb69651c5a6b",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/selection.json"
+    },
+    {
+      "bytes": 674,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/selection_lock.json",
+      "sha256": "7ce7a8552cc91d6595dbf1aec760a9f6217de4a8bb1804d83f6f7791f2922bc3",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/selection_lock.json"
+    },
+    {
+      "bytes": 400,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/original_population_parity.json",
+      "sha256": "9c75e316305c6c4dd93b5399c8c279749a154041cadb55d8483140f5e424eac7",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/original_population_parity.json"
+    },
+    {
+      "bytes": 11238,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/feature_coverage.json",
+      "sha256": "554221ff2ae5ac1505dc19be609ae4630a50db620334995f389fd0ddf719cae8",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/feature_coverage.json"
+    },
+    {
+      "bytes": 15016,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/input_validation_2022.json",
+      "sha256": "d684510c144dc507716cf33049a21746178805775c370caa880383472cfc3fa4",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/input_validation_2022.json"
+    },
+    {
+      "bytes": 14995,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/input_validation_2023.json",
+      "sha256": "5504e03284bd9d66825729cb10db6a5c2a7fce13cec5a13eb9ad93b29796e6b7",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/input_validation_2023.json"
+    },
+    {
+      "bytes": 8649,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/labels_2022/label_closure.json",
+      "sha256": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json"
+    },
+    {
+      "bytes": 8655,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/labels_2023/label_closure.json",
+      "sha256": "cc83af4088025f3aeb932ca60af2809872740d2bfe1d4b1ba28b670e16764b50",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/label_closure.json"
+    },
+    {
+      "bytes": 317,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/prepare_attempt.json",
+      "sha256": "e0b3a72cec05a32d289aee8d7f9286dfb1996f6f617053e8e8d82376022501de",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/prepare_attempt.json"
+    },
+    {
+      "bytes": 313,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/selection_attempt.json",
+      "sha256": "24a0f97c2d00f68c87b29d3720a5fc23aef605750c0abfb2c61f7cb12f0219d7",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/selection_attempt.json"
+    },
+    {
+      "bytes": 955,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/verification/protocol_lock.json",
+      "sha256": "362e47fe6ad07b45e997223ef454688df72a6ef4bcafb803d08dd8ad2c4f1dc4",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/verification/protocol_lock.json"
+    },
+    {
+      "bytes": 1722,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/verification/protocol_v2.json",
+      "sha256": "bc83bd5ccf82b83503e8dcdc04d2593201253cd2a96a79c2a60a7099bb347eb4",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/verification/protocol_v2.json"
+    },
+    {
+      "bytes": 494,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/verification/result.json",
+      "sha256": "0d526fbd52a3552d85d3d8ccf2f68498d7f3c28907a3229b882f2c1432e9edb4",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/verification/result.json"
+    },
+    {
+      "bytes": 126468,
+      "published": "docs/research/evidence/boundary_telemetry_selection_20260908/verification/result_v2.json",
+      "sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf",
+      "source": "artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json"
+    }
+  ],
+  "independent_verification_sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf",
+  "omitted_artifacts": "Raw feeds, per-issuance feature/forecast/label tables, serialized models and caches remain local; their hashes are retained in the closed evidence.",
+  "promotion": false,
+  "publication_check": {
+    "bytes": 1584,
+    "path": "docs/research/evidence/boundary_telemetry_selection_20260908/publication_check.json",
+    "sha256": "e1495e5144723602cf028dc0a9d8c2fc0e9ff8a1bb3785f7c875624192a16ac0"
+  },
+  "published_at_utc": "2026-09-08T05:53:00.272953+00:00",
+  "raw_data_published": false,
+  "report": {
+    "bytes": 6198,
+    "path": "docs/research/boundary_telemetry_selection_20260908.md",
+    "sha256": "d71b5d0f5f22493c4568de1761a665c9c911838872f370827122ecaa3940969c"
+  },
+  "reproduction_limit": "This compact package preserves numerical findings and provenance, but does not independently reproduce all forecasts without the omitted hash-matched inputs and saved models.",
+  "scope": "Closed telemetry90 selection failure and independent verification; no production promotion or new predictive gain.",
+  "selection_sha256": "c5ff65e78b686558c110d630201cfa7789362f781e14e84002a8eb69651c5a6b",
+  "serialized_models_published": false,
+  "suggested_commit": "research(f1-live): publish verified telemetry selection failure",
+  "verifier_sources": [
+    {
+      "bytes": 8539,
+      "path": "research/experiments/boundary_20260908/telemetry_verification/test_verify.py",
+      "sha256": "2cfcd86c348984542804ee5351be07782b58e30241bc077dea6237a22ef577b8"
+    },
+    {
+      "bytes": 33292,
+      "path": "research/experiments/boundary_20260908/telemetry_verification/verify.py",
+      "sha256": "ae39778972b30027c12425a937d0451bdbfa14f055065f15e4c49573f0f6c3f0"
+    },
+    {
+      "bytes": 9686,
+      "path": "research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py",
+      "sha256": "b5b2cc64fc9a0db8c99f1bb06be5319a226308cfd3f79c3ee65436b2cb57d073"
+    },
+    {
+      "bytes": 33305,
+      "path": "research/experiments/boundary_20260908/telemetry_verification_v2/verify.py",
+      "sha256": "631115bdc2834f0c458e94cd18833f13d8c6bb0d9a190e76f7593d17da44c7b6"
+    }
+  ]
+}

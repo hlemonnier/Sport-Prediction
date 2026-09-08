@@ -1,0 +1,10 @@
+{
+  "completed_at_utc": "2026-09-08T05:39:47.385479+00:00",
+  "failure": "KeyError: 'selection_labels_read'",
+  "historical_fits_performed": 0,
+  "status": "failed",
+  "verifier_sources": {
+    "research/experiments/boundary_20260908/telemetry_verification/test_verify.py": "2cfcd86c348984542804ee5351be07782b58e30241bc077dea6237a22ef577b8",
+    "research/experiments/boundary_20260908/telemetry_verification/verify.py": "ae39778972b30027c12425a937d0451bdbfa14f055065f15e4c49573f0f6c3f0"
+  }
+}

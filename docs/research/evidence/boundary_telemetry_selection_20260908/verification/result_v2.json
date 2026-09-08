@@ -1,0 +1,2983 @@
+{
+  "advances_to_later_evaluation": false,
+  "bindings": {
+    "artifacts/research/boundary_20260908/sector_forecast/acquisition.json": {
+      "bytes": 518927,
+      "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/acquisition.json": {
+      "bytes": 153101,
+      "sha256": "9fd8b37c7905c0b9036f9b06a9d33595ecee0e42fd68d774baade5884902b220"
+    },
+    "artifacts/research/boundary_20260908/telemetry/acquisition_lock.json": {
+      "bytes": 1147,
+      "sha256": "edb419d1f99f54176319aac26759ef4ae04f8682c44ac324feae99bce540d482"
+    },
+    "artifacts/research/boundary_20260908/telemetry/acquisition_review.json": {
+      "bytes": 3892,
+      "sha256": "23d416dab715fbf26791a4e5038ba7af6cfc1d9349d8b621062f79faa750bcb8"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/data_lock.json": {
+      "bytes": 16865,
+      "sha256": "0bfbb6488b54a497d8953b55d65cf257ea1892e37d5e4d951cf826c95d4aa005"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/design_lock.json": {
+      "bytes": 59555,
+      "sha256": "d072bb145868ab03aaacaadbd8b9071890323c5f4f70b29561ea446cd9e347ae"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202201_lag0_issued.jsonl": {
+      "bytes": 4947759,
+      "sha256": "237c04e8c783eba6a23a6187bb9442ff140117115dc24cc70786de2bf5fef701"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202201_lag2_issued.jsonl": {
+      "bytes": 4946994,
+      "sha256": "7a2831d95d8edf3ec0670c64e9499093893e3279f75effe60b7dedd2fc5e01f7"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202202_lag0_issued.jsonl": {
+      "bytes": 3582521,
+      "sha256": "6794134017e0f2b7a1b6ed300bb9a816c48dfe86f652f75356172d281f438fe3"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202202_lag2_issued.jsonl": {
+      "bytes": 3582879,
+      "sha256": "fd46896a5ffad5c5df057f9194405706a3084576d3779ce3747dd0f9ebc5e45d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202203_lag0_issued.jsonl": {
+      "bytes": 4529641,
+      "sha256": "840493b4f5057eb02096680484ab8e41d6b90c7c69b04edbff43c6934ff186bb"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202203_lag2_issued.jsonl": {
+      "bytes": 4530261,
+      "sha256": "ba8ab3172391ad7a339fc0c8c19a118eaf5bcea9e60239cba5fb8120792ae789"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202204_lag0_issued.jsonl": {
+      "bytes": 5644847,
+      "sha256": "16446690ca8d848716d8ea4311f295752eb709abbc1c556620d3223c5cda495e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202204_lag2_issued.jsonl": {
+      "bytes": 5643549,
+      "sha256": "3cb564b351c392960e258b2eb6ee682d682cc75ed43732cb7257fcbac4b0cb2a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202205_lag0_issued.jsonl": {
+      "bytes": 4879052,
+      "sha256": "4d6d06aa4bbcf1df25e56fe3db5296599c5add3007f4436807ea57649dc53c58"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202205_lag2_issued.jsonl": {
+      "bytes": 4878287,
+      "sha256": "e8ef38aa01ce5088787e50caa9c6a74f1848f32093cc37dd8603c437194ad411"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202206_lag0_issued.jsonl": {
+      "bytes": 6179657,
+      "sha256": "95f1789ed96118a308c4349c81052af0e2e881bf16ae03650b4f6c17ad17d7d0"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202206_lag2_issued.jsonl": {
+      "bytes": 6178795,
+      "sha256": "5aa8b5aea872adcb400c5cb320efd8bc92267723fd149207b8cb71a5041d2683"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202207_lag0_issued.jsonl": {
+      "bytes": 5445343,
+      "sha256": "fdbbe13fbb7a3594c53c2c2a0cfa0781746bb3e55ef3543e85302d4af56dd09c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202207_lag2_issued.jsonl": {
+      "bytes": 5445670,
+      "sha256": "f3a13ce9a1c92739af0a1ee0559d498d729433deca8fb7685cb4f471da86f56f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202208_lag0_issued.jsonl": {
+      "bytes": 4235068,
+      "sha256": "0441cda772afb3d914370029b92e0236af31ffa03b0e37ffa247fa53e3231f2a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202208_lag2_issued.jsonl": {
+      "bytes": 4235620,
+      "sha256": "46392f5bf43a54d837ac112306ae0e88d966cf1dce1bb6cc327eff88d2abc92a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202209_lag0_issued.jsonl": {
+      "bytes": 5776328,
+      "sha256": "c4c62dfcc54672dd8539deba5c3fd37ca6dbef9a892495eaf0678868345cf799"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202209_lag2_issued.jsonl": {
+      "bytes": 5776902,
+      "sha256": "a6c9eead1fde05252b73f608c73b742dc43e17d09ddad3281d9c453a6358120e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202210_lag0_issued.jsonl": {
+      "bytes": 3752423,
+      "sha256": "0d5398c66f583e8472e57cb229d9ece901ec1e9828d3005c26687cc30dcc4e62"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202210_lag2_issued.jsonl": {
+      "bytes": 3752534,
+      "sha256": "a7068817889bca370ae1e1ebf168f4df85ba8ec8c16f754408ee7679d87dd48e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202211_lag0_issued.jsonl": {
+      "bytes": 6659102,
+      "sha256": "f711aea9b9947683f5610448fe852f1879c202966d97a4c273566b5e5c06caa9"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202211_lag2_issued.jsonl": {
+      "bytes": 6657884,
+      "sha256": "b3613e0dfe92e6b0341b4e0233c9b639721dad22c58a009bf30d4115ece969c0"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202212_lag0_issued.jsonl": {
+      "bytes": 4636628,
+      "sha256": "9d8baa77c27d9ae693424ec2688dc8ebecae15a72bc361d4a18aadc384194ee2"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202212_lag2_issued.jsonl": {
+      "bytes": 4637223,
+      "sha256": "8d885827eff666a28e1ddfc2437d38210ba084bdee4639d5c2eff9d402dc575b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202213_lag0_issued.jsonl": {
+      "bytes": 6771049,
+      "sha256": "3c216812ae266103b5a21a7e7e85277d0ed738e8d7dbfd25eb72aa46dd806ac1"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202213_lag2_issued.jsonl": {
+      "bytes": 6766176,
+      "sha256": "3f8c27ee3718a4e03b9446d6c378890749b58805c53fe705b3d3be335865a82b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202214_lag0_issued.jsonl": {
+      "bytes": 3548295,
+      "sha256": "ad89fb01a47921c742276e0bbdba339b4c553573969a15ba8d30af574fe5d32b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202214_lag2_issued.jsonl": {
+      "bytes": 3545123,
+      "sha256": "33b622343d76b94a95002b3d62dc4c35d650d916ba9f20974397d4fa89d0524d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202215_lag0_issued.jsonl": {
+      "bytes": 6374635,
+      "sha256": "71ea1430b01ed683f3d0aa3d534fab2b83dc320226c548ec4c5d5eab62ae1120"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202215_lag2_issued.jsonl": {
+      "bytes": 6374407,
+      "sha256": "e0fe18706c14a1961c27138fa67d8f4c40fe47994da511a38d84114f5c0e04b9"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202216_lag0_issued.jsonl": {
+      "bytes": 4309852,
+      "sha256": "a6f55a8497feeaf9fbe6c73a88840d3cc5067800f96256f9e842fdaa48b1f04b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202216_lag2_issued.jsonl": {
+      "bytes": 4309201,
+      "sha256": "e39a0da4de72df485b7372a158272dd36ff6732637f557f1c862c1fe28be1451"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202217_lag0_issued.jsonl": {
+      "bytes": 3780714,
+      "sha256": "0b7f418bb072a729e265f4a85b558c1a35e0cc999dc0e0de035bda06b8595ccd"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202217_lag2_issued.jsonl": {
+      "bytes": 3780483,
+      "sha256": "9f311917c8cf7a2cc7ef5807ade1dc1eb4cda3a8f2eaf201d9a047dd9928be7e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202218_lag0_issued.jsonl": {
+      "bytes": 2007756,
+      "sha256": "c9096710f513a01d4874f494936a9c0b10e9a32707d675d2995cc9253b986edd"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202218_lag2_issued.jsonl": {
+      "bytes": 2007644,
+      "sha256": "64d3eabe73c0da3be313a3613e916cae4d3e3e6a337612622e110098c59b10ee"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202219_lag0_issued.jsonl": {
+      "bytes": 4324205,
+      "sha256": "24cd102a229951134553f658154ade0daac33f347ee5ec4a936b048097677310"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202219_lag2_issued.jsonl": {
+      "bytes": 4319766,
+      "sha256": "e1e53fd34e5ef97b68c531cc9f526f8486e22631252326be12245788dcf9cd9f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202220_lag0_issued.jsonl": {
+      "bytes": 7276862,
+      "sha256": "abca46d4d1d59d5b0d75cb5a5c93c7d86a972464343b8dfeac703b1b0328bdd5"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202220_lag2_issued.jsonl": {
+      "bytes": 7277426,
+      "sha256": "fb1dc1c4efa3058ec63cb211d1cf0bd94127529504c1bebcb2c8d97729607ad3"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202221_lag0_issued.jsonl": {
+      "bytes": 5267848,
+      "sha256": "1b803ab55834bd04d5405c283e88293ebbca969164e607f59b4af5cad2b3c850"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202221_lag2_issued.jsonl": {
+      "bytes": 5267989,
+      "sha256": "c84ac3297d19ace895b227da117e2ef2e10fd83860cb71a13b71be391c87a832"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202222_lag0_issued.jsonl": {
+      "bytes": 5789443,
+      "sha256": "6dbf631215f9e23bed75b0fbe9869ae010c532cad42a0b79509694e6252c4b3e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/202222_lag2_issued.jsonl": {
+      "bytes": 5788768,
+      "sha256": "dfae0166c6768672cdb3bf9e527485454cd9d50e0fdc1e96cbe2af72be2edfa0"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2022/feature_closure.json": {
+      "bytes": 106985,
+      "sha256": "26cad6ef96039e75a8a03671aa169f37dc8ae80bffc105364d3871562d0cd78a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202301_lag0_issued.jsonl": {
+      "bytes": 5083469,
+      "sha256": "ff31d1f3802aef612c2138208979efcc43b57bce20e44be55cc22820877bec68"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202301_lag2_issued.jsonl": {
+      "bytes": 5080818,
+      "sha256": "31af07d1d5f64788dae614140e46602b4dd9dc29353213e7d8d28fe01f5ed80b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202302_lag0_issued.jsonl": {
+      "bytes": 4607433,
+      "sha256": "66f4a48b60cce98a0d5b381cf764c4dd50672cd63a705901406305f6156a105a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202302_lag2_issued.jsonl": {
+      "bytes": 4607334,
+      "sha256": "8d537e87f045b0b14daaeec7f14d3bd6c60d08fd5c2210b2fa6798a4cfc152e9"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202303_lag0_issued.jsonl": {
+      "bytes": 4278684,
+      "sha256": "35b18a3eddc982660b9e0db14ea01a59bd4fd53445a799bce04995495b683a09"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202303_lag2_issued.jsonl": {
+      "bytes": 4277310,
+      "sha256": "1d69834498b4a89e6acfb179bd4133a1a9a3b33f32c1f7d4653cbe3336a8efff"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202304_lag0_issued.jsonl": {
+      "bytes": 4736594,
+      "sha256": "9b2f591fd9c761e70aef180061d3a157044c50de3316ef60296727fda8927481"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202304_lag2_issued.jsonl": {
+      "bytes": 4737067,
+      "sha256": "30f8674ca7af7bdeb7656f25d5fab7db2dd5eee20246e0366e9810f87aaac856"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202305_lag0_issued.jsonl": {
+      "bytes": 6079701,
+      "sha256": "ef33e9e7c9b5bda5af01e0c51d56eba223bbcd6e37198246fa3d67d1eed34d57"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202305_lag2_issued.jsonl": {
+      "bytes": 6078896,
+      "sha256": "be2c9cea371ce9f9fb1224ca04d73e5bf37a818604c1aa93e78f9fad1039f7fe"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202306_lag0_issued.jsonl": {
+      "bytes": 8040087,
+      "sha256": "99bf3c6ae242843a69bfc758740d9730b22bbc9092548dba84bb296aa0e76a11"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202306_lag2_issued.jsonl": {
+      "bytes": 8039519,
+      "sha256": "fcbcb6c9eda12c57290362f51f6df9705fb61a71f5b85484708524c8f055c27d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202307_lag0_issued.jsonl": {
+      "bytes": 6809217,
+      "sha256": "b19e25b2d77c299f7d430aab507ad238b77610808833a318664f7b0188856e4c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202307_lag2_issued.jsonl": {
+      "bytes": 6808291,
+      "sha256": "13eda72f3878a5a90844d4ddbeda0b40c5358d1522586e7b5f585f3980244aa2"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202308_lag0_issued.jsonl": {
+      "bytes": 6361964,
+      "sha256": "3d932ed93c51f6059da9655978c95bfefaff3f785cc9583b474b180f290189ff"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202308_lag2_issued.jsonl": {
+      "bytes": 6361408,
+      "sha256": "4604b85c2fd7d961eb0ef7156007870954940d779b8339f41c1ce2f2046a73f7"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202309_lag0_issued.jsonl": {
+      "bytes": 6695680,
+      "sha256": "b8c5076b96a90d8c96bd3408b2fd48831a7c67f3b075bcd2f435e915963331a5"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202309_lag2_issued.jsonl": {
+      "bytes": 6694753,
+      "sha256": "14193afde20b872295d5332dced3c3c42a196f49faef060b390618560aa6eb9c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202310_lag0_issued.jsonl": {
+      "bytes": 4453307,
+      "sha256": "aab89ecc662b1d0b93b5496dc58919447bdd96fd5599702c388537723fe4fd5e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202310_lag2_issued.jsonl": {
+      "bytes": 4453273,
+      "sha256": "0d794a228d39321e16b2f809a8cd2ec79ee3cd68bb2a82d3418c652688214802"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202311_lag0_issued.jsonl": {
+      "bytes": 6546316,
+      "sha256": "0a7197b1b197e18878782e001f441e3d5f824b8885e90090a15bb1f5df0086ce"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202311_lag2_issued.jsonl": {
+      "bytes": 6542680,
+      "sha256": "960567fb486812c0bdac193f79a08396296bed6c84fb96a0f0004a7484fd4682"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202312_lag0_issued.jsonl": {
+      "bytes": 3980912,
+      "sha256": "1206ae85771484795aec4d2fec3ef2c2ba787a4b18c092ab7bf97ae55aee9978"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202312_lag2_issued.jsonl": {
+      "bytes": 3977149,
+      "sha256": "3e7a5c054e2bfe9a098a6b68c561d9af4d07becf3bd1f13ddc7f1639c2d21a9f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202313_lag0_issued.jsonl": {
+      "bytes": 5640684,
+      "sha256": "3187985df41a83ea0c426daa738186cf713cb2892f25d9ad3a54ed3edfb7c898"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202313_lag2_issued.jsonl": {
+      "bytes": 5640490,
+      "sha256": "b1ccfed4060bfe2e425d70e97f94da53ca8704bf72a18fb68e8220a0273c9e8d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202314_lag0_issued.jsonl": {
+      "bytes": 4916618,
+      "sha256": "96094a9d54938db4b1d6ac304a2e6ec85a560fe6c962052af2ec89e08fe02bf3"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202314_lag2_issued.jsonl": {
+      "bytes": 4915859,
+      "sha256": "c429884b671a6ac3ef116c94014b750fda9a1a280d4baac42ce8e001d483d86a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202315_lag0_issued.jsonl": {
+      "bytes": 5399619,
+      "sha256": "d1291f24037a4a32ac668548f3d86152dd778e1b69cb56aab1ca829919232942"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202315_lag2_issued.jsonl": {
+      "bytes": 5398391,
+      "sha256": "1d884cadaad8d310c44a0052fd20c719e26d83f4a88812f2aae0267f07abc681"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202316_lag0_issued.jsonl": {
+      "bytes": 3856189,
+      "sha256": "7b57132cee2fd571cb30429cceb46234dd3502d350819c2a73ff4e26bbf7196c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202316_lag2_issued.jsonl": {
+      "bytes": 3854313,
+      "sha256": "fd7d99f94e451fd8b6bf6023bc4869c54aeac2e24bfdbe931cd7c2ab248d7854"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202317_lag0_issued.jsonl": {
+      "bytes": 4625948,
+      "sha256": "786a1c2a9421b888a895fd29b8c16dec3a75ec014432d1b62f6dad3060d8a1c4"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202317_lag2_issued.jsonl": {
+      "bytes": 4622963,
+      "sha256": "52476728a51200c0b7b51ef28b723a647a3cb2333c1d15a2eb41f48b13d64d37"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202318_lag0_issued.jsonl": {
+      "bytes": 5142557,
+      "sha256": "a692c6eb7359e16aa09806654103e87d97904ec2890a7dc87d32837a3d8c269d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202318_lag2_issued.jsonl": {
+      "bytes": 5139660,
+      "sha256": "66d22957e12a406b7bce00c115d965a566443376a9e8ad16b3784ce871735aa6"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202319_lag0_issued.jsonl": {
+      "bytes": 6411639,
+      "sha256": "117f29aaea99a25efbe0da6d761c0d66238c6f9482b727fe81932b1cc83412d2"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202319_lag2_issued.jsonl": {
+      "bytes": 6412365,
+      "sha256": "e4e6c6d158d8b10a744af1eece1cf46b0e83086530671116c959de229e55bb32"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202320_lag0_issued.jsonl": {
+      "bytes": 5580372,
+      "sha256": "67f6d69ed4d349489929266467ec35e4bfbca28b6bafba11d7385b1196ce3162"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202320_lag2_issued.jsonl": {
+      "bytes": 5578814,
+      "sha256": "8d7e4f80e80130c3f9413222904b6c129be6b23eca509c10e9b88406ae900614"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202321_lag0_issued.jsonl": {
+      "bytes": 4111477,
+      "sha256": "eb7302540b8962e90c36b9d01d76f886f3843b4ff16f2eab5423b03d7552cde9"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202321_lag2_issued.jsonl": {
+      "bytes": 4111535,
+      "sha256": "115be26322c89e87bdafe720b4ba751343a9565a3b5ff0845f8ce33a18b37b62"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202322_lag0_issued.jsonl": {
+      "bytes": 5977097,
+      "sha256": "fd7c6f8465e6f9e4db97cf20e2ebdf1e573b6ba1ac84fc4fa926570a571f3948"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/202322_lag2_issued.jsonl": {
+      "bytes": 5976841,
+      "sha256": "bef4dd9420a93e312c0acda1d167b0b0814a3c2d5fef4eaca3c56bfb862c373e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/features_2023/feature_closure.json": {
+      "bytes": 106988,
+      "sha256": "1da25a38de26f3cd46f79eb5b6cebab575a9dd7a9da592a8b06f9ef443f55fe0"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/fit_lock.json": {
+      "bytes": 1714,
+      "sha256": "ee59df50ddf2981f41118958a93cb9899a13e81acea96293a971e77fc99d44bf"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/input_validation_2022.json": {
+      "bytes": 15016,
+      "sha256": "d684510c144dc507716cf33049a21746178805775c370caa880383472cfc3fa4"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/input_validation_2023.json": {
+      "bytes": 14995,
+      "sha256": "5504e03284bd9d66825729cb10db6a5c2a7fce13cec5a13eb9ad93b29796e6b7"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202201_labels.jsonl": {
+      "bytes": 311721,
+      "sha256": "8042ae1b8b4a03420ab3830140faa160e9d16bf7c4b934cebf137572e4f83627"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202202_labels.jsonl": {
+      "bytes": 224428,
+      "sha256": "23604030d098dfdc2fa0ac2ee12a6e824eb7f7694a5d3d7a30bc40eedf790ef6"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202203_labels.jsonl": {
+      "bytes": 283158,
+      "sha256": "c92d8b4bd102c014eb0e77aa08813fe708d7af9891d7a34910b9bb756d739590"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202204_labels.jsonl": {
+      "bytes": 353987,
+      "sha256": "d0821ef143b27a824d217261e1a18941690cf7cc6fc6a39c9f30664d4acb1b7c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202205_labels.jsonl": {
+      "bytes": 305815,
+      "sha256": "4ea28db619df4520ab6cc521b724bc56328a03a9ebe0d16caf6815accee1640a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202206_labels.jsonl": {
+      "bytes": 388502,
+      "sha256": "f1a76c3a43a1d633900e5bc5b9eabf723d898d1e879e114dacd4c5a20d21cf95"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202207_labels.jsonl": {
+      "bytes": 341379,
+      "sha256": "e3012d33deeed868db41eee5550fc479b16308e2ab27b7e2b1c8c802dfd891ee"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202208_labels.jsonl": {
+      "bytes": 264821,
+      "sha256": "bc4e8cf502fef151f75d1c89e16e769dfe9583f9411423d5a3293c220da90f46"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202209_labels.jsonl": {
+      "bytes": 361083,
+      "sha256": "45445199e85203781bfb9990f43e40483f282bc7c876b6f3a2d15f3412104446"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202210_labels.jsonl": {
+      "bytes": 234589,
+      "sha256": "0ba44b7f5b810c4df6d310334e15f57693399eaee52f098a6e25c715d6a28e62"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202211_labels.jsonl": {
+      "bytes": 416741,
+      "sha256": "167c48bca830a9963f9ab3c45a4478560dcf0a65aad94bb4c2b2124c6575182c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202212_labels.jsonl": {
+      "bytes": 289632,
+      "sha256": "71f8dbb862a055246eaf34d1e823cf8148ca38e432b446dce58612bc9ec8a565"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202213_labels.jsonl": {
+      "bytes": 424903,
+      "sha256": "66522085452c8431bea669c43be99035b6a68b27eed45fd0c3c952d502058388"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202214_labels.jsonl": {
+      "bytes": 222868,
+      "sha256": "4fd9cce704b73b509cd32fe7935bfdb0d04a4af9c4d8ec506c646086c64c5dff"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202215_labels.jsonl": {
+      "bytes": 401328,
+      "sha256": "656b27cae93ba8898d32ada16992b90539be80d0e668645f6867be6b3dbc7f46"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202216_labels.jsonl": {
+      "bytes": 269280,
+      "sha256": "39c9d2b4bf88db32b1c469c2e6b60bf5e79182513570aef68c9d88eb104d031d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202217_labels.jsonl": {
+      "bytes": 234777,
+      "sha256": "8acc3a981f555fad4212d3935b9dfab6522d2272a453fbecf7cbfff75e6ebe41"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202218_labels.jsonl": {
+      "bytes": 123782,
+      "sha256": "0aea487d1e8cbc01c7aff83bb0411300fa40632d307f31a77d97d324e69b216f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202219_labels.jsonl": {
+      "bytes": 270656,
+      "sha256": "64f2f8150f8cfd28511ced8e3467da0d52abb96d71875f09748181f718804e5f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202220_labels.jsonl": {
+      "bytes": 454362,
+      "sha256": "801d3dc91064b7c8074006400f6d750d3a810d37b3cc375fe478330b23d0d14a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202221_labels.jsonl": {
+      "bytes": 330923,
+      "sha256": "0fa7eba89b93f1319590fce08ae229509f0a40ef30cb1ff103e9f4cd685404c7"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202222_labels.jsonl": {
+      "bytes": 362157,
+      "sha256": "d8fb98eb485a510fc8b6bcc3784d9db240ebd4bd821594fa7cba45a05af350f5"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2022/label_closure.json": {
+      "bytes": 8649,
+      "sha256": "470bc7976a95999af0f4d9975ac97ca245d63cafb4d13596f0dc2ff7d0adefa9"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202301_labels.jsonl": {
+      "bytes": 319341,
+      "sha256": "f1e3c06a9a30d366c848baaa88a8320f6ee9a3e859ae4517b143f08376d1b0fd"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202302_labels.jsonl": {
+      "bytes": 288098,
+      "sha256": "caf7c01b4aab3f75f0ee377a06a887b3ca214da3034987c9f1938010cacca71c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202303_labels.jsonl": {
+      "bytes": 267280,
+      "sha256": "6b65465b31b0abca2c8d613bdf310e8dc51d6ac9c18b8673bdf67d3be5794305"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202304_labels.jsonl": {
+      "bytes": 295142,
+      "sha256": "f840cfce1273e7d82976ae7144c377818378b921139adb8556c4af883e7b0638"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202305_labels.jsonl": {
+      "bytes": 379321,
+      "sha256": "0f2da201f38527b831ee19f0a2513a75256f76a5ae951b8a4648f1b7b1b9117f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202306_labels.jsonl": {
+      "bytes": 506140,
+      "sha256": "b4cd49bffe627f3dae345538c1b8866672d4aedee691f3ea17dd48b5bf99e835"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202307_labels.jsonl": {
+      "bytes": 426639,
+      "sha256": "16c9745473152b082de6fe35976632f8c419740ae6d1653b3c25c3aba5b405b2"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202308_labels.jsonl": {
+      "bytes": 397523,
+      "sha256": "9c47e790ddd5340fbd98086a6d7266678f3dd82593ba94047ee5099f128065ab"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202309_labels.jsonl": {
+      "bytes": 419039,
+      "sha256": "e54bcc2ca8dadc8c385c30bb5da4d5d4b897355c13d0f505a1a61473186bfcfb"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202310_labels.jsonl": {
+      "bytes": 278190,
+      "sha256": "9b62d4bbfb6bd6207052d57459d4ffa00be1a1c684bcbf91d3815226a0300acc"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202311_labels.jsonl": {
+      "bytes": 409952,
+      "sha256": "5d17399f228aafe8f2f5b3a0396a6782bb25f865baf929715aa63a92f814d3eb"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202312_labels.jsonl": {
+      "bytes": 249953,
+      "sha256": "d83fa66b13cad3c694ecfaec8c04cf15c016c444adcd195021e3e4b2330c7f2c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202313_labels.jsonl": {
+      "bytes": 356624,
+      "sha256": "e17caa959130b74c3cafa3bb5df96566c3e09159d0bca4868b4db716ef2dbe70"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202314_labels.jsonl": {
+      "bytes": 306863,
+      "sha256": "022113910abc9f318755ccf6f0cb511f47560c454a49b86a865ca8070932dffd"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202315_labels.jsonl": {
+      "bytes": 337612,
+      "sha256": "b005a295d9c6a35a1e905a3763514cabacdaf4ec86e59980c9f1e6c28054c3f2"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202316_labels.jsonl": {
+      "bytes": 242402,
+      "sha256": "51c1a831efd41c7e08da2fd0ac216464e2782aac83f17471aff1eb6284a4719e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202317_labels.jsonl": {
+      "bytes": 291793,
+      "sha256": "9bf9f5c2341a9262d1fd66f927e6842a2137b32d43c00ade254172198c2fa71d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202318_labels.jsonl": {
+      "bytes": 321740,
+      "sha256": "fac1515bf347df1a02b49b40e51542d6fdfc8a8599715b7dcf077fc99f06de5f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202319_labels.jsonl": {
+      "bytes": 400579,
+      "sha256": "12d757fc3a254867a78887bc2d107d6f3a75bf57f791835adfe85df6bbc6a9a1"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202320_labels.jsonl": {
+      "bytes": 348550,
+      "sha256": "e079b6a142b4e8f8942ebb517999781bd462f41c3d0d5cc66867b86a2756e7ae"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202321_labels.jsonl": {
+      "bytes": 256068,
+      "sha256": "79addaf8e01ec39f88fb35497ae44cd3b640f662e1ba9099a28c1ee18c6d6224"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/202322_labels.jsonl": {
+      "bytes": 373677,
+      "sha256": "303b68ca1984dffff77de464e0be76d628e2fde086f35883ba9f481d3a0e4652"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/labels_2023/label_closure.json": {
+      "bytes": 8655,
+      "sha256": "cc83af4088025f3aeb932ca60af2809872740d2bfe1d4b1ba28b670e16764b50"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/models.pkl": {
+      "bytes": 1198538,
+      "sha256": "900cc775d1349a529a18341ae8602fc555123b217f4c0aeace63c31385082a0b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_population_parity.json": {
+      "bytes": 400,
+      "sha256": "9c75e316305c6c4dd93b5399c8c279749a154041cadb55d8483140f5e424eac7"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202201_issued.jsonl": {
+      "bytes": 2965664,
+      "sha256": "bb084a6fd5b6486f7a121d645c28f6809a7a27b7cae9ae3acd0c4004e63dbda6"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202202_issued.jsonl": {
+      "bytes": 2153777,
+      "sha256": "6cebd70dfe3b886fe4561e8ffe8c08b7abad4a389428183cd1fc2039d9f298a1"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202203_issued.jsonl": {
+      "bytes": 2721956,
+      "sha256": "0e3a6bbe90f388d4a14fd62afbaac1e32cea1a3c012c5662c26404617f044a4e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202204_issued.jsonl": {
+      "bytes": 3399651,
+      "sha256": "874f50fffed64e25040b80d7015c8dec51221ec7f47cc850920d3d55220030e4"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202205_issued.jsonl": {
+      "bytes": 2936095,
+      "sha256": "530447694f877ef9946a308c6da32e3d55a0ee5b031929357068fd854c8fbe78"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202206_issued.jsonl": {
+      "bytes": 3711858,
+      "sha256": "d5fc729506b11947ea03a0c99808a7c86151d34ec79f27e3883f894a95966dee"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202207_issued.jsonl": {
+      "bytes": 3192241,
+      "sha256": "ae484d28e58a91b28072848d4c3c2cfc59e579c5576a7885a0c291b3868e1b5d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202208_issued.jsonl": {
+      "bytes": 2556731,
+      "sha256": "e7131142d9bd8099700fd46b4878fee9ffbda8f021c096013bd16a0585788bd0"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202209_issued.jsonl": {
+      "bytes": 3475767,
+      "sha256": "f18d54a148067076af8b2a88383570b7abf64af0d260db9f3feae0ca25b07ee6"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202210_issued.jsonl": {
+      "bytes": 2228796,
+      "sha256": "30f174aeb2667dffff9e543e9fcf1fd45ecc908f32836054a843ff911fcadce6"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202211_issued.jsonl": {
+      "bytes": 4005264,
+      "sha256": "ba22fd31b3a88acb88e437359fb3a5b1aaaed03c0be6addf57a06d693b8942fb"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202212_issued.jsonl": {
+      "bytes": 2792759,
+      "sha256": "b529c33a4970aab2259abd86e8aae7ae0a5073794993a9041b7c22a13bc13952"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202213_issued.jsonl": {
+      "bytes": 4066414,
+      "sha256": "6bda642a21307c376cc3ac7c032eae2069f198720b916373b6e1847cfbe3efe5"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202214_issued.jsonl": {
+      "bytes": 2133280,
+      "sha256": "7f322c30f5f661302e7cc40dac8f0621013bb2ada23699adf117fa1f3c981159"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202215_issued.jsonl": {
+      "bytes": 3827503,
+      "sha256": "489051c053fc88953b64b7a3dbc24afc885aab5eda72eadf9dc741c453c44d59"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202216_issued.jsonl": {
+      "bytes": 2598297,
+      "sha256": "a188aafa656166957703efaa4df3b662bd7c708c5cb5617a4c61c59fc2da6826"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202217_issued.jsonl": {
+      "bytes": 2234988,
+      "sha256": "4fc536e6c1f137f50334003fd330f6930fff00cca288e3886a06dc43860d85a5"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202218_issued.jsonl": {
+      "bytes": 1177441,
+      "sha256": "b65d1dc2d5d666579bfe45befb1c1968e1c63f3f7cefae0aa16fb87db8d8e4e4"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202219_issued.jsonl": {
+      "bytes": 2602226,
+      "sha256": "7fbb0643fe821627b26efc6d156ad969447252836a97f972221a5e9c799fb17b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202220_issued.jsonl": {
+      "bytes": 4393430,
+      "sha256": "f96365ac1264f25265468c341312bdee52850272f510b6e0c242327d64b2d83d"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202221_issued.jsonl": {
+      "bytes": 3165811,
+      "sha256": "437909a5389a15ca543457221894a714fc5e930f053d26ee7ccd80cc668db662"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202222_issued.jsonl": {
+      "bytes": 3487965,
+      "sha256": "54e7a4de0579cd4587b7daf61afbcdb41ed16700c8c40ca10e00d47af4af591c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202301_issued.jsonl": {
+      "bytes": 3052314,
+      "sha256": "8c1b994b9dec9be0c3d49077a3f87d6eb95621423416af448a3e2925fa16e9be"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202302_issued.jsonl": {
+      "bytes": 2767547,
+      "sha256": "5bb165fc41f1cdf32c00c707d64aedc2d38b9cb2280d38ece97b02fabeb74320"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202303_issued.jsonl": {
+      "bytes": 2564404,
+      "sha256": "f01330f46346fe61170f79c4d9bb9c19cd15d663199230cee57fd0d38d26d6f0"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202304_issued.jsonl": {
+      "bytes": 2855838,
+      "sha256": "2729ba6907088a9512eb020dd81af7e48b37d89cba7f79c2a18836546fbb78b4"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202305_issued.jsonl": {
+      "bytes": 3666757,
+      "sha256": "467d39f550affeab708638da796861d6bab46dfe801c3f5d0873b106222522f3"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202306_issued.jsonl": {
+      "bytes": 4814143,
+      "sha256": "e2c4a2382c63a598cbf29bde0672459dbf438c80d0840b51959963995a81c01b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202307_issued.jsonl": {
+      "bytes": 4094843,
+      "sha256": "34f2bc136e5b1592eb62917ede5cbedd1befd64696297ec84cb59169dc450af3"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202308_issued.jsonl": {
+      "bytes": 3824982,
+      "sha256": "f53b21605d16ce79cbfbf2e2c6b8bacbddaf6fad07076890811adfbb22c889c0"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202309_issued.jsonl": {
+      "bytes": 4027916,
+      "sha256": "40352ed47faab9faa3ec9b2a7b9c182672e9340951bb4081e0c525dde51e410a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202310_issued.jsonl": {
+      "bytes": 2680419,
+      "sha256": "688c37e994b0adfbcf8ef38c812dc854361f719b5666d5f45365d2a5b9c2a1f5"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202311_issued.jsonl": {
+      "bytes": 3939729,
+      "sha256": "b3f31436706351c040c337fa5c26ede2c19231315b0a295f61d27747d404e0f4"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202312_issued.jsonl": {
+      "bytes": 2391337,
+      "sha256": "fc42044aebfa8d5d0598ebb4dc8097b90e1107dc92a6de6cbb3727c207a4cc5e"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202313_issued.jsonl": {
+      "bytes": 3360245,
+      "sha256": "c974468accdd65c600b8adaeb0590ea1e84f0dfd2de42f0aa1f323b37d73e0be"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202314_issued.jsonl": {
+      "bytes": 2956600,
+      "sha256": "941e4636618608303942c69bd45ae857024a7c5b4e46aaef7a6180ab60ada653"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202315_issued.jsonl": {
+      "bytes": 3243968,
+      "sha256": "654734de1d18e35b8235c649060f2e269e82ba3b681b498f579042396a64a96b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202316_issued.jsonl": {
+      "bytes": 2319400,
+      "sha256": "2a7634d1d139313ec3ba9a892abc7da6ef690031d522361995bb34e6e2f1c87c"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202317_issued.jsonl": {
+      "bytes": 2767331,
+      "sha256": "085bacea39a4fee5942f07cb3a3dfd1bcc8ce581706e67ff8877946941b59aef"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202318_issued.jsonl": {
+      "bytes": 3101229,
+      "sha256": "e489ff5d160b32f52d8a57464593581d1aecb079b0f67b84a674279e942b325a"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202319_issued.jsonl": {
+      "bytes": 3833281,
+      "sha256": "7b30247b8e2986fcc24e9ed503bd35946c22ce63f7c7ae4932bc85567e4346ac"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202320_issued.jsonl": {
+      "bytes": 3342743,
+      "sha256": "e41072ec28fc451e37035e550093d6948961faaa6e2dd35e4f582ebf78a73949"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202321_issued.jsonl": {
+      "bytes": 2442185,
+      "sha256": "b825afed88ca0ea2d9ce214de03b9a048315c7f78eb164b5d476a6bc9fb7cc8f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/original_references/202322_issued.jsonl": {
+      "bytes": 3596671,
+      "sha256": "6b8f652144ae03bfc81d1b84e1172467fb032150779e8cb46a6c569e131416c3"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/pre_fit_tests.json": {
+      "bytes": 4122,
+      "sha256": "83c4b1c35d4e5414bc0e52c1197b6fd128f66a959b49a6470cf95deef83d3eb9"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/selection.json": {
+      "bytes": 34972,
+      "sha256": "c5ff65e78b686558c110d630201cfa7789362f781e14e84002a8eb69651c5a6b"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/selection_issuance_lock.json": {
+      "bytes": 8330,
+      "sha256": "080c1b49bbd576afb795cd48989d67cbe6660b096e084273480709d2fb4cecb2"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/selection_lag0_forecasts.jsonl": {
+      "bytes": 8405499,
+      "sha256": "67173eadb2853b975901d840997c33d1058c14865ab06da7004d884f0ea3c1ce"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution/selection_lag2_forecasts.jsonl": {
+      "bytes": 8405153,
+      "sha256": "fc53cc3d5cea03e9f90f68726cd004de862ac52c80cdb4b0743280c3b99cde1f"
+    },
+    "artifacts/research/boundary_20260908/telemetry/execution_review.json": {
+      "bytes": 9898,
+      "sha256": "6fe828351c37b60ff555476b703524aa8d57e2d6b52acf9241333f4af8cfe17e"
+    },
+    "artifacts/research/boundary_20260908/telemetry_pilot/acquisition.json": {
+      "bytes": 6876,
+      "sha256": "9d39fc16e23db3a3c9066b94e2add265d6a68e639d73417b3d3a813c348ca0e4"
+    },
+    "artifacts/research/boundary_20260908/telemetry_pilot/acquisition_lock.json": {
+      "bytes": 1327,
+      "sha256": "d2946327d297248feaf4e3da409c7f1ecde6c68ed0352a46359bd050281d4ad6"
+    },
+    "artifacts/research/boundary_20260908/telemetry_pilot/diagnostics.json": {
+      "bytes": 20879,
+      "sha256": "9f1650bd43d6868874835398debebe12a1727c7bc18df8ae6aa1ceaa5ea92a4f"
+    },
+    "artifacts/research/boundary_20260908/telemetry_pilot/diagnostics_lock.json": {
+      "bytes": 837,
+      "sha256": "6480a324100f32badd33b7f774c887ec8529b5b463364789c468c91557d6e1d8"
+    },
+    "artifacts/research/boundary_20260908/telemetry_pilot/independent_verification.json": {
+      "bytes": 498618,
+      "sha256": "234df766302dd27b4d8e4b48f9491967b982d9bd718c96640c5946c5713e7e33"
+    },
+    "artifacts/research/frontier_20260907/live/discovery_data.pkl": {
+      "bytes": 36447822,
+      "sha256": "9f657a724b93c285fa31453b0dca200812e47b634fddfbb3ccb430a4ba70c66d"
+    },
+    "artifacts/research/frontier_20260907/live/selection.json": {
+      "bytes": 148862,
+      "sha256": "43870438056c0bf6b52d121426c4c1484455aeec3644bca13ec37df8a2096568"
+    },
+    "data/f1/boundary_20260908/telemetry/202202_CarData.z.attempt1.httpbody": {
+      "bytes": 7033023,
+      "sha256": "b9c07856ed10426b799f44c7d17df071880013f9d7091b39163df07ee27c6a63"
+    },
+    "data/f1/boundary_20260908/telemetry/202202_CarData.z.attempt1.receipt.json": {
+      "bytes": 995,
+      "sha256": "d13150449ffbb4ac1bc30af7dc639184bd9bf839b9a4fbf0741bd8aa5bc47743"
+    },
+    "data/f1/boundary_20260908/telemetry/202202_CarData.z.source.json": {
+      "bytes": 1586,
+      "sha256": "e14e27091f78187ff0381ec22b41c26b74a6ee56b653af5cfb27d2b2e2fe7462"
+    },
+    "data/f1/boundary_20260908/telemetry/202203_CarData.z.attempt1.httpbody": {
+      "bytes": 7531091,
+      "sha256": "a329bed1df88152ebfbebe732c484a5263cffe50f039ed896f65a14d87f1a01e"
+    },
+    "data/f1/boundary_20260908/telemetry/202203_CarData.z.attempt1.receipt.json": {
+      "bytes": 988,
+      "sha256": "a661eadfab8f723d37b49b4cbd70c0604bc9cfa6cad31989a387a979a6972c05"
+    },
+    "data/f1/boundary_20260908/telemetry/202203_CarData.z.source.json": {
+      "bytes": 1576,
+      "sha256": "4a2a63865434e92921b6807e15ce2fcacfe3408b4aaca53a44dfeacd5972959c"
+    },
+    "data/f1/boundary_20260908/telemetry/202204_CarData.z.attempt1.httpbody": {
+      "bytes": 7859087,
+      "sha256": "f4b4ae9191d4e0345dfc8cb29695f796f6524eeeddd4242f77919f23072e9752"
+    },
+    "data/f1/boundary_20260908/telemetry/202204_CarData.z.attempt1.receipt.json": {
+      "bytes": 996,
+      "sha256": "a4aec4b666c7f51921064f32b4c67554ce132165a20d98f3e580a16b1c4460d9"
+    },
+    "data/f1/boundary_20260908/telemetry/202204_CarData.z.source.json": {
+      "bytes": 1588,
+      "sha256": "cccc3785255dc49692759009e43faa09fc5a180a54b0a49a83f0eaab052dff16"
+    },
+    "data/f1/boundary_20260908/telemetry/202205_CarData.z.attempt1.httpbody": {
+      "bytes": 8092159,
+      "sha256": "7089673a8162eea2793490da40fa2ec4f8776efef8bf0442dc79c76765cfab5c"
+    },
+    "data/f1/boundary_20260908/telemetry/202205_CarData.z.attempt1.receipt.json": {
+      "bytes": 979,
+      "sha256": "34eeb978bf34d2b9a4bcb56e270c733af758fed88a39dc23aadebb61af73db4b"
+    },
+    "data/f1/boundary_20260908/telemetry/202205_CarData.z.source.json": {
+      "bytes": 1562,
+      "sha256": "966fbc96460d56fb68319669308e764c24f70af7396c022d63de74f8e5d8123e"
+    },
+    "data/f1/boundary_20260908/telemetry/202206_CarData.z.attempt1.httpbody": {
+      "bytes": 8395523,
+      "sha256": "9ed1d90508536cd84adbe589819a2f096b30effe7fe9a35f324c10b114d232a2"
+    },
+    "data/f1/boundary_20260908/telemetry/202206_CarData.z.attempt1.receipt.json": {
+      "bytes": 982,
+      "sha256": "cc8a4b6109df7ffd4c633355469fbe83960229eac01a437f84f4ff500c46998f"
+    },
+    "data/f1/boundary_20260908/telemetry/202206_CarData.z.source.json": {
+      "bytes": 1567,
+      "sha256": "46be7cdf07cda9c3111cb96d3379d9518cff79c0fc1e82a09f1838929ea6ad1a"
+    },
+    "data/f1/boundary_20260908/telemetry/202207_CarData.z.attempt1.httpbody": {
+      "bytes": 10152255,
+      "sha256": "c1bb4a05da8c86391dfe405327a603529047b72269f14b7ca5d53102fdc2fffd"
+    },
+    "data/f1/boundary_20260908/telemetry/202207_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "930608de7b2d9f4e0948d5b2efb907f9196fbe65c7f771e9862ba7d2f85b1da2"
+    },
+    "data/f1/boundary_20260908/telemetry/202207_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "14c10adb15cbee4a877087efb61f20597749c7172ebf4f597c261004ba2b8df6"
+    },
+    "data/f1/boundary_20260908/telemetry/202208_CarData.z.attempt1.httpbody": {
+      "bytes": 7932875,
+      "sha256": "08a35d1ce2a728e51d03efeda164428f008e96d92c52ea75f2d1b5e884ee8051"
+    },
+    "data/f1/boundary_20260908/telemetry/202208_CarData.z.attempt1.receipt.json": {
+      "bytes": 989,
+      "sha256": "90d0fce2c0dff5ddb1c5fbf92c7861861c39eb1a43943a2bc13c277b90f14191"
+    },
+    "data/f1/boundary_20260908/telemetry/202208_CarData.z.source.json": {
+      "bytes": 1577,
+      "sha256": "7e6acae8bcfd50f686977c42fc79b08db6ee9b3cf08576c129f26beb13ec3d91"
+    },
+    "data/f1/boundary_20260908/telemetry/202209_CarData.z.attempt1.httpbody": {
+      "bytes": 8122135,
+      "sha256": "511420e1f3c74198450d09276bd0c6f2ed6d944509586ee3856549dbac61e47b"
+    },
+    "data/f1/boundary_20260908/telemetry/202209_CarData.z.attempt1.receipt.json": {
+      "bytes": 985,
+      "sha256": "1c83991432eb25335be8cd153045ba713946239028171c9c8b164db69579aa4d"
+    },
+    "data/f1/boundary_20260908/telemetry/202209_CarData.z.source.json": {
+      "bytes": 1571,
+      "sha256": "c3ce7d44c128bcfbbc38a9e6b8ae00aa3baff00a322e44a9a212feeb4b707760"
+    },
+    "data/f1/boundary_20260908/telemetry/202210_CarData.z.attempt1.httpbody": {
+      "bytes": 7992691,
+      "sha256": "3398482c769adad2a14e128c0b5b7b1bd74bfa46472b72ac1c7b544102025f90"
+    },
+    "data/f1/boundary_20260908/telemetry/202210_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "0638cd94e8358f10a5b502d7c12056ecd77a093997ea916938e871d09fe7dec1"
+    },
+    "data/f1/boundary_20260908/telemetry/202210_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "a7c26bf3acabd99c7eb6b6fc830bb49a4bf504cfe75d1e59582c38640dca7d9c"
+    },
+    "data/f1/boundary_20260908/telemetry/202211_CarData.z.attempt1.httpbody": {
+      "bytes": 6884931,
+      "sha256": "d63c25ea729b20e268bf8a00e81983466dff0c720755f622dd8d156d9c72ecde"
+    },
+    "data/f1/boundary_20260908/telemetry/202211_CarData.z.attempt1.receipt.json": {
+      "bytes": 985,
+      "sha256": "2c8b083aef0171d47108ba26aaf40b67413a6d0ee3cbbbb6fc19a22ed5b05d71"
+    },
+    "data/f1/boundary_20260908/telemetry/202211_CarData.z.source.json": {
+      "bytes": 1571,
+      "sha256": "95a78caf3db790fe61c24285b63f0714a83ed5160e16dd919342edfa584147b5"
+    },
+    "data/f1/boundary_20260908/telemetry/202212_CarData.z.attempt1.httpbody": {
+      "bytes": 6643131,
+      "sha256": "1ae3efa84374a130a4b7631fa84fce854f6633ff58e04ba14a8b9770d58c1ebc"
+    },
+    "data/f1/boundary_20260908/telemetry/202212_CarData.z.attempt1.receipt.json": {
+      "bytes": 980,
+      "sha256": "e7304419fc4bd535d901a3676c8fa23ced68ce7e76ba74eba124bd475307ef0b"
+    },
+    "data/f1/boundary_20260908/telemetry/202212_CarData.z.source.json": {
+      "bytes": 1564,
+      "sha256": "46fc040fd942f3098321a699070e9c4606ff11c149ed29a911f6aabe72957efb"
+    },
+    "data/f1/boundary_20260908/telemetry/202213_CarData.z.attempt1.httpbody": {
+      "bytes": 8195011,
+      "sha256": "fdcb61a7f9101e709e091021ad27ae45b804afb55f8cd748a30c51a3446f7772"
+    },
+    "data/f1/boundary_20260908/telemetry/202213_CarData.z.attempt1.receipt.json": {
+      "bytes": 987,
+      "sha256": "03f714e147d597ed6fa5f0ee5e86559725180b65a5158d44484b7d1f4c8440d6"
+    },
+    "data/f1/boundary_20260908/telemetry/202213_CarData.z.source.json": {
+      "bytes": 1574,
+      "sha256": "a48c5f0395a74350dfe151fd4c9f6294d4ae46865ff2c509db836eebe9c684f8"
+    },
+    "data/f1/boundary_20260908/telemetry/202214_CarData.z.attempt1.httpbody": {
+      "bytes": 7422103,
+      "sha256": "217dd05e43f1a087720cb0c627b98f8fa4997be700cfa95be59888c1d45d99bc"
+    },
+    "data/f1/boundary_20260908/telemetry/202214_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "67dca7612805bbf47cc3d1b340de0cf34274bc80dfc5d288eb63519fe9bce8c6"
+    },
+    "data/f1/boundary_20260908/telemetry/202214_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "c78c1bc2bdac8cfb251de0049b1110f770b7861fdc8f977e26564bf9542b5cd0"
+    },
+    "data/f1/boundary_20260908/telemetry/202215_CarData.z.attempt1.httpbody": {
+      "bytes": 8303467,
+      "sha256": "ffabf97489a771de58f3a0c77772611bcec65663b9f6f94cb521a6a86523cbf4"
+    },
+    "data/f1/boundary_20260908/telemetry/202215_CarData.z.attempt1.receipt.json": {
+      "bytes": 979,
+      "sha256": "0286e8d5eceeb7952a40c7c40a0b6d31de10dc759e616408d69283ed8e7db53b"
+    },
+    "data/f1/boundary_20260908/telemetry/202215_CarData.z.source.json": {
+      "bytes": 1562,
+      "sha256": "014d21c9d5ca0f9bfaea3310c9a220b804ed22cb89a9520bce759f665bcf836a"
+    },
+    "data/f1/boundary_20260908/telemetry/202216_CarData.z.attempt1.httpbody": {
+      "bytes": 6977159,
+      "sha256": "23a3f9019d0674719244244aa481ec0a2119b0270398e18a7e806dff043b3adc"
+    },
+    "data/f1/boundary_20260908/telemetry/202216_CarData.z.attempt1.receipt.json": {
+      "bytes": 983,
+      "sha256": "7b436ff0962851a8a2cbb999c59e8ea561199f7b272ddbb1ab1fb2e9807f42f4"
+    },
+    "data/f1/boundary_20260908/telemetry/202216_CarData.z.source.json": {
+      "bytes": 1568,
+      "sha256": "c0016a94f3ed3ffaef9523cecd5db3ffdd7a9b88180eecb814546b5ae8cc2a01"
+    },
+    "data/f1/boundary_20260908/telemetry/202217_CarData.z.attempt1.httpbody": {
+      "bytes": 11069831,
+      "sha256": "ed86c107a2c30f776949261ea47280398ee33c6c32d0dce8f2cca77af623b1a1"
+    },
+    "data/f1/boundary_20260908/telemetry/202217_CarData.z.attempt1.receipt.json": {
+      "bytes": 989,
+      "sha256": "b81ea6c7e5e4fb7b39366a549e3be1cb2ec68c1d514b5c6d93a3d9ca6dc4c296"
+    },
+    "data/f1/boundary_20260908/telemetry/202217_CarData.z.source.json": {
+      "bytes": 1577,
+      "sha256": "9142f68cefb0ed0a9ef2bd96236b5fb1daa62af2fc04b6e5df87f9e32fada567"
+    },
+    "data/f1/boundary_20260908/telemetry/202218_CarData.z.attempt1.httpbody": {
+      "bytes": 8474079,
+      "sha256": "acea2d269b51844db8b1c9652a7f34e8c50470f41a3e1342f98451f055bb5e42"
+    },
+    "data/f1/boundary_20260908/telemetry/202218_CarData.z.attempt1.receipt.json": {
+      "bytes": 984,
+      "sha256": "7d3a1f92d0f35d70f904a7d5db1d19ba587899add388f8baf64d18736664e60a"
+    },
+    "data/f1/boundary_20260908/telemetry/202218_CarData.z.source.json": {
+      "bytes": 1570,
+      "sha256": "266eb2fbefd9291f7762d4c59bcb6980855e9034e5a03e913202ef10f06d570a"
+    },
+    "data/f1/boundary_20260908/telemetry/202219_CarData.z.attempt1.httpbody": {
+      "bytes": 8628671,
+      "sha256": "9a631f741288340ca2ff996d98ff792d2f10feb371b598792c9eb9155c4ff66f"
+    },
+    "data/f1/boundary_20260908/telemetry/202219_CarData.z.attempt1.receipt.json": {
+      "bytes": 994,
+      "sha256": "7a3d3d819d121f61bf94cdb87d0ca98310520146cd427226f64d86f3977230d6"
+    },
+    "data/f1/boundary_20260908/telemetry/202219_CarData.z.source.json": {
+      "bytes": 1585,
+      "sha256": "f7b41a097dfb6a8303f943bdea7636b926d619d2c04d2b43860a3f4281def368"
+    },
+    "data/f1/boundary_20260908/telemetry/202220_CarData.z.attempt1.httpbody": {
+      "bytes": 8652003,
+      "sha256": "ee4ad7dea2715d69d32fd2465c285fbdd2e9463910774c93f2b6178222dd08b0"
+    },
+    "data/f1/boundary_20260908/telemetry/202220_CarData.z.attempt1.receipt.json": {
+      "bytes": 991,
+      "sha256": "ffeba7e33ffd8ff32630d20faec8b2036eb8eeb9bbb3f6c89964b25a0d0d2173"
+    },
+    "data/f1/boundary_20260908/telemetry/202220_CarData.z.source.json": {
+      "bytes": 1580,
+      "sha256": "aaa4a4722894c2c58dd19220d4974b244e59aeaff7d4ba6dfae3bf3b4d11c321"
+    },
+    "data/f1/boundary_20260908/telemetry/202221_CarData.z.attempt1.httpbody": {
+      "bytes": 8276175,
+      "sha256": "6dd3afd20e6aa7af689de0e47de421662f18f8a5ac075299c25dd129e920c3fd"
+    },
+    "data/f1/boundary_20260908/telemetry/202221_CarData.z.attempt1.receipt.json": {
+      "bytes": 997,
+      "sha256": "7a3d6df8f25cd7a4a433850750d1bfa3d2dcd9be31faaa2b5835fc9558bbb82f"
+    },
+    "data/f1/boundary_20260908/telemetry/202221_CarData.z.source.json": {
+      "bytes": 1589,
+      "sha256": "6490019d94cc8343c5199f0a047d6095d2aa9bedcc9aa50054e2a75967aa08c0"
+    },
+    "data/f1/boundary_20260908/telemetry/202222_CarData.z.attempt1.httpbody": {
+      "bytes": 7709027,
+      "sha256": "25681b05bfaa8c74e54381d3bb1c827755982b9c90b273b2eb9c47f60cb8aec3"
+    },
+    "data/f1/boundary_20260908/telemetry/202222_CarData.z.attempt1.receipt.json": {
+      "bytes": 987,
+      "sha256": "3f799f06fa18b3c254c7606fa525b8ebfeda27cb50be28b58704a72a7af38de2"
+    },
+    "data/f1/boundary_20260908/telemetry/202222_CarData.z.source.json": {
+      "bytes": 1574,
+      "sha256": "0c9e60e8e91e1969f28c451a51126ed233eaf4906f7cbf541ffbd29d11f91670"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt1.receipt.json": {
+      "bytes": 886,
+      "sha256": "94f411a60ab0ec1d2d54a037e8826818efecfd61d6828aae5e2e1210d298d4cd"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt2.httpbody": {
+      "bytes": 7180339,
+      "sha256": "a5680ccab7b59c30576d7c812115a2b570692eedf585e4f9522a2f112e714316"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.attempt2.receipt.json": {
+      "bytes": 1033,
+      "sha256": "dd5003aeeb6a4acbed524f16c7075809ebc633ffcda62365d28793e487a27314"
+    },
+    "data/f1/boundary_20260908/telemetry/202302_CarData.z.source.json": {
+      "bytes": 2583,
+      "sha256": "37336d85a5cf29d4c81ba83e95650eb40caa89761776d46bae4660571e65fd59"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt1.receipt.json": {
+      "bytes": 881,
+      "sha256": "dc71124aa6ae7c72f1948f206852950bdd521defad64733a050d4726a6aa1ab1"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt2.httpbody": {
+      "bytes": 8822499,
+      "sha256": "a0741792cc5640a253fd5c6c1d0290f6c366a3060892768d8f32a3578a0a97bb"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.attempt2.receipt.json": {
+      "bytes": 1027,
+      "sha256": "f2e687e590127352e8bf2297b7563816417395fab0cac59e9579b3d7e00a310c"
+    },
+    "data/f1/boundary_20260908/telemetry/202303_CarData.z.source.json": {
+      "bytes": 2569,
+      "sha256": "2a5b71b04321d5968beed72dc4cc61336472545b4c634e73d4925207844213d4"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt1.receipt.json": {
+      "bytes": 882,
+      "sha256": "8b9381f7c098aa2e58082d30c68416a3ab5cbf6afef5578ce348f8c066288bee"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt2.httpbody": {
+      "bytes": 8055963,
+      "sha256": "26438aa6611b548240b4ef471b9dd211dc42a39bfdf563e46475a15b074dd1bb"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.attempt2.receipt.json": {
+      "bytes": 1027,
+      "sha256": "b3c28b1cbc43b3454253cc4bd2af621d85012ce79e4775b1077bb7367a247e83"
+    },
+    "data/f1/boundary_20260908/telemetry/202304_CarData.z.source.json": {
+      "bytes": 2570,
+      "sha256": "b240e61f28267e7a4f7bf45e68e21b37af50259a1211ee3b966994e5de2f8699"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt1.receipt.json": {
+      "bytes": 872,
+      "sha256": "458a9446cb1421caa219ce0c0f13cba7a5bd0489d187766531095624178c82c8"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt2.httpbody": {
+      "bytes": 7857795,
+      "sha256": "d0730d561db2a0035361c7b85b4ed3f4bbecbeb24d778a8fbf5c3cb19fbf62a0"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.attempt2.receipt.json": {
+      "bytes": 1017,
+      "sha256": "4a41c0ca9f06cf33dc068bfbebedc52f00f6923c09aa0fe62effec656063736c"
+    },
+    "data/f1/boundary_20260908/telemetry/202305_CarData.z.source.json": {
+      "bytes": 2545,
+      "sha256": "03cb09536e372bf22b1b6de7c846711a191a6446c78e45644e374e22d482f546"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt1.receipt.json": {
+      "bytes": 874,
+      "sha256": "7fe14e5e222677249156daced30e8ff8e7c0b9db960d4a93f481ffa899554868"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt2.httpbody": {
+      "bytes": 9462023,
+      "sha256": "642ee7cda0c918dfe690c6d530cc0c997674aaea63d4a2130e67f3c0cb451068"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.attempt2.receipt.json": {
+      "bytes": 1018,
+      "sha256": "5cedc3eca3cff30082a3a8c4cfc37b5d3468b04a3393fb1d67b273614d5facdf"
+    },
+    "data/f1/boundary_20260908/telemetry/202306_CarData.z.source.json": {
+      "bytes": 2549,
+      "sha256": "150f69eb58472f94328279fbad28a2a7c3977081c4a97638c1fb199ca9cbeb92"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt1.receipt.json": {
+      "bytes": 875,
+      "sha256": "9e0127e0d390c4872e0cdc1b77aa07dd4bfeba1b99e52dbe3cdd2fd92f517d79"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt2.httpbody": {
+      "bytes": 7954495,
+      "sha256": "15818db995d6baf3346942cec09a54bf32b42b08f8a6cd03984551ac22c6decd"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.attempt2.receipt.json": {
+      "bytes": 1021,
+      "sha256": "1d15ccfdec4d8be89d9f040561ae2b440c066aedd2666ae47ee8c2ff5a39e52f"
+    },
+    "data/f1/boundary_20260908/telemetry/202307_CarData.z.source.json": {
+      "bytes": 2554,
+      "sha256": "8cfa88549519ee4448612ffa7adf8258ed18f972c9e35afa265c98ccd35c9c3c"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "c93ea05127b2cb4dccdcd34b1eabaf5a2c739a896b57dff8538413830e26f45a"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt2.httpbody": {
+      "bytes": 8200815,
+      "sha256": "625001c9a24870dbbdee5b15059f91d9a7c36249caa7413a98d00f7023e1f0ea"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.attempt2.receipt.json": {
+      "bytes": 1023,
+      "sha256": "696046e23d7fc271fff9591b62beac5267d5f95baf36ad068948f3b03f779d9b"
+    },
+    "data/f1/boundary_20260908/telemetry/202308_CarData.z.source.json": {
+      "bytes": 2560,
+      "sha256": "152a92f004aa9da91567234ee1e008da28e07a0334002a4e7d90b0f823802c27"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "861ed377836b7a638644aa1dde6a98e0d686334ca49c9fd5b6f317f83e8157a9"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt2.httpbody": {
+      "bytes": 7459831,
+      "sha256": "5fd63539aa064c00b4fcf1b121c5dc1cae787bf9377abc0efd3637810d3b8e12"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.attempt2.receipt.json": {
+      "bytes": 1023,
+      "sha256": "b89ac7c63e85845520f7c23f9a4cf4422e80c9ba91150d48cabf532a01afb095"
+    },
+    "data/f1/boundary_20260908/telemetry/202309_CarData.z.source.json": {
+      "bytes": 2560,
+      "sha256": "d5c0aaa77f4c3f4f074867ddab408682089cff93264b59cc7af022f43d570a63"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt1.receipt.json": {
+      "bytes": 875,
+      "sha256": "da554b39e00ca88e1b1182ade7a963625758fd40495430754bb74af55517af0c"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt2.httpbody": {
+      "bytes": 7298003,
+      "sha256": "e136da1f3a978007327e841436048e38e91573c21644f9437bd04b087c5f7c38"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.attempt2.receipt.json": {
+      "bytes": 1020,
+      "sha256": "f1d82f3ecea2db86cf934aafa172d3e909eae5a181a5a537cbd3db52c41aaff3"
+    },
+    "data/f1/boundary_20260908/telemetry/202310_CarData.z.source.json": {
+      "bytes": 2553,
+      "sha256": "272e4a395138b7008e5b83fad717fec21ebcc4bfd273e862351330f01f1eb5c9"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt1.receipt.json": {
+      "bytes": 880,
+      "sha256": "f1b55212e3e59311ae440e071a220906cde1781ecca4958909b59ea9c54b102b"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt2.httpbody": {
+      "bytes": 8294707,
+      "sha256": "861b6ddb42d297022484ac86d6aa6ada1aab292a40e3b2f51f12c2b902cd265d"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "9aa86bf7b7ab8ed974d19c217adaac0719f3daa155c2589d1f25c27c35f571dc"
+    },
+    "data/f1/boundary_20260908/telemetry/202311_CarData.z.source.json": {
+      "bytes": 2565,
+      "sha256": "fedad9f1625fbd3d4848e05800c56fd0085d3fb5b43b1135e49a5507eae98855"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt1.receipt.json": {
+      "bytes": 876,
+      "sha256": "fb34336db42d5036478b924818b9ad292e69183c077db82c767b963d710a1eb0"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt2.httpbody": {
+      "bytes": 7168659,
+      "sha256": "9b9f7a2a728c2b98144d5728e6f9e63a3e0441d67534d098b5d8a24ef30f56bf"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.attempt2.receipt.json": {
+      "bytes": 1021,
+      "sha256": "7d1518e1dc9c10bb245a8554a5da40a8fd8b350ed0195074eb6a1bedd2b0ecac"
+    },
+    "data/f1/boundary_20260908/telemetry/202312_CarData.z.source.json": {
+      "bytes": 2555,
+      "sha256": "58f2f65fb13e4be7afba0bd912b2f90dd1ea36518ab048a9d986fda1c3b6ccbc"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt1.receipt.json": {
+      "bytes": 872,
+      "sha256": "985be3fc7b00d25b3f1a880e7f7aa08f3a9e921bcaab840a62277c51920d6887"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt2.httpbody": {
+      "bytes": 9574775,
+      "sha256": "ccfbc04a49ab4a4369e98891d1252c547c798cb4aa5db9b3904734db0f724782"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.attempt2.receipt.json": {
+      "bytes": 1017,
+      "sha256": "dbfc1e4167d8505ea9c9cfa2b06ed35036539a4c7b8c41e8d87003f294937bb3"
+    },
+    "data/f1/boundary_20260908/telemetry/202313_CarData.z.source.json": {
+      "bytes": 2545,
+      "sha256": "1cd8c0e7d6c6191953a74b6f98f4be401817e69fa99c1ab6522f0318961de340"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt1.receipt.json": {
+      "bytes": 876,
+      "sha256": "1a6c7162c85813b77a9385791245c357235acc79b4ef68e78348c55477f554e3"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt2.httpbody": {
+      "bytes": 7345015,
+      "sha256": "0f8fa73f7065fd4fd501cca1a5afcbb244fea870c8e05552e765391349fdcb5a"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.attempt2.receipt.json": {
+      "bytes": 1020,
+      "sha256": "286fbf939e76e4925ea0c7c8583ff82e6b7ab9d3fb6eb6a7a2fe8844e283c963"
+    },
+    "data/f1/boundary_20260908/telemetry/202314_CarData.z.source.json": {
+      "bytes": 2554,
+      "sha256": "bd9d0b62b51b70d05bc8f9e5c35c9f0f1be78cfd1676559807248dd7b058926b"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt1.receipt.json": {
+      "bytes": 879,
+      "sha256": "0aa6730910e7d1b7996870cfea093a23604c340acfed1e553badd087925d233c"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt2.httpbody": {
+      "bytes": 8830839,
+      "sha256": "8779af0fb58da80db8244452f3abbd9e451745b69fe95e77ca97146e2cc32fb5"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "b0485458808cdd3ce37bcead55106fa5a25f9e57af05044eb4742c877d589084"
+    },
+    "data/f1/boundary_20260908/telemetry/202315_CarData.z.source.json": {
+      "bytes": 2564,
+      "sha256": "32febf7e035abf616d722a31eec44728c07a1e1063094d63168995be60f67089"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "6a37016a2097092c70d76bc30f5e5790e1ab0812b21531b5c3d904c03022c4a6"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt2.httpbody": {
+      "bytes": 7634271,
+      "sha256": "50079334f2f66edf4126af6910430af8044ef7312106fd83d7d6bd012b6b787d"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.attempt2.receipt.json": {
+      "bytes": 1022,
+      "sha256": "2002a8f379b38c1934999f5535e29eb5810b6ed6be8528eba586365dc6ec6a9c"
+    },
+    "data/f1/boundary_20260908/telemetry/202316_CarData.z.source.json": {
+      "bytes": 2559,
+      "sha256": "959ecaa2d1560333e34932f4120a97c01f74f3476b4b31af9031e096d03fbcc2"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt1.receipt.json": {
+      "bytes": 870,
+      "sha256": "0a4c29d635ae7313ec2967865b38df862d34c92ee046630a0ad46ce79b3cbfd6"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt2.httpbody": {
+      "bytes": 7508059,
+      "sha256": "ecfc2e73059f85fb49c96aec1f812c52b29a0d4280ac01e0eb3549fc2ef3c46d"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.attempt2.receipt.json": {
+      "bytes": 1017,
+      "sha256": "b25019db7af4ef6674e64d33a40048fe9f40248ecba5be77c83713cd52754dfc"
+    },
+    "data/f1/boundary_20260908/telemetry/202317_CarData.z.source.json": {
+      "bytes": 2543,
+      "sha256": "31e6e7464210175a448dd66001f66fec0bc461b15cbc3e70a5c46d2c2e233a10"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt1.receipt.json": {
+      "bytes": 888,
+      "sha256": "171e6d17c2c74bcbfec9fea5104123109d027f6f7265a3f8f945210b4bef8a48"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt2.httpbody": {
+      "bytes": 8160275,
+      "sha256": "64655f007b138dca545b7bebcafd75d1604bb635a65d0080dbbf2d4528c31282"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.attempt2.receipt.json": {
+      "bytes": 1032,
+      "sha256": "0c55597569af38bf22222170cb0e88159cf95e4815afb7ad178365c39fd573fc"
+    },
+    "data/f1/boundary_20260908/telemetry/202318_CarData.z.source.json": {
+      "bytes": 2584,
+      "sha256": "6d04b01f4175cea517ee328a7d580862e514593f7ad735ca65cb2b2a8bab0a1c"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt1.receipt.json": {
+      "bytes": 884,
+      "sha256": "bb09fda116857c510b5561806dfe20c85a71b1b5c3e72a97690a398f21509eaf"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt2.httpbody": {
+      "bytes": 9153063,
+      "sha256": "1c738726154077f1f35c76a8cceb9d5598237ddb18c44a4362cefc02de7575ac"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.attempt2.receipt.json": {
+      "bytes": 1027,
+      "sha256": "95d599678301b2f0c304f1ad02998771549c6230dc48675bfa19b7a9ae4e053f"
+    },
+    "data/f1/boundary_20260908/telemetry/202319_CarData.z.source.json": {
+      "bytes": 2573,
+      "sha256": "830cdccb5917edb25563d02ddef2cd2321f9daeb6618c7ef7ccf50d106cf018b"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt1.receipt.json": {
+      "bytes": 890,
+      "sha256": "50007027ebc2de5144d835f47aa0b0230e32e155922f069579c00314777a524b"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt2.httpbody": {
+      "bytes": 8053579,
+      "sha256": "4073deafb325edac0f1c63c76b55a8cb44c08a48122fdb21cabe33cf5d62cfd9"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.attempt2.receipt.json": {
+      "bytes": 1035,
+      "sha256": "4c14fb7daecf606e45aaf3df25cc03e064da00f2290a718db1ddb9d423e77cea"
+    },
+    "data/f1/boundary_20260908/telemetry/202320_CarData.z.source.json": {
+      "bytes": 2590,
+      "sha256": "b26f5afe6a46344bb88725cc92e2521f76c3160d5787e4da97640e76ed83c826"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt1.receipt.json": {
+      "bytes": 878,
+      "sha256": "b0b1c62f4bff680a030a1fc4063b0be21dbdb4c03cdfb95e84f5addf98ef067f"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt2.httpbody": {
+      "bytes": 6441703,
+      "sha256": "aa8bb2db4cd51c5ada5cbc02ab068cb54faf9e0644549e4b6e689ed6189798dc"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "6d86f0b64d204b8ff1665767b9e6d7c21fbb3fef323da82f5232eb30e6235736"
+    },
+    "data/f1/boundary_20260908/telemetry/202321_CarData.z.source.json": {
+      "bytes": 2563,
+      "sha256": "78824e3e6789272c0f20de2c0e817c42d95fa3dab63925e20af61c27df3aaeb9"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt1.receipt.json": {
+      "bytes": 880,
+      "sha256": "2cfcb9c75f651d5f5d3647f708a1a10c053c5d931489f2ec394b0368011e11c9"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt2.httpbody": {
+      "bytes": 7804159,
+      "sha256": "cfad3ff984085baeb1e6b4bb60e00896818234410fe1e8fc9a60a173fc17df11"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.attempt2.receipt.json": {
+      "bytes": 1025,
+      "sha256": "8640b3ef2ce1a5b522de93b8a4de8301118c7bb89b1ab9ede5b1c4897e5b3475"
+    },
+    "data/f1/boundary_20260908/telemetry/202322_CarData.z.source.json": {
+      "bytes": 2565,
+      "sha256": "1361f3f7be9da1aea19236001ae6b941f1427cc0c62cda34b1ef044081cb3b7d"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.httpbody": {
+      "bytes": 8476579,
+      "sha256": "3c96a82aa790a4bd9bfe2598fd7b4c104bfcc4b2c3d3b1874dbe2aef5cb2d10a"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.attempt1.receipt.json": {
+      "bytes": 989,
+      "sha256": "2332b05278846a8241b345487beded4eea1e2b2279ebac9875e88f4673549e8e"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202201_CarData.z.source.json": {
+      "bytes": 1580,
+      "sha256": "0692bf1a4c866e355d6a396edc5fb197b356fe7740dd2be2c845c0ba32fe8a8c"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt1.httpbody": {
+      "bytes": 27150,
+      "sha256": "62c1c0b235e26952857139537b65f8272026cd1c385c1bf6dba20481ee8a6619"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt1.receipt.json": {
+      "bytes": 882,
+      "sha256": "57ef30528cb3593372272439225289e66265f13735eb6f85df489f552a2f7e71"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.httpbody": {
+      "bytes": 8107479,
+      "sha256": "c5a5bbcd74acb819cee781ba1d41974e2a026fe80206abecb7acddbd3e5a6a18"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.attempt2.receipt.json": {
+      "bytes": 1027,
+      "sha256": "4231facffb40e49c45aa8b9c04b1eadcea25ca75f42b62a45ca3feb935aa3cf5"
+    },
+    "data/f1/boundary_20260908/telemetry_pilot/202301_CarData.z.source.json": {
+      "bytes": 2573,
+      "sha256": "6cd326a84a54d2f55ab296c430559b192a7af8812ecee3e9129f4d2899e3608c"
+    },
+    "data/f1/raw/weekends/2022/round_01_bahrain_grand_prix/05_race_laps.csv": {
+      "bytes": 131417,
+      "sha256": "f4e7ee2ff302973d1c87db5905e69e6a565db3d4e3fadee6ca54be4b454a6345"
+    },
+    "data/f1/raw/weekends/2022/round_02_saudi_arabian_grand_prix/05_race_laps.csv": {
+      "bytes": 95021,
+      "sha256": "8b72b1b605d24207e7a6d5a6fa278b6bd81406e9b53507db410053a3f994022a"
+    },
+    "data/f1/raw/weekends/2022/round_03_australian_grand_prix/05_race_laps.csv": {
+      "bytes": 121238,
+      "sha256": "b01e7ff6c5db6b379335c248ebd20f4e48bfa26fdaf45c750062653f8b4d7f81"
+    },
+    "data/f1/raw/weekends/2022/round_04_emilia_romagna_grand_prix/05_race_laps.csv": {
+      "bytes": 135066,
+      "sha256": "83a389df0970599615fbae76767d19b0d28461c4167f7ec3191708c98dd58b66"
+    },
+    "data/f1/raw/weekends/2022/round_05_miami_grand_prix/05_race_laps.csv": {
+      "bytes": 122706,
+      "sha256": "7130f761046d2bd6315a86915abb5a96da65664d8823ab0e17e6c68ac36420ec"
+    },
+    "data/f1/raw/weekends/2022/round_06_spanish_grand_prix/05_race_laps.csv": {
+      "bytes": 143525,
+      "sha256": "8442a453e481554d2bb85cd102fcc6a45f244a80c7c71d48bf8fd1ba299213b0"
+    },
+    "data/f1/raw/weekends/2022/round_07_monaco_grand_prix/05_race_laps.csv": {
+      "bytes": 138125,
+      "sha256": "ee0b75956ec73b262f1f973951f3918221c9124c9f40c802f2e423e0f22e2deb"
+    },
+    "data/f1/raw/weekends/2022/round_08_azerbaijan_grand_prix/05_race_laps.csv": {
+      "bytes": 104286,
+      "sha256": "a72b8cfceb34613d06665062b26b21c9defb070e92f166bf75f04ab36fc72562"
+    },
+    "data/f1/raw/weekends/2022/round_09_canadian_grand_prix/05_race_laps.csv": {
+      "bytes": 146092,
+      "sha256": "d766eaaafb7d505807312d1fbbfcdf1244068429a75c3a360e7a987fd6b952f9"
+    },
+    "data/f1/raw/weekends/2022/round_10_british_grand_prix/05_race_laps.csv": {
+      "bytes": 95088,
+      "sha256": "2903341be31d8b79edfff7b494e8b5e2972e36b6b296f2201126ab8e09781b43"
+    },
+    "data/f1/raw/weekends/2022/round_11_austrian_grand_prix/05_race_laps.csv": {
+      "bytes": 152306,
+      "sha256": "80e84ff951ec297417a5886cedc1d2fd3896c7e224fc3c807644c5d389dcc498"
+    },
+    "data/f1/raw/weekends/2022/round_12_french_grand_prix/05_race_laps.csv": {
+      "bytes": 111552,
+      "sha256": "07995f3e32ddc4f3abcecb1423e8e571436ec7fe3631f9d46bb364adf887d6a9"
+    },
+    "data/f1/raw/weekends/2022/round_13_hungarian_grand_prix/05_race_laps.csv": {
+      "bytes": 161375,
+      "sha256": "f0c60ec41b6ad09f31fe34699f9f9f7951342723da274bd62fb06c93f1ab4dbf"
+    },
+    "data/f1/raw/weekends/2022/round_14_belgian_grand_prix/05_race_laps.csv": {
+      "bytes": 92775,
+      "sha256": "53cbd5e0cf9fdabe70c662233dd980e92f783310266f71285aadd2931400fdae"
+    },
+    "data/f1/raw/weekends/2022/round_15_dutch_grand_prix/05_race_laps.csv": {
+      "bytes": 162498,
+      "sha256": "f31a1c2f02e108f2146582ef47196dc0ca56a6aaf4bab8952f5402f899c258e3"
+    },
+    "data/f1/raw/weekends/2022/round_16_italian_grand_prix/05_race_laps.csv": {
+      "bytes": 112996,
+      "sha256": "798d795b8d8c12fbf028246adf01b95c32bc5081e91c0bf281fdbf4cf4b004c8"
+    },
+    "data/f1/raw/weekends/2022/round_17_singapore_grand_prix/05_race_laps.csv": {
+      "bytes": 115558,
+      "sha256": "b954db0afd6721ed0f3bc926618f4543d8f99f34abae1055cd30460fa0841c12"
+    },
+    "data/f1/raw/weekends/2022/round_18_japanese_grand_prix/05_race_laps.csv": {
+      "bytes": 62292,
+      "sha256": "3b727ad57371b90c6f4ece4a65394d21d14ffdd6efbd9262c52b188689b47c05"
+    },
+    "data/f1/raw/weekends/2022/round_19_united_states_grand_prix/05_race_laps.csv": {
+      "bytes": 115694,
+      "sha256": "d373455350d9ec8c4227dcab000c0cd0a89808c4b8d23b899e7743cd43d9d9e9"
+    },
+    "data/f1/raw/weekends/2022/round_20_mexico_city_grand_prix/05_race_laps.csv": {
+      "bytes": 160530,
+      "sha256": "b36737a3bb217f85c394de99c61f1f12b884e8c0d3ded8aa64659859a46d995e"
+    },
+    "data/f1/raw/weekends/2022/round_21_s_o_paulo_grand_prix/05_race_laps.csv": {
+      "bytes": 147121,
+      "sha256": "729624203adedba0769a0c8891b2935fc3b8ae242460b7ab5809771dc7ab0c38"
+    },
+    "data/f1/raw/weekends/2022/round_22_abu_dhabi_grand_prix/05_race_laps.csv": {
+      "bytes": 129795,
+      "sha256": "e82eace8d2bf82bf657981bae146011cfec6d5e4c957a9fd6664294d3c20bbac"
+    },
+    "data/f1/raw/weekends/2023/round_01_bahrain_grand_prix/05_race_laps.csv": {
+      "bytes": 122629,
+      "sha256": "7e0f15f9fa8b37c94a134e92f5d9f0750851a2d9b145d678d0d8f9b93c3597b8"
+    },
+    "data/f1/raw/weekends/2023/round_02_saudi_arabian_grand_prix/05_race_laps.csv": {
+      "bytes": 109372,
+      "sha256": "af633b65add8b8380a2999fda5bb1f192a2e1b0c655f0208530534a08c423c39"
+    },
+    "data/f1/raw/weekends/2023/round_03_australian_grand_prix/05_race_laps.csv": {
+      "bytes": 116199,
+      "sha256": "e880a2913a6b7f265904e86773dbd2be38f3ed1cfaaf645e30203692d8e2422d"
+    },
+    "data/f1/raw/weekends/2023/round_04_azerbaijan_grand_prix/05_race_laps.csv": {
+      "bytes": 112152,
+      "sha256": "501866e1a63c68a77d9633137d14e15807a9869cee9281d75b3224fdfe928b20"
+    },
+    "data/f1/raw/weekends/2023/round_05_miami_grand_prix/05_race_laps.csv": {
+      "bytes": 131891,
+      "sha256": "042f0dfd5db204526bf4e72842c458e3bc56ac973ccdcf69bf7627a807902be5"
+    },
+    "data/f1/raw/weekends/2023/round_06_monaco_grand_prix/05_race_laps.csv": {
+      "bytes": 179014,
+      "sha256": "9a288256235e712e87108a17343faa8cecd2ae5ea377a14b3e11075a67162559"
+    },
+    "data/f1/raw/weekends/2023/round_07_spanish_grand_prix/05_race_laps.csv": {
+      "bytes": 152470,
+      "sha256": "a58a9f7c81047587522819e028511a357566b6a6d6dfdd0d881320c245616176"
+    },
+    "data/f1/raw/weekends/2023/round_08_canadian_grand_prix/05_race_laps.csv": {
+      "bytes": 153031,
+      "sha256": "8fabdddcf78ccd7271d8c5fd4bdaa8d046ae3efd27a8210b7f109237fdb81f51"
+    },
+    "data/f1/raw/weekends/2023/round_09_austrian_grand_prix/05_race_laps.csv": {
+      "bytes": 157946,
+      "sha256": "e7d6285842753c04a7afe5bbae8294cd0f931ddf0bb49409e7bca03e8dea648c"
+    },
+    "data/f1/raw/weekends/2023/round_10_british_grand_prix/05_race_laps.csv": {
+      "bytes": 113339,
+      "sha256": "3070d8185936137ee666c6897ad1d5bc1e96767283aa2f74297f7bf42842d804"
+    },
+    "data/f1/raw/weekends/2023/round_11_hungarian_grand_prix/05_race_laps.csv": {
+      "bytes": 146564,
+      "sha256": "785604227b4dd73b3b814dc1203e266c6d2e057ad3f5480be2d2140aaa6a7d33"
+    },
+    "data/f1/raw/weekends/2023/round_12_belgian_grand_prix/05_race_laps.csv": {
+      "bytes": 95779,
+      "sha256": "b15e74b797f7c1163f3f66105d2aab33415bde02eb6cfb3fd4aeaf96fa12fd77"
+    },
+    "data/f1/raw/weekends/2023/round_13_dutch_grand_prix/05_race_laps.csv": {
+      "bytes": 159246,
+      "sha256": "dc814e2635575a563da7ae84d0b10a2bf2567cc428a3526f890cc9b57de6e4d0"
+    },
+    "data/f1/raw/weekends/2023/round_14_italian_grand_prix/05_race_laps.csv": {
+      "bytes": 111358,
+      "sha256": "a69bd539061371ef57c97887d1306527c3abeecae2627acb0000bdf92e10526a"
+    },
+    "data/f1/raw/weekends/2023/round_15_singapore_grand_prix/05_race_laps.csv": {
+      "bytes": 126838,
+      "sha256": "091975e87ddd75c550215bd204648c7c19a5fd5ec43c72d818200b0ffc6336c0"
+    },
+    "data/f1/raw/weekends/2023/round_16_japanese_grand_prix/05_race_laps.csv": {
+      "bytes": 101934,
+      "sha256": "c5f1dec7fc7082914e6eba98cb2383c4b8bbb65a74e7cf27fe5ecde5e4e2664b"
+    },
+    "data/f1/raw/weekends/2023/round_17_qatar_grand_prix/05_race_laps.csv": {
+      "bytes": 117978,
+      "sha256": "716c5dbf0274ad90a3719ee73776c50d3a2ac2e8092cc7a8fedc078d154ff014"
+    },
+    "data/f1/raw/weekends/2023/round_18_united_states_grand_prix/05_race_laps.csv": {
+      "bytes": 119281,
+      "sha256": "d5097ed759158691a3efa6ffa4e5c00c87dc30a02f2b19fe6b2437f1118d638f"
+    },
+    "data/f1/raw/weekends/2023/round_19_mexico_city_grand_prix/05_race_laps.csv": {
+      "bytes": 149388,
+      "sha256": "8ccd24708295f43e92823103822c3ff9233734cd6fb46c115b8fbf3c68613d57"
+    },
+    "data/f1/raw/weekends/2023/round_20_s_o_paulo_grand_prix/05_race_laps.csv": {
+      "bytes": 129152,
+      "sha256": "2c9834e4bc5bf394ae670245ea6171ee9b78e71027dd6a4867b685dc8e362c18"
+    },
+    "data/f1/raw/weekends/2023/round_21_las_vegas_grand_prix/05_race_laps.csv": {
+      "bytes": 109848,
+      "sha256": "af472152470e2995671c371aa17b872fdaec257511f14b7e732b8f4415419da5"
+    },
+    "data/f1/raw/weekends/2023/round_22_abu_dhabi_grand_prix/05_race_laps.csv": {
+      "bytes": 134107,
+      "sha256": "8dcf0d4c00b6b918b74effa253309625d79d02a17ba19178b5ba743bc9d1c2e5"
+    },
+    "research/experiments/boundary_20260908/telemetry/ACQUISITION.md": {
+      "bytes": 1992,
+      "sha256": "9e5e6be54f697ca0d048d5cb4325c0b0435df6f86b97ce762df306c203c616a4"
+    },
+    "research/experiments/boundary_20260908/telemetry/README.md": {
+      "bytes": 4033,
+      "sha256": "2f7d61ddfc29cd289e30ea740f6eea4e93658a1581c8253fe5ce0f4f79d72249"
+    },
+    "research/experiments/boundary_20260908/telemetry/acquire.py": {
+      "bytes": 11623,
+      "sha256": "41d95b06d5a03c17f003da3c0053296a204da48d057b8ddde44eda82d37e6ce5"
+    },
+    "research/experiments/boundary_20260908/telemetry/acquisition_contract.json": {
+      "bytes": 24491,
+      "sha256": "3870f227f5789956cc3f5ee9e3e141ba256e18a5c168a10c67b2246805aeec8c"
+    },
+    "research/experiments/boundary_20260908/telemetry/data.py": {
+      "bytes": 22446,
+      "sha256": "768f91cf810c531e9cb0d3d2ed7ab25742ddfbfd85a871c28cf0048e5c359e2b"
+    },
+    "research/experiments/boundary_20260908/telemetry/data_contract.md": {
+      "bytes": 4863,
+      "sha256": "229c8c2dfc6c646cb62649a2b4047c227a730190cbf86b2e4b2b14f8e0aef3da"
+    },
+    "research/experiments/boundary_20260908/telemetry/evaluate.py": {
+      "bytes": 13921,
+      "sha256": "a7744181e6f093c022d139f8bd7cd83542ea9244a2ea2d4d7d970e28d716d88c"
+    },
+    "research/experiments/boundary_20260908/telemetry/features.py": {
+      "bytes": 14764,
+      "sha256": "7354b6675a4725d311c5bbf11f329e615118abf33fef5ef4bf4ee69474c1371f"
+    },
+    "research/experiments/boundary_20260908/telemetry/models.py": {
+      "bytes": 10510,
+      "sha256": "3f52a84ee9cffc9a1c21b9730cb8c8d7770dca625b935fadc0df6adce1069e6b"
+    },
+    "research/experiments/boundary_20260908/telemetry/run.py": {
+      "bytes": 28406,
+      "sha256": "050b574bc20db66cbf9105e78ee5d8d89dcbd30d7fe2879a60c906915ec011ba"
+    },
+    "research/experiments/boundary_20260908/telemetry/specification.json": {
+      "bytes": 7965,
+      "sha256": "7f43632a7c0e75ad48fd82ccf33d328b106d08486fa6c026b01cb3be3e8bb8f5"
+    },
+    "research/experiments/boundary_20260908/telemetry/test_acquire.py": {
+      "bytes": 11543,
+      "sha256": "a316ac8079d462f5be295b16c0ff455950a66e9bd4e745b3edf65f5f91805ed1"
+    },
+    "research/experiments/boundary_20260908/telemetry/test_data.py": {
+      "bytes": 14030,
+      "sha256": "aa98512fe7c2ebe6634cded626847156b4496e3502e0e639d141cfe303eeba3d"
+    },
+    "research/experiments/boundary_20260908/telemetry/test_evaluate.py": {
+      "bytes": 10899,
+      "sha256": "a1ff6c67b3213180bb377fe86712778e4fd3f8272730bf65dfc16f72fef2a719"
+    },
+    "research/experiments/boundary_20260908/telemetry/test_features.py": {
+      "bytes": 19407,
+      "sha256": "8c1410bcdef0d635b47e5e1870247ea7166861c8186d8d680702eb3999d3177e"
+    },
+    "research/experiments/boundary_20260908/telemetry/test_models.py": {
+      "bytes": 7364,
+      "sha256": "b8c32ed66c473663b96e6f48d516a64f840d8a40a8d1a49bdd4bd8f84f548d44"
+    },
+    "research/experiments/boundary_20260908/telemetry/test_run.py": {
+      "bytes": 15960,
+      "sha256": "352210a3e00a5a229aa44f31268614aeb6b236ef954077823317186d2b416edd"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/README.md": {
+      "bytes": 4376,
+      "sha256": "5f68cf9835b41eaaafc2600c13efe7835c3497f898ea199872ff49bdb914c7d7"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/acquire.py": {
+      "bytes": 10074,
+      "sha256": "9e1dbd199e2497fef8692610e366b5de28438f1f6dc4f661df434a0b065d9c1e"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/diagnose.py": {
+      "bytes": 3129,
+      "sha256": "24576e2cf1420ea6ca2969d76f9725a23d697bc1199b4bc7093f91e5ef83f961"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/future_protocol_proposal.md": {
+      "bytes": 12502,
+      "sha256": "b4b5fc382b9f3f9e3a26d1fc9348c95e254740c610a41cb32cd7a442c35da3a3"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/packets.py": {
+      "bytes": 14667,
+      "sha256": "18e169a21abcb88dd7315f1be6bc5aa552d66033e6f6987a79313fcfa2736680"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/specification.json": {
+      "bytes": 2589,
+      "sha256": "3f3d8876a997705cdb75dba34edeb3179d2c3d1d7e4a8364f6d884a2bedb2ad7"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/test_acquire.py": {
+      "bytes": 13033,
+      "sha256": "6be583352b51110b0a327403ec66cb70d8c80628e7cafb7429c578ef13e0224b"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/test_packets.py": {
+      "bytes": 10291,
+      "sha256": "79f273bfa5b780d4862a9d5608b63d5636b5cc81ee05266c37f6884f608e7899"
+    },
+    "research/experiments/boundary_20260908/telemetry_pilot/verification/verify.py": {
+      "bytes": 12940,
+      "sha256": "d72c2d107d146c89cf6b67853a8b46fa66bb321e58dec4c7f093bd53045ea269"
+    },
+    "research/experiments/frontier_20260907/feature_encoder.py": {
+      "bytes": 6850,
+      "sha256": "e86891cfb9973b4d862844ca2c03941c77cf65e9b344bb993a40061b14b0f1ec"
+    },
+    "research/experiments/frontier_20260907/live_frontier.py": {
+      "bytes": 19675,
+      "sha256": "6d1828c82fedc032ed6d28241e78ae5f1ccbc105f6cd96a7b1c6b00f574f5265"
+    },
+    "research/experiments/frontier_20260907/specification.json": {
+      "bytes": 3611,
+      "sha256": "684a3bc5b9c6b5db21433a3489c312f90b371d7e40b33016d40948e80c384740"
+    },
+    "research/experiments/performance_20260907/live/run_experiment.py": {
+      "bytes": 18439,
+      "sha256": "ea93dd70269dd490e232e883e47b27c47718a918f471709e0e8759b6a6789097"
+    },
+    "research/experiments/performance_20260907/live/spec.json": {
+      "bytes": 2805,
+      "sha256": "e643aea23009571e1716752023e5802079f4298201e952a113ed58503bdba54a"
+    }
+  },
+  "comparisons": {
+    "0": {
+      "base_hgb": {
+        "baseline_mae": 0.5120807233335138,
+        "block3_ci95": [
+          -0.00026734734787607444,
+          0.0033534077996408493
+        ],
+        "candidate_mae": 0.5136218777978612,
+        "delta": 0.0015411544643473551,
+        "event_ci95": [
+          -0.0003403891188205731,
+          0.003598620484384292
+        ],
+        "events": 22,
+        "events_improved": 8,
+        "loo_max_delta": 0.0019440578973893576,
+        "per_event": [
+          {
+            "baseline_mae": 0.3459360351986063,
+            "candidate_mae": 0.351334400033225,
+            "event_key": 202301
+          },
+          {
+            "baseline_mae": 0.36454885301960105,
+            "candidate_mae": 0.3725076042234692,
+            "event_key": 202302
+          },
+          {
+            "baseline_mae": 0.7283782166820895,
+            "candidate_mae": 0.7320346352238061,
+            "event_key": 202303
+          },
+          {
+            "baseline_mae": 0.3677582257031425,
+            "candidate_mae": 0.36935226932364107,
+            "event_key": 202304
+          },
+          {
+            "baseline_mae": 0.29550334184553256,
+            "candidate_mae": 0.2952499625336297,
+            "event_key": 202305
+          },
+          {
+            "baseline_mae": 1.25687219795556,
+            "candidate_mae": 1.272866032259046,
+            "event_key": 202306
+          },
+          {
+            "baseline_mae": 0.36809115433354356,
+            "candidate_mae": 0.36649553232260745,
+            "event_key": 202307
+          },
+          {
+            "baseline_mae": 0.3842373228548364,
+            "candidate_mae": 0.3773175052253017,
+            "event_key": 202308
+          },
+          {
+            "baseline_mae": 0.29026756955096467,
+            "candidate_mae": 0.29140186271960866,
+            "event_key": 202309
+          },
+          {
+            "baseline_mae": 0.2653591543187171,
+            "candidate_mae": 0.2633196970803546,
+            "event_key": 202310
+          },
+          {
+            "baseline_mae": 0.35026806834651303,
+            "candidate_mae": 0.3513232587820791,
+            "event_key": 202311
+          },
+          {
+            "baseline_mae": 0.6561460038694623,
+            "candidate_mae": 0.6603021888009795,
+            "event_key": 202312
+          },
+          {
+            "baseline_mae": 0.8774918496670499,
+            "candidate_mae": 0.8742725209984786,
+            "event_key": 202313
+          },
+          {
+            "baseline_mae": 0.29622036201715657,
+            "candidate_mae": 0.2968446403314602,
+            "event_key": 202314
+          },
+          {
+            "baseline_mae": 0.6226120820481292,
+            "candidate_mae": 0.6271397534318305,
+            "event_key": 202315
+          },
+          {
+            "baseline_mae": 0.4018911241002044,
+            "candidate_mae": 0.40491411908649166,
+            "event_key": 202316
+          },
+          {
+            "baseline_mae": 0.4178586713151729,
+            "candidate_mae": 0.4218159805630478,
+            "event_key": 202317
+          },
+          {
+            "baseline_mae": 0.3871521090084295,
+            "candidate_mae": 0.3841207942268839,
+            "event_key": 202318
+          },
+          {
+            "baseline_mae": 1.4614253611075128,
+            "candidate_mae": 1.459634633502435,
+            "event_key": 202319
+          },
+          {
+            "baseline_mae": 0.2967897149422956,
+            "candidate_mae": 0.29309433706259863,
+            "event_key": 202320
+          },
+          {
+            "baseline_mae": 0.5350826162688288,
+            "candidate_mae": 0.5381780648729221,
+            "event_key": 202321
+          },
+          {
+            "baseline_mae": 0.2958858791839554,
+            "candidate_mae": 0.29616151894904935,
+            "event_key": 202322
+          }
+        ],
+        "relative_reduction": -0.0030095928124667104,
+        "rows": 20007
+      },
+      "quality_hgb": {
+        "baseline_mae": 0.5136047366095225,
+        "block3_ci95": [
+          -0.0017509404177607744,
+          0.0017303719002815343
+        ],
+        "candidate_mae": 0.5136218777978612,
+        "delta": 1.714118833862834e-05,
+        "event_ci95": [
+          -0.002125139948918919,
+          0.0019215316610601272
+        ],
+        "events": 22,
+        "events_improved": 10,
+        "loo_max_delta": 0.0006930332432944867,
+        "per_event": [
+          {
+            "baseline_mae": 0.3477828075548387,
+            "candidate_mae": 0.351334400033225,
+            "event_key": 202301
+          },
+          {
+            "baseline_mae": 0.3705709966425542,
+            "candidate_mae": 0.3725076042234692,
+            "event_key": 202302
+          },
+          {
+            "baseline_mae": 0.7374644613342489,
+            "candidate_mae": 0.7320346352238061,
+            "event_key": 202303
+          },
+          {
+            "baseline_mae": 0.3664617538632158,
+            "candidate_mae": 0.36935226932364107,
+            "event_key": 202304
+          },
+          {
+            "baseline_mae": 0.29574116520717375,
+            "candidate_mae": 0.2952499625336297,
+            "event_key": 202305
+          },
+          {
+            "baseline_mae": 1.263627015105129,
+            "candidate_mae": 1.272866032259046,
+            "event_key": 202306
+          },
+          {
+            "baseline_mae": 0.367124882471509,
+            "candidate_mae": 0.36649553232260745,
+            "event_key": 202307
+          },
+          {
+            "baseline_mae": 0.3846400053215263,
+            "candidate_mae": 0.3773175052253017,
+            "event_key": 202308
+          },
+          {
+            "baseline_mae": 0.2919007613700212,
+            "candidate_mae": 0.29140186271960866,
+            "event_key": 202309
+          },
+          {
+            "baseline_mae": 0.2658065890759514,
+            "candidate_mae": 0.2633196970803546,
+            "event_key": 202310
+          },
+          {
+            "baseline_mae": 0.34962896240573155,
+            "candidate_mae": 0.3513232587820791,
+            "event_key": 202311
+          },
+          {
+            "baseline_mae": 0.6586064901615398,
+            "candidate_mae": 0.6603021888009795,
+            "event_key": 202312
+          },
+          {
+            "baseline_mae": 0.888449112964213,
+            "candidate_mae": 0.8742725209984786,
+            "event_key": 202313
+          },
+          {
+            "baseline_mae": 0.2956804566620973,
+            "candidate_mae": 0.2968446403314602,
+            "event_key": 202314
+          },
+          {
+            "baseline_mae": 0.6241311313746601,
+            "candidate_mae": 0.6271397534318305,
+            "event_key": 202315
+          },
+          {
+            "baseline_mae": 0.4015135894066563,
+            "candidate_mae": 0.40491411908649166,
+            "event_key": 202316
+          },
+          {
+            "baseline_mae": 0.41845205488506293,
+            "candidate_mae": 0.4218159805630478,
+            "event_key": 202317
+          },
+          {
+            "baseline_mae": 0.386136969789054,
+            "candidate_mae": 0.3841207942268839,
+            "event_key": 202318
+          },
+          {
+            "baseline_mae": 1.46147264005455,
+            "candidate_mae": 1.459634633502435,
+            "event_key": 202319
+          },
+          {
+            "baseline_mae": 0.29738572597772284,
+            "candidate_mae": 0.29309433706259863,
+            "event_key": 202320
+          },
+          {
+            "baseline_mae": 0.5320439376509803,
+            "candidate_mae": 0.5381780648729221,
+            "event_key": 202321
+          },
+          {
+            "baseline_mae": 0.29468269613105946,
+            "candidate_mae": 0.29616151894904935,
+            "event_key": 202322
+          }
+        ],
+        "relative_reduction": -3.3374280096643005e-05,
+        "rows": 20007
+      }
+    },
+    "2": {
+      "base_hgb": {
+        "baseline_mae": 0.5120807233335138,
+        "block3_ci95": [
+          4.739431967770154e-05,
+          0.003868632256631395
+        ],
+        "candidate_mae": 0.5140015782891896,
+        "delta": 0.0019208549556757352,
+        "event_ci95": [
+          2.084610351134915e-05,
+          0.004067019886572738
+        ],
+        "events": 22,
+        "events_improved": 8,
+        "loo_max_delta": 0.002354206635063289,
+        "per_event": [
+          {
+            "baseline_mae": 0.3459360351986063,
+            "candidate_mae": 0.35160712868504546,
+            "event_key": 202301
+          },
+          {
+            "baseline_mae": 0.36454885301960105,
+            "candidate_mae": 0.37332770479262994,
+            "event_key": 202302
+          },
+          {
+            "baseline_mae": 0.7283782166820895,
+            "candidate_mae": 0.7319616249803201,
+            "event_key": 202303
+          },
+          {
+            "baseline_mae": 0.3677582257031425,
+            "candidate_mae": 0.36971495746421396,
+            "event_key": 202304
+          },
+          {
+            "baseline_mae": 0.29550334184553256,
+            "candidate_mae": 0.29727820355811513,
+            "event_key": 202305
+          },
+          {
+            "baseline_mae": 1.25687219795556,
+            "candidate_mae": 1.2745826198789167,
+            "event_key": 202306
+          },
+          {
+            "baseline_mae": 0.36809115433354356,
+            "candidate_mae": 0.36659313539471794,
+            "event_key": 202307
+          },
+          {
+            "baseline_mae": 0.3842373228548364,
+            "candidate_mae": 0.3770577925433735,
+            "event_key": 202308
+          },
+          {
+            "baseline_mae": 0.29026756955096467,
+            "candidate_mae": 0.29147898403745287,
+            "event_key": 202309
+          },
+          {
+            "baseline_mae": 0.2653591543187171,
+            "candidate_mae": 0.26348229136569085,
+            "event_key": 202310
+          },
+          {
+            "baseline_mae": 0.35026806834651303,
+            "candidate_mae": 0.3511187657316054,
+            "event_key": 202311
+          },
+          {
+            "baseline_mae": 0.6561460038694623,
+            "candidate_mae": 0.6596006325540841,
+            "event_key": 202312
+          },
+          {
+            "baseline_mae": 0.8774918496670499,
+            "candidate_mae": 0.8755249859814251,
+            "event_key": 202313
+          },
+          {
+            "baseline_mae": 0.29622036201715657,
+            "candidate_mae": 0.2967047410896519,
+            "event_key": 202314
+          },
+          {
+            "baseline_mae": 0.6226120820481292,
+            "candidate_mae": 0.6277420683709457,
+            "event_key": 202315
+          },
+          {
+            "baseline_mae": 0.4018911241002044,
+            "candidate_mae": 0.4043391200566306,
+            "event_key": 202316
+          },
+          {
+            "baseline_mae": 0.4178586713151729,
+            "candidate_mae": 0.4217754836271669,
+            "event_key": 202317
+          },
+          {
+            "baseline_mae": 0.3871521090084295,
+            "candidate_mae": 0.3841481210079616,
+            "event_key": 202318
+          },
+          {
+            "baseline_mae": 1.4614253611075128,
+            "candidate_mae": 1.4613776921628567,
+            "event_key": 202319
+          },
+          {
+            "baseline_mae": 0.2967897149422956,
+            "candidate_mae": 0.29441226278504345,
+            "event_key": 202320
+          },
+          {
+            "baseline_mae": 0.5350826162688288,
+            "candidate_mae": 0.5384918504459414,
+            "event_key": 202321
+          },
+          {
+            "baseline_mae": 0.2958858791839554,
+            "candidate_mae": 0.2957145558483807,
+            "event_key": 202322
+          }
+        ],
+        "relative_reduction": -0.0037510784299230604,
+        "rows": 20007
+      },
+      "quality_hgb": {
+        "baseline_mae": 0.5136135632422247,
+        "block3_ci95": [
+          -0.0014100125156053572,
+          0.002101281691555515
+        ],
+        "candidate_mae": 0.5140015782891896,
+        "delta": 0.00038801504696485536,
+        "event_ci95": [
+          -0.0017123872749644344,
+          0.0022613264563229774
+        ],
+        "events": 22,
+        "events_improved": 8,
+        "loo_max_delta": 0.0010370400427762716,
+        "per_event": [
+          {
+            "baseline_mae": 0.34760583533594935,
+            "candidate_mae": 0.35160712868504546,
+            "event_key": 202301
+          },
+          {
+            "baseline_mae": 0.37045554588811375,
+            "candidate_mae": 0.37332770479262994,
+            "event_key": 202302
+          },
+          {
+            "baseline_mae": 0.7366146514592464,
+            "candidate_mae": 0.7319616249803201,
+            "event_key": 202303
+          },
+          {
+            "baseline_mae": 0.3663364349451055,
+            "candidate_mae": 0.36971495746421396,
+            "event_key": 202304
+          },
+          {
+            "baseline_mae": 0.2961646733738697,
+            "candidate_mae": 0.29727820355811513,
+            "event_key": 202305
+          },
+          {
+            "baseline_mae": 1.2645209042916281,
+            "candidate_mae": 1.2745826198789167,
+            "event_key": 202306
+          },
+          {
+            "baseline_mae": 0.3667783334212245,
+            "candidate_mae": 0.36659313539471794,
+            "event_key": 202307
+          },
+          {
+            "baseline_mae": 0.3850340748571036,
+            "candidate_mae": 0.3770577925433735,
+            "event_key": 202308
+          },
+          {
+            "baseline_mae": 0.29162801091859164,
+            "candidate_mae": 0.29147898403745287,
+            "event_key": 202309
+          },
+          {
+            "baseline_mae": 0.26575315663024995,
+            "candidate_mae": 0.26348229136569085,
+            "event_key": 202310
+          },
+          {
+            "baseline_mae": 0.34930877256579385,
+            "candidate_mae": 0.3511187657316054,
+            "event_key": 202311
+          },
+          {
+            "baseline_mae": 0.6582844862590381,
+            "candidate_mae": 0.6596006325540841,
+            "event_key": 202312
+          },
+          {
+            "baseline_mae": 0.8887664958465,
+            "candidate_mae": 0.8755249859814251,
+            "event_key": 202313
+          },
+          {
+            "baseline_mae": 0.295765326920426,
+            "candidate_mae": 0.2967047410896519,
+            "event_key": 202314
+          },
+          {
+            "baseline_mae": 0.6246568501701121,
+            "candidate_mae": 0.6277420683709457,
+            "event_key": 202315
+          },
+          {
+            "baseline_mae": 0.4020185446091637,
+            "candidate_mae": 0.4043391200566306,
+            "event_key": 202316
+          },
+          {
+            "baseline_mae": 0.41840259391521006,
+            "candidate_mae": 0.4217754836271669,
+            "event_key": 202317
+          },
+          {
+            "baseline_mae": 0.3861646596520558,
+            "candidate_mae": 0.3841481210079616,
+            "event_key": 202318
+          },
+          {
+            "baseline_mae": 1.4612962601854083,
+            "candidate_mae": 1.4613776921628567,
+            "event_key": 202319
+          },
+          {
+            "baseline_mae": 0.29738229851021425,
+            "candidate_mae": 0.29441226278504345,
+            "event_key": 202320
+          },
+          {
+            "baseline_mae": 0.5320652566174057,
+            "candidate_mae": 0.5384918504459414,
+            "event_key": 202321
+          },
+          {
+            "baseline_mae": 0.29449522495653285,
+            "candidate_mae": 0.2957145558483807,
+            "event_key": 202322
+          }
+        ],
+        "relative_reduction": -0.0007554610600923883,
+        "rows": 20007
+      }
+    }
+  },
+  "completed_at_utc": "2026-09-08T05:46:22.699851+00:00",
+  "coverage": {
+    "0": {
+      "fallback_rows_all": 3,
+      "fallback_rows_matched": 3,
+      "original_full_issuance_inventory_verified": true,
+      "original_matched_inventory_verified": true,
+      "per_event": [
+        {
+          "event_key": 202301,
+          "fallback_rows_all": 0,
+          "rows_all": 874,
+          "rows_matched": 854,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 874,
+          "supported_rows_matched": 854
+        },
+        {
+          "event_key": 202302,
+          "fallback_rows_all": 0,
+          "rows_all": 789,
+          "rows_matched": 769,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 789,
+          "supported_rows_matched": 769
+        },
+        {
+          "event_key": 202303,
+          "fallback_rows_all": 0,
+          "rows_all": 731,
+          "rows_matched": 712,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 731,
+          "supported_rows_matched": 712
+        },
+        {
+          "event_key": 202304,
+          "fallback_rows_all": 0,
+          "rows_all": 806,
+          "rows_matched": 786,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 806,
+          "supported_rows_matched": 786
+        },
+        {
+          "event_key": 202305,
+          "fallback_rows_all": 0,
+          "rows_all": 1038,
+          "rows_matched": 1018,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1038,
+          "supported_rows_matched": 1018
+        },
+        {
+          "event_key": 202306,
+          "fallback_rows_all": 0,
+          "rows_all": 1383,
+          "rows_matched": 1363,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1383,
+          "supported_rows_matched": 1363
+        },
+        {
+          "event_key": 202307,
+          "fallback_rows_all": 0,
+          "rows_all": 1167,
+          "rows_matched": 1147,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1167,
+          "supported_rows_matched": 1147
+        },
+        {
+          "event_key": 202308,
+          "fallback_rows_all": 0,
+          "rows_all": 1087,
+          "rows_matched": 1067,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1087,
+          "supported_rows_matched": 1067
+        },
+        {
+          "event_key": 202309,
+          "fallback_rows_all": 0,
+          "rows_all": 1146,
+          "rows_matched": 1126,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1146,
+          "supported_rows_matched": 1126
+        },
+        {
+          "event_key": 202310,
+          "fallback_rows_all": 0,
+          "rows_all": 762,
+          "rows_matched": 742,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 762,
+          "supported_rows_matched": 742
+        },
+        {
+          "event_key": 202311,
+          "fallback_rows_all": 0,
+          "rows_all": 1122,
+          "rows_matched": 1104,
+          "rows_unmatched_retained": 18,
+          "supported_rows_all": 1122,
+          "supported_rows_matched": 1104
+        },
+        {
+          "event_key": 202312,
+          "fallback_rows_all": 0,
+          "rows_all": 683,
+          "rows_matched": 664,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 683,
+          "supported_rows_matched": 664
+        },
+        {
+          "event_key": 202313,
+          "fallback_rows_all": 2,
+          "rows_all": 974,
+          "rows_matched": 954,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 972,
+          "supported_rows_matched": 952
+        },
+        {
+          "event_key": 202314,
+          "fallback_rows_all": 0,
+          "rows_all": 840,
+          "rows_matched": 821,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 840,
+          "supported_rows_matched": 821
+        },
+        {
+          "event_key": 202315,
+          "fallback_rows_all": 0,
+          "rows_all": 922,
+          "rows_matched": 904,
+          "rows_unmatched_retained": 18,
+          "supported_rows_all": 922,
+          "supported_rows_matched": 904
+        },
+        {
+          "event_key": 202316,
+          "fallback_rows_all": 0,
+          "rows_all": 663,
+          "rows_matched": 644,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 663,
+          "supported_rows_matched": 644
+        },
+        {
+          "event_key": 202317,
+          "fallback_rows_all": 0,
+          "rows_all": 798,
+          "rows_matched": 780,
+          "rows_unmatched_retained": 18,
+          "supported_rows_all": 798,
+          "supported_rows_matched": 780
+        },
+        {
+          "event_key": 202318,
+          "fallback_rows_all": 0,
+          "rows_all": 879,
+          "rows_matched": 859,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 879,
+          "supported_rows_matched": 859
+        },
+        {
+          "event_key": 202319,
+          "fallback_rows_all": 0,
+          "rows_all": 1093,
+          "rows_matched": 1074,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 1093,
+          "supported_rows_matched": 1074
+        },
+        {
+          "event_key": 202320,
+          "fallback_rows_all": 0,
+          "rows_all": 952,
+          "rows_matched": 935,
+          "rows_unmatched_retained": 17,
+          "supported_rows_all": 952,
+          "supported_rows_matched": 935
+        },
+        {
+          "event_key": 202321,
+          "fallback_rows_all": 0,
+          "rows_all": 700,
+          "rows_matched": 681,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 700,
+          "supported_rows_matched": 681
+        },
+        {
+          "event_key": 202322,
+          "fallback_rows_all": 1,
+          "rows_all": 1023,
+          "rows_matched": 1003,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1022,
+          "supported_rows_matched": 1002
+        }
+      ],
+      "rows_all": 20432,
+      "rows_matched": 20007,
+      "rows_unmatched_retained": 425,
+      "supported_rows_all": 20429,
+      "supported_rows_matched": 20004
+    },
+    "2": {
+      "fallback_rows_all": 4,
+      "fallback_rows_matched": 4,
+      "original_full_issuance_inventory_verified": true,
+      "original_matched_inventory_verified": true,
+      "per_event": [
+        {
+          "event_key": 202301,
+          "fallback_rows_all": 0,
+          "rows_all": 874,
+          "rows_matched": 854,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 874,
+          "supported_rows_matched": 854
+        },
+        {
+          "event_key": 202302,
+          "fallback_rows_all": 0,
+          "rows_all": 789,
+          "rows_matched": 769,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 789,
+          "supported_rows_matched": 769
+        },
+        {
+          "event_key": 202303,
+          "fallback_rows_all": 0,
+          "rows_all": 731,
+          "rows_matched": 712,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 731,
+          "supported_rows_matched": 712
+        },
+        {
+          "event_key": 202304,
+          "fallback_rows_all": 0,
+          "rows_all": 806,
+          "rows_matched": 786,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 806,
+          "supported_rows_matched": 786
+        },
+        {
+          "event_key": 202305,
+          "fallback_rows_all": 0,
+          "rows_all": 1038,
+          "rows_matched": 1018,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1038,
+          "supported_rows_matched": 1018
+        },
+        {
+          "event_key": 202306,
+          "fallback_rows_all": 0,
+          "rows_all": 1383,
+          "rows_matched": 1363,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1383,
+          "supported_rows_matched": 1363
+        },
+        {
+          "event_key": 202307,
+          "fallback_rows_all": 0,
+          "rows_all": 1167,
+          "rows_matched": 1147,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1167,
+          "supported_rows_matched": 1147
+        },
+        {
+          "event_key": 202308,
+          "fallback_rows_all": 0,
+          "rows_all": 1087,
+          "rows_matched": 1067,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1087,
+          "supported_rows_matched": 1067
+        },
+        {
+          "event_key": 202309,
+          "fallback_rows_all": 0,
+          "rows_all": 1146,
+          "rows_matched": 1126,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1146,
+          "supported_rows_matched": 1126
+        },
+        {
+          "event_key": 202310,
+          "fallback_rows_all": 0,
+          "rows_all": 762,
+          "rows_matched": 742,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 762,
+          "supported_rows_matched": 742
+        },
+        {
+          "event_key": 202311,
+          "fallback_rows_all": 0,
+          "rows_all": 1122,
+          "rows_matched": 1104,
+          "rows_unmatched_retained": 18,
+          "supported_rows_all": 1122,
+          "supported_rows_matched": 1104
+        },
+        {
+          "event_key": 202312,
+          "fallback_rows_all": 0,
+          "rows_all": 683,
+          "rows_matched": 664,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 683,
+          "supported_rows_matched": 664
+        },
+        {
+          "event_key": 202313,
+          "fallback_rows_all": 4,
+          "rows_all": 974,
+          "rows_matched": 954,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 970,
+          "supported_rows_matched": 950
+        },
+        {
+          "event_key": 202314,
+          "fallback_rows_all": 0,
+          "rows_all": 840,
+          "rows_matched": 821,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 840,
+          "supported_rows_matched": 821
+        },
+        {
+          "event_key": 202315,
+          "fallback_rows_all": 0,
+          "rows_all": 922,
+          "rows_matched": 904,
+          "rows_unmatched_retained": 18,
+          "supported_rows_all": 922,
+          "supported_rows_matched": 904
+        },
+        {
+          "event_key": 202316,
+          "fallback_rows_all": 0,
+          "rows_all": 663,
+          "rows_matched": 644,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 663,
+          "supported_rows_matched": 644
+        },
+        {
+          "event_key": 202317,
+          "fallback_rows_all": 0,
+          "rows_all": 798,
+          "rows_matched": 780,
+          "rows_unmatched_retained": 18,
+          "supported_rows_all": 798,
+          "supported_rows_matched": 780
+        },
+        {
+          "event_key": 202318,
+          "fallback_rows_all": 0,
+          "rows_all": 879,
+          "rows_matched": 859,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 879,
+          "supported_rows_matched": 859
+        },
+        {
+          "event_key": 202319,
+          "fallback_rows_all": 0,
+          "rows_all": 1093,
+          "rows_matched": 1074,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 1093,
+          "supported_rows_matched": 1074
+        },
+        {
+          "event_key": 202320,
+          "fallback_rows_all": 0,
+          "rows_all": 952,
+          "rows_matched": 935,
+          "rows_unmatched_retained": 17,
+          "supported_rows_all": 952,
+          "supported_rows_matched": 935
+        },
+        {
+          "event_key": 202321,
+          "fallback_rows_all": 0,
+          "rows_all": 700,
+          "rows_matched": 681,
+          "rows_unmatched_retained": 19,
+          "supported_rows_all": 700,
+          "supported_rows_matched": 681
+        },
+        {
+          "event_key": 202322,
+          "fallback_rows_all": 0,
+          "rows_all": 1023,
+          "rows_matched": 1003,
+          "rows_unmatched_retained": 20,
+          "supported_rows_all": 1023,
+          "supported_rows_matched": 1003
+        }
+      ],
+      "rows_all": 20432,
+      "rows_matched": 20007,
+      "rows_unmatched_retained": 425,
+      "supported_rows_all": 20428,
+      "supported_rows_matched": 20003
+    }
+  },
+  "execution_directory": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution",
+  "gate_checks": {
+    "0": {
+      "base_hgb": {
+        "positive_relative_gain": false
+      },
+      "quality_hgb": {
+        "positive_relative_gain": false
+      }
+    },
+    "2": {
+      "base_hgb": {
+        "all_leave_one_event_out_negative": false,
+        "block3_ci_upper_negative": false,
+        "event_ci_upper_negative": false,
+        "minimum_relative_gain": false
+      },
+      "quality_hgb": {
+        "all_leave_one_event_out_negative": false,
+        "block3_ci_upper_negative": false,
+        "event_ci_upper_negative": false,
+        "minimum_relative_gain": false
+      }
+    }
+  },
+  "historical_fits_performed": 0,
+  "independence": "Direct saved-estimator replay; separate event loss/bootstrap/LOO/gate code; frozen original encoder for canonical population, frozen raw decoder plus separate rational packet-weighted measurement oracle.",
+  "limits": [
+    "Archive timestamps are availability proxies, not certified live receipt.",
+    "Full44-stream integrity is checked through recorded validation closures and current hashes; independent raw measurement reconstruction uses the declared24-snapshot sample.",
+    "This verifier does not establish prospective performance or correct historical research selection."
+  ],
+  "metrics": {
+    "0": {
+      "base_hgb": {
+        "event_mae_seconds": 0.5120807233335138,
+        "events": 22,
+        "row_mae_seconds": 0.5320326458654109,
+        "rows": 20007
+      },
+      "quality_hgb": {
+        "event_mae_seconds": 0.5136047366095225,
+        "events": 22,
+        "row_mae_seconds": 0.5336116324753034,
+        "rows": 20007
+      },
+      "telemetry_hgb": {
+        "event_mae_seconds": 0.5136218777978612,
+        "events": 22,
+        "row_mae_seconds": 0.5336107606975153,
+        "rows": 20007
+      }
+    },
+    "2": {
+      "base_hgb": {
+        "event_mae_seconds": 0.5120807233335138,
+        "events": 22,
+        "row_mae_seconds": 0.5320326458654109,
+        "rows": 20007
+      },
+      "quality_hgb": {
+        "event_mae_seconds": 0.5136135632422247,
+        "events": 22,
+        "row_mae_seconds": 0.5336419665654223,
+        "rows": 20007
+      },
+      "telemetry_hgb": {
+        "event_mae_seconds": 0.5140015782891896,
+        "events": 22,
+        "row_mae_seconds": 0.5340589841162314,
+        "rows": 20007
+      }
+    }
+  },
+  "original_issuances_per_lag": 39220,
+  "original_matched_targets": 38370,
+  "raw_sample_protocol": {
+    "atol": 1e-10,
+    "event_keys": [
+      202201,
+      202218,
+      202301,
+      202313
+    ],
+    "lags_seconds": [
+      0,
+      2
+    ],
+    "positions": [
+      "first",
+      "floor(n/2)",
+      "last"
+    ],
+    "results": [
+      {
+        "coordinates": 540,
+        "cutoffs_ns": [
+          4148713000000,
+          6496804000000,
+          9672517000000,
+          4146713000000,
+          6494804000000,
+          9670517000000
+        ],
+        "event_key": 202201,
+        "issuance_ids": [
+          "202201/16/4/4148713000000",
+          "202201/22/27/6496804000000",
+          "202201/27/57/9672517000000",
+          "202201/16/4/4148713000000",
+          "202201/22/27/6496804000000",
+          "202201/27/57/9672517000000"
+        ],
+        "max_absolute_difference": 1.8189894035458565e-12,
+        "snapshots": 6
+      },
+      {
+        "coordinates": 540,
+        "cutoffs_ns": [
+          12518109000000,
+          13716546000000,
+          14752339000000,
+          12516109000000,
+          13714546000000,
+          14750339000000
+        ],
+        "event_key": 202218,
+        "issuance_ids": [
+          "202218/47/8/12518109000000",
+          "202218/44/19/13716546000000",
+          "202218/47/28/14752339000000",
+          "202218/47/8/12518109000000",
+          "202218/44/19/13716546000000",
+          "202218/47/28/14752339000000"
+        ],
+        "max_absolute_difference": 1.8189894035458565e-12,
+        "snapshots": 6
+      },
+      {
+        "coordinates": 540,
+        "cutoffs_ns": [
+          4149858000000,
+          6664739000000,
+          9484489000000,
+          4147858000000,
+          6662739000000,
+          9482489000000
+        ],
+        "event_key": 202301,
+        "issuance_ids": [
+          "202301/1/4/4149858000000",
+          "202301/18/29/6664739000000",
+          "202301/22/57/9484489000000",
+          "202301/1/4/4149858000000",
+          "202301/18/29/6664739000000",
+          "202301/22/57/9484489000000"
+        ],
+        "max_absolute_difference": 1.8189894035458565e-12,
+        "snapshots": 6
+      },
+      {
+        "coordinates": 540,
+        "cutoffs_ns": [
+          4144128000000,
+          7032006000000,
+          12425468000000,
+          4142128000000,
+          7030006000000,
+          12423468000000
+        ],
+        "event_key": 202313,
+        "issuance_ids": [
+          "202313/23/4/4144128000000",
+          "202313/10/38/7032006000000",
+          "202313/63/72/12425468000000",
+          "202313/23/4/4144128000000",
+          "202313/10/38/7032006000000",
+          "202313/63/72/12425468000000"
+        ],
+        "max_absolute_difference": 1.8189894035458565e-12,
+        "snapshots": 6
+      }
+    ],
+    "rtol": 1e-12,
+    "selection_basis": "Original issuance position, independent of outcomes or support."
+  },
+  "replay_max_absolute_errors": {
+    "0": {
+      "base_hgb": 0.0,
+      "quality_hgb": 0.0,
+      "telemetry_hgb": 0.0
+    },
+    "2": {
+      "base_hgb": 0.0,
+      "quality_hgb": 0.0,
+      "telemetry_hgb": 0.0
+    }
+  },
+  "selection_issuances_per_lag": 20432,
+  "selection_matched_targets": 20007,
+  "selection_sha256": "c5ff65e78b686558c110d630201cfa7789362f781e14e84002a8eb69651c5a6b",
+  "status": "passed",
+  "unmatched_issuances_retained": 850,
+  "verifier_sources": {
+    "research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py": "b5b2cc64fc9a0db8c99f1bb06be5319a226308cfd3f79c3ee65436b2cb57d073",
+    "research/experiments/boundary_20260908/telemetry_verification_v2/verify.py": "631115bdc2834f0c458e94cd18833f13d8c6bb0d9a190e76f7593d17da44c7b6"
+  }
+}

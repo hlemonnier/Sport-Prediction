@@ -1,0 +1,11 @@
+{
+  "cache": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/frontier_20260907/live/discovery_data.pkl",
+    "sha256": "9f657a724b93c285fa31453b0dca200812e47b634fddfbb3ccb430a4ba70c66d"
+  },
+  "cache_first_read_after_forecast_closure": true,
+  "matched_rows": 38370,
+  "ordered_values_exact": true,
+  "selection_rows": 20007,
+  "train_rows": 18363
+}

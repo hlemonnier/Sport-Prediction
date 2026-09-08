@@ -1,0 +1,34 @@
+{
+  "amendment": "Replace only fit_lock['selection_labels_read'] with the frozen runner's fit_lock['external_selection_labels_attached']; add a synthetic regression that checks this exact source diff and fail-closed boolean behavior.",
+  "closed_at_utc": "2026-09-08T05:44:42.771146+00:00",
+  "historical_fits_performed": 0,
+  "original_protocol": {
+    "bytes": 955,
+    "path": "artifacts/research/boundary_20260908/telemetry/execution/verification/protocol_lock.json",
+    "sha256": "362e47fe6ad07b45e997223ef454688df72a6ef4bcafb803d08dd8ad2c4f1dc4"
+  },
+  "preserved_failed_attempt": {
+    "bytes": 494,
+    "path": "artifacts/research/boundary_20260908/telemetry/execution/verification/result.json",
+    "sha256": "0d526fbd52a3552d85d3d8ccf2f68498d7f3c28907a3229b882f2c1432e9edb4"
+  },
+  "sources": [
+    {
+      "bytes": 9686,
+      "path": "research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py",
+      "sha256": "b5b2cc64fc9a0db8c99f1bb06be5319a226308cfd3f79c3ee65436b2cb57d073"
+    },
+    {
+      "bytes": 33305,
+      "path": "research/experiments/boundary_20260908/telemetry_verification_v2/verify.py",
+      "sha256": "631115bdc2834f0c458e94cd18833f13d8c6bb0d9a190e76f7593d17da44c7b6"
+    }
+  ],
+  "statistical_protocol_changed": false,
+  "status": "post-selection verifier schema correction; no changes to experiment or statistical protocol",
+  "synthetic_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv-f1/bin/python -m pytest -q --import-mode=importlib -p no:cacheprovider research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py",
+    "passed": 28,
+    "seconds": 0.51
+  }
+}

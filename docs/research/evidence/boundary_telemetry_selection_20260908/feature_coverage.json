@@ -1,0 +1,637 @@
+{
+  "aggregate_lags": {
+    "0": {
+      "fallback": 10,
+      "supported": 39210
+    },
+    "2": {
+      "fallback": 10,
+      "supported": 39210
+    }
+  },
+  "computed_at_utc": "2026-09-08T05:34:59.984543+00:00",
+  "events": [
+    {
+      "event_key": 202201,
+      "issuances": 853,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 853
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 853
+        }
+      }
+    },
+    {
+      "event_key": 202202,
+      "issuances": 615,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 615
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 615
+        }
+      }
+    },
+    {
+      "event_key": 202203,
+      "issuances": 775,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 775
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 775
+        }
+      }
+    },
+    {
+      "event_key": 202204,
+      "issuances": 969,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 969
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 969
+        }
+      }
+    },
+    {
+      "event_key": 202205,
+      "issuances": 838,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 838
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 838
+        }
+      }
+    },
+    {
+      "event_key": 202206,
+      "issuances": 1064,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1064
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1064
+        }
+      }
+    },
+    {
+      "event_key": 202207,
+      "issuances": 927,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 927
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 927
+        }
+      }
+    },
+    {
+      "event_key": 202208,
+      "issuances": 724,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 724
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 724
+        }
+      }
+    },
+    {
+      "event_key": 202209,
+      "issuances": 989,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 989
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 989
+        }
+      }
+    },
+    {
+      "event_key": 202210,
+      "issuances": 640,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 640
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 640
+        }
+      }
+    },
+    {
+      "event_key": 202211,
+      "issuances": 1141,
+      "lags": {
+        "0": {
+          "fallback": 7,
+          "supported": 1134
+        },
+        "2": {
+          "fallback": 6,
+          "supported": 1135
+        }
+      }
+    },
+    {
+      "event_key": 202212,
+      "issuances": 793,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 793
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 793
+        }
+      }
+    },
+    {
+      "event_key": 202213,
+      "issuances": 1163,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1163
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1163
+        }
+      }
+    },
+    {
+      "event_key": 202214,
+      "issuances": 609,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 609
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 609
+        }
+      }
+    },
+    {
+      "event_key": 202215,
+      "issuances": 1099,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1099
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1099
+        }
+      }
+    },
+    {
+      "event_key": 202216,
+      "issuances": 738,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 738
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 738
+        }
+      }
+    },
+    {
+      "event_key": 202217,
+      "issuances": 636,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 636
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 636
+        }
+      }
+    },
+    {
+      "event_key": 202218,
+      "issuances": 334,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 334
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 334
+        }
+      }
+    },
+    {
+      "event_key": 202219,
+      "issuances": 740,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 740
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 740
+        }
+      }
+    },
+    {
+      "event_key": 202220,
+      "issuances": 1244,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1244
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1244
+        }
+      }
+    },
+    {
+      "event_key": 202221,
+      "issuances": 905,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 905
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 905
+        }
+      }
+    },
+    {
+      "event_key": 202222,
+      "issuances": 992,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 992
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 992
+        }
+      }
+    },
+    {
+      "event_key": 202301,
+      "issuances": 874,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 874
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 874
+        }
+      }
+    },
+    {
+      "event_key": 202302,
+      "issuances": 789,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 789
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 789
+        }
+      }
+    },
+    {
+      "event_key": 202303,
+      "issuances": 731,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 731
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 731
+        }
+      }
+    },
+    {
+      "event_key": 202304,
+      "issuances": 806,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 806
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 806
+        }
+      }
+    },
+    {
+      "event_key": 202305,
+      "issuances": 1038,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1038
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1038
+        }
+      }
+    },
+    {
+      "event_key": 202306,
+      "issuances": 1383,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1383
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1383
+        }
+      }
+    },
+    {
+      "event_key": 202307,
+      "issuances": 1167,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1167
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1167
+        }
+      }
+    },
+    {
+      "event_key": 202308,
+      "issuances": 1087,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1087
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1087
+        }
+      }
+    },
+    {
+      "event_key": 202309,
+      "issuances": 1146,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1146
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1146
+        }
+      }
+    },
+    {
+      "event_key": 202310,
+      "issuances": 762,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 762
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 762
+        }
+      }
+    },
+    {
+      "event_key": 202311,
+      "issuances": 1122,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1122
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1122
+        }
+      }
+    },
+    {
+      "event_key": 202312,
+      "issuances": 683,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 683
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 683
+        }
+      }
+    },
+    {
+      "event_key": 202313,
+      "issuances": 974,
+      "lags": {
+        "0": {
+          "fallback": 2,
+          "supported": 972
+        },
+        "2": {
+          "fallback": 4,
+          "supported": 970
+        }
+      }
+    },
+    {
+      "event_key": 202314,
+      "issuances": 840,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 840
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 840
+        }
+      }
+    },
+    {
+      "event_key": 202315,
+      "issuances": 922,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 922
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 922
+        }
+      }
+    },
+    {
+      "event_key": 202316,
+      "issuances": 663,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 663
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 663
+        }
+      }
+    },
+    {
+      "event_key": 202317,
+      "issuances": 798,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 798
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 798
+        }
+      }
+    },
+    {
+      "event_key": 202318,
+      "issuances": 879,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 879
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 879
+        }
+      }
+    },
+    {
+      "event_key": 202319,
+      "issuances": 1093,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 1093
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1093
+        }
+      }
+    },
+    {
+      "event_key": 202320,
+      "issuances": 952,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 952
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 952
+        }
+      }
+    },
+    {
+      "event_key": 202321,
+      "issuances": 700,
+      "lags": {
+        "0": {
+          "fallback": 0,
+          "supported": 700
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 700
+        }
+      }
+    },
+    {
+      "event_key": 202322,
+      "issuances": 1023,
+      "lags": {
+        "0": {
+          "fallback": 1,
+          "supported": 1022
+        },
+        "2": {
+          "fallback": 0,
+          "supported": 1023
+        }
+      }
+    }
+  ],
+  "feature_closure_sha256": {
+    "2022": "26cad6ef96039e75a8a03671aa169f37dc8ae80bffc105364d3871562d0cd78a",
+    "2023": "1da25a38de26f3cd46f79eb5b6cebab575a9dd7a9da592a8b06f9ef443f55fe0"
+  },
+  "original_issuances_per_lag": 39220,
+  "targets_or_predictions_read": false
+}

@@ -1,0 +1,194 @@
+{
+  "all_issuances": 18788,
+  "closed_at_utc": "2026-09-08T05:36:20.605427+00:00",
+  "events": [
+    {
+      "event_key": 202201,
+      "matched": 833,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202201_labels.jsonl",
+      "rows": 853,
+      "sha256": "8042ae1b8b4a03420ab3830140faa160e9d16bf7c4b934cebf137572e4f83627",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202202,
+      "matched": 597,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202202_labels.jsonl",
+      "rows": 615,
+      "sha256": "23604030d098dfdc2fa0ac2ee12a6e824eb7f7694a5d3d7a30bc40eedf790ef6",
+      "unmatched": 18
+    },
+    {
+      "event_key": 202203,
+      "matched": 756,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202203_labels.jsonl",
+      "rows": 775,
+      "sha256": "c92d8b4bd102c014eb0e77aa08813fe708d7af9891d7a34910b9bb756d739590",
+      "unmatched": 19
+    },
+    {
+      "event_key": 202204,
+      "matched": 951,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202204_labels.jsonl",
+      "rows": 969,
+      "sha256": "d0821ef143b27a824d217261e1a18941690cf7cc6fc6a39c9f30664d4acb1b7c",
+      "unmatched": 18
+    },
+    {
+      "event_key": 202205,
+      "matched": 818,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202205_labels.jsonl",
+      "rows": 838,
+      "sha256": "4ea28db619df4520ab6cc521b724bc56328a03a9ebe0d16caf6815accee1640a",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202206,
+      "matched": 1044,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202206_labels.jsonl",
+      "rows": 1064,
+      "sha256": "f1a76c3a43a1d633900e5bc5b9eabf723d898d1e879e114dacd4c5a20d21cf95",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202207,
+      "matched": 907,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202207_labels.jsonl",
+      "rows": 927,
+      "sha256": "e3012d33deeed868db41eee5550fc479b16308e2ab27b7e2b1c8c802dfd891ee",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202208,
+      "matched": 704,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202208_labels.jsonl",
+      "rows": 724,
+      "sha256": "bc4e8cf502fef151f75d1c89e16e769dfe9583f9411423d5a3293c220da90f46",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202209,
+      "matched": 969,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202209_labels.jsonl",
+      "rows": 989,
+      "sha256": "45445199e85203781bfb9990f43e40483f282bc7c876b6f3a2d15f3412104446",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202210,
+      "matched": 623,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202210_labels.jsonl",
+      "rows": 640,
+      "sha256": "0ba44b7f5b810c4df6d310334e15f57693399eaee52f098a6e25c715d6a28e62",
+      "unmatched": 17
+    },
+    {
+      "event_key": 202211,
+      "matched": 1121,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202211_labels.jsonl",
+      "rows": 1141,
+      "sha256": "167c48bca830a9963f9ab3c45a4478560dcf0a65aad94bb4c2b2124c6575182c",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202212,
+      "matched": 773,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202212_labels.jsonl",
+      "rows": 793,
+      "sha256": "71f8dbb862a055246eaf34d1e823cf8148ca38e432b446dce58612bc9ec8a565",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202213,
+      "matched": 1143,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202213_labels.jsonl",
+      "rows": 1163,
+      "sha256": "66522085452c8431bea669c43be99035b6a68b27eed45fd0c3c952d502058388",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202214,
+      "matched": 591,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202214_labels.jsonl",
+      "rows": 609,
+      "sha256": "4fd9cce704b73b509cd32fe7935bfdb0d04a4af9c4d8ec506c646086c64c5dff",
+      "unmatched": 18
+    },
+    {
+      "event_key": 202215,
+      "matched": 1079,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202215_labels.jsonl",
+      "rows": 1099,
+      "sha256": "656b27cae93ba8898d32ada16992b90539be80d0e668645f6867be6b3dbc7f46",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202216,
+      "matched": 718,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202216_labels.jsonl",
+      "rows": 738,
+      "sha256": "39c9d2b4bf88db32b1c469c2e6b60bf5e79182513570aef68c9d88eb104d031d",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202217,
+      "matched": 616,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202217_labels.jsonl",
+      "rows": 636,
+      "sha256": "8acc3a981f555fad4212d3935b9dfab6522d2272a453fbecf7cbfff75e6ebe41",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202218,
+      "matched": 316,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202218_labels.jsonl",
+      "rows": 334,
+      "sha256": "0aea487d1e8cbc01c7aff83bb0411300fa40632d307f31a77d97d324e69b216f",
+      "unmatched": 18
+    },
+    {
+      "event_key": 202219,
+      "matched": 721,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202219_labels.jsonl",
+      "rows": 740,
+      "sha256": "64f2f8150f8cfd28511ced8e3467da0d52abb96d71875f09748181f718804e5f",
+      "unmatched": 19
+    },
+    {
+      "event_key": 202220,
+      "matched": 1224,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202220_labels.jsonl",
+      "rows": 1244,
+      "sha256": "801d3dc91064b7c8074006400f6d750d3a810d37b3cc375fe478330b23d0d14a",
+      "unmatched": 20
+    },
+    {
+      "event_key": 202221,
+      "matched": 887,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202221_labels.jsonl",
+      "rows": 905,
+      "sha256": "0fa7eba89b93f1319590fce08ae229509f0a40ef30cb1ff103e9f4cd685404c7",
+      "unmatched": 18
+    },
+    {
+      "event_key": 202222,
+      "matched": 972,
+      "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/labels_2022/202222_labels.jsonl",
+      "rows": 992,
+      "sha256": "d8fb98eb485a510fc8b6bcc3784d9db240ebd4bd821594fa7cba45a05af350f5",
+      "unmatched": 20
+    }
+  ],
+  "feature_closure": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/features_2022/feature_closure.json",
+    "sha256": "26cad6ef96039e75a8a03671aa169f37dc8ae80bffc105364d3871562d0cd78a"
+  },
+  "feature_ledgers_modified": false,
+  "input_validation": {
+    "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/artifacts/research/boundary_20260908/telemetry/execution/input_validation_2022.json",
+    "sha256": "d684510c144dc507716cf33049a21746178805775c370caa880383472cfc3fa4"
+  },
+  "matched": 18363,
+  "schema": "original_issuance_telemetry_labels_v1",
+  "unmatched": 425
+}

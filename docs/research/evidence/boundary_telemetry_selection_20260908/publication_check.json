@@ -1,0 +1,36 @@
+{
+  "byte_exact_evidence_copies": 17,
+  "checked_at_utc": "2026-09-08T05:53:00.271471+00:00",
+  "copied_evidence_bytes": 251777,
+  "excluded_material": [
+    "Raw provider bodies",
+    "Per-issuance feature, forecast and label tables",
+    "Serialized models and replay caches"
+  ],
+  "independent_verification": {
+    "bytes": 126468,
+    "path": "artifacts/research/boundary_20260908/telemetry/execution/verification/result_v2.json",
+    "sha256": "50ad325af9e44a2f07e638d5aaea9cd8d302d663939e54822afb0824dbdefbbf"
+  },
+  "original_failure_preserved": true,
+  "original_verification_bindings_checked": 455,
+  "previous_discovery_evidence_copies_checked": 8,
+  "previous_discovery_experiment_sources_checked": 24,
+  "report": {
+    "bytes": 6198,
+    "path": "docs/research/boundary_telemetry_selection_20260908.md",
+    "sha256": "d71b5d0f5f22493c4568de1761a665c9c911838872f370827122ecaa3940969c"
+  },
+  "report_links_checked": 8,
+  "report_metrics_intervals_and_gate_checked": true,
+  "reproduction_limit": "Copied receipts preserve original local paths and transitive hashes. Full model replay requires the omitted hash-matched input and model files.",
+  "schema_only_verifier_source_diff_checked": true,
+  "scope": "Read-only publication checks; no model fitting, historical replay or candidate selection.",
+  "selection": {
+    "bytes": 34972,
+    "path": "artifacts/research/boundary_20260908/telemetry/execution/selection.json",
+    "sha256": "c5ff65e78b686558c110d630201cfa7789362f781e14e84002a8eb69651c5a6b"
+  },
+  "status": "passed",
+  "verifier_source_files_checked": 4
+}

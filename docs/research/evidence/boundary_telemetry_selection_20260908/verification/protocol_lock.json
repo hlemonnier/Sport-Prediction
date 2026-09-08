@@ -1,0 +1,31 @@
+{
+  "design_lock_sha256": "d072bb145868ab03aaacaadbd8b9071890323c5f4f70b29561ea446cd9e347ae",
+  "fits_allowed": 0,
+  "frozen_at_utc": "2026-09-08T05:31:00.196511+00:00",
+  "historical_execution_started": false,
+  "lags_seconds": [
+    0,
+    2
+  ],
+  "raw_atol": 1e-10,
+  "raw_positions": [
+    "first",
+    "floor(n/2)",
+    "last"
+  ],
+  "raw_rtol": 1e-12,
+  "raw_sample_events": [
+    202201,
+    202218,
+    202301,
+    202313
+  ],
+  "raw_sample_snapshots": 24,
+  "sampling_basis": "original issuance positions fixed before selection results",
+  "selection_completed": false,
+  "sources": {
+    "research/experiments/boundary_20260908/telemetry_verification/test_verify.py": "2cfcd86c348984542804ee5351be07782b58e30241bc077dea6237a22ef577b8",
+    "research/experiments/boundary_20260908/telemetry_verification/verify.py": "ae39778972b30027c12425a937d0451bdbfa14f055065f15e4c49573f0f6c3f0"
+  },
+  "synthetic_tests_reported_by_independent_author": 27
+}

@@ -99,11 +99,20 @@ first adapter attempt encountered an omitted legacy diagnostic ID list; the
 successful attempt restores that list from verified lineage without changing
 learned parameters. Both attempt receipts are retained in the evidence package.
 
-The final boundary-contract suite passed **2,007 tests**, with two optional
-historical-asset tests skipped. The 12 new integration cases are included in that
-count. F1's existing integration separately passed all **55 tests**. Independent
+The initial local boundary-contract suite passed **2,007 tests**, with two optional
+historical-asset tests skipped. The final complete tracked-source copy, without
+local data or artifacts, passed **2,008 tests** with five skips. It includes all
+**16** default/API/CLI and league-metadata integration cases. F1's existing
+integration separately passed all **55 tests**. Independent
 historical replay also passed again after the canonical caller changed, using
 the immutable original source snapshot.
+
+The first remote research CI run exposed a case-sensitive legacy CLI path and an
+optional raw-provider test that lacked an availability guard. Both were corrected.
+The default caller also preserves the provider's support for omitted or mixed-case
+league metadata: only copied inputs to the fixture model receive the selected
+request league; historical assessment records remain unchanged. A final full
+historical integration replay still has zero matrix discrepancy.
 
 ## Reproduction and exact evidence
 

@@ -1,0 +1,336 @@
+{
+  "blocks": [
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2024-08-15:208b07f643bb",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "9e3ffa5f82f74672d3face648c228c79f1317cf1cdcafc42c6e80b9e10f382a2",
+      "rows": 34
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2024-08-16:64188d62dff2",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "a9cd4ecc2869f7923211a5ee9263c5470e37f7383b9ad4101abba2e293116e47",
+      "rows": 27
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2024-08-17:31f0e313d2c6",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "fe1938f43847b68a9dd43054dd7b3b42067d9747b85cb5da1125b95aaa92cb7b",
+      "rows": 26
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2024-09-01:fe000f752a1c",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "5caf66d0768835303fb58d67cc8bdb91176689221fb7e9cbfa090ab17c0a12e5",
+      "rows": 73
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2024-09-01:58358b327036",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "22acf802735de3e9ad15a24013a81326ff09a520c430c1ae8d2ce8909dbdcee1",
+      "rows": 76
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2024-09-01:94c12f745411",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "afd4606b2f77dce8883982227eb53c934ffe73594063f966c7c02598d8c6669c",
+      "rows": 63
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2024-11-01:793fae8320c2",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "4765c84c829a9ba023e1a34fb2f9f1ffbe4b63d60f8083b22313ffa96248446e",
+      "rows": 71
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2024-11-02:2de58228e59d",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "eeeaff6c08f8a6a71c03f348f1c2773ea95c7892306917246f3c5c121ece1f8f",
+      "rows": 79
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2024-11-02:3a32a5a41595",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "e11292b1106e49038f3f4dbbc711089fd7806cb054436ff10200bba3892ef3bf",
+      "rows": 98
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2025-01-01:afb5331843a8",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "1ba60c8cf52af30b0559d43615e83980f6c6bbf655f49e6a76a8b84284d8ff1b",
+      "rows": 83
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2025-01-03:a77daa748444",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "d43303529501876701ae1ab3051ea270899db90269c81c51e33253f9c44e3625",
+      "rows": 70
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2025-01-04:a398de786f11",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "8ebbf4e5e80e9a0ea3c8b86532715c61dd1f05983df5a145795749272da4c327",
+      "rows": 83
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2025-03-01:af18248c46c6",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "bc31c9f81c3b2cf27ef404784ee3408deb5be27e5a718ee8fdbb519faca2f309",
+      "rows": 79
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2025-03-01:5e523d5067d8",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "42f90ccdeae7bc1df9a20ee329d8a74b54539e35231f8fd5aada0a85e1cc8d9b",
+      "rows": 79
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2025-03-08:c5d4e8a5470f",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "757b52a8703c146c133985a664f6dc92d8f588d338cbfe2c74106bb6d2ff6b23",
+      "rows": 68
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2025-05-01:aa98265d87b5",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "5f03486e2510565060a9a4ab5727ab4eb352df23bd5d578addade5bab1a1c1b9",
+      "rows": 41
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2025-05-02:76689c20bc5d",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "de6d44bd36932b69a67e46967bd5684e7497edbdb9be29b386f6227c7dfef389",
+      "rows": 40
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2025-05-02:fdaf7aeba576",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "b62d682410e7af062040fcc1ebe287e4b723f246292c58b84cce9d9baf0fb986",
+      "rows": 50
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2025-08-15:a27a0d23e4da",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "b51ba791065cdcc6362997a3c77cd71223145c1c21c440a25ec5b7f77ef6a6fa",
+      "rows": 31
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2025-08-15:4c03eff22833",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "d5cd3e10ee3884aeee33af6468a0b64296e8fe50fd0eca883deeba79436cb39b",
+      "rows": 30
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2025-08-23:96abe1b41f43",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "0bc94c21d3835408761bf53aefd55f9c02de486ffcba485f907b315aecc1f0e5",
+      "rows": 20
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2025-09-12:79190987624c",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "e893109e61445231441584dfdda3d10b9ca13c6285d29f2e2029632dbb320a30",
+      "rows": 70
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2025-09-13:bcde3c111d0e",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "e34711c90ce21c6a240ff5c87fc744144f2315702fc0a36d3e6cbe39e7de1e54",
+      "rows": 70
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2025-09-13:dffa14f09545",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "73a553134e2d59c52a151e24ec22304054d37d64aa06739848bbd919da557198",
+      "rows": 60
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2025-11-01:c20e85844ae1",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "5ba4c8d4e84161e9367c08c42e48f30782ed5a436c78a5246d9d67713c0ee470",
+      "rows": 76
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2025-11-01:dd0001e80210",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "f6df208bafd1512833a3d4519df77fbf88ebcf0216d93ad3106daa24e45ee432",
+      "rows": 70
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2025-11-01:bbb660f5b858",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "24f1faaccee5017ba952882d3ebd067d31aa0a2778899580485221906c303d9d",
+      "rows": 96
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2026-01-01:41171870e1b8",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "b6f11649a252d4b90b9cc7f3b3684f5c3d5dcf41ecf003140a123326cb237147",
+      "rows": 91
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2026-01-02:29a3336700a5",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "e017272322f6ea3d1e60109eafdd22ac74c8d7aef6f75b64ebd305882b990901",
+      "rows": 98
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2026-01-02:dfc2ea580e82",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "2fb4649c9e6014f3f0213e890a1915c8844d9caedcd0a38ed86c15e535ceae75",
+      "rows": 83
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2026-03-01:b2325ac1b2a5",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "0248e5bf90b6bad5b547fcea08d0dec8383cf2ef309302fb8fa4dd8d1294911d",
+      "rows": 76
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2026-03-01:df2a5d4bd0d8",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "49574fac144a2bf8876ed50ceaea637a6ef5cf43cdabf5a67902097fa8deae50",
+      "rows": 76
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2026-03-01:ba5f64798aad",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "63a08acd0ebbe2c722f9ebfcff9bf149c9d78e3c8e6808f4330e1ead95a6eca0",
+      "rows": 62
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "I1:2026-05-01:1aefa06908ee",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "3b0607893daad2319bb99db367d9bd5fe8e4c5805b0e02ba4de969aabbeccdc0",
+      "rows": 40
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "SP1:2026-05-01:f085e940d461",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "c5bf98a4d54089ee706986b1732fda1ee545c9351dcd1eae919ac77cac94bd3d",
+      "rows": 50
+    },
+    {
+      "assessment_lineage_preserved": true,
+      "block_id": "E0:2026-05-01:ff380b0b2c22",
+      "complete_output_parity": true,
+      "fit_input_content_parity": true,
+      "ordered_ids_sha256": "ea6c5839f79df4b5e60506f03c95482083b42ec96bbcb0caf965efca9379d497",
+      "rows": 41
+    }
+  ],
+  "default_policy": "dc_full_admitted_equal_off",
+  "elapsed_seconds": 5.98533670802135,
+  "forecast_closure": {
+    "bytes": 8604,
+    "path": "artifacts/research/boundary_20260908/football_deployment_policy/forecast_closure.json",
+    "sha256": "b5465a366b2fd0f3558b35cbfff370b4a7b2a7ece6be1eb7e1cf4bbdf7e15ba2"
+  },
+  "historical_optimizer_fits": 0,
+  "independent_verification": {
+    "bytes": 32812,
+    "path": "artifacts/research/boundary_20260908/football_deployment_replay_v2/verification.json",
+    "sha256": "017301295b20afdcd5293d081b8496b948a0dd9dff71453a33df70b6e1c5d9fc"
+  },
+  "maximum_matrix_error": 0.0,
+  "restored_diagnostics_note": "Old full-history states omit fit_match_ids; the replay fit seam reattaches the independently verified full-history lineage to satisfy the fresh-fit diagnostic contract. Learned parameters are unchanged.",
+  "rows": 2280,
+  "scope": "Actual global default caller and admission/fit seams with independently verified saved historical states; no historical refits or new performance estimates.",
+  "source_files": {
+    "apps/api/src/index.js": "734e6275f414a7ef314b2a77d46a8db6c793afd27c9d26970b050cb8be55bb99",
+    "packages/football/mrp/__init__.py": "022b1bec73bb3db9b88bbc871a1a9ecc5ec088181a1903ca6c6ae089abed3bb7",
+    "packages/football/mrp/config.py": "5c637788e5c44a0602521b777e9755c1d6cf5e743091b94c41de548cde4fee7b",
+    "packages/football/mrp/constants.py": "2c32ada9148c9fdf1a57844559ce77ba7530ed1d3cb5d58afa33335b7a4ea28b",
+    "packages/football/mrp/data.py": "c4742cd2744b46817e34d3e7767f175179ee4919d4a0d61ae5770b254138fb33",
+    "packages/football/mrp/deployment.py": "66e2b5609e27704b523283ecb636713375be9ab95b89c6749f22403dd3424057",
+    "packages/football/mrp/joint.py": "cab06d09c0b827cf37de34b1ad89793a1f442aded2d72ca0d0eeb35027559b4b",
+    "packages/football/mrp/prediction.py": "8ad84068f6a9f48cbd5909a0b5efa7544b8187ca7f1e3040e3df8e2ad5a83cfb",
+    "packages/football/mrp/protocol.py": "61df7a8735bd523fece0e75a1558e41c94978b356515ad40b833d5a1c24c9906",
+    "packages/football/mrp/providers.py": "3b8cfb677df7b60a885f6faa2db49f5dc3756ec8655f2e38d548175c2512231a",
+    "packages/football/mrp/score_distribution.py": "904c747f36658050112600fa31ee2392f289fab96ec292a66a2552f9dcfb0bfa",
+    "packages/football/mrp/training.py": "08ed99dc3a47563379f7c6fb37561531b3d1d8cce7805363acb0c36131718443",
+    "packages/football/mrp/utils.py": "a721c82f2a773092bb174b05230e7c286a54b48a00984ae1af7c6c73fc84540e",
+    "packages/football/mrp/weather.py": "52a573771e9a2d07ecafa4b306f30d06b0fba2e4f43b40b43282af0da7c663b1",
+    "packages/football/tests/test_default_deployment.py": "3580acf9f095bff86f6e37997b5b9793f74d5c7ee83a9fe786aac6b3a53b31ee",
+    "research/experiments/boundary_20260908/football_deployment_integration/run.py": "2bda45821db336d67e0e9495e91922fa5551b96baa64d51110060dca6b739523",
+    "research/projects/Football/Match Result Prediction/Python/mrp/__init__.py": "bb67482296b5bf67bebe7b423d3670171d7821212e80189dcfeefbf9ebd6e117",
+    "research/projects/Football/Match Result Prediction/Python/run_experiment.py": "41048a0fd60054708c3ac562b126b8aac5e0cf18dbad2d47e7d98e8df3806766"
+  },
+  "state_reuse": {
+    "calibrator_restorations": 36,
+    "full_history_state_injections": 36,
+    "prefix_state_injections": 36
+  },
+  "status": "passed",
+  "verified_at_utc": "2026-09-08T10:56:15.083678+00:00"
+}

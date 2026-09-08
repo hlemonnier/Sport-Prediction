@@ -7,7 +7,7 @@ server. No provider data or historical research outcomes are loaded.
 Suggested commit: test(football): verify full-history default integration.
 """
 from copy import deepcopy
-from dataclasses import replace
+from dataclasses import asdict, replace
 from datetime import timedelta
 import importlib.util
 import json
@@ -26,7 +26,7 @@ from packages.football.mrp.protocol import chronological_populations
 from packages.football.tests.test_deployment import synthetic_history
 
 ROOT = Path(__file__).resolve().parents[3]
-CLI = ROOT / "research/projects/football/Match Result Prediction/Python/run_experiment.py"
+CLI = ROOT / "research/projects/Football/Match Result Prediction/Python/run_experiment.py"
 
 
 @pytest.fixture(scope="module")
@@ -98,6 +98,35 @@ def test_assessment_metrics_and_heldout_ids_remain_on_original_prefix(population
     for key,value in reference.diagnostics["protocol"].items():
         if key!="parameter_policy":
             assert actual.diagnostics["protocol"][key]==value
+
+
+@pytest.mark.parametrize("history_league,fixture_league",[
+    (None,"epl"),
+    ("epl",None),
+    ("EPL","ePl"),
+    (None,None),
+])
+def test_selected_league_metadata_is_normalized_on_fixture_copies_only(
+        population,monkeypatch,history_league,fixture_league):
+    history,fixtures,cutoff=population
+    history=[replace(row,league=history_league) for row in history]
+    fixtures=[replace(row,league=fixture_league) for row in fixtures]
+    before=deepcopy(([asdict(row) for row in history],[asdict(row) for row in fixtures]))
+    install_dataset(monkeypatch,(history,fixtures,cutoff))
+    reference=prediction.run_assessment_prediction(config())
+    actual=prediction.run_prediction(config())
+    normalized_history=[replace(row,league="epl") for row in history]
+    normalized_fixtures=[replace(row,league="epl") for row in fixtures]
+    expected=deployment.full_history_forecast(normalized_history,normalized_fixtures,cutoff=cutoff)
+    assert_helper_outputs(actual,expected)
+    assert actual.diagnostics["fixture_model"]["lineage"]==expected["lineage"]
+    assert actual.diagnostics["assessment_model"]["protocol"]==reference.diagnostics["protocol"]
+    assert actual.diagnostics["assessment_model"]["goal_model_fit"]==reference.diagnostics["goal_model_fit"]
+    assert actual.diagnostics["models"]==reference.diagnostics["models"]
+    assert actual.diagnostics["evaluation_rows"]==reference.diagnostics["evaluation_rows"]
+    assert before==([asdict(row) for row in history],[asdict(row) for row in fixtures])
+    for original,normalized in zip(history,normalized_history,strict=True):
+        assert {k:v for k,v in asdict(original).items() if k!="league"}=={k:v for k,v in asdict(normalized).items() if k!="league"}
 
 
 @pytest.mark.parametrize("options",[

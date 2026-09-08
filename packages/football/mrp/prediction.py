@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 from typing import Any
 
@@ -296,7 +296,13 @@ def _run_prediction(config: PredictionConfig, *, full_history_default: bool) -> 
     fixture_outputs = None
     fixture_calibration_effective = calibration_effective
     if deploy_full_history:
-        full = full_history_forecast(history_matches, fixtures,
+        # Canonical selectors already established the league population and
+        # intentionally accept absent or differently cased league metadata.
+        # Give the stricter fixture helper one consistent league on copies;
+        # retain original records for assessment hashes and displayed metadata.
+        fixture_history = [replace(match, league=config.league) for match in history_matches]
+        forecast_fixtures = [replace(fixture, league=config.league) for fixture in fixtures]
+        full = full_history_forecast(fixture_history, forecast_fixtures,
             cutoff=min(fixture.date for fixture in fixtures))
         fixture_outputs = {state["match_id"]: state for state in full["fixtures"]}
         diagnostics["assessment_model"] = {

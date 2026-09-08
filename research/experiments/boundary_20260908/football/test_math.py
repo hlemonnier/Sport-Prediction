@@ -116,6 +116,10 @@ def test_comparator_matches_frozen_assessment_prediction_api():
 def test_frozen_six_candidates_and_manifest_inputs():
     spec = run.specification()
     assert len(run.configurations(spec)) == 6
+    required = [run.b.DATA / (f"E0_{year}_{year+1}.csv" if league == "E0" else f"transfer_{league}_{year}_{year+1}.csv")
+        for league in spec["leagues"] for year in range(2017, 2026)]
+    if not all(path.is_file() for path in required):
+        pytest.skip("Optional raw-provider audit requires the 27 closed local season CSVs")
     for league, zone in spec["leagues"].items():
         with run.league_context(zone):
             records, stats, _, hashes = run.load_league(league, list(range(2017, 2026)), spec)

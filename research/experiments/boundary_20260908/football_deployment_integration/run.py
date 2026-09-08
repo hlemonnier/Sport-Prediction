@@ -43,8 +43,8 @@ def save(path, value):
 def source_files():
     paths = [*ROOT.glob('packages/football/mrp/*.py'), Path(__file__),
         ROOT/'packages/football/tests/test_default_deployment.py', ROOT/'apps/api/src/index.js',
-        ROOT/'research/projects/football/Match Result Prediction/Python/run_experiment.py',
-        ROOT/'research/projects/football/Match Result Prediction/Python/mrp/__init__.py']
+        ROOT/'research/projects/Football/Match Result Prediction/Python/run_experiment.py',
+        ROOT/'research/projects/Football/Match Result Prediction/Python/mrp/__init__.py']
     return {str(p.relative_to(ROOT)): reference.sha(p) for p in paths}
 
 

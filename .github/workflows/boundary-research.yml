@@ -60,3 +60,4 @@ jobs:
           research/experiments/boundary_20260908/telemetry/test_models.py
           research/experiments/boundary_20260908/telemetry/test_evaluate.py
           research/experiments/boundary_20260908/telemetry/test_run.py
+          research/experiments/boundary_20260908/telemetry_verification_v2/test_verify.py

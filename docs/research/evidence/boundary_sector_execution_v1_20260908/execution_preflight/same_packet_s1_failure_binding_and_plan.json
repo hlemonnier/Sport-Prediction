@@ -1,0 +1,56 @@
+{
+  "alternative": "Retain the row with an explicit unsupported atomic-revision status. This would narrow the common issued population and must be declared before outcomes, rather than silently dropping the event.",
+  "conclusion": "The first supported mismatch is a genuine atomic S1 revision in the S2 packet, not loss of prior S1 from the cache.",
+  "diagnostic": {
+    "path": "artifacts/research/boundary_20260908/sector_forecast/execution_preflight/same_packet_s1_failure_diagnosis.json",
+    "sha256": "e27cbb4b442ef60aedb35f7e7145d582c8e4c3df03c908dc69d85720ebcec64c"
+  },
+  "manifest": {
+    "path": "artifacts/research/boundary_20260908/sector_forecast/acquisition.json",
+    "sha256": "6e4f3b16c7667a749c07dfe160e737832069729430cb4cead1eb71234971f37d"
+  },
+  "not_performed": [
+    "No build_event invocation",
+    "No features or baselines invoked",
+    "No CSV or targets read",
+    "No fitting or scoring",
+    "No frozen source edit"
+  ],
+  "proposed_minimal_v2_semantics": "Require an immutable earlier positive same-pilot-epoch S1 observation as prerequisite, while using the latest positive S1 value actually available in the S2 packet. Preserve the current packet source clock and record prerequisite provenance separately. This is an explicit source-availability amendment before any labels or scores; do not change the frozen v1.",
+  "regression_plan": [
+    "Use a raw two-row packet sequence: prior S1=30.526, then an atomic packet with S1 PreviousValue=30.526, Value=30.486 and first S2=31.233; include at least three strictly prior valid own completions. Assert the later S2 uses prefix [30.486,31.233], has all five points, and retains the current packet source clock.",
+    "Verify the same-packet S1 revision row is retained with its pilot status and the first S1 issued record remains byte-equivalent after the correction is appended.",
+    "Keep the existing unchanged-repeat test and require the real two-row same-packet ordering, with current S1 emitted before S2; verify no dependence on dictionary key order.",
+    "Verify a current-packet first S1 without earlier same-epoch support remains unsupported. Reversals, clears or reset epochs cannot manufacture prerequisite support.",
+    "Poison current S3 and later packets without changing issued S1/S2 features or baseline inputs; no later-sector value may enter the corrected prefix.",
+    "Assert no source clock is backdated, no target identity includes sector, and all models retain the same issued population."
+  ],
+  "source_files": {
+    "research/experiments/boundary_20260908/sector_forecast/completed.py": "3d6b88f0d7678ff542f08478b62ca766e7fbd2f4b559b855c78f9443c2e32917",
+    "research/experiments/boundary_20260908/sector_forecast/execution/data.py": "50d40552ef6d34e2d7891fbac7d4ea7c3e37df8c1cd057bab8ea612394c38936",
+    "research/experiments/boundary_20260908/sector_forecast/execution/test_data.py": "0a4c184c195a8821f226fc12f3379f4b2f5c062d6dfd9b1cc81a6ebae70ed211",
+    "research/experiments/boundary_20260908/sector_pilot/ledger.py": "74efc6f80e2264613c35f9c1924d29447d84233786e74076bf1dd9b6da709139"
+  },
+  "verified_raw_bindings": [
+    {
+      "path": "data/f1/boundary_20260908/sector_forecast/202213_SessionStatus.attempt1.httpbody",
+      "sha256": "ef8d196a9f6015bd9f33b340929c77abddb5e7412bc8ff468fda02ee33e87115",
+      "stream": "SessionStatus"
+    },
+    {
+      "path": "data/f1/boundary_20260908/sector_forecast/202213_TimingAppData.attempt1.httpbody",
+      "sha256": "0ed6680738a9c64b4312b2c1d279d529f649690bcd728ad19ff39fb46928c6be",
+      "stream": "TimingAppData"
+    },
+    {
+      "path": "data/f1/boundary_20260908/sector_forecast/202213_TimingData.attempt1.httpbody",
+      "sha256": "8ff434edd0c6d567627313fdd9730ff968da1b4ba724f008120600cf2fbbc1e6",
+      "stream": "TimingData"
+    },
+    {
+      "path": "data/f1/boundary_20260908/control/202213_TrackStatus.jsonStream",
+      "sha256": "10c1608ea0980ed82ecd7a7b2f5cb21d80bc14f688f27bb1fe3171399209c046",
+      "stream": "TrackStatus"
+    }
+  ]
+}

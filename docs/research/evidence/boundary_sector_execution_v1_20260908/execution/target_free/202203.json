@@ -1,0 +1,272 @@
+{
+  "event_key": 202203,
+  "path": "artifacts/research/boundary_20260908/sector_forecast/execution/target_free/202203.jsonl",
+  "sha256": "736704839de5f0c0b415416043dd99fa033c99510747e6bd58a6b28a695b9f4e",
+  "diagnostics": {
+    "event_key": 202203,
+    "records": 2064,
+    "status_counts": {
+      "pilot_excluded": 38,
+      "insufficient_history": 270,
+      "issued": 1756
+    },
+    "terminal_status": "Ends",
+    "terminal": true,
+    "stream_input_valid": true,
+    "completion_parser": {
+      "event_key": 202203,
+      "counts": {
+        "records": 1045,
+        "counter_initialization": 20,
+        "observed_valid_completed": 792,
+        "unit_counter_completion": 1023,
+        "late_completion_update": 1,
+        "counter_reversal": 1
+      },
+      "timing": {
+        "packets": 52233,
+        "timestamp_regressions": 0
+      },
+      "auxiliary": {
+        "SessionStatus": {
+          "packets": 5,
+          "timestamp_regressions": 0,
+          "consumed_errors": 0,
+          "unplaced_timestamp": false
+        },
+        "TrackStatus": {
+          "packets": 17,
+          "timestamp_regressions": 0,
+          "consumed_errors": 0,
+          "unplaced_timestamp": false
+        },
+        "TimingAppData": {
+          "packets": 893,
+          "timestamp_regressions": 0,
+          "consumed_errors": 0,
+          "unplaced_timestamp": false
+        }
+      },
+      "drivers": 20,
+      "stream_input_valid": true,
+      "canonical_alignment_certified": false,
+      "historical_client_receipt_certified": false
+    },
+    "pilot_parser": {
+      "timing": {
+        "packets": 52233,
+        "timestamp_regressions": 0,
+        "sector_clear_updates": 2135,
+        "candidate_checkpoints": 2026,
+        "counter_boundaries": 1044,
+        "counter_reversals": 1
+      },
+      "drivers": 20,
+      "sector_positive_updates": {
+        "2": 1043,
+        "3": 1043,
+        "1": 1021
+      },
+      "ledger_rows": 2064,
+      "update_kinds": {
+        "first": 2064
+      },
+      "ambiguity_counts": {
+        "unknown_counter": 20,
+        "no_strictly_prior_s1_in_epoch": 22,
+        "counter_quarantine": 2,
+        "prior_s1_attribution_ambiguous": 1
+      },
+      "raw_asof_field_present_rows": {
+        "Position": 2064,
+        "InPit": 2064,
+        "Sector2": 1043,
+        "SpeedI1": 2064,
+        "SpeedI2": 1043,
+        "SpeedST": 2064,
+        "TrackStatus": 2064,
+        "TyreCompound": 2064,
+        "TyreNew": 2064,
+        "TyreStartLaps": 2064,
+        "TyreTotalLaps": 2064,
+        "Sector1": 2044,
+        "ObservedCounter": 2044,
+        "LastLapTime": 2004
+      },
+      "session_states_at_updates": {
+        "Started": 2050,
+        "Finished": 14
+      },
+      "raw_driver_patch_keys": {
+        "GapToLeader": 21391,
+        "IntervalToPositionAhead": 21773,
+        "Line": 451,
+        "Position": 451,
+        "ShowPosition": 23,
+        "RacingNumber": 20,
+        "Retired": 20,
+        "InPit": 154,
+        "PitOut": 64,
+        "Stopped": 23,
+        "Status": 242,
+        "Sectors": 31487,
+        "Speeds": 4146,
+        "BestLapTime": 304,
+        "LastLapTime": 1045,
+        "NumberOfLaps": 1044,
+        "NumberOfPitStops": 22
+      },
+      "auxiliary": {
+        "SessionStatus": {
+          "packets": {
+            "packets": 5,
+            "timestamp_regressions": 0
+          },
+          "final_status": "Ends",
+          "final_status_time_ms": 9972088,
+          "blocked_by_unknown_timestamp": false
+        },
+        "TimingAppData": {
+          "packets": {
+            "packets": 893,
+            "timestamp_regressions": 0
+          },
+          "final_status": null,
+          "final_status_time_ms": null,
+          "blocked_by_unknown_timestamp": false
+        },
+        "TrackStatus": {
+          "packets": {
+            "packets": 17,
+            "timestamp_regressions": 0
+          },
+          "final_status": "1",
+          "final_status_time_ms": 9321742,
+          "blocked_by_unknown_timestamp": false
+        }
+      }
+    },
+    "context_parser": {
+      "contexts": {
+        "rows": 2064,
+        "known_asof_contamination_rows": 376,
+        "unknown_coverage_rows": 20
+      },
+      "timing": {
+        "packets": 52233,
+        "timestamp_regressions": 0
+      },
+      "drivers": 20
+    },
+    "source_streams": {
+      "TimingData": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/sector_forecast/202203_TimingData.attempt1.httpbody",
+        "sha256": "b95ce9d80660811695223cab99dfae8ea4d91c05904af88484a68ecaa47837a3",
+        "bytes": 5514949
+      },
+      "SessionStatus": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/sector_forecast/202203_SessionStatus.attempt1.httpbody",
+        "sha256": "e37f26ab9c311956f8bb26e921a8d23cd7e4ffae0a41e1aefc37cd8c6ba3aa13",
+        "bytes": 174
+      },
+      "TrackStatus": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/control/202203_TrackStatus.jsonStream",
+        "sha256": "151f14b01e7e36da15928f66d4fcd28ff4921dd0100d1c9a3cc9b9406aafe2dd",
+        "bytes": 837
+      },
+      "TimingAppData": {
+        "path": "/Users/lemonnierhugo/Desktop/Me/Coding Project/Sport Prediction/data/f1/boundary_20260908/sector_forecast/202203_TimingAppData.attempt1.httpbody",
+        "sha256": "ec9dba3487d8f09c25c16fd21411af5d3bd90007d15d2a0e82ff47a4f3ee8fc7",
+        "bytes": 94150
+      }
+    },
+    "feature_names": [
+      "stage",
+      "observed_counter",
+      "position",
+      "b4_lap_seconds",
+      "s1_over_b4",
+      "s2_over_b4",
+      "prefix_over_b4",
+      "history_count",
+      "last_completion_age_seconds",
+      "history10_span_seconds",
+      "history3_full_median_over_b4",
+      "history3_full_mad_over_b4",
+      "history3_full_trend_over_b4",
+      "history3_prefix_median_over_b4",
+      "history3_remainder_median_over_b4",
+      "history3_remainder_mad_over_b4",
+      "history3_remainder_trend_over_b4",
+      "history3_prefix_deviation_over_mad",
+      "history5_full_median_over_b4",
+      "history5_full_mad_over_b4",
+      "history5_full_trend_over_b4",
+      "history5_prefix_median_over_b4",
+      "history5_remainder_median_over_b4",
+      "history5_remainder_mad_over_b4",
+      "history5_remainder_trend_over_b4",
+      "history5_prefix_deviation_over_mad",
+      "history10_full_median_over_b4",
+      "history10_full_mad_over_b4",
+      "history10_full_trend_over_b4",
+      "history10_prefix_median_over_b4",
+      "history10_remainder_median_over_b4",
+      "history10_remainder_mad_over_b4",
+      "history10_remainder_trend_over_b4",
+      "history10_prefix_deviation_over_mad",
+      "history5_s1_median_over_b4",
+      "history5_s1_mad_over_b4",
+      "history5_s2_median_over_b4",
+      "history5_s2_mad_over_b4",
+      "history5_s3_median_over_b4",
+      "history5_s3_mad_over_b4",
+      "last_template_delta_over_b4",
+      "joint_median5_delta_over_b4",
+      "weighted_median10_delta_over_b4",
+      "gaussian_delta_over_b4",
+      "known_pit_contamination",
+      "known_neutralization_contamination",
+      "known_asof_contamination",
+      "unknown_coverage",
+      "epoch_age_seconds",
+      "current_in_pit",
+      "fresh_pit_out_true",
+      "current_track_yellow",
+      "track_status_age_seconds",
+      "track_state_unknown",
+      "compound_soft",
+      "compound_medium",
+      "compound_hard",
+      "compound_intermediate",
+      "compound_wet",
+      "compound_unknown",
+      "reported_tyre_new",
+      "reported_stint_index",
+      "reported_start_laps",
+      "reported_total_laps",
+      "tyre_latest_report_age_seconds",
+      "compound_report_age_seconds",
+      "speed_i1_kmh",
+      "speed_i1_missing",
+      "speed_i2_kmh",
+      "speed_i2_missing",
+      "speed_fl_kmh",
+      "speed_fl_missing",
+      "speed_st_kmh",
+      "speed_st_missing",
+      "gaussian_fallback"
+    ],
+    "point_names": [
+      "sector_last_template",
+      "sector_joint_median5",
+      "sector_weighted_median10",
+      "sector_pace_scaled_median5",
+      "sector_gaussian_conditional10"
+    ],
+    "target_free": true,
+    "canonical_csv_read": false,
+    "model_fits_or_scores": 0
+  },
+  "closed_at_utc": "2026-09-08T03:27:27.555511+00:00"
+}

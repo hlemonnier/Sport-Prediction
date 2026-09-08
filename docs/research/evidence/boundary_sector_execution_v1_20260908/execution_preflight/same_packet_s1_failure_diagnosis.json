@@ -1,0 +1,759 @@
+{
+  "failures": [
+    {
+      "all_supported_mismatch_keys": [
+        [
+          "47",
+          24357,
+          25
+        ]
+      ],
+      "completed_stream_valid": true,
+      "event_key": 202213,
+      "first_supported_mismatch": {
+        "all_epoch_s1": [
+          {
+            "ambiguity_reasons": [],
+            "candidate_checkpoint": true,
+            "canonical_hgb_exactly_reconstructible": false,
+            "canonical_hgb_unresolved_reasons": [
+              "No receipt-certified IsAccurate or equivalent completed-lap validation",
+              "Processed lap-end/lap-index alignment not reconstructed from raw prefixes",
+              "Highest observed tyre-stint record is not certified active/canonical TyreLife"
+            ],
+            "checkpoint_ms": 5977489,
+            "counter_highwater": 25,
+            "counter_seen": 25,
+            "driver": "47",
+            "event_key": 202213,
+            "exclusion_reasons": [],
+            "first_sector_sequence": 24356,
+            "historical_client_receipt_available": false,
+            "ledger_id": 1003,
+            "local_epoch": 25,
+            "packet_sequence": 24356,
+            "raw_field_presence": {
+              "InPit": true,
+              "IsAccurateRaw": false,
+              "LastLapTime": true,
+              "ObservedCounter": true,
+              "Position": true,
+              "Sector1": true,
+              "Sector2": false,
+              "Sector3": false,
+              "SpeedFL": false,
+              "SpeedI1": true,
+              "SpeedI2": false,
+              "SpeedST": true,
+              "TrackStatus": true,
+              "TyreCompound": true,
+              "TyreNew": true,
+              "TyreStartLaps": true,
+              "TyreTotalLaps": true
+            },
+            "receipt_clock": "archival_file_order_cumulative_timestamp_proxy_not_historical_client_receipt",
+            "received_driver_fields": {
+              "InPit": {
+                "available_ms": 5601421,
+                "sequence": 20453,
+                "value": false
+              },
+              "LastLapTime": {
+                "available_ms": 5946582,
+                "sequence": 24028,
+                "value": 85.712
+              },
+              "PitOut": {
+                "available_ms": 5630549,
+                "sequence": 20760,
+                "value": false
+              },
+              "Position": {
+                "available_ms": 5787336,
+                "sequence": 22386,
+                "value": "17"
+              },
+              "Retired": {
+                "available_ms": 2704,
+                "sequence": 1,
+                "value": false
+              },
+              "Sector1": {
+                "available_ms": 5977489,
+                "sequence": 24356,
+                "value": 30.526
+              },
+              "Sector2": {
+                "available_ms": 5977489,
+                "sequence": 24356,
+                "value": null
+              },
+              "Sector3": {
+                "available_ms": 5977489,
+                "sequence": 24356,
+                "value": null
+              },
+              "SpeedFL": {
+                "available_ms": 5977489,
+                "sequence": 24356,
+                "value": ""
+              },
+              "SpeedI1": {
+                "available_ms": 5891356,
+                "sequence": 23464,
+                "value": "273"
+              },
+              "SpeedI2": {
+                "available_ms": 5977489,
+                "sequence": 24356,
+                "value": ""
+              },
+              "SpeedST": {
+                "available_ms": 5950725,
+                "sequence": 24082,
+                "value": "280"
+              },
+              "Stopped": {
+                "available_ms": 2704,
+                "sequence": 1,
+                "value": false
+              }
+            },
+            "received_tyre_candidate": {
+              "active_stint_certified": false,
+              "fields": {
+                "Compound": {
+                  "available_ms": 5602420,
+                  "recorded_ms": 5602420,
+                  "sequence": 376,
+                  "timestamp_regressed": false,
+                  "value": "HARD"
+                },
+                "LapNumber": {
+                  "available_ms": 5946582,
+                  "recorded_ms": 5946582,
+                  "sequence": 456,
+                  "timestamp_regressed": false,
+                  "value": 25
+                },
+                "New": {
+                  "available_ms": 5602420,
+                  "recorded_ms": 5602420,
+                  "sequence": 376,
+                  "timestamp_regressed": false,
+                  "value": "true"
+                },
+                "StartLaps": {
+                  "available_ms": 5602420,
+                  "recorded_ms": 5602420,
+                  "sequence": 376,
+                  "timestamp_regressed": false,
+                  "value": 0
+                },
+                "TotalLaps": {
+                  "available_ms": 5947428,
+                  "recorded_ms": 5947428,
+                  "sequence": 457,
+                  "timestamp_regressed": false,
+                  "value": 4
+                }
+              },
+              "highest_observed_stint_index": 1
+            },
+            "recorded_ms": 5977489,
+            "sector": 1,
+            "sector_seconds": 30.526,
+            "session_status": "Started",
+            "session_status_available_ms": 3725807,
+            "session_status_source": {
+              "recorded_ms": 3725807,
+              "sequence": 1,
+              "timestamp_regressed": false
+            },
+            "track_status": "1",
+            "track_status_available_ms": 3953098,
+            "track_status_source": {
+              "recorded_ms": 3953098,
+              "sequence": 6,
+              "timestamp_regressed": false
+            },
+            "update_kind": "first"
+          },
+          {
+            "ambiguity_reasons": [],
+            "candidate_checkpoint": false,
+            "canonical_hgb_exactly_reconstructible": false,
+            "canonical_hgb_unresolved_reasons": [
+              "No receipt-certified IsAccurate or equivalent completed-lap validation",
+              "Processed lap-end/lap-index alignment not reconstructed from raw prefixes",
+              "Highest observed tyre-stint record is not certified active/canonical TyreLife"
+            ],
+            "checkpoint_ms": 5977490,
+            "counter_highwater": 25,
+            "counter_seen": 25,
+            "driver": "47",
+            "event_key": 202213,
+            "exclusion_reasons": [
+              "not_first_sector_value_in_epoch"
+            ],
+            "first_sector_sequence": 24356,
+            "historical_client_receipt_available": false,
+            "ledger_id": 1004,
+            "local_epoch": 25,
+            "packet_sequence": 24357,
+            "raw_field_presence": {
+              "InPit": true,
+              "IsAccurateRaw": false,
+              "LastLapTime": true,
+              "ObservedCounter": true,
+              "Position": true,
+              "Sector1": true,
+              "Sector2": true,
+              "Sector3": true,
+              "SpeedFL": true,
+              "SpeedI1": true,
+              "SpeedI2": true,
+              "SpeedST": true,
+              "TrackStatus": true,
+              "TyreCompound": true,
+              "TyreNew": true,
+              "TyreStartLaps": true,
+              "TyreTotalLaps": true
+            },
+            "receipt_clock": "archival_file_order_cumulative_timestamp_proxy_not_historical_client_receipt",
+            "received_driver_fields": {
+              "InPit": {
+                "available_ms": 5601421,
+                "sequence": 20453,
+                "value": false
+              },
+              "LastLapTime": {
+                "available_ms": 5946582,
+                "sequence": 24028,
+                "value": 85.712
+              },
+              "PitOut": {
+                "available_ms": 5630549,
+                "sequence": 20760,
+                "value": false
+              },
+              "Position": {
+                "available_ms": 5787336,
+                "sequence": 22386,
+                "value": "17"
+              },
+              "Retired": {
+                "available_ms": 2704,
+                "sequence": 1,
+                "value": false
+              },
+              "Sector1": {
+                "available_ms": 5977490,
+                "sequence": 24357,
+                "value": 30.486
+              },
+              "Sector2": {
+                "available_ms": 5977490,
+                "sequence": 24357,
+                "value": 31.233
+              },
+              "Sector3": {
+                "available_ms": 5977490,
+                "sequence": 24357,
+                "value": 23.993
+              },
+              "SpeedFL": {
+                "available_ms": 5977490,
+                "sequence": 24357,
+                "value": "243"
+              },
+              "SpeedI1": {
+                "available_ms": 5891356,
+                "sequence": 23464,
+                "value": "273"
+              },
+              "SpeedI2": {
+                "available_ms": 5977490,
+                "sequence": 24357,
+                "value": "229"
+              },
+              "SpeedST": {
+                "available_ms": 5950725,
+                "sequence": 24082,
+                "value": "280"
+              },
+              "Stopped": {
+                "available_ms": 2704,
+                "sequence": 1,
+                "value": false
+              }
+            },
+            "received_tyre_candidate": {
+              "active_stint_certified": false,
+              "fields": {
+                "Compound": {
+                  "available_ms": 5602420,
+                  "recorded_ms": 5602420,
+                  "sequence": 376,
+                  "timestamp_regressed": false,
+                  "value": "HARD"
+                },
+                "LapNumber": {
+                  "available_ms": 5946582,
+                  "recorded_ms": 5946582,
+                  "sequence": 456,
+                  "timestamp_regressed": false,
+                  "value": 25
+                },
+                "New": {
+                  "available_ms": 5602420,
+                  "recorded_ms": 5602420,
+                  "sequence": 376,
+                  "timestamp_regressed": false,
+                  "value": "true"
+                },
+                "StartLaps": {
+                  "available_ms": 5602420,
+                  "recorded_ms": 5602420,
+                  "sequence": 376,
+                  "timestamp_regressed": false,
+                  "value": 0
+                },
+                "TotalLaps": {
+                  "available_ms": 5947428,
+                  "recorded_ms": 5947428,
+                  "sequence": 457,
+                  "timestamp_regressed": false,
+                  "value": 4
+                }
+              },
+              "highest_observed_stint_index": 1
+            },
+            "recorded_ms": 5977490,
+            "sector": 1,
+            "sector_seconds": 30.486,
+            "session_status": "Started",
+            "session_status_available_ms": 3725807,
+            "session_status_source": {
+              "recorded_ms": 3725807,
+              "sequence": 1,
+              "timestamp_regressed": false
+            },
+            "track_status": "1",
+            "track_status_available_ms": 3953098,
+            "track_status_source": {
+              "recorded_ms": 3953098,
+              "sequence": 6,
+              "timestamp_regressed": false
+            },
+            "update_kind": "revision"
+          }
+        ],
+        "earlier_s1": {
+          "ambiguity_reasons": [],
+          "candidate_checkpoint": true,
+          "canonical_hgb_exactly_reconstructible": false,
+          "canonical_hgb_unresolved_reasons": [
+            "No receipt-certified IsAccurate or equivalent completed-lap validation",
+            "Processed lap-end/lap-index alignment not reconstructed from raw prefixes",
+            "Highest observed tyre-stint record is not certified active/canonical TyreLife"
+          ],
+          "checkpoint_ms": 5977489,
+          "counter_highwater": 25,
+          "counter_seen": 25,
+          "driver": "47",
+          "event_key": 202213,
+          "exclusion_reasons": [],
+          "first_sector_sequence": 24356,
+          "historical_client_receipt_available": false,
+          "ledger_id": 1003,
+          "local_epoch": 25,
+          "packet_sequence": 24356,
+          "raw_field_presence": {
+            "InPit": true,
+            "IsAccurateRaw": false,
+            "LastLapTime": true,
+            "ObservedCounter": true,
+            "Position": true,
+            "Sector1": true,
+            "Sector2": false,
+            "Sector3": false,
+            "SpeedFL": false,
+            "SpeedI1": true,
+            "SpeedI2": false,
+            "SpeedST": true,
+            "TrackStatus": true,
+            "TyreCompound": true,
+            "TyreNew": true,
+            "TyreStartLaps": true,
+            "TyreTotalLaps": true
+          },
+          "receipt_clock": "archival_file_order_cumulative_timestamp_proxy_not_historical_client_receipt",
+          "received_driver_fields": {
+            "InPit": {
+              "available_ms": 5601421,
+              "sequence": 20453,
+              "value": false
+            },
+            "LastLapTime": {
+              "available_ms": 5946582,
+              "sequence": 24028,
+              "value": 85.712
+            },
+            "PitOut": {
+              "available_ms": 5630549,
+              "sequence": 20760,
+              "value": false
+            },
+            "Position": {
+              "available_ms": 5787336,
+              "sequence": 22386,
+              "value": "17"
+            },
+            "Retired": {
+              "available_ms": 2704,
+              "sequence": 1,
+              "value": false
+            },
+            "Sector1": {
+              "available_ms": 5977489,
+              "sequence": 24356,
+              "value": 30.526
+            },
+            "Sector2": {
+              "available_ms": 5977489,
+              "sequence": 24356,
+              "value": null
+            },
+            "Sector3": {
+              "available_ms": 5977489,
+              "sequence": 24356,
+              "value": null
+            },
+            "SpeedFL": {
+              "available_ms": 5977489,
+              "sequence": 24356,
+              "value": ""
+            },
+            "SpeedI1": {
+              "available_ms": 5891356,
+              "sequence": 23464,
+              "value": "273"
+            },
+            "SpeedI2": {
+              "available_ms": 5977489,
+              "sequence": 24356,
+              "value": ""
+            },
+            "SpeedST": {
+              "available_ms": 5950725,
+              "sequence": 24082,
+              "value": "280"
+            },
+            "Stopped": {
+              "available_ms": 2704,
+              "sequence": 1,
+              "value": false
+            }
+          },
+          "received_tyre_candidate": {
+            "active_stint_certified": false,
+            "fields": {
+              "Compound": {
+                "available_ms": 5602420,
+                "recorded_ms": 5602420,
+                "sequence": 376,
+                "timestamp_regressed": false,
+                "value": "HARD"
+              },
+              "LapNumber": {
+                "available_ms": 5946582,
+                "recorded_ms": 5946582,
+                "sequence": 456,
+                "timestamp_regressed": false,
+                "value": 25
+              },
+              "New": {
+                "available_ms": 5602420,
+                "recorded_ms": 5602420,
+                "sequence": 376,
+                "timestamp_regressed": false,
+                "value": "true"
+              },
+              "StartLaps": {
+                "available_ms": 5602420,
+                "recorded_ms": 5602420,
+                "sequence": 376,
+                "timestamp_regressed": false,
+                "value": 0
+              },
+              "TotalLaps": {
+                "available_ms": 5947428,
+                "recorded_ms": 5947428,
+                "sequence": 457,
+                "timestamp_regressed": false,
+                "value": 4
+              }
+            },
+            "highest_observed_stint_index": 1
+          },
+          "recorded_ms": 5977489,
+          "sector": 1,
+          "sector_seconds": 30.526,
+          "session_status": "Started",
+          "session_status_available_ms": 3725807,
+          "session_status_source": {
+            "recorded_ms": 3725807,
+            "sequence": 1,
+            "timestamp_regressed": false
+          },
+          "track_status": "1",
+          "track_status_available_ms": 3953098,
+          "track_status_source": {
+            "recorded_ms": 3953098,
+            "sequence": 6,
+            "timestamp_regressed": false
+          },
+          "update_kind": "first"
+        },
+        "row": {
+          "ambiguity_reasons": [],
+          "candidate_checkpoint": true,
+          "canonical_hgb_exactly_reconstructible": false,
+          "canonical_hgb_unresolved_reasons": [
+            "No receipt-certified IsAccurate or equivalent completed-lap validation",
+            "Processed lap-end/lap-index alignment not reconstructed from raw prefixes",
+            "Highest observed tyre-stint record is not certified active/canonical TyreLife"
+          ],
+          "checkpoint_ms": 5977490,
+          "counter_highwater": 25,
+          "counter_seen": 25,
+          "driver": "47",
+          "event_key": 202213,
+          "exclusion_reasons": [],
+          "first_sector_sequence": 24357,
+          "historical_client_receipt_available": false,
+          "ledger_id": 1005,
+          "local_epoch": 25,
+          "packet_sequence": 24357,
+          "raw_field_presence": {
+            "InPit": true,
+            "IsAccurateRaw": false,
+            "LastLapTime": true,
+            "ObservedCounter": true,
+            "Position": true,
+            "Sector1": true,
+            "Sector2": true,
+            "Sector3": true,
+            "SpeedFL": true,
+            "SpeedI1": true,
+            "SpeedI2": true,
+            "SpeedST": true,
+            "TrackStatus": true,
+            "TyreCompound": true,
+            "TyreNew": true,
+            "TyreStartLaps": true,
+            "TyreTotalLaps": true
+          },
+          "receipt_clock": "archival_file_order_cumulative_timestamp_proxy_not_historical_client_receipt",
+          "received_driver_fields": {
+            "InPit": {
+              "available_ms": 5601421,
+              "sequence": 20453,
+              "value": false
+            },
+            "LastLapTime": {
+              "available_ms": 5946582,
+              "sequence": 24028,
+              "value": 85.712
+            },
+            "PitOut": {
+              "available_ms": 5630549,
+              "sequence": 20760,
+              "value": false
+            },
+            "Position": {
+              "available_ms": 5787336,
+              "sequence": 22386,
+              "value": "17"
+            },
+            "Retired": {
+              "available_ms": 2704,
+              "sequence": 1,
+              "value": false
+            },
+            "Sector1": {
+              "available_ms": 5977490,
+              "sequence": 24357,
+              "value": 30.486
+            },
+            "Sector2": {
+              "available_ms": 5977490,
+              "sequence": 24357,
+              "value": 31.233
+            },
+            "Sector3": {
+              "available_ms": 5977490,
+              "sequence": 24357,
+              "value": 23.993
+            },
+            "SpeedFL": {
+              "available_ms": 5977490,
+              "sequence": 24357,
+              "value": "243"
+            },
+            "SpeedI1": {
+              "available_ms": 5891356,
+              "sequence": 23464,
+              "value": "273"
+            },
+            "SpeedI2": {
+              "available_ms": 5977490,
+              "sequence": 24357,
+              "value": "229"
+            },
+            "SpeedST": {
+              "available_ms": 5950725,
+              "sequence": 24082,
+              "value": "280"
+            },
+            "Stopped": {
+              "available_ms": 2704,
+              "sequence": 1,
+              "value": false
+            }
+          },
+          "received_tyre_candidate": {
+            "active_stint_certified": false,
+            "fields": {
+              "Compound": {
+                "available_ms": 5602420,
+                "recorded_ms": 5602420,
+                "sequence": 376,
+                "timestamp_regressed": false,
+                "value": "HARD"
+              },
+              "LapNumber": {
+                "available_ms": 5946582,
+                "recorded_ms": 5946582,
+                "sequence": 456,
+                "timestamp_regressed": false,
+                "value": 25
+              },
+              "New": {
+                "available_ms": 5602420,
+                "recorded_ms": 5602420,
+                "sequence": 376,
+                "timestamp_regressed": false,
+                "value": "true"
+              },
+              "StartLaps": {
+                "available_ms": 5602420,
+                "recorded_ms": 5602420,
+                "sequence": 376,
+                "timestamp_regressed": false,
+                "value": 0
+              },
+              "TotalLaps": {
+                "available_ms": 5947428,
+                "recorded_ms": 5947428,
+                "sequence": 457,
+                "timestamp_regressed": false,
+                "value": 4
+              }
+            },
+            "highest_observed_stint_index": 1
+          },
+          "recorded_ms": 5977490,
+          "sector": 2,
+          "sector_seconds": 31.233,
+          "session_status": "Started",
+          "session_status_available_ms": 3725807,
+          "session_status_source": {
+            "recorded_ms": 3725807,
+            "sequence": 1,
+            "timestamp_regressed": false
+          },
+          "track_status": "1",
+          "track_status_available_ms": 3953098,
+          "track_status_source": {
+            "recorded_ms": 3953098,
+            "sequence": 6,
+            "timestamp_regressed": false
+          },
+          "update_kind": "first"
+        },
+        "strictly_prior_valid_own_completion_count": 20
+      },
+      "raw_driver_packets": [
+        {
+          "available_ms": 5977489,
+          "driver_patch": {
+            "Sectors": {
+              "0": {
+                "Value": "30.526"
+              },
+              "1": {
+                "Value": ""
+              },
+              "2": {
+                "Value": ""
+              }
+            },
+            "Speeds": {
+              "FL": {
+                "Value": ""
+              },
+              "I2": {
+                "Value": ""
+              }
+            }
+          },
+          "recorded_ms": 5977489,
+          "sequence": 24356
+        },
+        {
+          "available_ms": 5977490,
+          "driver_patch": {
+            "Sectors": {
+              "0": {
+                "PreviousValue": "30.526",
+                "Value": "30.486"
+              },
+              "1": {
+                "Value": "31.233"
+              },
+              "2": {
+                "Value": "23.993"
+              }
+            },
+            "Speeds": {
+              "FL": {
+                "Value": "243"
+              },
+              "I2": {
+                "Value": "229"
+              }
+            }
+          },
+          "recorded_ms": 5977490,
+          "sequence": 24357
+        }
+      ],
+      "source_paths": {
+        "SessionStatus": "data/f1/boundary_20260908/sector_forecast/202213_SessionStatus.attempt1.httpbody",
+        "TimingAppData": "data/f1/boundary_20260908/sector_forecast/202213_TimingAppData.attempt1.httpbody",
+        "TimingData": "data/f1/boundary_20260908/sector_forecast/202213_TimingData.attempt1.httpbody",
+        "TrackStatus": "data/f1/boundary_20260908/control/202213_TrackStatus.jsonStream"
+      }
+    }
+  ],
+  "scanned": [
+    {
+      "event_key": 202213,
+      "positive_rows": 2746,
+      "same_packet_s1_mismatch_candidates": 1
+    }
+  ],
+  "scope": "Independent raw ledger/completion structural diagnosis only; no build_event, features, baselines, CSV, targets, fitting or scores."
+}
